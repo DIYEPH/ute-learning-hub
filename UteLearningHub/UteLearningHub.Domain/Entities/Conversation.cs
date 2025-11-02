@@ -1,0 +1,23 @@
+﻿using UteLearningHub.Domain.Constaints.Enums;
+using UteLearningHub.Domain.Entities.Base;
+
+namespace UteLearningHub.Domain.Entities;
+
+public class Conversation : BaseEntity<Guid>, IAggregateRoot, IAuditable<Guid>
+{
+    public Guid SubjectId { get; set;}
+    public Guid LastMessage { get; set;}
+    public string ConversationName { get; set; } = default!;
+    public string Topic { get; set; } = default!;
+    public bool IsSuggestedByAI { get; set; }
+    public bool IsAllowMemberPin {  get; set; }
+    public ConversitionType ConversationType { get; set; } 
+    public ConversationStatus ConversationStatus { get; set; } = ConversationStatus.Active;
+    public Subject Subject { get; set; } = default!;
+    public ICollection<ConversationMember> Members { get; set; } = [];
+    public ICollection<Message> Messages { get; set; } = [];
+    public ICollection<ConversationJoinRequest> ConversationJoinRequests { get; set; } = [];
+
+    public Guid CreatedBy { get; set; }
+    public Guid UpdatedBy { get; set; }
+}

@@ -1,0 +1,29 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Persistence.Configurations.Common;
+using UteLearningHub.Domain.Constaints;
+using UteLearningHub.Domain.Entities;
+
+namespace Persistence.Configurations;
+public class NotificationConfiguration : IEntityTypeConfiguration<Notification>
+{
+    public void Configure(EntityTypeBuilder<Notification> builder)
+    {
+        builder.ToTable(DbTableNames.Notification);
+
+        builder.HasKey(u => u.Id);
+
+        builder.Property(u => u.ObjectId).HasColumnName("DoiTuongId");
+        builder.Property(u => u.Title).HasColumnType("TieuDe");
+        builder.Property(u => u.Content).HasColumnType("NoiDung");
+        builder.Property(u => u.Link).HasColumnName("Link");
+        builder.Property(u => u.IsGlobal).HasColumnName("CoToanBo");
+        builder.Property(u => u.ExpiredAt).HasColumnName("ThoiGianHetHan");
+        builder.Property(u => u.NotificationType).HasColumnName("LoaiThongBao");
+        builder.Property(u => u.NotificationPriorityType).HasColumnName("CapDoThongBao");
+
+        builder.ApplySoftDelete<Notification, Guid>()
+            .ApplyTrack<Notification>()
+            .ApplyAudit<Notification, Guid>();
+    }
+}
