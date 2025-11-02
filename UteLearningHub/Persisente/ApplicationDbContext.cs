@@ -1,15 +1,12 @@
-﻿using System;
-using System.Reflection;
-using System.Reflection.Emit;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Persistence.Identity;
+using UteLearningHub.Persistence.Identity;
 using UteLearningHub.Domain.Entities;
 using DomainFile = UteLearningHub.Domain.Entities.File;
 using DomainType = UteLearningHub.Domain.Entities.Type;
 
-namespace Persistence;
+namespace UteLearningHub.Persistence;
 
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options)
 {

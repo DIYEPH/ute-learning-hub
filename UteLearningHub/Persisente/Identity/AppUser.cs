@@ -3,7 +3,7 @@ using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Entities.Base;
 
-namespace Persistence.Identity;
+namespace UteLearningHub.Persistence.Identity;
 
 public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete<Guid>
 {

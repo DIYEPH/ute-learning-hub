@@ -1,10 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Persistence.Configurations.Common;
+using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
 
-namespace Persistence.Configurations;
+namespace UteLearningHub.Persistence.Configurations;
 
 public class DocumentReviewConfiguration : IEntityTypeConfiguration<DocumentReview>
 {

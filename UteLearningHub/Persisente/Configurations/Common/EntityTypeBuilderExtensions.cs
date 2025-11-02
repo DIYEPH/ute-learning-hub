@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UteLearningHub.Domain.Entities.Base;
 
-namespace Persistence.Configurations.Common;
+namespace UteLearningHub.Persistence.Configurations.Common;
 
 public static class EntityTypeBuilderExtensions
 {

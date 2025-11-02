@@ -1,12 +1,21 @@
+using UteLearningHub.Api.ConfigurationOptions;
+using UteLearningHub.Persistence;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-var 
+var services = builder.Services;
+var configurations = builder.Configuration;
 
-//builder.Services.AddControllers();
+var appSettings = new AppSettings();
+configurations.Bind(appSettings);
 
-builder.Services.AddOpenApi();
+services.Configure<AppSettings>(configurations);
+ 
+services.AddPersistence(appSettings.ConnectionStrings);
+
+services.AddOpenApi();
 
 var app = builder.Build();
 
