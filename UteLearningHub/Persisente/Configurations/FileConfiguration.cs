@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Persistence.Configurations.Common;
+using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
 using DomainFile = UteLearningHub.Domain.Entities.File;
 
-namespace Persistence.Configurations;
+namespace UteLearningHub.Persistence.Configurations;
 
 public class FileConfiguration : IEntityTypeConfiguration<DomainFile>
 {

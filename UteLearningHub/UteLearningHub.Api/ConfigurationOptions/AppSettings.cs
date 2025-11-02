@@ -2,5 +2,5 @@
 
 public class AppSettings
 {
-    public string ConnectionString { get; set; } = default!;
+    public ConnectionString ConnectionStrings { get; set; } = default!;
 }

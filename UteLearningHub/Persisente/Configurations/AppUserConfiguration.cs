@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Persistence.Identity;
+using UteLearningHub.Persistence.Identity;
 using UteLearningHub.Domain.Constaints;
 
-namespace Persistence.MappingConfigurations;
+namespace UteLearningHub.Persistence.MappingConfigurations;
 
 public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
 {

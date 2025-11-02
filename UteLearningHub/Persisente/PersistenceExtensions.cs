@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Persistence;
+namespace UteLearningHub.Persistence;
 
 public static class PersistenceExtensions
 {

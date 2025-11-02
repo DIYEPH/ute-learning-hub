@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
 
-namespace Persistence.Configurations;
+namespace UteLearningHub.Persistence.Configurations;
 
 public class DocumentFileConfiguration : IEntityTypeConfiguration<DocumentFile>
 {
