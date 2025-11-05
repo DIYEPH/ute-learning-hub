@@ -20,7 +20,7 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(u => u.Description).HasColumnName("MoTa");
         builder.Property(u => u.AuthorName).HasColumnName("TacGia");
         builder.Property(u => u.DescriptionAuthor).HasColumnName("MoTaTacGia");
-        builder.Property(u => u.Slug).HasColumnName("TenThanThien");
+        builder.Property(u => u.NormalizedName).HasColumnName("TenChuanHoa");
         builder.Property(u => u.IsDownload).HasColumnName("CoDuocTai");
         builder.Property(u => u.Visibility).HasColumnName("CoHienThi");
 

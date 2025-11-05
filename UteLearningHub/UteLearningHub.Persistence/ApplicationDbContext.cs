@@ -27,11 +27,11 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<MessageFile> MessagesFile { get; set; }
     public virtual DbSet<Notification> Notifications { get; set; }
     public virtual DbSet<NotificationRecipient> NotificationRecipients { get; set; }
-    public virtual DbSet<ProfileVector> ProfileVectors { get; set; }
+    //public virtual DbSet<ProfileVector> ProfileVectors { get; set; }
     public virtual DbSet<Report> Reports { get; set; }
     public virtual DbSet<Tag> Tags { get; set; }
     public virtual DbSet<DomainType> Types { get; set; }
-    public virtual DbSet<UserTrustHistory> UserTrustHistories { get; set; }
+    //public virtual DbSet<UserTrustHistory> UserTrustHistories { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

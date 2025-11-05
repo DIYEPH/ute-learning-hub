@@ -16,7 +16,7 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
         builder.HasKey(t => t.Id);
 
         builder.Property(u => u.ConversationId).HasColumnName("CuocTroChuyenId");
-        builder.Property(u => u.ParentId).HasColumnName("ParentId");
+        builder.Property(u => u.ParentId).HasColumnName("PhanTuChaId");
         builder.Property(u => u.Content).HasColumnName("NoiDung");
         builder.Property(u => u.IsEdit).HasColumnName("CoChinhSua");
         builder.Property(u => u.IsPined).HasColumnName("CoDaGhim");

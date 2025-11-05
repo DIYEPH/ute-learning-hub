@@ -11,7 +11,7 @@ public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
     public Guid MajorId { get; set; }
     public string Introduction { get; set; } = default!;
     public string AvatarUrl { get; set; } = default!;
-    public int TrustScrore { get; set; } = 0;
+    public int TrustScore { get; set; } = 0;
     public bool IsSuggest { get; set; }
     public TrustLever TrustLever { get; set; } = TrustLever.None;
     public Gender Gender { get; set; } = Gender.Other;
