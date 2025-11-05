@@ -13,7 +13,7 @@ configurations.Bind(appSettings);
 
 services.Configure<AppSettings>(configurations);
  
-services.AddPersistence(appSettings.ConnectionStrings);
+services.AddPersistence(appSettings.ConnectionStrings.DefaultConnection);
 
 services.AddOpenApi();
 

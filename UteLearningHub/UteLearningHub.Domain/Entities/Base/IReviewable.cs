@@ -2,10 +2,10 @@
 
 namespace UteLearningHub.Domain.Entities.Base;
 
-public interface IReviewable<TKey>
+public interface IReviewable
 {
-    TKey ReviewedBy { get; set; }
-    string ReviewNote { get; set; }
-    DateTimeOffset ReviewedAt { get; set; }
+    Guid? ReviewedById { get; set; }
+    string? ReviewNote { get; set; }
+    DateTimeOffset? ReviewedAt { get; set; }
     ReviewStatus ReviewStatus { get; set; }
 }

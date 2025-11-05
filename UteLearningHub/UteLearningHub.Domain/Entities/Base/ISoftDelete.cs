@@ -1,8 +1,8 @@
 ﻿namespace UteLearningHub.Domain.Entities.Base;
 
-public interface ISoftDelete<TKey>
+public interface ISoftDelete
 {
     bool IsDeleted { get; set; }
-    DateTimeOffset DeletedAt { get; set; }
-    TKey DeletedBy { get; set; }
+    DateTimeOffset? DeletedAt { get; set; }
+    Guid? DeletedById { get; set; }
 }

@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using UteLearningHub.Persistence.Identity;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Identity;
 using DomainFile = UteLearningHub.Domain.Entities.File;
 using DomainType = UteLearningHub.Domain.Entities.Type;
 
@@ -18,7 +19,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<DocumentFile> DocumentFiles { get; set; }
     public virtual DbSet<DocumentReview> DocumentReviews { get; set; }
     public virtual DbSet<DocumentTag> DocumentTags { get; set; }
-    public virtual DbSet<Event> Events { get; set; }
+    //public virtual DbSet<Event> Events { get; set; }
     public virtual DbSet<Faculty> Faculty { get; set; }
     public virtual DbSet<DomainFile> Files { get; set; }
     public virtual DbSet<Major> Majors { get; set; }
@@ -30,7 +31,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<Report> Reports { get; set; }
     public virtual DbSet<Tag> Tags { get; set; }
     public virtual DbSet<DomainType> Types { get; set; }
-    public virtual DbSet<UserTrust> UserTrusts { get; set; }
+    public virtual DbSet<UserTrustHistory> UserTrustHistories { get; set; }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);

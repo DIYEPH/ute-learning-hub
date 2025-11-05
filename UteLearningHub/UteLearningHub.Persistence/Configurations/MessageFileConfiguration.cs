@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
+using DomainFile = UteLearningHub.Domain.Entities.File;
 
 namespace UteLearningHub.Persistence.Configurations;
 
@@ -16,5 +16,15 @@ public class MessageFileConfiguration : IEntityTypeConfiguration<MessageFile>
 
         builder.Property(u => u.FileId).HasColumnName("TepId");
         builder.Property(u => u.MessageId).HasColumnName("TinNhanId");
+
+        builder.HasOne(u => u.Message)
+            .WithMany(u => u.MessageFiles)
+            .HasForeignKey(u => u.MessageId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(u => u.File)
+            .WithMany(u => u.MessageFiles)
+            .HasForeignKey(u => u.FileId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

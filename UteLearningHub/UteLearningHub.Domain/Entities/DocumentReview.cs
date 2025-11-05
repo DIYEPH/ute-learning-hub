@@ -3,12 +3,12 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class DocumentReview : BaseEntity<Guid>, IAuditable<Guid>
+public class DocumentReview : BaseEntity<Guid>, IAuditable
 {
     public Guid DocumentId { get; set; }
     public DocumentReviewType DocumentReviewType { get; set; }
     public Document Document { get; set; } = default!;
 
-    public Guid CreatedBy { get; set; }
-    public Guid UpdatedBy { get; set; }
+    public Guid CreatedById { get; set; }
+    public Guid? UpdatedById { get; set; }
 }

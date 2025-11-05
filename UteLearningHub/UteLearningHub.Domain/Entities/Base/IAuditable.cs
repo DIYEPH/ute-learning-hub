@@ -1,7 +1,7 @@
 ﻿namespace UteLearningHub.Domain.Entities.Base;
 
-public interface IAuditable<TKey>
+public interface IAuditable
 {
-    TKey CreatedBy { get; set; }
-    TKey UpdatedBy { get; set; }
+    Guid CreatedById { get; set; }
+    Guid? UpdatedById { get; set; }
 }
