@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Identity;
+using DomainType = UteLearningHub.Domain.Entities.Type;
 
 namespace UteLearningHub.Persistence.Configurations;
 public class DocumentConfiguration : IEntityTypeConfiguration<Document>
@@ -14,17 +16,32 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.HasKey(u => u.Id);
 
         builder.Property(u => u.SubjectId).HasColumnName("MonHocId");
-        builder.Property(u => u.TypeId).HasColumnType("TheId");
-        builder.Property(u => u.Description).HasColumnType("MoTa");
+        builder.Property(u => u.TypeId).HasColumnName("TheId");
+        builder.Property(u => u.Description).HasColumnName("MoTa");
         builder.Property(u => u.AuthorName).HasColumnName("TacGia");
         builder.Property(u => u.DescriptionAuthor).HasColumnName("MoTaTacGia");
         builder.Property(u => u.Slug).HasColumnName("TenThanThien");
         builder.Property(u => u.IsDownload).HasColumnName("CoDuocTai");
         builder.Property(u => u.Visibility).HasColumnName("CoHienThi");
 
-        builder.ApplySoftDelete<Document, Guid>()
+        builder.ApplySoftDelete<Document>()
             .ApplyTrack<Document>()
-            .ApplyAudit<Document, Guid>()
-            .ApplyReview<Document, Guid>();
+            .ApplyAudit<Document>()
+            .ApplyReview<Document>();
+
+        builder.HasOne<AppUser>()
+            .WithMany(u => u.Documents)
+            .HasForeignKey(u => u.CreatedById)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(u => u.Subject)
+            .WithMany(u => u.Documents)
+            .HasForeignKey(u => u.SubjectId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(u => u.Type)
+            .WithMany(u => u.Documents)
+            .HasForeignKey(u => u.TypeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

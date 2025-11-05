@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UteLearningHub.Persistence.Identity;
 using UteLearningHub.Domain.Constaints;
 
-namespace UteLearningHub.Persistence.MappingConfigurations;
+namespace UteLearningHub.Persistence.Configurations;
 
 public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
 {
@@ -11,7 +11,7 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
     {
         builder.ToTable(DbTableNames.AspNetUsers);
 
-        builder.Property(u => u.MajorId).HasColumnName("MaNganh").HasColumnType("varchar(max)");
+        builder.Property(u => u.MajorId).HasColumnName("MaNganh");
         builder.Property(u => u.Introduction).HasColumnName("GioiThieu");
         builder.Property(u => u.IsSuggest).HasColumnName("CoGoiY");
         builder.Property(u => u.Gender).HasColumnName("GioiTinh");

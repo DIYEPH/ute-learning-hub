@@ -3,7 +3,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Notification : BaseEntity<Guid>, IAggregateRoot, IAuditable<Guid>
+public class Notification : BaseEntity<Guid>, IAggregateRoot, IAuditable
 {
     public Guid ObjectId { get; set; }
     public string Title { get; set; } = default!;
@@ -15,7 +15,7 @@ public class Notification : BaseEntity<Guid>, IAggregateRoot, IAuditable<Guid>
     public NotificationPriorityType NotificationPriorityType { get; set; } = NotificationPriorityType.Low;
     public ICollection<NotificationRecipient> Recipients { get; set; } = [];
 
-    public Guid CreatedBy { get; set; }
-    public Guid UpdatedBy { get; set; }
+    public Guid CreatedById { get; set; }
+    public Guid? UpdatedById { get; set; }
 
 }

@@ -15,9 +15,9 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
 
         builder.Property(u => u.TagName).HasColumnName("TenTag");
 
-        builder.ApplySoftDelete<Tag, Guid>()
+        builder.ApplySoftDelete<Tag>()
             .ApplyTrack<Tag>()
-            .ApplyAudit<Tag, Guid>()
-            .ApplyReview<Tag, Guid>();
+            .ApplyAudit<Tag>()
+            .ApplyReview<Tag>();
     }
 }

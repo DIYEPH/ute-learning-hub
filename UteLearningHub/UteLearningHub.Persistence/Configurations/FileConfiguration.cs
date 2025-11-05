@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Domain.Constaints;
-using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Configurations.Common;
+using UteLearningHub.Persistence.Identity;
 using DomainFile = UteLearningHub.Domain.Entities.File;
 
 namespace UteLearningHub.Persistence.Configurations;
@@ -20,8 +20,13 @@ public class FileConfiguration : IEntityTypeConfiguration<DomainFile>
         builder.Property(u => u.FileType).HasColumnName("LoaiFile");
         builder.Property(u => u.FileUrl).HasColumnName("LinkTruyCap");
 
-        builder.ApplySoftDelete<DomainFile, Guid>()
+        builder.ApplySoftDelete<DomainFile>()
             .ApplyTrack<DomainFile>()
-            .ApplyAudit<DomainFile, Guid>();
+            .ApplyAudit<DomainFile>();
+
+        builder.HasOne<AppUser>()
+            .WithMany(u => u.Files)
+            .HasForeignKey(u => u.CreatedById)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

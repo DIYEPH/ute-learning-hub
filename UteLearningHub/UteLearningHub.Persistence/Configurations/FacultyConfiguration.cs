@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Configurations.Common;
+using UteLearningHub.Persistence.Identity;
 
 namespace UteLearningHub.Persistence.Configurations;
 
@@ -16,9 +17,8 @@ public class FacultyConfiguration : IEntityTypeConfiguration<Faculty>
         builder.Property(u => u.FacultyName).HasColumnName("TenKhoa");
         builder.Property(u => u.FacultyCode).HasColumnName("MaKhoa");
 
-        builder.ApplySoftDelete<Faculty, Guid>()
+        builder.ApplySoftDelete<Faculty>()
             .ApplyTrack<Faculty>()
-            .ApplyAudit<Faculty, Guid>()
-            .ApplyReview<Faculty, Guid>();
+            .ApplyAudit<Faculty>();
     }
 }

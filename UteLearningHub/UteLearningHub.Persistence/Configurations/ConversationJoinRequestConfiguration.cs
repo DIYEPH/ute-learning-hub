@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Identity;
 
 namespace UteLearningHub.Persistence.Configurations;
 
@@ -16,9 +17,19 @@ public class ConversationJoinRequestConfiguration : IEntityTypeConfiguration<Con
         builder.Property(u => u.ConversationId).HasColumnName("CuocTroChuyenId");
         builder.Property(u => u.Content).HasColumnName("NoiDung");
 
-        builder.ApplySoftDelete<ConversationJoinRequest, Guid>()
+        builder.ApplySoftDelete<ConversationJoinRequest>()
             .ApplyTrack<ConversationJoinRequest>()
-            .ApplyAudit<ConversationJoinRequest, Guid>()
-            .ApplyReview<ConversationJoinRequest, Guid>();
+            .ApplyAudit<ConversationJoinRequest>()
+            .ApplyReview<ConversationJoinRequest>();
+
+        builder.HasOne<AppUser>()
+            .WithMany(u => u.SentJoinRequests)
+            .HasForeignKey(u => u.CreatedById)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(u => u.Conversation)
+            .WithMany(u => u.ConversationJoinRequests)
+            .HasForeignKey(u => u.ConversationId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

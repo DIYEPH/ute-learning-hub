@@ -3,10 +3,10 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Conversation : BaseEntity<Guid>, IAggregateRoot, IAuditable<Guid>
+public class Conversation : BaseEntity<Guid>, IAggregateRoot, IAuditable
 {
-    public Guid SubjectId { get; set;}
-    public Guid LastMessage { get; set;}
+    public Guid? SubjectId { get; set;}
+    public Guid? LastMessage { get; set;}
     public string ConversationName { get; set; } = default!;
     public string Topic { get; set; } = default!;
     public bool IsSuggestedByAI { get; set; }
@@ -18,6 +18,6 @@ public class Conversation : BaseEntity<Guid>, IAggregateRoot, IAuditable<Guid>
     public ICollection<Message> Messages { get; set; } = [];
     public ICollection<ConversationJoinRequest> ConversationJoinRequests { get; set; } = [];
 
-    public Guid CreatedBy { get; set; }
-    public Guid UpdatedBy { get; set; }
+    public Guid CreatedById { get; set; }
+    public Guid? UpdatedById { get; set; }
 }

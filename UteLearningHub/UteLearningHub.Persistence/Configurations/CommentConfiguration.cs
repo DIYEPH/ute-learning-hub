@@ -1,0 +1,47 @@
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using UteLearningHub.Persistence.Configurations.Common;
+using UteLearningHub.Domain.Constaints;
+using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Identity;
+
+namespace UteLearningHub.Persistence.Configurations;
+
+public class CommentConfiguration : IEntityTypeConfiguration<Comment>
+{
+    public void Configure(EntityTypeBuilder<Comment> builder)
+    {
+        builder.ToTable(DbTableNames.Comment);
+
+        builder.HasKey(e => e.Id);
+
+        builder.Property(u => u.ParentId).HasColumnName("RootId");
+        builder.Property(u => u.DocumentId).HasColumnName("TaiLieuId");
+        builder.Property(u => u.Content).HasColumnName("NoiDung");
+
+        builder.ApplySoftDelete<Comment>()
+            .ApplyTrack<Comment>()
+            .ApplyAudit<Comment>()
+            .ApplyReview<Comment>();
+
+        builder.HasOne<AppUser>()
+            .WithMany(u => u.Comments)
+            .HasForeignKey(u => u.CreatedById)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<AppUser>() 
+            .WithMany(u => u.ReviewedComments)
+            .HasForeignKey(u => u.ReviewedById)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Comment>()
+            .WithMany(u => u.Childrens)
+            .HasForeignKey(u => u.ParentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(u => u.Document)
+            .WithMany(u => u.Comments)
+            .HasForeignKey(u => u.DocumentId)
+            .OnDelete(DeleteBehavior.Restrict);
+    }
+}
