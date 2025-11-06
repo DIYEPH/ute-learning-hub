@@ -11,7 +11,7 @@ public class Document : BaseEntity<Guid>, IAggregateRoot, IAuditable, IReviewabl
     public string DocumentName { get; set; } = default!;
     public string AuthorName { get; set; } = default!;
     public string DescriptionAuthor { get; set; } = default!;
-    public string Slug { get; set; } = default!;
+    public string NormalizedName { get; set; } = default!;
     public bool IsDownload { get; set; } = true;
     public VisibilityStatus Visibility { get; set; } = VisibilityStatus.Public;
     public Subject Subject { get; set; } = default!; 
