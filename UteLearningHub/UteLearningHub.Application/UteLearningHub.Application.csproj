@@ -6,4 +6,20 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Common\Dtos\" />
+    <Folder Include="Features\Auth\Queries\" />
+    <Folder Include="Features\Document\ReviewDocument\" />
+    <Folder Include="Features\Document\UploadDocument\" />
+    <Folder Include="Features\User\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Features\Auth\Commands\RefreshToken\RefreshTokenResponse.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="13.1.0" />
+  </ItemGroup>
+
 </Project>

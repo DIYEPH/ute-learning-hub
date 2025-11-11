@@ -3,18 +3,20 @@ using UteLearningHub.Domain.Exceptions.Base;
 
 namespace UteLearningHub.Domain.Exceptions;
 
-public class NotFoundException: BaseException
+public class NotFoundException : BaseException
 {
-    private const int _statusCode = (int) HttpStatusCode.NotFound;
+    private const int _statusCode = (int)HttpStatusCode.NotFound;
     private const string _title = "Not Found";
     private const string _type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.4";
-    public NotFoundException() { 
+    public NotFoundException()
+    {
         StatusCode = _statusCode;
         Title = _title;
         Type = _type;
     }
-    public NotFoundException(string message) : base(message) {
-        StatusCode = _statusCode; 
+    public NotFoundException(string message) : base(message)
+    {
+        StatusCode = _statusCode;
         Title = _title;
         Type = _type;
     }

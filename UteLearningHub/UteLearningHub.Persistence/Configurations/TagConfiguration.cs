@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Configurations.Common;
 
 namespace UteLearningHub.Persistence.Configurations;
 public class TagConfiguration : IEntityTypeConfiguration<Tag>

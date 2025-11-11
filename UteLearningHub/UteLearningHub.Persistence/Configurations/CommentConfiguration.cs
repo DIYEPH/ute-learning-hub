@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Persistence.Identity;
 
 namespace UteLearningHub.Persistence.Configurations;
@@ -29,7 +29,7 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
             .HasForeignKey(u => u.CreatedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<AppUser>() 
+        builder.HasOne<AppUser>()
             .WithMany(u => u.ReviewedComments)
             .HasForeignKey(u => u.ReviewedById)
             .OnDelete(DeleteBehavior.Restrict);

@@ -1,5 +1,4 @@
-﻿using UteLearningHub.Domain.Constaints.Enums;
-using UteLearningHub.Domain.Entities.Base;
+﻿using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 

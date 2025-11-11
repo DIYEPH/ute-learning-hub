@@ -9,6 +9,6 @@ public class ConversationMember : BaseEntity<Guid>
     public Guid ConversationId { get; set; }
     public Guid? LastReadMessageId { get; set; }
     public bool IsMuted { get; set; }
-    public ConversationMemberRoleType ConversationMemberRoleType { get; set; } 
+    public ConversationMemberRoleType ConversationMemberRoleType { get; set; }
     public Conversation Conversation { get; set; } = default!;
 }

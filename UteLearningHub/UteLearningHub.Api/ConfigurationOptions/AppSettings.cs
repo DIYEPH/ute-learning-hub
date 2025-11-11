@@ -1,6 +1,8 @@
-﻿namespace UteLearningHub.Api.ConfigurationOptions;
+﻿using UteLearningHub.Infrastructure.ConfigurationOptions;
+
+namespace UteLearningHub.Api.ConfigurationOptions;
 
 public class AppSettings
 {
-    public ConnectionString ConnectionStrings { get; set; } = default!;
+    public ConnectionStringsOptions ConnectionStrings { get; set; } = default!;
 }

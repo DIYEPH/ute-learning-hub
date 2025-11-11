@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using UteLearningHub.Persistence.Identity;
 using UteLearningHub.Domain.Constaints;
+using UteLearningHub.Persistence.Identity;
 
 namespace UteLearningHub.Persistence.Configurations.Identity;
 
@@ -20,6 +20,7 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(u => u.TrustLever).HasColumnName("CapDoXacThuc");
 
         builder.Property(u => u.UserName).HasColumnName("TenDangNhap");
+        builder.Property(u => u.FullName).HasColumnName("HoVaTen");
         builder.Property(u => u.Gender).HasColumnName("GioiTinh");
         builder.Property(u => u.NormalizedUserName).HasColumnName("TenDangNhapChuanHoa");
         builder.Property(u => u.NormalizedEmail).HasColumnName("EmailChuanHoa");

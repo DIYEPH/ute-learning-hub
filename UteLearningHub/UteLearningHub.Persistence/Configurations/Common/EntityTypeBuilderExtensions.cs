@@ -23,7 +23,7 @@ public static class EntityTypeBuilderExtensions
         return builder;
     }
     public static EntityTypeBuilder<TEntity> ApplySoftDelete<TEntity>(this EntityTypeBuilder<TEntity> builder)
-        where TEntity: class, ISoftDelete
+        where TEntity : class, ISoftDelete
     {
         builder.Property(u => u.IsDeleted).HasColumnName("CoDaXoa");
         builder.Property(u => u.DeletedAt).HasColumnName("NgayXoa");

@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
-using DomainFile = UteLearningHub.Domain.Entities.File;
 
 namespace UteLearningHub.Persistence.Configurations;
 

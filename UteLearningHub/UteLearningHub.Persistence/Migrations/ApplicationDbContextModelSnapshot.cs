@@ -1484,6 +1484,11 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("CoXacThucEmail");
 
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("HoVaTen");
+
                     b.Property<int>("Gender")
                         .HasColumnType("int")
                         .HasColumnName("GioiTinh");
@@ -1508,7 +1513,7 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("NgayHetKhoaTaiKhoan");
 
-                    b.Property<Guid>("MajorId")
+                    b.Property<Guid?>("MajorId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("MaNganh");
 
@@ -1935,9 +1940,7 @@ namespace UteLearningHub.Persistence.Migrations
                 {
                     b.HasOne("UteLearningHub.Domain.Entities.Major", "Major")
                         .WithMany()
-                        .HasForeignKey("MajorId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("MajorId");
 
                     b.Navigation("Major");
                 });

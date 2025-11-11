@@ -1,0 +1,93 @@
+﻿using Microsoft.AspNetCore.Identity;
+using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Persistence.Identity;
+
+namespace UteLearningHub.Infrastructure.Services.Identity;
+
+public class IdentityService : IIdentityService
+{
+    private readonly UserManager<AppUser> _userManager;
+    public IdentityService(UserManager<AppUser> userManager)
+    {
+        _userManager = userManager;
+    }
+    public async Task<AppUserDto?> FindByEmailAsync(string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        return user == null ? null : MapToDto(user);
+    }
+
+    public async Task<AppUserDto?> FindByIdAsync(Guid userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        return user == null ? null : MapToDto(user);
+    }
+    public async Task<AppUserDto?> FindByExternalLoginAsync(string loginProvider, string providerKey)
+    {
+        var user = await _userManager.FindByLoginAsync(loginProvider, providerKey);
+        return user == null ? null : MapToDto(user);
+    }
+    public async Task<(bool Succeeded, Guid UserId, IEnumerable<string> Errors)> CreateUserAsync(CreateUserDto dto)
+    {
+        var user = new AppUser
+        {
+            Id = Guid.NewGuid(),
+            UserName = dto.UserName,
+            Email = dto.Email,
+            EmailConfirmed = dto.EmailConfirmed,
+            MajorId = dto.MajorId,
+            Introduction = dto.Introduction ?? string.Empty,
+            AvatarUrl = dto.AvatarUrl ?? string.Empty,
+            TrustScore = 0
+        };
+
+        var result = await _userManager.CreateAsync(user);
+
+        if (result.Succeeded)
+        {
+            return (true, user.Id, Enumerable.Empty<string>());
+        }
+
+        return (false, Guid.Empty, result.Errors.Select(e => e.Description));
+    }
+    public async Task<bool> AddExternalLoginAsync(Guid userId, ExternalLoginInfoDto loginInfo)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null) return false;
+
+        var result = await _userManager.AddLoginAsync(user, new UserLoginInfo(
+            loginInfo.LoginProvider,
+            loginInfo.ProviderKey,
+            loginInfo.DisplayName
+        ));
+
+        return result.Succeeded;
+    }
+    public async Task<IList<string>> GetRolesAsync(Guid userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+            return [];
+
+        return await _userManager.GetRolesAsync(user);
+    }
+
+    public async Task<bool> AddToRoleAsync(Guid userId, string roleName)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null) return false;
+
+        var result = await _userManager.AddToRoleAsync(user, roleName);
+        return result.Succeeded;
+    }
+    private static AppUserDto MapToDto(AppUser user) => new(
+        user.Id,
+        user.Email!,
+        user.UserName,
+        user.FullName,
+        user.EmailConfirmed,
+        user.AvatarUrl,
+        user.MajorId,
+        user.Introduction
+    );
+}

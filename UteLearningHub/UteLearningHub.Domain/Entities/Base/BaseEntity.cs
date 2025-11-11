@@ -4,9 +4,9 @@ public abstract class BaseEntity<TKey> : IHasKey<TKey>, ITrackable, ISoftDelete
 {
     public TKey Id { get; set; } = default!;
 
-    public byte[] RowVersion { get; set;} = default!;
-    public DateTimeOffset CreatedAt { get; set;}
-    public DateTimeOffset? UpdatedAt { get;set;}
+    public byte[] RowVersion { get; set; } = default!;
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset? UpdatedAt { get; set; }
 
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }

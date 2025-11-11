@@ -8,9 +8,10 @@ namespace UteLearningHub.Persistence.Identity;
 
 public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
 {
-    public Guid MajorId { get; set; }
+    public Guid? MajorId { get; set; }
     public string Introduction { get; set; } = default!;
     public string AvatarUrl { get; set; } = default!;
+    public string FullName { get; set; } = default!;
     public int TrustScore { get; set; } = 0;
     public bool IsSuggest { get; set; }
     public TrustLever TrustLever { get; set; } = TrustLever.None;
@@ -37,7 +38,7 @@ public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
 
-    public bool IsDeleted { get ; set; }
+    public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     public Guid? DeletedById { get; set; }
 }

@@ -1,6 +1,4 @@
-﻿using UteLearningHub.Domain.Entities.Base;
-
-namespace UteLearningHub.Domain.Entities;
+﻿namespace UteLearningHub.Domain.Entities;
 
 public class MessageFile
 {

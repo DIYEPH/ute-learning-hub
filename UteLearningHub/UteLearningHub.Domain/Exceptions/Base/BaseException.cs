@@ -9,7 +9,7 @@ public interface IAppException
 }
 public class BaseException : Exception, IAppException
 {
-    public int StatusCode {  get; set; }
+    public int StatusCode { get; set; }
     public string? Title { get; set; }
     public string? Type { get; set; }
     public BaseException() { }

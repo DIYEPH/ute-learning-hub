@@ -1,15 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Persistence.Identity;
 
 namespace UteLearningHub.Persistence.Configurations;
 
 public class ConversationMemberConfiguration : IEntityTypeConfiguration<ConversationMember>
 {
-    public void Configure(EntityTypeBuilder<ConversationMember> builder) 
+    public void Configure(EntityTypeBuilder<ConversationMember> builder)
     {
         builder.ToTable(DbTableNames.ConversationMember);
 
