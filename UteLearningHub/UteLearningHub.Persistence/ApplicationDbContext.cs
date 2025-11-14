@@ -29,6 +29,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<NotificationRecipient> NotificationRecipients { get; set; }
     //public virtual DbSet<ProfileVector> ProfileVectors { get; set; }
     public virtual DbSet<Report> Reports { get; set; }
+    public virtual DbSet<Subject> Subjects { get; set; }
     public virtual DbSet<Tag> Tags { get; set; }
     public virtual DbSet<DomainType> Types { get; set; }
     //public virtual DbSet<UserTrustHistory> UserTrustHistories { get; set; }

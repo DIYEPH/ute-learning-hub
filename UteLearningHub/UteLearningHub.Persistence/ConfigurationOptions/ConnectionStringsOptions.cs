@@ -1,4 +1,4 @@
-﻿namespace UteLearningHub.Infrastructure.ConfigurationOptions;
+﻿namespace UteLearningHub.Persistence.ConfigurationOptions;
 
 public class ConnectionStringsOptions
 {

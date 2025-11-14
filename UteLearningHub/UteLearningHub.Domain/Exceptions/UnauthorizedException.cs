@@ -7,7 +7,7 @@ public class UnauthorizedException : BaseException
     private const int _statusCode = (int)HttpStatusCode.Unauthorized;
     private const string _title = "Unauthorized";
     private const string _type = "https://datatracker.ietf.org/doc/html/rfc7235#section-3.1";
-    public UnauthorizedException()
+    public UnauthorizedException() : this("Access denied. Please provide valid credentials.")
     {
         StatusCode = _statusCode;
         Title = _title;

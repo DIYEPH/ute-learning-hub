@@ -19,11 +19,20 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
 
     public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        //1. Check Email
+        // 1. Find user by email or username
         var user = (request.EmailOrUsername.Contains('@')
             ? await _identityService.FindByEmailAsync(request.EmailOrUsername)
-            : await _identityService.FindByEmailAsync(request.EmailOrUsername)) ?? throw new UnauthorizedException();
+            : await _identityService.FindByUsernameAsync(request.EmailOrUsername));
 
+        if (user == null)
+            throw new UnauthorizedException();
+
+        // 2. Check password
+        var isPasswordValid = await _identityService.CheckPasswordAsync(user.Id, request.Password);
+        if (!isPasswordValid) 
+            throw new UnauthorizedException();
+
+        // 3. Generate tokens
         var sessionId = Guid.NewGuid().ToString();
         var roles = await _identityService.GetRolesAsync(user.Id);
         var accessToken = _jwtTokenService.GenerateAccessToken(user.Id, user.Email, user.UserName, roles, sessionId);

@@ -1,29 +1,16 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace UteLearningHub.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class UpdateAppUserProperties : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "AspNetRoles",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetRoles", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "Khoa",
                 columns: table => new
@@ -70,24 +57,17 @@ namespace UteLearningHub.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetRoleClaims",
+                name: "VaiTro",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    TenVaiTro = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    TenChuanHoa = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    DauKiemSoatDongBo = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetRoleClaims", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetRoleClaims_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                    table.PrimaryKey("PK_VaiTro", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -119,37 +99,59 @@ namespace UteLearningHub.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "VaiTro_Quyen",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    VaiTroId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    LoaiQuyen = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    GiaTriQuyen = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_VaiTro_Quyen", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_VaiTro_Quyen_VaiTro_VaiTroId",
+                        column: x => x.VaiTroId,
+                        principalTable: "VaiTro",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "NguoiDung",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    MaNganh = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MaNganh = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     GioiThieu = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    AvatarUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TrustScrore = table.Column<int>(type: "int", nullable: false),
+                    HinhDaiDien = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    HoVaTen = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DiemXacThuc = table.Column<int>(type: "int", nullable: false),
                     CoGoiY = table.Column<bool>(type: "bit", nullable: false),
-                    TrustLever = table.Column<int>(type: "int", nullable: false),
+                    CapDoXacThuc = table.Column<int>(type: "int", nullable: false),
                     GioiTinh = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    TenDangNhap = table.Column<string>(type: "varchar(100)", maxLength: 256, nullable: true),
-                    NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
+                    NgayXoa = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    BiXoaBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    TenDangNhap = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    TenDangNhapChuanHoa = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    NormalizedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
-                    EmailConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SecurityStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ConcurrencyStamp = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PhoneNumberConfirmed = table.Column<bool>(type: "bit", nullable: false),
-                    TwoFactorEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    LockoutEnd = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    LockoutEnabled = table.Column<bool>(type: "bit", nullable: false),
-                    AccessFailedCount = table.Column<int>(type: "int", nullable: false)
+                    EmailChuanHoa = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    CoXacThucEmail = table.Column<bool>(type: "bit", nullable: false),
+                    MatKhauBam = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    MaBaoMat = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DauKiemSoatDongBo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SoDienThoai = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CoDaXacNhanSoDienThoai = table.Column<bool>(type: "bit", nullable: false),
+                    CoKichHoatXacThucHaiLop = table.Column<bool>(type: "bit", nullable: false),
+                    NgayHetKhoaTaiKhoan = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    ChoPhepKhoaTaiKhoan = table.Column<bool>(type: "bit", nullable: false),
+                    SoLanDangNhapThatBai = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -158,90 +160,24 @@ namespace UteLearningHub.Persistence.Migrations
                         name: "FK_NguoiDung_Nganh_MaNganh",
                         column: x => x.MaNganh,
                         principalTable: "Nganh",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "AspNetUserClaims",
+                name: "DangNhapNgoai",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ClaimType = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ClaimValue = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    NhaCungCapDangNhap = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    KhoaNhaCungCap = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    TenHienThiNhaCungCap = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NguoiDungId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AspNetUserClaims", x => x.Id);
+                    table.PrimaryKey("PK_DangNhapNgoai", x => new { x.NhaCungCapDangNhap, x.KhoaNhaCungCap });
                     table.ForeignKey(
-                        name: "FK_AspNetUserClaims_NguoiDung_UserId",
-                        column: x => x.UserId,
-                        principalTable: "NguoiDung",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserLogins",
-                columns: table => new
-                {
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserLogins", x => new { x.LoginProvider, x.ProviderKey });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserLogins_NguoiDung_UserId",
-                        column: x => x.UserId,
-                        principalTable: "NguoiDung",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserRoles",
-                columns: table => new
-                {
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RoleId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserRoles", x => new { x.UserId, x.RoleId });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_AspNetRoles_RoleId",
-                        column: x => x.RoleId,
-                        principalTable: "AspNetRoles",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AspNetUserRoles_NguoiDung_UserId",
-                        column: x => x.UserId,
-                        principalTable: "NguoiDung",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AspNetUserTokens",
-                columns: table => new
-                {
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AspNetUserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
-                    table.ForeignKey(
-                        name: "FK_AspNetUserTokens_NguoiDung_UserId",
-                        column: x => x.UserId,
+                        name: "FK_DangNhapNgoai_NguoiDung_NguoiDungId",
+                        column: x => x.NguoiDungId,
                         principalTable: "NguoiDung",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -283,6 +219,71 @@ namespace UteLearningHub.Persistence.Migrations
                         principalTable: "NguoiDung",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "NguoiDung_Quyen",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NguoiDungId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    LoaiQuyen = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    GiaTriQuyen = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NguoiDung_Quyen", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_NguoiDung_Quyen_NguoiDung_NguoiDungId",
+                        column: x => x.NguoiDungId,
+                        principalTable: "NguoiDung",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "NguoiDung_Token",
+                columns: table => new
+                {
+                    NguoiDungId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    NhaCungCapDangNhap = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoaiMa = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    GiaTriMa = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NguoiDung_Token", x => new { x.NguoiDungId, x.NhaCungCapDangNhap, x.LoaiMa });
+                    table.ForeignKey(
+                        name: "FK_NguoiDung_Token_NguoiDung_NguoiDungId",
+                        column: x => x.NguoiDungId,
+                        principalTable: "NguoiDung",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "NguoiDung_VaiTro",
+                columns: table => new
+                {
+                    NguoiDungId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    VaiTroId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_NguoiDung_VaiTro", x => new { x.NguoiDungId, x.VaiTroId });
+                    table.ForeignKey(
+                        name: "FK_NguoiDung_VaiTro_NguoiDung_NguoiDungId",
+                        column: x => x.NguoiDungId,
+                        principalTable: "NguoiDung",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_NguoiDung_VaiTro_VaiTro_VaiTroId",
+                        column: x => x.VaiTroId,
+                        principalTable: "VaiTro",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -378,7 +379,7 @@ namespace UteLearningHub.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserTrustHistories",
+                name: "UserTrustHistory",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -395,9 +396,9 @@ namespace UteLearningHub.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserTrustHistories", x => x.Id);
+                    table.PrimaryKey("PK_UserTrustHistory", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserTrustHistories_NguoiDung_AppUserId",
+                        name: "FK_UserTrustHistory_NguoiDung_AppUserId",
                         column: x => x.AppUserId,
                         principalTable: "NguoiDung",
                         principalColumn: "Id");
@@ -443,32 +444,6 @@ namespace UteLearningHub.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProfileVectors",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SubjectId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    EmbeddingJson = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RowVersion = table.Column<byte[]>(type: "varbinary(max)", nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    DeletedById = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ProfileVectors", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_ProfileVectors_MonHoc_SubjectId",
-                        column: x => x.SubjectId,
-                        principalTable: "MonHoc",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "TaiLieu",
                 columns: table => new
                 {
@@ -479,7 +454,7 @@ namespace UteLearningHub.Persistence.Migrations
                     DocumentName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TacGia = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     MoTaTacGia = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TenThanThien = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TenChuanHoa = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CoDuocTai = table.Column<bool>(type: "bit", nullable: false),
                     CoHienThi = table.Column<int>(type: "int", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -594,7 +569,7 @@ namespace UteLearningHub.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CuocTroChuyenId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ParentId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PhanTuChaId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     NoiDung = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CoChinhSua = table.Column<bool>(type: "bit", nullable: false),
                     CoDaGhim = table.Column<bool>(type: "bit", nullable: false),
@@ -623,8 +598,8 @@ namespace UteLearningHub.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_TinNhan_TinNhan_ParentId",
-                        column: x => x.ParentId,
+                        name: "FK_TinNhan_TinNhan_PhanTuChaId",
+                        column: x => x.PhanTuChaId,
                         principalTable: "TinNhan",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -673,7 +648,7 @@ namespace UteLearningHub.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TaiLieuId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    RootId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PhanTuChaId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     NoiDung = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
@@ -692,8 +667,8 @@ namespace UteLearningHub.Persistence.Migrations
                 {
                     table.PrimaryKey("PK_BinhLuan", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_BinhLuan_BinhLuan_RootId",
-                        column: x => x.RootId,
+                        name: "FK_BinhLuan_BinhLuan_PhanTuChaId",
+                        column: x => x.PhanTuChaId,
                         principalTable: "BinhLuan",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -873,33 +848,6 @@ namespace UteLearningHub.Persistence.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetRoleClaims_RoleId",
-                table: "AspNetRoleClaims",
-                column: "RoleId");
-
-            migrationBuilder.CreateIndex(
-                name: "RoleNameIndex",
-                table: "AspNetRoles",
-                column: "NormalizedName",
-                unique: true,
-                filter: "[NormalizedName] IS NOT NULL");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AspNetUserClaims_UserId",
-                table: "AspNetUserClaims",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AspNetUserLogins_UserId",
-                table: "AspNetUserLogins",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_AspNetUserRoles_RoleId",
-                table: "AspNetUserRoles",
-                column: "RoleId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_BaoCao_BinhLuanId",
                 table: "BaoCao",
                 column: "BinhLuanId");
@@ -925,9 +873,9 @@ namespace UteLearningHub.Persistence.Migrations
                 column: "DuyetBoi");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BinhLuan_RootId",
+                name: "IX_BinhLuan_PhanTuChaId",
                 table: "BinhLuan",
-                column: "RootId");
+                column: "PhanTuChaId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BinhLuan_TaiLieuId",
@@ -960,6 +908,11 @@ namespace UteLearningHub.Persistence.Migrations
                 column: "NguoiDungId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DangNhapNgoai_NguoiDungId",
+                table: "DangNhapNgoai",
+                column: "NguoiDungId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_DanhGiaTaiLieu_TaiLieuId",
                 table: "DanhGiaTaiLieu",
                 column: "TaiLieuId");
@@ -987,7 +940,7 @@ namespace UteLearningHub.Persistence.Migrations
             migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "NguoiDung",
-                column: "NormalizedEmail");
+                column: "EmailChuanHoa");
 
             migrationBuilder.CreateIndex(
                 name: "IX_NguoiDung_MaNganh",
@@ -997,14 +950,19 @@ namespace UteLearningHub.Persistence.Migrations
             migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "NguoiDung",
-                column: "NormalizedUserName",
+                column: "TenDangNhapChuanHoa",
                 unique: true,
-                filter: "[NormalizedUserName] IS NOT NULL");
+                filter: "[TenDangNhapChuanHoa] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ProfileVectors_SubjectId",
-                table: "ProfileVectors",
-                column: "SubjectId");
+                name: "IX_NguoiDung_Quyen_NguoiDungId",
+                table: "NguoiDung_Quyen",
+                column: "NguoiDungId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_NguoiDung_VaiTro_VaiTroId",
+                table: "NguoiDung_VaiTro",
+                column: "VaiTroId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TaiLieu_MonHocId",
@@ -1062,9 +1020,9 @@ namespace UteLearningHub.Persistence.Migrations
                 column: "CuocTroChuyenId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TinNhan_ParentId",
+                name: "IX_TinNhan_PhanTuChaId",
                 table: "TinNhan",
-                column: "ParentId");
+                column: "PhanTuChaId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TinNhan_TaoBoi",
@@ -1077,9 +1035,21 @@ namespace UteLearningHub.Persistence.Migrations
                 column: "TinNhanId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserTrustHistories_AppUserId",
-                table: "UserTrustHistories",
+                name: "IX_UserTrustHistory_AppUserId",
+                table: "UserTrustHistory",
                 column: "AppUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "RoleNameIndex",
+                table: "VaiTro",
+                column: "TenChuanHoa",
+                unique: true,
+                filter: "[TenChuanHoa] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_VaiTro_Quyen_VaiTroId",
+                table: "VaiTro_Quyen",
+                column: "VaiTroId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_YeuCauThamGiaNhom_CuocTroChuyenId",
@@ -1096,31 +1066,25 @@ namespace UteLearningHub.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "AspNetRoleClaims");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUserClaims");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUserLogins");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUserRoles");
-
-            migrationBuilder.DropTable(
-                name: "AspNetUserTokens");
-
-            migrationBuilder.DropTable(
                 name: "BaoCao");
 
             migrationBuilder.DropTable(
                 name: "CuocTroChuyen_ThanhVien");
 
             migrationBuilder.DropTable(
+                name: "DangNhapNgoai");
+
+            migrationBuilder.DropTable(
                 name: "DanhGiaTaiLieu");
 
             migrationBuilder.DropTable(
-                name: "ProfileVectors");
+                name: "NguoiDung_Quyen");
+
+            migrationBuilder.DropTable(
+                name: "NguoiDung_Token");
+
+            migrationBuilder.DropTable(
+                name: "NguoiDung_VaiTro");
 
             migrationBuilder.DropTable(
                 name: "TaiLieu_Tep");
@@ -1135,13 +1099,13 @@ namespace UteLearningHub.Persistence.Migrations
                 name: "TinNhan_Tep");
 
             migrationBuilder.DropTable(
-                name: "UserTrustHistories");
+                name: "UserTrustHistory");
+
+            migrationBuilder.DropTable(
+                name: "VaiTro_Quyen");
 
             migrationBuilder.DropTable(
                 name: "YeuCauThamGiaNhom");
-
-            migrationBuilder.DropTable(
-                name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "BinhLuan");
@@ -1157,6 +1121,9 @@ namespace UteLearningHub.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "TinNhan");
+
+            migrationBuilder.DropTable(
+                name: "VaiTro");
 
             migrationBuilder.DropTable(
                 name: "TaiLieu");

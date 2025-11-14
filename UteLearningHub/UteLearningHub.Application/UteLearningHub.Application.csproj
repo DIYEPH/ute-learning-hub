@@ -12,6 +12,7 @@
     <Folder Include="Features\Document\ReviewDocument\" />
     <Folder Include="Features\Document\UploadDocument\" />
     <Folder Include="Features\User\" />
+    <Folder Include="Repositories\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,7 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="13.1.0" />
+    <PackageReference Include="MediatR" Version="12.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UteLearningHub.Domain\UteLearningHub.Domain.csproj" />
   </ItemGroup>
 
 </Project>

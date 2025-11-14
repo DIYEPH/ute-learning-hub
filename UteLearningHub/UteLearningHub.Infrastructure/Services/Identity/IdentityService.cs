@@ -63,6 +63,21 @@ public class IdentityService : IIdentityService
 
         return result.Succeeded;
     }
+    public async Task<AppUserDto?> FindByUsernameAsync(string username)
+    {
+        var user = await _userManager.FindByNameAsync(username);
+
+        return user == null ? null : MapToDto(user);
+    }
+
+
+    public async Task<bool> CheckPasswordAsync(Guid userId, string password)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null) return false;
+
+        return await _userManager.CheckPasswordAsync(user, password);
+    }
     public async Task<IList<string>> GetRolesAsync(Guid userId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -78,6 +93,7 @@ public class IdentityService : IIdentityService
         if (user == null) return false;
 
         var result = await _userManager.AddToRoleAsync(user, roleName);
+
         return result.Succeeded;
     }
     private static AppUserDto MapToDto(AppUser user) => new(

@@ -1,6 +1,5 @@
-﻿namespace UteLearningHub.Application.Features.Auth.Commands.RefreshToken
+﻿namespace UteLearningHub.Application.Features.Auth.Commands.RefreshToken;
+
+public class RefreshTokenRequest
 {
-    internal class RefreshTokenRequest
-    {
-    }
 }

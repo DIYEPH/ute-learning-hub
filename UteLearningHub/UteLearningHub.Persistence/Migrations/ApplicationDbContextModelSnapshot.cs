@@ -1468,13 +1468,16 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnName("DauKiemSoatDongBo");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayTao");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayXoa");
 
                     b.Property<Guid?>("DeletedById")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BiXoaBoi");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -1499,7 +1502,8 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnName("GioiThieu");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnName("CoDaXoa");
 
                     b.Property<bool>("IsSuggest")
                         .HasColumnType("bit")
@@ -1540,8 +1544,11 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnName("CoDaXacNhanSoDienThoai");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("PhienBanHang");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)")
@@ -1560,7 +1567,8 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnName("CoKichHoatXacThucHaiLop");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)

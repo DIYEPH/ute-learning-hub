@@ -12,8 +12,8 @@ using UteLearningHub.Persistence;
 namespace UteLearningHub.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251110123138_UpdateTableAppUser_AddFullName")]
-    partial class UpdateTableAppUser_AddFullName
+    [Migration("20251114154329_UpdateAppUserProperties")]
+    partial class UpdateAppUserProperties
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1471,13 +1471,16 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnName("DauKiemSoatDongBo");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayTao");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayXoa");
 
                     b.Property<Guid?>("DeletedById")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BiXoaBoi");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -1502,7 +1505,8 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnName("GioiThieu");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnName("CoDaXoa");
 
                     b.Property<bool>("IsSuggest")
                         .HasColumnType("bit")
@@ -1543,8 +1547,11 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnName("CoDaXacNhanSoDienThoai");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("PhienBanHang");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)")
@@ -1563,7 +1570,8 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnName("CoKichHoatXacThucHaiLop");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayCapNhat");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)

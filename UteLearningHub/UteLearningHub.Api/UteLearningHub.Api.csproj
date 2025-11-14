@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\UteLearningHub.Infrastructure\UteLearningHub.Infrastructure.csproj" />
     <ProjectReference Include="..\UteLearningHub.Persistence\UteLearningHub.Persistence.csproj" />
   </ItemGroup>
 

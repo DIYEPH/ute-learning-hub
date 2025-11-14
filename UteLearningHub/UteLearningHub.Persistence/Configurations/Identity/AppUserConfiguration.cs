@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UteLearningHub.Domain.Constaints;
+using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Persistence.Identity;
 
 namespace UteLearningHub.Persistence.Configurations.Identity;
@@ -10,6 +12,9 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
     public void Configure(EntityTypeBuilder<AppUser> builder)
     {
         builder.ToTable(DbTableNames.AspNetUsers);
+
+        builder.ApplySoftDelete<AppUser>()
+            .ApplyTrack<AppUser>();
 
         builder.Property(u => u.MajorId).HasColumnName("MaNganh");
         builder.Property(u => u.Introduction).HasColumnName("GioiThieu");
@@ -34,5 +39,7 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(u => u.LockoutEnd).HasColumnName("NgayHetKhoaTaiKhoan");
         builder.Property(u => u.LockoutEnabled).HasColumnName("ChoPhepKhoaTaiKhoan");
         builder.Property(u => u.AccessFailedCount).HasColumnName("SoLanDangNhapThatBai");
+
+
     }
 }

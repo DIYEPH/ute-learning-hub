@@ -1,0 +1,8 @@
+### LOGIN
+POST https://localhost:7080/api/auth/login
+Content-Type: application/json
+
+{
+  "emailOrUsername": "admin",
+  "password": "Admin123!"
+}

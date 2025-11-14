@@ -17,6 +17,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UteLearningHub.Persistence"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UteLearningHub.Infrastructure", "UteLearningHub.Infrastructure\UteLearningHub.Infrastructure.csproj", "{A07F001D-82AE-4AEF-AFC4-1337153387D4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Presentations", "Presentations", "{F5B79CEB-3108-42A2-A3E8-F4A40C4A0127}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{7D130920-722A-4197-A7D8-C262A1BDF1CB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApiTest", "ApiTest", "{E776F305-FBBB-4F9A-B541-41273AA7F061}"
+	ProjectSection(SolutionItems) = preProject
+		Auth.http = Auth.http
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -48,10 +57,12 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{F90D2BDD-4DEF-4EEB-B9A8-6D5E6D1BAB16} = {F5B79CEB-3108-42A2-A3E8-F4A40C4A0127}
 		{28492DC3-37AD-450C-BF76-EEC62D5D92B7} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{BD61FA87-907D-4647-9BE7-8564868C89D4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{E68B743C-6D95-46D3-CBE6-46EB69623EE8} = {CD26B63C-FA27-456C-ACFF-785DCF4F8B84}
 		{A07F001D-82AE-4AEF-AFC4-1337153387D4} = {CD26B63C-FA27-456C-ACFF-785DCF4F8B84}
+		{E776F305-FBBB-4F9A-B541-41273AA7F061} = {7D130920-722A-4197-A7D8-C262A1BDF1CB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E7817D5C-D64E-455E-997C-0BE6E1A4C499}
