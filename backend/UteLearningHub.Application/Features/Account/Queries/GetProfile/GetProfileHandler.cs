@@ -1,6 +1,5 @@
-﻿namespace UteLearningHub.Application.Features.Account.Queries.GetProfile
+﻿namespace UteLearningHub.Application.Features.Account.Queries.GetProfile;
+
+public class GetProfileHandler
 {
-    internal class GetProfileHandler
-    {
-    }
 }

@@ -1,0 +1,12 @@
+{
+    "common": {
+      "welcome": "Chào mừng đến với UTE Learning Hub",
+      "login": "Đăng nhập",
+      "dashboard": "Bảng điều khiển"
+    },
+    "nav": {
+      "home": "Trang chủ",
+      "documents": "Tài liệu",
+      "groups": "Nhóm học"
+    }
+  }

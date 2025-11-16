@@ -1,0 +1,12 @@
+{
+    "common": {
+      "welcome": "Welcome to UTE Learning Hub", 
+      "login": "Login",
+      "dashboard": "Dashboard"
+    },
+    "nav": {
+      "home": "Home",
+      "documents": "Documents", 
+      "groups": "Groups"
+    }
+  }
