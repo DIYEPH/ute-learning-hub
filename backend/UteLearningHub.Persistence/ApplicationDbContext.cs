@@ -1,16 +1,20 @@
-﻿using System.Reflection;
+﻿using System.Data;
+using System.Reflection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using UteLearningHub.Domain.Entities;
+using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence.Identity;
 using DomainFile = UteLearningHub.Domain.Entities.File;
 using DomainType = UteLearningHub.Domain.Entities.Type;
 
 namespace UteLearningHub.Persistence;
 
-public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options)
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<AppUser, IdentityRole<Guid>, Guid>(options), IUnitOfWork
 {
+    private IDbContextTransaction? _dbContextTransaction;
     public virtual DbSet<Comment> Comments { get; set; }
     public virtual DbSet<Conversation> Conversations { get; set; }
     public virtual DbSet<ConversationJoinRequest> ConversationsJoinRequests { get; set; }
@@ -33,9 +37,30 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<Tag> Tags { get; set; }
     public virtual DbSet<DomainType> Types { get; set; }
     //public virtual DbSet<UserTrustHistory> UserTrustHistories { get; set; }
+
+    public async Task<IDisposable> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default)
+    {
+        _dbContextTransaction = await Database.BeginTransactionAsync(isolationLevel, cancellationToken);
+        return _dbContextTransaction;
+    }
+
+    public Task<IDisposable> BeginTransactionAsync(string lockName, IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task CommitTransactionAsync(CancellationToken cancellationToken = default)
+    {
+        if (_dbContextTransaction is null)
+            throw new InvalidOperationException("No active transaction. Call BeginTransactionAsync() first.");
+
+        await _dbContextTransaction.CommitAsync(cancellationToken);  
+    }
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+
     }
 }

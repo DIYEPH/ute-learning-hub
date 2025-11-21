@@ -1,6 +1,6 @@
-﻿namespace UteLearningHub.Application.Features.Document.Commands.DeleteDocument
+﻿namespace UteLearningHub.Application.Features.Document.Commands.DeleteDocument;
+
+public record DeleteDocumentRequest
 {
-    internal class DeleteDocumentQuery
-    {
-    }
+    public Guid Id { get; set; }
 }

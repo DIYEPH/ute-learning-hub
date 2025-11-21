@@ -9,8 +9,8 @@
   <ItemGroup>
     <Folder Include="Common\Dtos\" />
     <Folder Include="Features\Auth\Queries\" />
-    <Folder Include="Features\Document\ReviewDocument\" />
-    <Folder Include="Features\Document\UploadDocument\" />
+    <Folder Include="Features\Document\Commands\ReviewDocument\" />
+    <Folder Include="Features\Document\Commands\UploadDocument\" />
     <Folder Include="Features\User\" />
     <Folder Include="Repositories\" />
   </ItemGroup>
