@@ -6,8 +6,8 @@ public class File : BaseEntity<Guid>, IAggregateRoot, IAuditable
 {
     public string FileName { get; set; } = default!;
     public string FileUrl { get; set; } = default!;
-    public double FileSize { get; set; }
-    public string FileType { get; set; } = default!;
+    public long FileSize { get; set; }
+    public string MimeType { get; set; } = default!;
     public ICollection<MessageFile> MessageFiles { get; set; } = [];
     public ICollection<DocumentFile> DocumentFiles { get; set; } = [];
 
