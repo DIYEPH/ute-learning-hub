@@ -9,9 +9,9 @@ namespace UteLearningHub.Api.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly Mediator _mediator;
+        private readonly IMediator _mediator;
 
-        public AccountController(Mediator mediator) { 
+        public AccountController(IMediator mediator) { 
             _mediator = mediator;
         }
 
