@@ -1,4 +1,4 @@
-﻿namespace UteLearningHub.Domain.Repositories;
+﻿namespace UteLearningHub.Domain.Repositories.Base;
 
 public interface IConcurrencyHandler<in TEntity>
 {

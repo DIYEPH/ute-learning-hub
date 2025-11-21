@@ -1,6 +1,6 @@
 ﻿using System.Data;
 
-namespace UteLearningHub.Domain.Repositories;
+namespace UteLearningHub.Domain.Repositories.UnitOfWork;
 
 public interface IUnitOfWork
 {

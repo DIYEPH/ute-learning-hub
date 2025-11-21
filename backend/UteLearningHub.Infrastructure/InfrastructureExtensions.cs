@@ -4,9 +4,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using UteLearningHub.Application.Services.Authentication;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.User;
 using UteLearningHub.Infrastructure.ConfigurationOptions;
 using UteLearningHub.Infrastructure.Services.Authentication;
 using UteLearningHub.Infrastructure.Services.Identity;
+using UteLearningHub.Infrastructure.Services.User;
 
 namespace UteLearningHub.Infrastructure;
 
@@ -40,6 +42,12 @@ public static class InfrastructureExtensions
         services.AddScoped<IMicrosoftTokenValidator, MicrosoftTokenValidator>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IIdentityService, IdentityService>();
+
+        services.AddScoped<IUserService, UserService>();
+
+        // Add HttpContextAccessor for CurrentUserService
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         return services;
     }

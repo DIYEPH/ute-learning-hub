@@ -1,5 +1,8 @@
-﻿namespace UteLearningHub.Application.Features.Account.Queries.GetProfile;
+﻿using MediatR;
 
-public class GetProfileRequest
+namespace UteLearningHub.Application.Features.Account.Queries.GetProfile;
+
+public record GetProfileRequest
 {
+    public Guid? UserId { get; init; } 
 }

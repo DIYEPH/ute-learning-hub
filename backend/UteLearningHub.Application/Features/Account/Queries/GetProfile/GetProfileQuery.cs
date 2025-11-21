@@ -1,5 +1,5 @@
-﻿namespace UteLearningHub.Application.Features.Account.Queries.GetProfile;
+﻿using MediatR;
 
-public class GetProfileQuery
-{
-}
+namespace UteLearningHub.Application.Features.Account.Queries.GetProfile;
+
+public record GetProfileQuery : GetProfileRequest, IRequest<GetProfileResponse>;

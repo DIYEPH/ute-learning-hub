@@ -23,6 +23,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{4194E81B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UteLearningHub.UnitTest", "UteLearningHub.UnitTest\UteLearningHub.UnitTest.csproj", "{AF8F6638-CEB5-4A06-A01D-19998A077BA8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UteLearningHub.CrossCuttingConcerns", "UteLearningHub.CrossCuttingConcerns\UteLearningHub.CrossCuttingConcerns.csproj", "{C767D24C-7CE9-4505-BD7C-140BC6FB14A9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +55,10 @@ Global
 		{AF8F6638-CEB5-4A06-A01D-19998A077BA8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF8F6638-CEB5-4A06-A01D-19998A077BA8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF8F6638-CEB5-4A06-A01D-19998A077BA8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C767D24C-7CE9-4505-BD7C-140BC6FB14A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C767D24C-7CE9-4505-BD7C-140BC6FB14A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C767D24C-7CE9-4505-BD7C-140BC6FB14A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C767D24C-7CE9-4505-BD7C-140BC6FB14A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +70,7 @@ Global
 		{E68B743C-6D95-46D3-CBE6-46EB69623EE8} = {CD26B63C-FA27-456C-ACFF-785DCF4F8B84}
 		{A07F001D-82AE-4AEF-AFC4-1337153387D4} = {CD26B63C-FA27-456C-ACFF-785DCF4F8B84}
 		{AF8F6638-CEB5-4A06-A01D-19998A077BA8} = {4194E81B-D588-412A-BB0E-1B8BA438F7B3}
+		{C767D24C-7CE9-4505-BD7C-140BC6FB14A9} = {CD26B63C-FA27-456C-ACFF-785DCF4F8B84}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E7817D5C-D64E-455E-997C-0BE6E1A4C499}

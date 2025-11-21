@@ -1,8 +1,9 @@
 ﻿using UteLearningHub.Domain.Entities.Base;
+using UteLearningHub.Domain.Repositories.UnitOfWork;
 
-namespace UteLearningHub.Domain.Repositories;
+namespace UteLearningHub.Domain.Repositories.Base;
 
-public interface IBaseRepository<TEntity, in TKey> : IConcurrencyHandler<TEntity>
+public interface IRepository<TEntity, in TKey> : IConcurrencyHandler<TEntity>
     where TEntity : BaseEntity<TKey>, IAggregateRoot
 {
     IUnitOfWork UnitOfWork { get; }

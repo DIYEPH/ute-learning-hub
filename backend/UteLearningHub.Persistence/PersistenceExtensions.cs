@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence.Identity;
+using UteLearningHub.Persistence.Repositories;
 using UteLearningHub.Persistence.Seeders;
 
 namespace UteLearningHub.Persistence;
@@ -34,6 +36,18 @@ public static class PersistenceExtensions
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddSignInManager<SignInManager<AppUser>>()
         .AddDefaultTokenProviders();
+
+        //Register Repositories
+        services.AddScoped<IDocumentRepository, DocumentRepository>();
+        services.AddScoped<ICommentRepository, CommentRepository>();
+        services.AddScoped<IConversationRepository, ConversationRepository>();
+        services.AddScoped<IFacultyRepository, FacultyRepository>();
+        services.AddScoped<IMajorRepository, MajorRepository>();
+        services.AddScoped<ISubjectRepository, SubjectRepository>();
+        services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<IFileRepository, FileRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<IReportRepository, ReportRepository>();
 
         services.AddScoped<DataSeeder>();
 
