@@ -2,7 +2,7 @@
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Message : BaseEntity<Guid>, IAggregateRoot, IAuditable
+public class Message : BaseEntity<Guid>, IAuditable
 {
     public Guid ConversationId { get; set; }
     public Guid? ParentId { get; set; }

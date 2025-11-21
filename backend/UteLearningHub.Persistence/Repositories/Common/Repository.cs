@@ -2,14 +2,15 @@
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Entities.Base;
-using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Domain.Repositories.Base;
+using UteLearningHub.Domain.Repositories.UnitOfWork;
 
-namespace UteLearningHub.Persistence.Repositories;
+namespace UteLearningHub.Persistence.Repositories.Common;
 
-public class Repository<TEntity, TKey> : IBaseRepository<TEntity, TKey>
+public class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
     where TEntity : BaseEntity<TKey>, IAggregateRoot
 {
-    private readonly ApplicationDbContext _dbContext;
+    protected readonly ApplicationDbContext _dbContext;
     private readonly IDateTimeProvider _dateTimeProvider;
     public Repository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
     {
@@ -91,7 +92,6 @@ public class Repository<TEntity, TKey> : IBaseRepository<TEntity, TKey>
     {
         await _dbContext.BulkDeleteAsync(entities, cancellationToken: cancellationToken);
     }
-
 
     public bool IsDbUpdateConcurrencyException(Exception ex)
     {

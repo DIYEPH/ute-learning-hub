@@ -3,6 +3,7 @@ using UteLearningHub.Api.Middleware;
 using UteLearningHub.Application;
 using UteLearningHub.Infrastructure;
 using UteLearningHub.Infrastructure.ConfigurationOptions;
+using UteLearningHub.Infrastructure.DateTimes;
 using UteLearningHub.Persistence;
 using UteLearningHub.Persistence.Seeders;
 
@@ -23,6 +24,8 @@ services.Configure<MicrosoftAuthOptions>(configurations.GetSection(MicrosoftAuth
 services.AddApplication()
     .AddPersistence(appSettings.ConnectionStrings.DefaultConnection)
     .AddInfrastructure(appSettings.Jwt);
+
+services.AddDateTimeProvider();
 
 // Add Controllers
 services.AddControllers();
