@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
+using UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
 using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
 using UteLearningHub.Application.Features.Document.Commands.ReviewDocument;
@@ -30,6 +31,15 @@ namespace UteLearningHub.Api.Controllers
         {
             var query = new GetDocumentByIdQuery { Id = id };
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpPut("{id}")]
+        [Authorize]
+        public async Task<ActionResult<DocumentDetailDto>> UpdateDocument(Guid id, [FromBody] UpdateDocumentCommand command)
+        {
+            command = command with { Id = id };
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
 

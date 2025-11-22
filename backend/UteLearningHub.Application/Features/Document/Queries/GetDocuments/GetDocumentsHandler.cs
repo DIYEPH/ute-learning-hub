@@ -20,12 +20,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
 
     public async Task<PagedResponse<DocumentDto>> Handle(GetDocumentsQuery request, CancellationToken cancellationToken)
     {
-        var query = _documentRepository.GetQueryableSet()
-            .Include(d => d.Subject)
-                .ThenInclude(s => s.Major)
-            .Include(d => d.Type)
-            .Include(d => d.DocumentTags)
-                .ThenInclude(dt => dt.Tag)
+        var query = _documentRepository.GetQueryableWithIncludes()
             .AsNoTracking();
 
         if (request.SubjectId.HasValue)
@@ -59,12 +54,11 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             query = query.Where(d => d.IsDownload == request.IsDownload.Value);
 
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
-        if (!isAdmin)
+        if (!request.ReviewStatus.HasValue && !isAdmin)
         {
             query = query.Where(d => d.ReviewStatus == ReviewStatus.Approved);
         }
 
-        // Sorting
         query = request.SortBy?.ToLower() switch
         {
             "name" => request.SortDescending
@@ -73,7 +67,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             "author" or "authorname" => request.SortDescending
                 ? query.OrderByDescending(d => d.AuthorName)
                 : query.OrderBy(d => d.AuthorName),
-            "createdate" or "date" => request.SortDescending
+            "createdat" or "date" => request.SortDescending
                 ? query.OrderByDescending(d => d.CreatedAt)
                 : query.OrderBy(d => d.CreatedAt),
             _ => query.OrderByDescending(d => d.CreatedAt) // Default: newest first

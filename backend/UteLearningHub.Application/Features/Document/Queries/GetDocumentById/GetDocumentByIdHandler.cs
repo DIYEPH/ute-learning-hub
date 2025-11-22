@@ -20,16 +20,7 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
 
     public async Task<DocumentDetailDto> Handle(GetDocumentByIdQuery request, CancellationToken cancellationToken)
     {
-        var document = await _documentRepository.GetQueryableSet()
-            .Include(d => d.Subject)
-                .ThenInclude(s => s.Major)
-            .Include(d => d.Type)
-            .Include(d => d.DocumentTags)
-                .ThenInclude(dt => dt.Tag)
-            .Include(d => d.DocumentFiles)
-                .ThenInclude(df => df.File)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(d => d.Id == request.Id, cancellationToken);
+        var document = await _documentRepository.GetByIdWithDetailsAsync(request.Id, disableTracking: true, cancellationToken);
 
         if (document == null)
             throw new NotFoundException($"Document with id {request.Id} not found");
