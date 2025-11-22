@@ -3,7 +3,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class DocumentReview : BaseEntity<Guid>, IAuditable
+public class DocumentReview : BaseEntity<Guid>, IAuditable, IAggregateRoot
 {
     public Guid DocumentId { get; set; }
     public DocumentReviewType DocumentReviewType { get; set; }

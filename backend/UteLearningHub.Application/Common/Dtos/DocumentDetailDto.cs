@@ -17,6 +17,7 @@ public record DocumentDetailDto
     public IList<TagDto> Tags { get; init; } = [];
     public IList<DocumentFileDto> Files { get; init; } = [];
     public int CommentCount { get; init; }
+    public DocumentReviewStatsDto ReviewStats { get; init; } = default!;
     public Guid CreatedById { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; init; }

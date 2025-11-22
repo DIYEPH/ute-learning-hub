@@ -1,0 +1,86 @@
+using MediatR;
+using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.CrossCuttingConcerns.DateTimes;
+using UteLearningHub.Domain.Exceptions;
+using UteLearningHub.Domain.Repositories;
+using DocumentReviewEntity = UteLearningHub.Domain.Entities.DocumentReview;
+
+namespace UteLearningHub.Application.Features.DocumentReview.Commands.CreateDocumentReview;
+
+public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocumentReviewCommand, DocumentReviewDto>
+{
+    private readonly IDocumentReviewRepository _documentReviewRepository;
+    private readonly IDocumentRepository _documentRepository;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public CreateDocumentReviewCommandHandler(
+        IDocumentReviewRepository documentReviewRepository,
+        IDocumentRepository documentRepository,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _documentReviewRepository = documentReviewRepository;
+        _documentRepository = documentRepository;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<DocumentReviewDto> Handle(CreateDocumentReviewCommand request, CancellationToken cancellationToken)
+    {
+        if (!_currentUserService.IsAuthenticated)
+            throw new UnauthorizedException("You must be authenticated to review documents");
+
+        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+
+        // Validate document exists
+        var document = await _documentRepository.GetByIdAsync(request.DocumentId, disableTracking: true, cancellationToken);
+        if (document == null || document.IsDeleted)
+            throw new NotFoundException($"Document with id {request.DocumentId} not found");
+
+        // Check if user already reviewed this document
+        var existingReview = await _documentReviewRepository.GetByDocumentIdAndUserIdAsync(
+            request.DocumentId, 
+            userId, 
+            disableTracking: false, 
+            cancellationToken);
+
+        DocumentReviewEntity review;
+
+        if (existingReview != null)
+        {
+            // Update existing review
+            existingReview.DocumentReviewType = request.DocumentReviewType;
+            existingReview.UpdatedById = userId;
+            existingReview.UpdatedAt = _dateTimeProvider.OffsetNow;
+            await _documentReviewRepository.UpdateAsync(existingReview, cancellationToken);
+            review = existingReview;
+        }
+        else
+        {
+            // Create new review
+            review = new DocumentReviewEntity
+            {
+                Id = Guid.NewGuid(),
+                DocumentId = request.DocumentId,
+                DocumentReviewType = request.DocumentReviewType,
+                CreatedById = userId,
+                CreatedAt = _dateTimeProvider.OffsetNow
+            };
+            await _documentReviewRepository.AddAsync(review, cancellationToken);
+        }
+
+        await _documentReviewRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new DocumentReviewDto
+        {
+            Id = review.Id,
+            DocumentId = review.DocumentId,
+            DocumentReviewType = review.DocumentReviewType,
+            CreatedById = review.CreatedById,
+            CreatedAt = review.CreatedAt,
+            UpdatedAt = review.UpdatedAt
+        };
+    }
+}
