@@ -30,3 +30,4 @@ public record DocumentFileDto
     public long FileSize { get; init; }
     public string MimeType { get; init; } = default!;
 }
+

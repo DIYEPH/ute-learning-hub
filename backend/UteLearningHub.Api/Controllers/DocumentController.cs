@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
 using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
 using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
 
@@ -25,6 +26,13 @@ namespace UteLearningHub.Api.Controllers
         {
             var query = new GetDocumentByIdQuery { Id = id };
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+        [HttpDelete("{id}")]
+        public async Task<ActionResult<Unit>> DeleteSoftDocument(Guid id)
+        {
+            var command = new DeleteDocumentsCommand { Id = id };
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
     }

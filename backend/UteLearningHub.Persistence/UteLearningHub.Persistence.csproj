@@ -18,6 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\UteLearningHub.Application\UteLearningHub.Application.csproj" />
     <ProjectReference Include="..\UteLearningHub.CrossCuttingConcerns\UteLearningHub.CrossCuttingConcerns.csproj" />
     <ProjectReference Include="..\UteLearningHub.Domain\UteLearningHub.Domain.csproj" />
   </ItemGroup>
