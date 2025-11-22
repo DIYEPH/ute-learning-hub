@@ -51,28 +51,9 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
             })
             .ToListAsync(cancellationToken);
 
-        // Get current user's review if authenticated
-        DocumentReviewType? currentUserReview = null;
-        if (_currentUserService.IsAuthenticated && _currentUserService.UserId.HasValue)
-        {
-            var userReview = await _documentReviewRepository.GetByDocumentIdAndUserIdAsync(
-                request.Id,
-                _currentUserService.UserId.Value,
-                disableTracking: true,
-                cancellationToken);
-            
-            if (userReview != null)
-                currentUserReview = userReview.DocumentReviewType;
-        }
-
-        var reviewStatsDto = new DocumentReviewStatsDto
-        {
-            DocumentId = request.Id,
-            UsefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.Useful)?.Count ?? 0,
-            NotUsefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.NotUseful)?.Count ?? 0,
-            TotalCount = reviewStats.Sum(r => r.Count),
-            CurrentUserReview = currentUserReview
-        };
+        var usefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.Useful)?.Count ?? 0;
+        var notUsefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.NotUseful)?.Count ?? 0;
+        var totalCount = reviewStats.Sum(r => r.Count);
 
         return new DocumentDetailDto
         {
@@ -109,7 +90,9 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
                 MimeType = df.File.MimeType
             }).ToList(),
             CommentCount = commentCount,
-            ReviewStats = reviewStatsDto,
+            UsefulCount = usefulCount,
+            NotUsefulCount = notUsefulCount,
+            TotalCount = totalCount,
             CreatedById = document.CreatedById,
             CreatedAt = document.CreatedAt,
             UpdatedAt = document.UpdatedAt
