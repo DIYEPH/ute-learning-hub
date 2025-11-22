@@ -133,4 +133,24 @@ public class UserService : IUserService
         return await GetProfileAsync(userId, cancellationToken) 
             ?? throw new NotFoundException("User not found");
     }
+
+    public async Task<IList<Guid>> GetAllActiveUserIdsAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Users
+            .Where(u => !u.IsDeleted)
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IList<Guid>> ValidateUserIdsAsync(IEnumerable<Guid> userIds, CancellationToken cancellationToken = default)
+    {
+        var userIdList = userIds.ToList();
+        if (!userIdList.Any())
+            return new List<Guid>();
+
+        return await _dbContext.Users
+            .Where(u => userIdList.Contains(u.Id) && !u.IsDeleted)
+            .Select(u => u.Id)
+            .ToListAsync(cancellationToken);
+    }
 }
