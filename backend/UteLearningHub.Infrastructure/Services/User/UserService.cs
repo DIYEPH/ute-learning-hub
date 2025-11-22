@@ -3,6 +3,7 @@ using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Account.Queries.GetProfile;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
+using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Infrastructure.Services.User;
@@ -11,6 +12,7 @@ public class UserService : IUserService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IIdentityService _identityService;
+
 
     public UserService(ApplicationDbContext dbContext, IIdentityService identityService)
     {
@@ -69,5 +71,14 @@ public class UserService : IUserService
             Major = majorDto,
             CreatedAt = appUser.CreatedAt
         };
+    }
+
+    public async Task<TrustLever?> GetTrustLevelAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var appUser = await _dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        return appUser?.TrustLever;
     }
 }

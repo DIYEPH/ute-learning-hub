@@ -5,6 +5,7 @@ using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
 using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
 using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
+using UteLearningHub.Application.Features.Document.Commands.ReviewDocument;
 
 namespace UteLearningHub.Api.Controllers
 {
@@ -39,6 +40,15 @@ namespace UteLearningHub.Api.Controllers
             var command = new DeleteDocumentsCommand { Id = id };
             var result = await _mediator.Send(command);
             return Ok(result);
+        }
+
+        [HttpPost("{id}/review")]
+        [Authorize]
+        public async Task<IActionResult> ReviewDocument(Guid id, [FromBody] ReviewDocumentCommand command)
+        {
+            command = command with { DocumentId = id };
+            await _mediator.Send(command);
+            return NoContent();
         }
     }
 }
