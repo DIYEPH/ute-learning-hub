@@ -44,6 +44,7 @@ public static class InfrastructureExtensions
         services.AddScoped<IIdentityService, IdentityService>();
 
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<ICommentService, CommentService>();
 
         // Add HttpContextAccessor for CurrentUserService
         services.AddHttpContextAccessor();
