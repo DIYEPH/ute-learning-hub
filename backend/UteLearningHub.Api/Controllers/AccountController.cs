@@ -1,6 +1,8 @@
 ﻿using MediatR;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
 using UteLearningHub.Application.Features.Account.Queries.GetProfile;
 
 namespace UteLearningHub.Api.Controllers
@@ -16,7 +18,7 @@ namespace UteLearningHub.Api.Controllers
         }
 
         [HttpGet("profile")]
-        public async Task<ActionResult<GetProfileResponse>> GetProfile()
+        public async Task<ActionResult<ProfileDto>> GetProfile()
         {
             var query = new GetProfileQuery { UserId = null };
             var result = await _mediator.Send(query);
@@ -24,10 +26,18 @@ namespace UteLearningHub.Api.Controllers
         }
 
         [HttpGet("profile/{userId}")]
-        public async Task<ActionResult<GetProfileResponse>> GetProfileById(Guid userId)
+        public async Task<ActionResult<ProfileDto>> GetProfileById(Guid userId)
         {
             var query = new GetProfileQuery { UserId = userId };
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpPut("profile")]
+        [Authorize]
+        public async Task<ActionResult<ProfileDto>> UpdateProfile([FromBody] UpdateProfileCommand command)
+        {
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
     }

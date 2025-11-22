@@ -1,8 +1,6 @@
-﻿using UteLearningHub.Application.Common.Dtos;
+﻿namespace UteLearningHub.Application.Common.Dtos;
 
-namespace UteLearningHub.Application.Features.Account.Queries.GetProfile;
-
-public record GetProfileResponse
+public record ProfileDto
 {
     public Guid Id { get; init; }
     public string Email { get; init; } = default!;

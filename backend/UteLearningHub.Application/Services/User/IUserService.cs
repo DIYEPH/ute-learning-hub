@@ -1,10 +1,12 @@
-﻿using UteLearningHub.Application.Features.Account.Queries.GetProfile;
+﻿using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
 using UteLearningHub.Domain.Constaints.Enums;
 
 namespace UteLearningHub.Application.Services.User;
 
 public interface IUserService
 {
-    Task<GetProfileResponse?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<ProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<TrustLever?> GetTrustLevelAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<ProfileDto> UpdateProfileAsync(Guid userId, UpdateProfileRequest request, CancellationToken cancellationToken = default);
 }

@@ -1,11 +1,12 @@
 ﻿using MediatR;
+using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.Domain.Exceptions;
 
 namespace UteLearningHub.Application.Features.Account.Queries.GetProfile;
 
-public class GetProfileHandler : IRequestHandler<GetProfileQuery, GetProfileResponse>
+public class GetProfileHandler : IRequestHandler<GetProfileQuery, ProfileDto>
 {
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
@@ -14,7 +15,7 @@ public class GetProfileHandler : IRequestHandler<GetProfileQuery, GetProfileResp
         _currentUserService = currentUserService;
         _userService = userService;
     }
-    public async Task<GetProfileResponse> Handle(GetProfileQuery request, CancellationToken cancellationToken)
+    public async Task<ProfileDto> Handle(GetProfileQuery request, CancellationToken cancellationToken)
     {
         Guid userId;
 

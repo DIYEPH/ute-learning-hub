@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Features.Account.Queries.GetProfile;
+using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
+using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
+using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Infrastructure.Services.User;
@@ -12,15 +14,19 @@ public class UserService : IUserService
 {
     private readonly ApplicationDbContext _dbContext;
     private readonly IIdentityService _identityService;
+    private readonly IDateTimeProvider _dateTimeProvider;
 
-
-    public UserService(ApplicationDbContext dbContext, IIdentityService identityService)
+    public UserService(
+        ApplicationDbContext dbContext, 
+        IIdentityService identityService,
+        IDateTimeProvider dateTimeProvider)
     {
         _dbContext = dbContext;
         _identityService = identityService;
+        _dateTimeProvider = dateTimeProvider;
     }
 
-    public async Task<GetProfileResponse?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<ProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var user = await _identityService.FindByIdAsync(userId);
 
@@ -55,7 +61,7 @@ public class UserService : IUserService
                     : null
             };
 
-        return new GetProfileResponse
+        return new ProfileDto
         {
             Id = userId,
             Username = user.UserName,
@@ -80,5 +86,51 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         return appUser?.TrustLever;
+    }
+
+    public async Task<ProfileDto> UpdateProfileAsync(
+        Guid userId, 
+        UpdateProfileRequest request, 
+        CancellationToken cancellationToken = default)
+    {
+        var appUser = await _dbContext.Users
+            .Include(u => u.Major)
+                .ThenInclude(m => m.Faculty)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (appUser == null)
+            throw new NotFoundException("User not found");
+
+        // Update properties if provided
+        if (!string.IsNullOrWhiteSpace(request.FullName))
+            appUser.FullName = request.FullName;
+
+        if (!string.IsNullOrWhiteSpace(request.Introduction))
+            appUser.Introduction = request.Introduction;
+
+        if (!string.IsNullOrWhiteSpace(request.AvatarUrl))
+            appUser.AvatarUrl = request.AvatarUrl;
+
+        if (request.MajorId.HasValue)
+        {
+            var major = await _dbContext.Majors
+                .FirstOrDefaultAsync(m => m.Id == request.MajorId.Value && !m.IsDeleted, cancellationToken);
+            
+            if (major == null)
+                throw new NotFoundException($"Major with id {request.MajorId.Value} not found");
+            
+            appUser.MajorId = request.MajorId.Value;
+        }
+
+        if (request.Gender.HasValue)
+            appUser.Gender = request.Gender.Value;
+
+        appUser.UpdatedAt = _dateTimeProvider.OffsetNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Return updated profile
+        return await GetProfileAsync(userId, cancellationToken) 
+            ?? throw new NotFoundException("User not found");
     }
 }
