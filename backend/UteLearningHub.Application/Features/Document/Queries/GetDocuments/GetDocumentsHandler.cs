@@ -66,7 +66,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             "author" or "authorname" => request.SortDescending
                 ? query.OrderByDescending(d => d.AuthorName)
                 : query.OrderBy(d => d.AuthorName),
-            "createdat" or "date" => request.SortDescending
+            "createdate" or "date" => request.SortDescending
                 ? query.OrderByDescending(d => d.CreatedAt)
                 : query.OrderBy(d => d.CreatedAt),
             _ => query.OrderByDescending(d => d.CreatedAt) // Default: newest first
