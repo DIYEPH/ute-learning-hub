@@ -4,16 +4,18 @@ using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Application.Services.Identity;
 
 namespace UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
 
 public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, DocumentDetailDto>
 {
     private readonly IDocumentRepository _documentRepository;
-
-    public GetDocumentByIdHandler(IDocumentRepository documentRepository)
+    private readonly ICurrentUserService _currentUserService;
+    public GetDocumentByIdHandler(IDocumentRepository documentRepository, ICurrentUserService currentUserService)
     {
         _documentRepository = documentRepository;
+        _currentUserService = currentUserService;
     }
 
     public async Task<DocumentDetailDto> Handle(GetDocumentByIdQuery request, CancellationToken cancellationToken)
@@ -32,7 +34,8 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
         if (document == null)
             throw new NotFoundException($"Document with id {request.Id} not found");
 
-        if (document.ReviewStatus != ReviewStatus.Approved)
+        var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
+        if (!isAdmin && document.ReviewStatus != ReviewStatus.Approved)
             throw new NotFoundException($"Document with id {request.Id} not found");
 
          var commentCount = await _documentRepository.GetQueryableSet()

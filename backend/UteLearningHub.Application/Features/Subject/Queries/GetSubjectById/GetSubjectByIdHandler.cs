@@ -4,16 +4,18 @@ using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Application.Services.Identity;
 
 namespace UteLearningHub.Application.Features.Subject.Queries.GetSubjectById;
 
 public class GetSubjectByIdHandler : IRequestHandler<GetSubjectByIdQuery, SubjectDetailDto>
 {
     private readonly ISubjectRepository _subjectRepository;
-
-    public GetSubjectByIdHandler(ISubjectRepository subjectRepository)
+    private readonly ICurrentUserService _currentUserService;
+    public GetSubjectByIdHandler(ISubjectRepository subjectRepository, ICurrentUserService currentUserService)
     {
         _subjectRepository = subjectRepository;
+        _currentUserService = currentUserService;
     }
 
     public async Task<SubjectDetailDto> Handle(GetSubjectByIdQuery request, CancellationToken cancellationToken)
@@ -27,7 +29,8 @@ public class GetSubjectByIdHandler : IRequestHandler<GetSubjectByIdQuery, Subjec
         if (subject == null)
             throw new NotFoundException($"Subject with id {request.Id} not found");
 
-        if (subject.ReviewStatus != ReviewStatus.Approved)
+        var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
+        if (!isAdmin && subject.ReviewStatus != ReviewStatus.Approved)
             throw new NotFoundException($"Subject with id {request.Id} not found");
 
         var documentCount = await _subjectRepository.GetQueryableSet()

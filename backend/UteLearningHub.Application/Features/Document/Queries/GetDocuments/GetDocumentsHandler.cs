@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Repositories;
 
@@ -9,10 +10,12 @@ namespace UteLearningHub.Application.Features.Document.Queries.GetDocuments;
 public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedResponse<DocumentDto>>
 {
     private readonly IDocumentRepository _documentRepository;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetDocumentsHandler(IDocumentRepository documentRepository)
+    public GetDocumentsHandler(IDocumentRepository documentRepository, ICurrentUserService currentUserService)
     {
         _documentRepository = documentRepository;
+        _currentUserService = currentUserService;
     }
 
     public async Task<PagedResponse<DocumentDto>> Handle(GetDocumentsQuery request, CancellationToken cancellationToken)
@@ -55,7 +58,11 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
         if (request.IsDownload.HasValue)
             query = query.Where(d => d.IsDownload == request.IsDownload.Value);
 
-        query = query.Where(d => d.ReviewStatus == ReviewStatus.Approved);
+        var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
+        if (!isAdmin)
+        {
+            query = query.Where(d => d.ReviewStatus == ReviewStatus.Approved);
+        }
 
         // Sorting
         query = request.SortBy?.ToLower() switch

@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Features.Subject.Queries.GetSubjects;
+using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Repositories;
 
@@ -10,10 +10,12 @@ namespace UteLearningHub.Application.Features.Subject.Queries.GetSubjects;
 public class GetSubjectsHandler : IRequestHandler<GetSubjectsQuery, PagedResponse<SubjectDto>>
 {
     private readonly ISubjectRepository _subjectRepository;
+    private readonly ICurrentUserService _currentUserService;
 
-    public GetSubjectsHandler(ISubjectRepository subjectRepository)
+    public GetSubjectsHandler(ISubjectRepository subjectRepository, ICurrentUserService currentUserService)
     {
         _subjectRepository = subjectRepository;
+        _currentUserService = currentUserService;
     }
 
     public async Task<PagedResponse<SubjectDto>> Handle(GetSubjectsQuery request, CancellationToken cancellationToken)
@@ -38,8 +40,11 @@ public class GetSubjectsHandler : IRequestHandler<GetSubjectsQuery, PagedRespons
                 s.SubjectCode.ToLower().Contains(searchTerm));
         }
 
-        // Only show approved subjects
-        query = query.Where(s => s.ReviewStatus == ReviewStatus.Approved);
+        var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
+        if (!isAdmin)
+        {
+            query = query.Where(s => s.ReviewStatus == ReviewStatus.Approved);
+        }
 
         // Order by name
         query = query.OrderBy(s => s.SubjectName);

@@ -4,16 +4,18 @@ using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Application.Services.Identity;
 
 namespace UteLearningHub.Application.Features.Type.Queries.GetTypeById;
 
 public class GetTypeByIdHandler : IRequestHandler<GetTypeByIdQuery, TypeDetailDto>
-{
+{   
     private readonly ITypeRepository _typeRepository;
-
-    public GetTypeByIdHandler(ITypeRepository typeRepository)
+    private readonly ICurrentUserService _currentUserService;
+    public GetTypeByIdHandler(ITypeRepository typeRepository, ICurrentUserService currentUserService)
     {
         _typeRepository = typeRepository;
+        _currentUserService = currentUserService;
     }
 
     public async Task<TypeDetailDto> Handle(GetTypeByIdQuery request, CancellationToken cancellationToken)
@@ -24,7 +26,8 @@ public class GetTypeByIdHandler : IRequestHandler<GetTypeByIdQuery, TypeDetailDt
         if (type == null)
             throw new NotFoundException($"Type with id {request.Id} not found");
 
-        if (type.ReviewStatus != ReviewStatus.Approved)
+        var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
+        if (!isAdmin && type.ReviewStatus != ReviewStatus.Approved)
             throw new NotFoundException($"Type with id {request.Id} not found");
 
         // Query document count separately to avoid loading all documents

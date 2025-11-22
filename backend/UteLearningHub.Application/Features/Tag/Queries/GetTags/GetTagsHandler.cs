@@ -1,60 +1,60 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Features.Type.Queries.GetTypes;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Repositories;
 
-namespace UteLearningHub.Application.Features.Type.Queries.GetTypes;
+namespace UteLearningHub.Application.Features.Tag.Queries.GetTags;
 
-public class GetTypesHandler : IRequestHandler<GetTypesQuery, PagedResponse<TypeDto>>
+public class GetTagsHandler : IRequestHandler<GetTagsQuery, PagedResponse<TagDto>>
 {
-    private readonly ITypeRepository _typeRepository;
+    private readonly ITagRepository _tagRepository;
     private readonly ICurrentUserService _currentUserService;
 
-    public GetTypesHandler(ITypeRepository typeRepository, ICurrentUserService currentUserService)
+    public GetTagsHandler(ITagRepository tagRepository, ICurrentUserService currentUserService)
     {
-        _typeRepository = typeRepository;
+        _tagRepository = tagRepository;
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResponse<TypeDto>> Handle(GetTypesQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResponse<TagDto>> Handle(GetTagsQuery request, CancellationToken cancellationToken)
     {
-        var query = _typeRepository.GetQueryableSet()
+        var query = _tagRepository.GetQueryableSet()
             .AsNoTracking();
 
         // Search by name
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             var searchTerm = request.SearchTerm.ToLower();
-            query = query.Where(t => t.TypeName.ToLower().Contains(searchTerm));
+            query = query.Where(t => t.TagName.ToLower().Contains(searchTerm));
         }
 
-        // Only show approved types for public users, admin can see all
+        // Only show approved tags for public users, admin can see all
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
         if (!isAdmin)
         {
             query = query.Where(t => t.ReviewStatus == ReviewStatus.Approved);
         }
 
-        query = query.OrderBy(t => t.TypeName);
+        // Order by name
+        query = query.OrderBy(t => t.TagName);
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var types = await query
+        var tags = await query
             .Skip(request.Skip)
             .Take(request.Take)
-            .Select(t => new TypeDto
+            .Select(t => new TagDto
             {
                 Id = t.Id,
-                TypeName = t.TypeName
+                TagName = t.TagName
             })
             .ToListAsync(cancellationToken);
 
-        return new PagedResponse<TypeDto>
+        return new PagedResponse<TagDto>
         {
-            Items = types,
+            Items = tags,
             TotalCount = totalCount,
             Page = request.Page,
             PageSize = request.PageSize
