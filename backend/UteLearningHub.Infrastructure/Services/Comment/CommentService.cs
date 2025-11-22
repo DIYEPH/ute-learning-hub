@@ -41,4 +41,11 @@ public class CommentService : ICommentService
                 AvatarUrl = u.AvatarUrl
             });
     }
+
+    public async Task<int> GetReplyCountAsync(Guid commentId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Comments
+            .Where(c => c.ParentId == commentId && !c.IsDeleted)
+            .CountAsync(cancellationToken);
+    }
 }

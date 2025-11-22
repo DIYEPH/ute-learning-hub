@@ -3,8 +3,8 @@ using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
-using UteLearningHub.Application.Services.User;
 using UteLearningHub.Domain.Constaints.Enums;
+using UteLearningHub.Application.Services.User;
 
 namespace UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
 

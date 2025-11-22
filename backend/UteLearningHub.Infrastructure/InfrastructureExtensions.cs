@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using UteLearningHub.Application.Services.Authentication;
+using UteLearningHub.Application.Services.Comment;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.Infrastructure.ConfigurationOptions;
 using UteLearningHub.Infrastructure.Services.Authentication;
+using UteLearningHub.Infrastructure.Services.Comment;
 using UteLearningHub.Infrastructure.Services.Identity;
 using UteLearningHub.Infrastructure.Services.User;
 
