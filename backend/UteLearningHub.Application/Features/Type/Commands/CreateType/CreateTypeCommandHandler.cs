@@ -33,11 +33,6 @@ public class CreateTypeCommandHandler : IRequestHandler<CreateTypeCommand, TypeD
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Only admin can create types
-        var isAdmin = _currentUserService.IsInRole("Admin");
-        if (!isAdmin)
-            throw new UnauthorizedException("Only administrators can create types");
-
         // Validate TypeName is not empty
         if (string.IsNullOrWhiteSpace(request.TypeName))
             throw new BadRequestException("TypeName cannot be empty");

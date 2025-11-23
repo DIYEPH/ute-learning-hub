@@ -30,11 +30,6 @@ public class DeleteTypeCommandHandler : IRequestHandler<DeleteTypeCommand, Unit>
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Only admin can delete types
-        var isAdmin = _currentUserService.IsInRole("Admin");
-        if (!isAdmin)
-            throw new UnauthorizedException("Only administrators can delete types");
-
         var type = await _typeRepository.GetByIdAsync(request.Id, disableTracking: false, cancellationToken);
 
         if (type == null || type.IsDeleted)

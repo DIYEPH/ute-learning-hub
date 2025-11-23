@@ -7,11 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\Document\Commands\UploadDocument\**" />
+    <EmbeddedResource Remove="Features\Document\Commands\UploadDocument\**" />
+    <None Remove="Features\Document\Commands\UploadDocument\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Common\Commands\" />
     <Folder Include="Common\Queries\" />
     <Folder Include="Features\Auth\Queries\" />
     <Folder Include="Features\Document\Commands\ReviewDocument\" />
-    <Folder Include="Features\Document\Commands\UploadDocument\" />
     <Folder Include="Features\User\" />
     <Folder Include="Repositories\" />
   </ItemGroup>

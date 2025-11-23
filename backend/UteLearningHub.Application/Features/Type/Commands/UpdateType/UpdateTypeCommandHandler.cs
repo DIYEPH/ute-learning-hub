@@ -31,11 +31,6 @@ public class UpdateTypeCommandHandler : IRequestHandler<UpdateTypeCommand, TypeD
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Only admin can update types
-        var isAdmin = _currentUserService.IsInRole("Admin");
-        if (!isAdmin)
-            throw new UnauthorizedException("Only administrators can update types");
-
         // Validate TypeName is not empty
         if (string.IsNullOrWhiteSpace(request.TypeName))
             throw new BadRequestException("TypeName cannot be empty");
