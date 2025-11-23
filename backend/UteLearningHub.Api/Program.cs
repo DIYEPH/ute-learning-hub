@@ -21,6 +21,7 @@ services.Configure<AppSettings>(configurations);
 services.Configure<JwtOptions>(configurations.GetSection(JwtOptions.SectionName));
 services.Configure<MicrosoftAuthOptions>(configurations.GetSection(MicrosoftAuthOptions.SectionName));
 services.Configure<AmazonS3Options>(configurations.GetSection(AmazonS3Options.SectionName));
+services.Configure<FileStorageOptions>(configurations.GetSection(FileStorageOptions.SectionName));
 
 services.AddApplication()
     .AddPersistence(appSettings.ConnectionStrings.DefaultConnection)

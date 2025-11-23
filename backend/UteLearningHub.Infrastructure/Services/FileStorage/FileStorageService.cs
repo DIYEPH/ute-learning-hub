@@ -1,6 +1,7 @@
 using System.IO;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using UteLearningHub.Application.Services.FileStorage;
+using UteLearningHub.Infrastructure.ConfigurationOptions;
 
 namespace UteLearningHub.Infrastructure.Services.FileStorage;
 
@@ -9,10 +10,13 @@ public class FileStorageService : IFileStorageService
     private readonly string _basePath;
     private readonly string _baseUrl;
 
-    public FileStorageService(IConfiguration configuration)
+    public FileStorageService(IOptions<FileStorageOptions> options)
     {
-        _basePath = configuration["FileStorage:BasePath"] ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-        _baseUrl = configuration["FileStorage:BaseUrl"] ?? "/uploads";
+        var fileStorageOptions = options.Value;
+        _basePath = !string.IsNullOrEmpty(fileStorageOptions.BasePath) 
+            ? fileStorageOptions.BasePath 
+            : Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+        _baseUrl = fileStorageOptions.BaseUrl;
         
         if (!Directory.Exists(_basePath))
         {
