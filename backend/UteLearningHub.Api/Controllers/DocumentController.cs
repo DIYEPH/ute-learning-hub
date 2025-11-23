@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
@@ -31,6 +32,15 @@ namespace UteLearningHub.Api.Controllers
         {
             var query = new GetDocumentByIdQuery { Id = id };
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Authorize]
+        [RequestSizeLimit(100_000_000)] 
+        public async Task<ActionResult<DocumentDetailDto>> CreateDocument([FromForm] CreateDocumentCommand command)
+        {
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
 
