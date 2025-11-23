@@ -1,0 +1,35 @@
+using MediatR;
+using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.User;
+using UteLearningHub.Domain.Exceptions;
+
+namespace UteLearningHub.Application.Features.User.Queries.GetUsers;
+
+public class GetUsersHandler : IRequestHandler<GetUsersQuery, PagedResponse<UserDto>>
+{
+    private readonly IUserService _userService;
+    private readonly ICurrentUserService _currentUserService;
+
+    public GetUsersHandler(
+        IUserService userService,
+        ICurrentUserService currentUserService)
+    {
+        _userService = userService;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<PagedResponse<UserDto>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
+    {
+        // Only admin can view users list
+        if (!_currentUserService.IsAuthenticated)
+            throw new UnauthorizedException("You must be authenticated to view users");
+
+        var isAdmin = _currentUserService.IsInRole("Admin");
+        if (!isAdmin)
+            throw new UnauthorizedException("Only administrators can view users list");
+
+        // GetUsersQuery kế thừa GetUsersRequest, có thể truyền trực tiếp
+        return await _userService.GetUsersAsync(request, cancellationToken);
+    }
+}

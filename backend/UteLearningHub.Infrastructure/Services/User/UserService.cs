@@ -1,12 +1,15 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
+using UteLearningHub.Application.Features.User.Queries.GetUsers;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Persistence;
+using UteLearningHub.Persistence.Identity;
 
 namespace UteLearningHub.Infrastructure.Services.User;
 
@@ -15,15 +18,18 @@ public class UserService : IUserService
     private readonly ApplicationDbContext _dbContext;
     private readonly IIdentityService _identityService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly UserManager<AppUser> _userManager;
 
     public UserService(
         ApplicationDbContext dbContext, 
         IIdentityService identityService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        UserManager<AppUser> userManager)
     {
         _dbContext = dbContext;
         _identityService = identityService;
         _dateTimeProvider = dateTimeProvider;
+        _userManager = userManager;
     }
 
     public async Task<ProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -152,5 +158,130 @@ public class UserService : IUserService
             .Where(u => userIdList.Contains(u.Id) && !u.IsDeleted)
             .Select(u => u.Id)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<PagedResponse<UserDto>> GetUsersAsync(GetUsersRequest request, CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Users
+            .Include(u => u.Major)
+                .ThenInclude(m => m.Faculty)
+            .AsNoTracking();
+
+        // Search by name, email, or username
+        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+        {
+            var searchTerm = request.SearchTerm.ToLower();
+            query = query.Where(u =>
+                u.FullName.ToLower().Contains(searchTerm) ||
+                u.Email!.ToLower().Contains(searchTerm) ||
+                (u.UserName != null && u.UserName.ToLower().Contains(searchTerm)));
+        }
+
+        // Filter by MajorId
+        if (request.MajorId.HasValue)
+        {
+            query = query.Where(u => u.MajorId == request.MajorId.Value);
+        }
+
+        // Filter by TrustLevel
+        if (request.TrustLevel.HasValue)
+        {
+            query = query.Where(u => u.TrustLever == request.TrustLevel.Value);
+        }
+
+        // Filter by EmailConfirmed
+        if (request.EmailConfirmed.HasValue)
+        {
+            query = query.Where(u => u.EmailConfirmed == request.EmailConfirmed.Value);
+        }
+
+        // Filter by IsDeleted
+        if (request.IsDeleted.HasValue)
+        {
+            query = query.Where(u => u.IsDeleted == request.IsDeleted.Value);
+        }
+        else
+        {
+            // Default: only show non-deleted users
+            query = query.Where(u => !u.IsDeleted);
+        }
+
+        // Sorting
+        query = request.SortBy?.ToLower() switch
+        {
+            "fullname" or "name" => request.SortDescending
+                ? query.OrderByDescending(u => u.FullName)
+                : query.OrderBy(u => u.FullName),
+            "email" => request.SortDescending
+                ? query.OrderByDescending(u => u.Email)
+                : query.OrderBy(u => u.Email),
+            "trustscore" or "score" => request.SortDescending
+                ? query.OrderByDescending(u => u.TrustScore)
+                : query.OrderBy(u => u.TrustScore),
+            "lastloginat" or "lastlogin" => request.SortDescending
+                ? query.OrderByDescending(u => u.LastLoginAt)
+                : query.OrderBy(u => u.LastLoginAt),
+            "createdat" or "date" => request.SortDescending
+                ? query.OrderByDescending(u => u.CreatedAt)
+                : query.OrderBy(u => u.CreatedAt),
+            _ => query.OrderByDescending(u => u.CreatedAt) // Default: newest first
+        };
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        // Apply pagination
+        var users = await query
+            .Skip(request.Skip)
+            .Take(request.Take)
+            .ToListAsync(cancellationToken);
+
+        // Get roles for each user
+        var userDtos = new List<UserDto>();
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+            
+            userDtos.Add(new UserDto
+            {
+                Id = user.Id,
+                Email = user.Email!,
+                Username = user.UserName,
+                FullName = user.FullName,
+                EmailConfirmed = user.EmailConfirmed,
+                AvatarUrl = user.AvatarUrl,
+                Introduction = user.Introduction,
+                TrustScore = user.TrustScore,
+                TrustLevel = user.TrustLever.ToString(),
+                Gender = user.Gender.ToString(),
+                IsSuggest = user.IsSuggest,
+                Roles = roles.ToList(),
+                Major = user.Major != null ? new MajorDto
+                {
+                    Id = user.Major.Id,
+                    MajorName = user.Major.MajorName,
+                    MajorCode = user.Major.MajorCode,
+                    Faculty = user.Major.Faculty != null ? new FacultyDto
+                    {
+                        Id = user.Major.Faculty.Id,
+                        FacultyName = user.Major.Faculty.FacultyName,
+                        FacultyCode = user.Major.Faculty.FacultyCode
+                    } : null
+                } : null,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt,
+                LastLoginAt = user.LastLoginAt,
+                IsDeleted = user.IsDeleted,
+                DeletedAt = user.DeletedAt,
+                DeletedById = user.DeletedById
+            });
+        }
+
+        return new PagedResponse<UserDto>
+        {
+            Items = userDtos,
+            TotalCount = totalCount,
+            Page = request.Page,
+            PageSize = request.PageSize
+        };
     }
 }
