@@ -23,6 +23,7 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(u => u.AvatarUrl).HasColumnName("HinhDaiDien");
         builder.Property(u => u.TrustScore).HasColumnName("DiemXacThuc");
         builder.Property(u => u.TrustLever).HasColumnName("CapDoXacThuc");
+        builder.Property(u => u.LastLoginAt).HasColumnName("LanDangNhapGanNhat");
 
         builder.Property(u => u.UserName).HasColumnName("TenDangNhap");
         builder.Property(u => u.FullName).HasColumnName("HoVaTen");

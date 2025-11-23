@@ -37,6 +37,10 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
         var roles = await _identityService.GetRolesAsync(user.Id);
         var accessToken = _jwtTokenService.GenerateAccessToken(user.Id, user.Email, user.UserName, roles, sessionId);
         var refreshToken = await _refreshTokenService.GenerateAndSaveRefreshTokenAsync(user.Id, sessionId);
+
+        // 4. Update last login
+        await _identityService.UpdateLastLoginAsync(user.Id, cancellationToken);
+
         return new LoginResponse
         {
             Id = user.Id.ToString(),

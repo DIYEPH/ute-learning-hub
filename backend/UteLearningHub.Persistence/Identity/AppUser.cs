@@ -37,6 +37,7 @@ public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
     public byte[] RowVersion { get; set; } = default!;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
+    public DateTimeOffset? LastLoginAt { get; set; }
 
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }

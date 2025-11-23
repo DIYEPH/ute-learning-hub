@@ -11,6 +11,7 @@ public interface IIdentityService
     Task<bool> AddExternalLoginAsync(Guid userId, ExternalLoginInfoDto loginInfo);
     Task<IList<string>> GetRolesAsync(Guid userId);
     Task<bool> AddToRoleAsync(Guid userId, string roleName);
+    Task UpdateLastLoginAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 public record AppUserDto(
     Guid Id,

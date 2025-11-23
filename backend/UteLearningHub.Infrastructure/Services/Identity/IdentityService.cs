@@ -96,6 +96,16 @@ public class IdentityService : IIdentityService
 
         return result.Succeeded;
     }
+
+    public async Task UpdateLastLoginAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null) return;
+
+        user.LastLoginAt = DateTimeOffset.UtcNow;
+        await _userManager.UpdateAsync(user);
+    }
+
     private static AppUserDto MapToDto(AppUser user) => new(
         user.Id,
         user.Email!,

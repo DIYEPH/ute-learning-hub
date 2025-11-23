@@ -87,6 +87,10 @@ public class LoginWithMicrosoftCommandHandler : IRequestHandler<LoginWithMicroso
         var roles = await _identityService.GetRolesAsync(user.Id);
         var accessToken = _jwtTokenService.GenerateAccessToken(user.Id, user.Email, user.UserName, roles, sessionId);
         var refreshToken = await _refreshTokenService.GenerateAndSaveRefreshTokenAsync(user.Id, sessionId);
+
+        // 6. Update last login
+        await _identityService.UpdateLastLoginAsync(user.Id, cancellationToken);
+
         return new LoginWithMicrosoftResponse
         {
             Id = user.Id.ToString(),

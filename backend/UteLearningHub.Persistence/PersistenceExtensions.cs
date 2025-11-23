@@ -46,6 +46,7 @@ public static class PersistenceExtensions
         services.AddScoped<IMajorRepository, MajorRepository>();
         services.AddScoped<ISubjectRepository, SubjectRepository>();
         services.AddScoped<ITagRepository, TagRepository>();
+        services.AddScoped<ITypeRepository, TypeRepository>();
         services.AddScoped<IFileRepository, FileRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
