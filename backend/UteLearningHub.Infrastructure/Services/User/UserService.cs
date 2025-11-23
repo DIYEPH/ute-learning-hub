@@ -434,8 +434,8 @@ public class UserService : IUserService
         var oldTrustScore = user.TrustScore;
         user.TrustScore = trustScore;
 
-        // Update TrustLevel based on TrustScore (có thể cần logic tính toán TrustLevel)
-        // Hoặc để hệ thống tự động tính sau
+        // Auto-calculate TrustLevel based on TrustScore
+        user.TrustLever = CalculateTrustLevel(trustScore);
 
         user.UpdatedAt = _dateTimeProvider.OffsetNow;
 
@@ -477,5 +477,33 @@ public class UserService : IUserService
             .ToListAsync(cancellationToken);
 
         return histories;
+    }
+
+    private static TrustLever CalculateTrustLevel(int trustScore)
+    {
+        return trustScore switch
+        {
+            < 0 => TrustLever.None,           // Điểm âm hoặc 0
+            < 10 => TrustLever.Newbie,        // 0-9: Người mới
+            < 50 => TrustLever.Contributor,  // 10-49: Đã có đóng góp
+            < 100 => TrustLever.TrustedMember, // 50-99: Trust cao
+            < 200 => TrustLever.Moderator,   // 100-199: Có quyền xét duyệt
+            _ => TrustLever.Master            // >= 200: Cấp cao nhất
+        };
+    }
+
+    public async Task UpdateTrustScoreAndLevelAsync(Guid userId, int newTrustScore, CancellationToken cancellationToken = default)
+    {
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (user == null)
+            throw new NotFoundException($"User with id {userId} not found");
+
+        user.TrustScore = newTrustScore;
+        user.TrustLever = CalculateTrustLevel(newTrustScore);
+        user.UpdatedAt = _dateTimeProvider.OffsetNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }
