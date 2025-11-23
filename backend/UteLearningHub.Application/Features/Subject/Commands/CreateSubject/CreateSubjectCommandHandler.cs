@@ -75,7 +75,7 @@ public class CreateSubjectCommandHandler : IRequestHandler<CreateSubjectCommand,
             MajorId = request.MajorId,
             SubjectName = request.SubjectName,
             SubjectCode = request.SubjectCode,
-            ReviewStatus = ReviewStatus.PendingReview, // Admin tạo nhưng cần review
+            ReviewStatus = ReviewStatus.Approved, // Admin tạo nhưng cần review
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
