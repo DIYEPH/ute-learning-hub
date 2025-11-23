@@ -1,6 +1,10 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Features.Subject.Commands.CreateSubject;
+using UteLearningHub.Application.Features.Subject.Commands.DeleteSubject;
+using UteLearningHub.Application.Features.Subject.Commands.UpdateSubject;
 using UteLearningHub.Application.Features.Subject.Queries.GetSubjectById;
 using UteLearningHub.Application.Features.Subject.Queries.GetSubjects;
 
@@ -30,5 +34,31 @@ public class SubjectController : ControllerBase
         var query = new GetSubjectByIdQuery { Id = id };
         var result = await _mediator.Send(query);
         return Ok(result);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<SubjectDetailDto>> CreateSubject([FromBody] CreateSubjectCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<SubjectDetailDto>> UpdateSubject(Guid id, [FromBody] UpdateSubjectCommand command)
+    {
+        command = command with { Id = id };
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteSubject(Guid id)
+    {
+        var command = new DeleteSubjectCommand { Id = id };
+        await _mediator.Send(command);
+        return NoContent();
     }
 }
