@@ -19,4 +19,5 @@ public interface IUserService
     Task BanUserAsync(Guid userId, DateTimeOffset? banUntil, CancellationToken cancellationToken = default);
     Task UnbanUserAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<UserDto> UpdateTrustScoreAsync(Guid userId, int trustScore, string? reason, CancellationToken cancellationToken = default);
+    Task<IList<UserTrustHistoryDto>> GetUserTrustHistoryAsync(Guid userId, CancellationToken cancellationToken = default);
 }

@@ -459,4 +459,23 @@ public class UserService : IUserService
         return await GetUserByIdAsync(userId, cancellationToken) 
             ?? throw new NotFoundException("User not found");
     }
+
+    public async Task<IList<UserTrustHistoryDto>> GetUserTrustHistoryAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var histories = await _dbContext.UserTrustHistories
+            .Where(h => h.UserId == userId && !h.IsDeleted)
+            .OrderByDescending(h => h.CreatedAt)
+            .AsNoTracking()
+            .Select(h => new UserTrustHistoryDto
+            {
+                Id = h.Id,
+                UserId = h.UserId,
+                Score = h.Score,
+                Reason = h.Reason,
+                CreatedAt = h.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return histories;
+    }
 }

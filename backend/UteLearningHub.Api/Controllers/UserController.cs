@@ -8,6 +8,7 @@ using UteLearningHub.Application.Features.User.Commands.UpdateUser;
 using UteLearningHub.Application.Features.User.Commands.BanUser;
 using UteLearningHub.Application.Features.User.Commands.UnbanUser;
 using UteLearningHub.Application.Features.User.Commands.ManageTrustScore;
+using UteLearningHub.Application.Features.User.Queries.GetUserTrustHistory;
 
 namespace UteLearningHub.Api.Controllers;
 
@@ -72,6 +73,15 @@ public class UserController : ControllerBase
     {
         command = command with { UserId = id };
         var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpGet("{id}/trust-history")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<IList<UserTrustHistoryDto>>> GetUserTrustHistory(Guid id)
+    {
+        var query = new GetUserTrustHistoryQuery { UserId = id };
+        var result = await _mediator.Send(query);
         return Ok(result);
     }
 }
