@@ -14,4 +14,5 @@ public record UpdateDocumentRequest
     public IList<Guid>? TagIds { get; init; }
     public bool? IsDownload { get; init; }
     public VisibilityStatus? Visibility { get; init; }
+    public IList<Guid>? FileIdsToRemove { get; init; }
 }

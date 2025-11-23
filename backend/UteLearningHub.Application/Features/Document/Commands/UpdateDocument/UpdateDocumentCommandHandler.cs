@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -8,32 +9,39 @@ using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
+using DomainFile = UteLearningHub.Domain.Entities.File;
 
 namespace UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 
 public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentCommand, DocumentDetailDto>
 {
     private readonly IDocumentRepository _documentRepository;
+    private readonly IFileRepository _fileRepository;
     private readonly ISubjectRepository _subjectRepository;
     private readonly ITypeRepository _typeRepository;
     private readonly ITagRepository _tagRepository;
+    private readonly IFileStorageService _fileStorageService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
 
     public UpdateDocumentCommandHandler(
         IDocumentRepository documentRepository,
+        IFileRepository fileRepository,
         ISubjectRepository subjectRepository,
         ITypeRepository typeRepository,
         ITagRepository tagRepository,
+        IFileStorageService fileStorageService,
         ICurrentUserService currentUserService,
         IUserService userService,
         IDateTimeProvider dateTimeProvider)
     {
         _documentRepository = documentRepository;
+        _fileRepository = fileRepository;
         _subjectRepository = subjectRepository;
         _typeRepository = typeRepository;
         _tagRepository = tagRepository;
+        _fileStorageService = fileStorageService;
         _currentUserService = currentUserService;
         _userService = userService;
         _dateTimeProvider = dateTimeProvider;
@@ -128,11 +136,121 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
             }
         }
 
+        // Handle file removal
+        var filesToDeleteFromStorage = new List<string>(); // Track files to delete from storage
+        if (request.FileIdsToRemove != null && request.FileIdsToRemove.Any())
+        {
+            // Validate that files belong to this document
+            var existingFileIds = document.DocumentFiles.Select(df => df.FileId).ToList();
+            var invalidFileIds = request.FileIdsToRemove.Where(fid => !existingFileIds.Contains(fid)).ToList();
+            
+            if (invalidFileIds.Any())
+                throw new NotFoundException($"One or more files not found in this document: {string.Join(", ", invalidFileIds)}");
+
+            // Get files to delete
+            var filesToRemove = await _fileRepository.GetQueryableSet()
+                .Where(f => request.FileIdsToRemove.Contains(f.Id) && !f.IsDeleted)
+                .ToListAsync(cancellationToken);
+
+            // Remove DocumentFile relationships
+            var documentFilesToRemove = document.DocumentFiles
+                .Where(df => request.FileIdsToRemove.Contains(df.FileId))
+                .ToList();
+
+            foreach (var docFile in documentFilesToRemove)
+            {
+                document.DocumentFiles.Remove(docFile);
+                filesToDeleteFromStorage.Add(filesToRemove.First(f => f.Id == docFile.FileId).FileUrl);
+            }
+
+            // Delete File entities (soft delete)
+            foreach (var file in filesToRemove)
+            {
+                file.IsDeleted = true;
+                file.DeletedAt = _dateTimeProvider.OffsetNow;
+                file.DeletedById = userId;
+            }
+        }
+
+        // Handle file addition
+        var uploadedFileUrls = new List<string>(); // Track uploaded files for rollback
+        if (request.FilesToAdd != null && request.FilesToAdd.Any())
+        {
+            foreach (var formFile in request.FilesToAdd)
+            {
+                if (formFile.Length > 0)
+                {
+                    // Upload file to storage
+                    using var fileStream = formFile.OpenReadStream();
+                    var fileUrl = await _fileStorageService.UploadFileAsync(
+                        fileStream,
+                        formFile.FileName,
+                        formFile.ContentType,
+                        cancellationToken);
+
+                    uploadedFileUrls.Add(fileUrl); // Track for rollback
+
+                    // Create File entity
+                    var file = new DomainFile
+                    {
+                        Id = Guid.NewGuid(),
+                        FileName = formFile.FileName,
+                        FileUrl = fileUrl,
+                        FileSize = formFile.Length,
+                        MimeType = formFile.ContentType,
+                        CreatedById = userId,
+                        CreatedAt = _dateTimeProvider.OffsetNow
+                    };
+
+                    await _fileRepository.AddAsync(file, cancellationToken);
+
+                    // Create DocumentFile relationship
+                    document.DocumentFiles.Add(new DocumentFile
+                    {
+                        DocumentId = document.Id,
+                        FileId = file.Id
+                    });
+                }
+            }
+        }
+
         document.UpdatedById = userId;
         document.UpdatedAt = _dateTimeProvider.OffsetNow;
 
-        await _documentRepository.UpdateAsync(document, cancellationToken);
-        await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await _documentRepository.UpdateAsync(document, cancellationToken);
+            await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch
+        {
+            // Rollback: Delete uploaded files from storage
+            foreach (var fileUrl in uploadedFileUrls)
+            {
+                try
+                {
+                    await _fileStorageService.DeleteFileAsync(fileUrl, cancellationToken);
+                }
+                catch
+                {
+                    // Log error but continue cleanup
+                }
+            }
+            throw; // Re-throw original exception
+        }
+
+        // Delete files from storage after successful DB save
+        foreach (var fileUrl in filesToDeleteFromStorage)
+        {
+            try
+            {
+                await _fileStorageService.DeleteFileAsync(fileUrl, cancellationToken);
+            }
+            catch
+            {
+                // Log error but continue (file might already be deleted)
+            }
+        }
 
         // Reload to get updated relationships
         document = await _documentRepository.GetByIdWithDetailsAsync(request.Id, disableTracking: true, cancellationToken);

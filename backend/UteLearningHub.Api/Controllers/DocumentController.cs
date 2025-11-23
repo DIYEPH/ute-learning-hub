@@ -46,7 +46,8 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<ActionResult<DocumentDetailDto>> UpdateDocument(Guid id, [FromBody] UpdateDocumentCommand command)
+        [RequestSizeLimit(100_000_000)] // 100MB limit
+        public async Task<ActionResult<DocumentDetailDto>> UpdateDocument(Guid id, [FromForm] UpdateDocumentCommand command)
         {
             command = command with { Id = id };
             var result = await _mediator.Send(command);
