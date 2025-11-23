@@ -1,8 +1,10 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Features.Auth.Commands.Login;
 using UteLearningHub.Application.Features.Auth.Commands.LoginWithMicrosoft;
 using UteLearningHub.Application.Features.Auth.Commands.RefreshToken;
+using UteLearningHub.Application.Features.Auth.Commands.Logout;
 
 namespace UteLearningHub.Api.Controllers;
 
@@ -16,9 +18,6 @@ public class AuthController : ControllerBase
         _mediator = mediator;
     }
 
-    /// <summary>
-    /// Login with email/username and password
-    /// </summary>
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginCommand command)
     {
@@ -26,18 +25,13 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>
-    /// Login with Microsoft account
-    /// </summary>
     [HttpPost("login/microsoft")]
     public async Task<ActionResult<LoginWithMicrosoftResponse>> LoginWithMicrosoft([FromBody] LoginWithMicrosoftCommand command)
     {
         var result = await _mediator.Send(command);
         return Ok(result);
     }
-    /// <summary>
-    /// Refresh access token
-    /// </summary>
+
     [HttpPost("refresh-token")]
     public async Task<ActionResult<RefreshTokenResponse>> RefreshToken([FromBody] RefreshTokenCommand command)
     {
@@ -45,4 +39,12 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("logout")]
+    [Authorize]
+    public async Task<IActionResult> Logout()
+    {
+        var command = new LogoutCommand();
+        await _mediator.Send(command);
+        return NoContent();
+    }
 }

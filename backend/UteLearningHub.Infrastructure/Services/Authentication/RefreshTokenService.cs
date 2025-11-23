@@ -27,7 +27,7 @@ public class RefreshTokenService : IRefreshTokenService
         return refreshToken;
     }
 
-    public async Task RevokeRefreshTokenAsync(Guid userId, string? sessionId)
+    public async Task RevokeRefreshTokenAsync(Guid userId, string? sessionId, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
