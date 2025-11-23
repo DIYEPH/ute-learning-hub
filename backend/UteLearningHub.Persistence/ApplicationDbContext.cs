@@ -36,7 +36,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<Subject> Subjects { get; set; }
     public virtual DbSet<Tag> Tags { get; set; }
     public virtual DbSet<DomainType> Types { get; set; }
-    //public virtual DbSet<UserTrustHistory> UserTrustHistories { get; set; }
+    public virtual DbSet<UserTrustHistory> UserTrustHistories { get; set; }
 
     public async Task<IDisposable> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default)
     {

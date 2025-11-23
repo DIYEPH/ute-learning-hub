@@ -21,4 +21,6 @@ public record UserDto
     public bool IsDeleted { get; init; }
     public DateTimeOffset? DeletedAt { get; init; }
     public Guid? DeletedById { get; init; }
+    public bool LockoutEnabled { get; init; }
+    public DateTimeOffset? LockoutEnd { get; init; }
 }

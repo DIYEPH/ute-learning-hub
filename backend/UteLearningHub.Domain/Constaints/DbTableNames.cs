@@ -31,5 +31,5 @@ public static class DbTableNames
     public const string Subject = "MonHoc";
     public const string Type = "LoaiTaiLieu";
     public const string Tag = "The";
-    public const string UserTrust = "DoTinCay";
+    public const string UserTrustHistory = "LichSuDoTinCay";
 }

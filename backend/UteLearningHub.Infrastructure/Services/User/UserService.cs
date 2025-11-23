@@ -2,11 +2,13 @@
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
+using UteLearningHub.Application.Features.User.Commands.UpdateUser;
 using UteLearningHub.Application.Features.User.Queries.GetUsers;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
+using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Persistence;
 using UteLearningHub.Persistence.Identity;
@@ -272,7 +274,9 @@ public class UserService : IUserService
                 LastLoginAt = user.LastLoginAt,
                 IsDeleted = user.IsDeleted,
                 DeletedAt = user.DeletedAt,
-                DeletedById = user.DeletedById
+                DeletedById = user.DeletedById,
+                LockoutEnabled = user.LockoutEnabled,
+                LockoutEnd = user.LockoutEnd
             });
         }
 
@@ -283,5 +287,176 @@ public class UserService : IUserService
             Page = request.Page,
             PageSize = request.PageSize
         };
+    }
+
+    public async Task<UserDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _dbContext.Users
+            .Include(u => u.Major)
+                .ThenInclude(m => m.Faculty)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (user == null)
+            return null;
+
+        var roles = await _userManager.GetRolesAsync(user);
+
+        return new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email!,
+            Username = user.UserName,
+            FullName = user.FullName,
+            EmailConfirmed = user.EmailConfirmed,
+            AvatarUrl = user.AvatarUrl,
+            Introduction = user.Introduction,
+            TrustScore = user.TrustScore,
+            TrustLevel = user.TrustLever.ToString(),
+            Gender = user.Gender.ToString(),
+            IsSuggest = user.IsSuggest,
+            Roles = roles.ToList(),
+            Major = user.Major != null ? new MajorDto
+            {
+                Id = user.Major.Id,
+                MajorName = user.Major.MajorName,
+                MajorCode = user.Major.MajorCode,
+                Faculty = user.Major.Faculty != null ? new FacultyDto
+                {
+                    Id = user.Major.Faculty.Id,
+                    FacultyName = user.Major.Faculty.FacultyName,
+                    FacultyCode = user.Major.Faculty.FacultyCode
+                } : null
+            } : null,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt,
+            LastLoginAt = user.LastLoginAt,
+            IsDeleted = user.IsDeleted,
+            DeletedAt = user.DeletedAt,
+            DeletedById = user.DeletedById,
+            LockoutEnabled = user.LockoutEnabled,
+            LockoutEnd = user.LockoutEnd
+        };
+    }
+
+    public async Task<UserDto> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken cancellationToken = default)
+    {
+        var user = await _dbContext.Users
+            .Include(u => u.Major)
+                .ThenInclude(m => m.Faculty)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (user == null)
+            throw new NotFoundException($"User with id {userId} not found");
+
+        // Update properties if provided
+        if (!string.IsNullOrWhiteSpace(request.FullName))
+            user.FullName = request.FullName;
+
+        if (!string.IsNullOrWhiteSpace(request.Email))
+            user.Email = request.Email;
+
+        if (!string.IsNullOrWhiteSpace(request.Username))
+            user.UserName = request.Username;
+
+        if (!string.IsNullOrWhiteSpace(request.Introduction))
+            user.Introduction = request.Introduction;
+
+        if (!string.IsNullOrWhiteSpace(request.AvatarUrl))
+            user.AvatarUrl = request.AvatarUrl;
+
+        if (request.MajorId.HasValue)
+        {
+            var major = await _dbContext.Majors
+                .FirstOrDefaultAsync(m => m.Id == request.MajorId.Value && !m.IsDeleted, cancellationToken);
+            
+            if (major == null)
+                throw new NotFoundException($"Major with id {request.MajorId.Value} not found");
+            
+            user.MajorId = request.MajorId.Value;
+        }
+
+        if (request.Gender.HasValue)
+            user.Gender = request.Gender.Value;
+
+        if (request.EmailConfirmed.HasValue)
+            user.EmailConfirmed = request.EmailConfirmed.Value;
+
+        user.UpdatedAt = _dateTimeProvider.OffsetNow;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Update roles if provided
+        if (request.Roles != null)
+        {
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            await _userManager.RemoveFromRolesAsync(user, currentRoles);
+            await _userManager.AddToRolesAsync(user, request.Roles);
+        }
+
+        // Return updated user
+        return await GetUserByIdAsync(userId, cancellationToken) 
+            ?? throw new NotFoundException("User not found");
+    }
+
+    public async Task BanUserAsync(Guid userId, DateTimeOffset? banUntil, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+            throw new NotFoundException($"User with id {userId} not found");
+
+        user.LockoutEnabled = true;
+        user.LockoutEnd = banUntil ?? DateTimeOffset.UtcNow.AddYears(100); // Ban vĩnh viễn nếu null
+        
+        await _userManager.UpdateAsync(user);
+    }
+
+    public async Task UnbanUserAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var user = await _userManager.FindByIdAsync(userId.ToString());
+        if (user == null)
+            throw new NotFoundException($"User with id {userId} not found");
+
+        user.LockoutEnabled = false;
+        user.LockoutEnd = null;
+        
+        await _userManager.UpdateAsync(user);
+    }
+
+    public async Task<UserDto> UpdateTrustScoreAsync(Guid userId, int trustScore, string? reason, CancellationToken cancellationToken = default)
+    {
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (user == null)
+            throw new NotFoundException($"User with id {userId} not found");
+
+        var oldTrustScore = user.TrustScore;
+        user.TrustScore = trustScore;
+
+        // Update TrustLevel based on TrustScore (có thể cần logic tính toán TrustLevel)
+        // Hoặc để hệ thống tự động tính sau
+
+        user.UpdatedAt = _dateTimeProvider.OffsetNow;
+
+        // Lưu lịch sử thay đổi trust score
+        if (!string.IsNullOrWhiteSpace(reason))
+        {
+            var trustHistory = new UserTrustHistory
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Score = trustScore - oldTrustScore, // Delta score
+                Reason = reason,
+                CreatedAt = _dateTimeProvider.OffsetNow
+            };
+            _dbContext.UserTrustHistories.Add(trustHistory);
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Return updated user
+        return await GetUserByIdAsync(userId, cancellationToken) 
+            ?? throw new NotFoundException("User not found");
     }
 }
