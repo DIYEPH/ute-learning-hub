@@ -12,8 +12,8 @@ using UteLearningHub.Persistence;
 namespace UteLearningHub.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251123105534_UpdateUser")]
-    partial class UpdateUser
+    [Migration("20251123122606_InitialDb")]
+    partial class InitialDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1411,43 +1411,51 @@ namespace UteLearningHub.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("AppUserId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayTao");
 
                     b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayXoa");
 
                     b.Property<Guid?>("DeletedById")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BiXoaBoi");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnName("CoDaXoa");
 
                     b.Property<string>("Reason")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("LyDo");
 
                     b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("PhienBanHang");
 
                     b.Property<double>("Score")
-                        .HasColumnType("float");
+                        .HasColumnType("float")
+                        .HasColumnName("DiemThayDoi");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayCapNhat");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("NguoiDungId");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AppUserId");
+                    b.HasIndex("UserId");
 
-                    b.ToTable("UserTrustHistory");
+                    b.ToTable("LichSuDoTinCay", (string)null);
                 });
 
             modelBuilder.Entity("UteLearningHub.Persistence.Identity.AppUser", b =>
@@ -1948,7 +1956,9 @@ namespace UteLearningHub.Persistence.Migrations
                 {
                     b.HasOne("UteLearningHub.Persistence.Identity.AppUser", null)
                         .WithMany("UserTrustHistories")
-                        .HasForeignKey("AppUserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("UteLearningHub.Persistence.Identity.AppUser", b =>
