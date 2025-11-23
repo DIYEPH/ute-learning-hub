@@ -1,0 +1,58 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.CrossCuttingConcerns.DateTimes;
+using UteLearningHub.Domain.Exceptions;
+using UteLearningHub.Domain.Repositories;
+
+namespace UteLearningHub.Application.Features.Type.Commands.DeleteType;
+
+public class DeleteTypeCommandHandler : IRequestHandler<DeleteTypeCommand, Unit>
+{
+    private readonly ITypeRepository _typeRepository;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public DeleteTypeCommandHandler(
+        ITypeRepository typeRepository,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _typeRepository = typeRepository;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<Unit> Handle(DeleteTypeCommand request, CancellationToken cancellationToken)
+    {
+        if (!_currentUserService.IsAuthenticated)
+            throw new UnauthorizedException("You must be authenticated to delete types");
+
+        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+
+        // Only admin can delete types
+        var isAdmin = _currentUserService.IsInRole("Admin");
+        if (!isAdmin)
+            throw new UnauthorizedException("Only administrators can delete types");
+
+        var type = await _typeRepository.GetByIdAsync(request.Id, disableTracking: false, cancellationToken);
+
+        if (type == null || type.IsDeleted)
+            throw new NotFoundException($"Type with id {request.Id} not found");
+
+        // Check if type is being used by any documents
+        var documentCount = await _typeRepository.GetQueryableSet()
+            .Where(t => t.Id == request.Id)
+            .Select(t => t.Documents.Count(d => !d.IsDeleted))
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (documentCount > 0)
+            throw new BadRequestException($"Cannot delete type. It is being used by {documentCount} document(s)");
+
+        // Soft delete
+        await _typeRepository.DeleteAsync(type, cancellationToken);
+        await _typeRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Unit.Value;
+    }
+}

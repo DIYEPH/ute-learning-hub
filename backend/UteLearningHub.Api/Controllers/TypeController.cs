@@ -1,6 +1,10 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Features.Type.Commands.CreateType;
+using UteLearningHub.Application.Features.Type.Commands.DeleteType;
+using UteLearningHub.Application.Features.Type.Commands.UpdateType;
 using UteLearningHub.Application.Features.Type.Queries.GetTypeById;
 using UteLearningHub.Application.Features.Type.Queries.GetTypes;
 
@@ -30,5 +34,31 @@ public class TypeController : ControllerBase
         var query = new GetTypeByIdQuery { Id = id };
         var result = await _mediator.Send(query);
         return Ok(result);
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<ActionResult<TypeDetailDto>> CreateType([FromBody] CreateTypeCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<ActionResult<TypeDetailDto>> UpdateType(Guid id, [FromBody] UpdateTypeCommand command)
+    {
+        command = command with { Id = id };
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteType(Guid id)
+    {
+        var command = new DeleteTypeCommand { Id = id };
+        await _mediator.Send(command);
+        return NoContent();
     }
 }
