@@ -1,6 +1,10 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Features.Tag.Commands.CreateTag;
+using UteLearningHub.Application.Features.Tag.Commands.DeleteTag;
+using UteLearningHub.Application.Features.Tag.Commands.UpdateTag;
 using UteLearningHub.Application.Features.Tag.Queries.GetTagById;
 using UteLearningHub.Application.Features.Tag.Queries.GetTags;
 
@@ -30,5 +34,31 @@ public class TagController : ControllerBase
         var query = new GetTagByIdQuery { Id = id };
         var result = await _mediator.Send(query);
         return Ok(result);
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<ActionResult<TagDetailDto>> CreateTag([FromBody] CreateTagCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<ActionResult<TagDetailDto>> UpdateTag(Guid id, [FromBody] UpdateTagCommand command)
+    {
+        command = command with { Id = id };
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteTag(Guid id)
+    {
+        var command = new DeleteTagCommand { Id = id };
+        await _mediator.Send(command);
+        return NoContent();
     }
 }
