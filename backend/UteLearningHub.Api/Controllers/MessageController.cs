@@ -6,6 +6,7 @@ using UteLearningHub.Application.Features.Message.Commands.CreateMessage;
 using UteLearningHub.Application.Features.Message.Commands.DeleteMessage;
 using UteLearningHub.Application.Features.Message.Commands.PinMessage;
 using UteLearningHub.Application.Features.Message.Commands.UpdateMessage;
+using UteLearningHub.Application.Features.Message.Commands.MarkMessageAsRead;
 using UteLearningHub.Application.Features.Message.Queries.GetMessages;
 
 namespace UteLearningHub.Api.Controllers;
@@ -69,6 +70,13 @@ public class MessageController : ControllerBase
         [FromBody] PinMessageCommand command)
     {
         command = command with { Id = id };
+        await _mediator.Send(command);
+        return NoContent();
+    }
+    [HttpPost("{id}/mark-as-read")]
+    public async Task<IActionResult> MarkMessageAsRead(Guid conversationId, Guid id)
+    {
+        var command = new MarkMessageAsReadCommand { MessageId = id };
         await _mediator.Send(command);
         return NoContent();
     }
