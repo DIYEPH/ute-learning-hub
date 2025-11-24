@@ -50,6 +50,7 @@ public static class PersistenceExtensions
         services.AddScoped<IFileRepository, FileRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
+        services.AddScoped<IMessageRepository, MessageRepository>();
 
         services.AddScoped<DataSeeder>();
 

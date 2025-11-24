@@ -1,0 +1,220 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.FileStorage;
+using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.CrossCuttingConcerns.DateTimes;
+using UteLearningHub.Domain.Exceptions;
+using UteLearningHub.Domain.Repositories;
+using DomainMessage = UteLearningHub.Domain.Entities.Message;
+using DomainFile = UteLearningHub.Domain.Entities.File;
+
+namespace UteLearningHub.Application.Features.Message.Commands.CreateMessage;
+
+public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand, MessageDto>
+{
+    private readonly IMessageRepository _messageRepository;
+    private readonly IConversationRepository _conversationRepository;
+    private readonly IFileRepository _fileRepository;
+    private readonly IFileStorageService _fileStorageService;
+    private readonly IIdentityService _identityService;
+    private readonly ICurrentUserService _currentUserService;
+    private readonly IDateTimeProvider _dateTimeProvider;
+
+    public CreateMessageCommandHandler(
+        IMessageRepository messageRepository,
+        IConversationRepository conversationRepository,
+        IFileRepository fileRepository,
+        IFileStorageService fileStorageService,
+        IIdentityService identityService,
+        ICurrentUserService currentUserService,
+        IDateTimeProvider dateTimeProvider)
+    {
+        _messageRepository = messageRepository;
+        _conversationRepository = conversationRepository;
+        _fileRepository = fileRepository;
+        _fileStorageService = fileStorageService;
+        _identityService = identityService;
+        _currentUserService = currentUserService;
+        _dateTimeProvider = dateTimeProvider;
+    }
+
+    public async Task<MessageDto> Handle(CreateMessageCommand request, CancellationToken cancellationToken)
+    {
+        if (!_currentUserService.IsAuthenticated)
+            throw new UnauthorizedException("You must be authenticated to send messages");
+
+        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+
+        // Validate conversation exists and user is a member
+        var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
+            request.ConversationId, 
+            disableTracking: false, 
+            cancellationToken);
+        
+        if (conversation == null || conversation.IsDeleted)
+            throw new NotFoundException($"Conversation with id {request.ConversationId} not found");
+
+        if (conversation.ConversationStatus != Domain.Constaints.Enums.ConversationStatus.Active)
+            throw new BadRequestException("Conversation is not active");
+
+        // Check if user is a member
+        var isMember = conversation.Members.Any(m => 
+            m.UserId == userId && !m.IsDeleted);
+        
+        if (!isMember)
+            throw new ForbidenException("You are not a member of this conversation");
+
+        // Validate parent message if provided
+        if (request.ParentId.HasValue)
+        {
+            var parentMessage = await _messageRepository.GetByIdAsync(
+                request.ParentId.Value, 
+                disableTracking: true, 
+                cancellationToken);
+            
+            if (parentMessage == null || parentMessage.IsDeleted || 
+                parentMessage.ConversationId != request.ConversationId)
+                throw new NotFoundException($"Parent message with id {request.ParentId.Value} not found");
+        }
+
+        // Validate file IDs if provided
+        if (request.FileIds != null && request.FileIds.Any())
+        {
+            var files = await _fileRepository.GetQueryableSet()
+                .Where(f => request.FileIds.Contains(f.Id) && !f.IsDeleted)
+                .ToListAsync(cancellationToken);
+            
+            if (files.Count != request.FileIds.Count)
+                throw new NotFoundException("One or more files not found");
+        }
+
+        // Create message
+        var message = new DomainMessage
+        {
+            Id = Guid.NewGuid(),
+            ConversationId = request.ConversationId,
+            ParentId = request.ParentId,
+            Content = request.Content,
+            IsEdit = false,
+            IsPined = false,
+            CreatedById = userId,
+            CreatedAt = _dateTimeProvider.OffsetNow
+        };
+
+        var uploadedFileUrls = new List<string>();
+
+        try
+        {
+            // Upload new files if provided
+            if (request.Files != null && request.Files.Any())
+            {
+                foreach (var formFile in request.Files)
+                {
+                    if (formFile.Length > 0)
+                    {
+                        using var fileStream = formFile.OpenReadStream();
+                        var fileUrl = await _fileStorageService.UploadFileAsync(
+                            fileStream,
+                            formFile.FileName,
+                            formFile.ContentType,
+                            cancellationToken);
+
+                        uploadedFileUrls.Add(fileUrl);
+
+                        var file = new DomainFile
+                        {
+                            Id = Guid.NewGuid(),
+                            FileName = formFile.FileName,
+                            FileUrl = fileUrl,
+                            FileSize = formFile.Length,
+                            MimeType = formFile.ContentType,
+                            CreatedById = userId,
+                            CreatedAt = _dateTimeProvider.OffsetNow
+                        };
+
+                        await _fileRepository.AddAsync(file, cancellationToken);
+
+                        message.MessageFiles.Add(new Domain.Entities.MessageFile
+                        {
+                            MessageId = message.Id,
+                            FileId = file.Id
+                        });
+                    }
+                }
+            }
+
+            // Link existing files if provided
+            if (request.FileIds != null && request.FileIds.Any())
+            {
+                foreach (var fileId in request.FileIds)
+                {
+                    message.MessageFiles.Add(new Domain.Entities.MessageFile
+                    {
+                        MessageId = message.Id,
+                        FileId = fileId
+                    });
+                }
+            }
+
+            await _messageRepository.AddAsync(message, cancellationToken);
+
+            // Update conversation's LastMessage
+            conversation.LastMessage = message.Id;
+            conversation.UpdatedAt = _dateTimeProvider.OffsetNow;
+            await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+
+            await _messageRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch
+        {
+            // Rollback uploaded files
+            foreach (var fileUrl in uploadedFileUrls)
+            {
+                try
+                {
+                    await _fileStorageService.DeleteFileAsync(fileUrl, cancellationToken);
+                }
+                catch { }
+            }
+            throw;
+        }
+
+        // Reload message with details
+        var createdMessage = await _messageRepository.GetByIdWithDetailsAsync(
+            message.Id, 
+            disableTracking: true, 
+            cancellationToken);
+
+        if (createdMessage == null)
+            throw new NotFoundException("Failed to create message");
+
+        // Get sender information
+        var sender = await _identityService.FindByIdAsync(userId);
+        if (sender == null)
+            throw new UnauthorizedException();
+
+        return new MessageDto
+        {
+            Id = createdMessage.Id,
+            ConversationId = createdMessage.ConversationId,
+            ParentId = createdMessage.ParentId,
+            Content = createdMessage.Content,
+            IsEdit = createdMessage.IsEdit,
+            IsPined = createdMessage.IsPined,
+            CreatedById = createdMessage.CreatedById,
+            SenderName = sender.FullName,
+            SenderAvatarUrl = sender.AvatarUrl,
+            Files = createdMessage.MessageFiles.Select(mf => new MessageFileDto
+            {
+                FileId = mf.File.Id,
+                FileName = mf.File.FileName,
+                FileUrl = mf.File.FileUrl,
+                FileSize = mf.File.FileSize,
+                MimeType = mf.File.MimeType
+            }).ToList(),
+            CreatedAt = createdMessage.CreatedAt,
+            UpdatedAt = createdMessage.UpdatedAt
+        };
+    }
+}
