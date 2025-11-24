@@ -45,13 +45,16 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
         if (message == null || message.IsDeleted)
             throw new NotFoundException($"Message with id {request.Id} not found");
 
+        if (message.ConversationId != request.ConversationId)
+            throw new BadRequestException("Message does not belong to the specified conversation");
+
         // Only owner can update
         if (message.CreatedById != userId)
             throw new UnauthorizedException("You don't have permission to update this message");
 
         // Validate conversation is still active
         var conversation = await _conversationRepository.GetByIdAsync(
-            message.ConversationId, 
+            request.ConversationId, 
             disableTracking: true, 
             cancellationToken);
 

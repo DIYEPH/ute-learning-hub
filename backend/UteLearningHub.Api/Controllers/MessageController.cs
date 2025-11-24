@@ -50,7 +50,7 @@ public class MessageController : ControllerBase
         Guid id, 
         [FromBody] UpdateMessageCommand command)
     {
-        command = command with { Id = id };
+        command = command with { Id = id, ConversationId = conversationId };
         var result = await _mediator.Send(command);
         return Ok(result);
     }
@@ -58,7 +58,7 @@ public class MessageController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteMessage(Guid conversationId, Guid id)
     {
-        var command = new DeleteMessageCommand { Id = id };
+        var command = new DeleteMessageCommand { Id = id, ConversationId = conversationId };
         await _mediator.Send(command);
         return NoContent();
     }
@@ -69,14 +69,14 @@ public class MessageController : ControllerBase
         Guid id, 
         [FromBody] PinMessageCommand command)
     {
-        command = command with { Id = id };
+        command = command with { Id = id, ConversationId = conversationId };
         await _mediator.Send(command);
         return NoContent();
     }
     [HttpPost("{id}/mark-as-read")]
     public async Task<IActionResult> MarkMessageAsRead(Guid conversationId, Guid id)
     {
-        var command = new MarkMessageAsReadCommand { MessageId = id };
+        var command = new MarkMessageAsReadCommand { MessageId = id, ConversationId = conversationId };
         await _mediator.Send(command);
         return NoContent();
     }

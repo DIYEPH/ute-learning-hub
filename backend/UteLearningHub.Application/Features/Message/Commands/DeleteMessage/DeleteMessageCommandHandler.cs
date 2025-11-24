@@ -45,9 +45,12 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
         if (message == null || message.IsDeleted)
             throw new NotFoundException($"Message with id {request.Id} not found");
 
+        if (message.ConversationId != request.ConversationId)
+            throw new BadRequestException("Message does not belong to the specified conversation");
+
         // Validate conversation exists
         var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
-            message.ConversationId, 
+            request.ConversationId, 
             disableTracking: false, 
             cancellationToken);
 

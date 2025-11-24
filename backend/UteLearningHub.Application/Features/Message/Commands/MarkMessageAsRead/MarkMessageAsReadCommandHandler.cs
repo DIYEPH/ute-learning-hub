@@ -41,9 +41,12 @@ public class MarkMessageAsReadCommandHandler : IRequestHandler<MarkMessageAsRead
         if (message == null || message.IsDeleted)
             throw new NotFoundException($"Message with id {request.MessageId} not found");
 
+        if (message.ConversationId != request.ConversationId)
+            throw new BadRequestException("Message does not belong to the specified conversation");
+
         // Validate conversation exists and get member info
         var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
-            message.ConversationId, 
+            request.ConversationId, 
             disableTracking: false, 
             cancellationToken);
 
@@ -59,10 +62,6 @@ public class MarkMessageAsReadCommandHandler : IRequestHandler<MarkMessageAsRead
 
         if (member == null)
             throw new ForbidenException("You are not a member of this conversation");
-
-        // Validate message belongs to this conversation
-        if (message.ConversationId != conversation.Id)
-            throw new BadRequestException("Message does not belong to this conversation");
 
         // Update LastReadMessageId (only if the new message is newer than current)
         // This ensures we don't go backwards in read status
