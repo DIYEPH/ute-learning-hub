@@ -27,6 +27,7 @@ public static class DbTableNames
     public const string Notification = "ThongBao";
     public const string NotificationRecipient = "ThongBao_NguoiNhan";
     public const string ProfileVector = "DacTrungNguoiDung";
+    public const string ConversationVector = "DacTrungCuocTroChuyen";
     public const string Report = "BaoCao";
     public const string Subject = "MonHoc";
     public const string Type = "LoaiTaiLieu";

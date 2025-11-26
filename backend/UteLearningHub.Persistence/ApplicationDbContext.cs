@@ -31,7 +31,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<MessageFile> MessagesFile { get; set; }
     public virtual DbSet<Notification> Notifications { get; set; }
     public virtual DbSet<NotificationRecipient> NotificationRecipients { get; set; }
-    //public virtual DbSet<ProfileVector> ProfileVectors { get; set; }
+    public virtual DbSet<ProfileVector> ProfileVectors { get; set; }
+    public virtual DbSet<ConversationVector> ConversationVectors { get; set; }
     public virtual DbSet<Report> Reports { get; set; }
     public virtual DbSet<Subject> Subjects { get; set; }
     public virtual DbSet<Tag> Tags { get; set; }
