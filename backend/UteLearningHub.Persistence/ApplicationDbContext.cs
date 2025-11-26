@@ -23,7 +23,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<DocumentFile> DocumentFiles { get; set; }
     public virtual DbSet<DocumentReview> DocumentReviews { get; set; }
     public virtual DbSet<DocumentTag> DocumentTags { get; set; }
-    //public virtual DbSet<Event> Events { get; set; }
+    public virtual DbSet<Event> Events { get; set; }
     public virtual DbSet<Faculty> Faculty { get; set; }
     public virtual DbSet<DomainFile> Files { get; set; }
     public virtual DbSet<Major> Majors { get; set; }
