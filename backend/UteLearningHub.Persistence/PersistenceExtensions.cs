@@ -51,6 +51,7 @@ public static class PersistenceExtensions
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<IMessageRepository, MessageRepository>();
+        services.AddScoped<IEventRepository, EventRepository>();
         
         services.AddScoped<IProfileVectorStore, ProfileVectorStore>();
         services.AddScoped<IConversationVectorStore, ConversationVectorStore>();
