@@ -50,8 +50,6 @@ public class CreateTypeCommandHandler : IRequestHandler<CreateTypeCommand, TypeD
         {
             Id = Guid.NewGuid(),
             TypeName = request.TypeName,
-            ReviewStatus = ReviewStatus.PendingReview,
-            CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 

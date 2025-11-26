@@ -52,7 +52,6 @@ public class UpdateTypeCommandHandler : IRequestHandler<UpdateTypeCommand, TypeD
 
         // Update type
         type.TypeName = request.TypeName;
-        type.UpdatedById = userId;
         type.UpdatedAt = _dateTimeProvider.OffsetNow;
 
         await _typeRepository.UpdateAsync(type, cancellationToken);

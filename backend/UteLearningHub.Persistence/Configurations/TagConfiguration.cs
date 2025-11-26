@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Persistence.Configurations.Common;
+using UteLearningHub.Persistence.Identity;
 
 namespace UteLearningHub.Persistence.Configurations;
 public class TagConfiguration : IEntityTypeConfiguration<Tag>
@@ -19,5 +20,10 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
             .ApplyTrack<Tag>()
             .ApplyAudit<Tag>()
             .ApplyReview<Tag>();
+
+        builder.HasOne<AppUser>()
+            .WithMany(u => u.Tags)
+            .HasForeignKey(u => u.CreatedById)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

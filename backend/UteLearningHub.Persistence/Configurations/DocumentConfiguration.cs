@@ -15,7 +15,7 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.HasKey(u => u.Id);
 
         builder.Property(u => u.SubjectId).HasColumnName("MonHocId");
-        builder.Property(u => u.TypeId).HasColumnName("TheId");
+        builder.Property(u => u.TypeId).HasColumnName("LoaiTaiLieuId");
         builder.Property(u => u.Description).HasColumnName("MoTa");
         builder.Property(u => u.AuthorName).HasColumnName("TacGia");
         builder.Property(u => u.DescriptionAuthor).HasColumnName("MoTaTacGia");

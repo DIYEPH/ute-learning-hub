@@ -16,6 +16,7 @@ public class MajorConfiguration : IEntityTypeConfiguration<Major>
 
         builder.Property(u => u.MajorName).HasColumnName("TenNganh");
         builder.Property(u => u.MajorCode).HasColumnName("MaNganh");
+        builder.Property(u => u.FacultyId).HasColumnName("KhoaId").IsRequired();
 
         builder.ApplySoftDelete<Major>()
             .ApplyTrack<Major>()

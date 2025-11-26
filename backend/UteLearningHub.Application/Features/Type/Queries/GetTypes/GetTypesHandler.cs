@@ -31,13 +31,6 @@ public class GetTypesHandler : IRequestHandler<GetTypesQuery, PagedResponse<Type
             query = query.Where(t => t.TypeName.ToLower().Contains(searchTerm));
         }
 
-        // Only show approved types for public users, admin can see all
-        var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
-        if (!isAdmin)
-        {
-            query = query.Where(t => t.ReviewStatus == ReviewStatus.Approved);
-        }
-
         query = query.OrderBy(t => t.TypeName);
 
         var totalCount = await query.CountAsync(cancellationToken);

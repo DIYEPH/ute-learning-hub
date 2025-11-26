@@ -13,19 +13,20 @@ public class ProfileVectorConfiguration : IEntityTypeConfiguration<ProfileVector
         builder.ToTable(DbTableNames.ProfileVector);
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.UserId).HasColumnName("NguoiDungId");
+        builder.Property(x => x.UserId).HasColumnName("NguoiDungId").IsRequired();
         builder.Property(x => x.SubjectId).HasColumnName("MonHocId");
-        builder.Property(x => x.VectorType).HasColumnName("LoaiVector");
-        builder.Property(x => x.VectorDimension).HasColumnName("SoChieu");
-        builder.Property(x => x.EmbeddingJson).HasColumnName("GiaTriVector");
+        builder.Property(x => x.VectorType).HasColumnName("LoaiVector").IsRequired();
+        builder.Property(x => x.VectorDimension).HasColumnName("SoChieu").IsRequired();
+        builder.Property(x => x.EmbeddingJson).HasColumnName("GiaTriVector").IsRequired();
         builder.Property(x => x.SourceDataJson).HasColumnName("NguonDuLieu");
-        builder.Property(x => x.ModelVersion).HasColumnName("PhienBanMoHinh");
-        builder.Property(x => x.SimilarityMetric).HasColumnName("KieuDoTuongDong");
-        builder.Property(x => x.CalculatedAt).HasColumnName("ThoiDiemTinhToan");
-        builder.Property(x => x.IsActive).HasColumnName("ConHieuLuc");
+        builder.Property(x => x.CalculatedAt).HasColumnName("ThoiDiemTinhToan").IsRequired();
+        builder.Property(x => x.IsActive).HasColumnName("ConHieuLuc").HasDefaultValue(true);
 
-        builder.ApplySoftDelete<ProfileVector>()
-            .ApplyTrack<ProfileVector>();
+        // Indexes cho performance
+        builder.HasIndex(x => x.UserId);
+        builder.HasIndex(x => new { x.UserId, x.VectorType });
+        builder.HasIndex(x => new { x.UserId, x.SubjectId });
+        builder.HasIndex(x => x.IsActive);
 
         builder.HasOne(x => x.Subject)
             .WithMany()
@@ -33,4 +34,3 @@ public class ProfileVectorConfiguration : IEntityTypeConfiguration<ProfileVector
             .OnDelete(DeleteBehavior.SetNull);
     }
 }
-

@@ -26,10 +26,6 @@ public class GetTypeByIdHandler : IRequestHandler<GetTypeByIdQuery, TypeDetailDt
         if (type == null)
             throw new NotFoundException($"Type with id {request.Id} not found");
 
-        var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
-        if (!isAdmin && type.ReviewStatus != ReviewStatus.Approved)
-            throw new NotFoundException($"Type with id {request.Id} not found");
-
         // Query document count separately to avoid loading all documents
         var documentCount = await _typeRepository.GetQueryableSet()
             .Where(t => t.Id == request.Id)
