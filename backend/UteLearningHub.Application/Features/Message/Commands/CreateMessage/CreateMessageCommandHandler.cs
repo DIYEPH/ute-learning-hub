@@ -1,8 +1,10 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Common.Events;
 using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Message;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
@@ -20,6 +22,7 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
     private readonly IIdentityService _identityService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IMessageQueueProducer _messageQueueProducer;
 
     public CreateMessageCommandHandler(
         IMessageRepository messageRepository,
@@ -28,7 +31,8 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
         IFileStorageService fileStorageService,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IMessageQueueProducer messageQueueProducer)
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
@@ -37,6 +41,7 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
         _identityService = identityService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _messageQueueProducer = messageQueueProducer;
     }
 
     public async Task<MessageDto> Handle(CreateMessageCommand request, CancellationToken cancellationToken)
@@ -194,7 +199,7 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
         if (sender == null)
             throw new UnauthorizedException();
 
-        return new MessageDto
+        var messageDto = new MessageDto
         {
             Id = createdMessage.Id,
             ConversationId = createdMessage.ConversationId,
@@ -216,5 +221,9 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
             CreatedAt = createdMessage.CreatedAt,
             UpdatedAt = createdMessage.UpdatedAt
         };
+
+        await _messageQueueProducer.PublishMessageCreatedAsync(messageDto, cancellationToken);
+
+        return messageDto;
     }
 }

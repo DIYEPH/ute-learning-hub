@@ -6,11 +6,13 @@ using UteLearningHub.Application.Services.Authentication;
 using UteLearningHub.Application.Services.Comment;
 using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Message;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.Infrastructure.ConfigurationOptions;
 using UteLearningHub.Infrastructure.Services.Authentication;
 using UteLearningHub.Infrastructure.Services.Comment;
 using UteLearningHub.Infrastructure.Services.Identity;
+using UteLearningHub.Infrastructure.Services.Message;
 using UteLearningHub.Infrastructure.Services.User;
 using UteLearningHub.Infrastructure.Services.FileStorage;
 using Amazon.S3;
@@ -51,7 +53,7 @@ public static class InfrastructureExtensions
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICommentService, CommentService>();
-        // Không đăng ký FileStorageService ở đây, sẽ đăng ký trong Program.cs
+        services.AddSingleton<IMessageQueueProducer, KafkaMessageProducer>();
 
         // Add HttpContextAccessor for CurrentUserService
         services.AddHttpContextAccessor();

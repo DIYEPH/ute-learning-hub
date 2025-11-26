@@ -1,6 +1,10 @@
+using UteLearningHub.Api.BackgroundServices;
 using UteLearningHub.Api.ConfigurationOptions;
+using UteLearningHub.Api.Hubs;
 using UteLearningHub.Api.Middleware;
+using UteLearningHub.Api.Services;
 using UteLearningHub.Application;
+using UteLearningHub.Application.Services.Message;
 using UteLearningHub.Infrastructure;
 using UteLearningHub.Infrastructure.ConfigurationOptions;
 using UteLearningHub.Infrastructure.DateTimes;
@@ -22,6 +26,7 @@ services.Configure<JwtOptions>(configurations.GetSection(JwtOptions.SectionName)
 services.Configure<MicrosoftAuthOptions>(configurations.GetSection(MicrosoftAuthOptions.SectionName));
 services.Configure<AmazonS3Options>(configurations.GetSection(AmazonS3Options.SectionName));
 services.Configure<FileStorageOptions>(configurations.GetSection(FileStorageOptions.SectionName));
+services.Configure<KafkaOptions>(configurations.GetSection(KafkaOptions.SectionName));
 
 services.AddApplication()
     .AddPersistence(appSettings.ConnectionStrings.DefaultConnection)
@@ -45,6 +50,10 @@ else
 // Add Controllers
 services.AddControllers();
 services.AddOpenApi();
+services.AddSignalR();
+
+services.AddSingleton<IMessageHubService, SignalRMessageHubService>();
+services.AddHostedService<KafkaMessageConsumerService>();
 
 var app = builder.Build();
 
@@ -67,5 +76,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<ChatHub>("/hubs/chat");
 
 app.Run();
