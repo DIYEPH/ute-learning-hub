@@ -35,6 +35,7 @@ public class IdentityService : IIdentityService
             UserName = dto.UserName,
             Email = dto.Email,
             EmailConfirmed = dto.EmailConfirmed,
+            FullName = dto.FullName ?? string.Empty,
             MajorId = dto.MajorId,
             Introduction = dto.Introduction ?? string.Empty,
             AvatarUrl = dto.AvatarUrl ?? string.Empty,
