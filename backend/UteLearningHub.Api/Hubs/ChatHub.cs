@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Infrastructure.Services.Message;
 
 namespace UteLearningHub.Api.Hubs;
 
@@ -8,10 +9,46 @@ namespace UteLearningHub.Api.Hubs;
 public class ChatHub : Hub
 {
     private readonly ICurrentUserService _currentUserService;
+    private readonly ConnectionTrackerService _connectionTrackerService;
+    private readonly IHubContext<ChatHub> _hubContext;
 
-    public ChatHub(ICurrentUserService currentUserService)
+    public ChatHub(ICurrentUserService currentUserService, ConnectionTrackerService connectionTrackerService, IHubContext<ChatHub> hubContext)
     {
         _currentUserService = currentUserService;
+        _connectionTrackerService = connectionTrackerService;
+        _hubContext = hubContext;
+    }
+
+public override async Task OnConnectedAsync()
+    {
+        if (_currentUserService.IsAuthenticated && _currentUserService.UserId.HasValue)
+        {
+            var userId = _currentUserService.UserId.Value;
+            _connectionTrackerService.AddConnection(userId, Context.ConnectionId);
+            
+            // Broadcast to all conversations that user is in
+            // TODO: Get user's conversations and notify
+        }
+        
+        await base.OnConnectedAsync();
+    }
+
+    public override async Task OnDisconnectedAsync(Exception? exception)
+    {
+        if (_currentUserService.UserId.HasValue)
+        {
+            var userId = _currentUserService.UserId.Value;
+            _connectionTrackerService.RemoveConnection(Context.ConnectionId);
+            
+            // Check if user still has other connections
+            if (!_connectionTrackerService.IsUserOnline(userId))
+            {
+                // User is now offline - broadcast to conversations
+                // TODO: Notify conversations
+            }
+        }
+        
+        await base.OnDisconnectedAsync(exception);
     }
 
     // Join vào group của conversation
@@ -45,11 +82,5 @@ public class ChatHub : Hub
                 UserId = _currentUserService.UserId,
                 IsTyping = isTyping
             });
-    }
-
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        // Cleanup khi user disconnect
-        await base.OnDisconnectedAsync(exception);
     }
 }
