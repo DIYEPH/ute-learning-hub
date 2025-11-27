@@ -7,6 +7,7 @@ using UteLearningHub.Application.Features.Conversation.Commands.DeleteConversati
 using UteLearningHub.Application.Features.Conversation.Commands.UpdateConversation;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversationById;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversations;
+using UteLearningHub.Application.Features.Conversation.Queries.GetOnlineMembers;
 
 namespace UteLearningHub.Api.Controllers;
 
@@ -62,5 +63,14 @@ public class ConversationController : ControllerBase
         var command = new DeleteConversationCommand { Id = id };
         await _mediator.Send(command);
         return NoContent();
+    }
+
+    [HttpGet("{conversationId}/online-members")]
+    [Authorize]
+    public async Task<ActionResult<GetOnlineMembersResponse>> GetOnlineMembers(Guid conversationId)
+    {
+        var query = new GetOnlineMembersQuery(conversationId);
+        var result = await _mediator.Send(query);
+        return Ok(result);
     }
 }

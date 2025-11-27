@@ -1,15 +1,12 @@
-// backend/UteLearningHub.Infrastructure/Services/Message/ConnectionTrackerService.cs
-
 using System.Collections.Concurrent;
+using UteLearningHub.Application.Services.Message;
 
 namespace UteLearningHub.Infrastructure.Services.Message;
 
-public class ConnectionTrackerService
+public class ConnectionTrackerService : IConnectionTracker
 {
-    // UserId -> List of ConnectionIds (1 user có thể có nhiều connections: nhiều tab/device)
     private readonly ConcurrentDictionary<Guid, HashSet<string>> _userConnections = new();
     
-    // ConnectionId -> UserId
     private readonly ConcurrentDictionary<string, Guid> _connectionUsers = new();
 
     public void AddConnection(Guid userId, string connectionId)

@@ -20,5 +20,18 @@ public class SignalRMessageHubService : IMessageHubService
             .Group($"conversation_{message.ConversationId}")
             .SendAsync("MessageReceived", message, cancellationToken);
     }
+    public Task BroadcastUserOnlineAsync(Guid userId, Guid conversationId, CancellationToken cancellationToken = default)
+    {
+        return _hubContext.Clients
+            .Group($"conversation_{conversationId}")
+            .SendAsync("UserOnline", new { UserId = userId, ConversationId = conversationId }, cancellationToken);
+    }
+
+    public Task BroadcastUserOfflineAsync(Guid userId, Guid conversationId, CancellationToken cancellationToken = default)
+    {
+        return _hubContext.Clients
+            .Group($"conversation_{conversationId}")
+            .SendAsync("UserOffline", new { UserId = userId, ConversationId = conversationId }, cancellationToken);
+    }
 }
 
