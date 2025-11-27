@@ -83,12 +83,17 @@ public class LoginWithMicrosoftCommandHandler : IRequestHandler<LoginWithMicroso
         }
         if (user == null)
             throw new Exception("User not found after creation");
-        // 5. Generate tokens
+
+        // 5. Check setup status
+        var setupStatus = await _identityService.GetUserSetupStatusAsync(user.Id);
+        var requiresSetup = setupStatus.RequiresUsernameSetup || setupStatus.RequiresPasswordSetup;
+
+        // 6. Generate tokens
         var roles = await _identityService.GetRolesAsync(user.Id);
         var accessToken = _jwtTokenService.GenerateAccessToken(user.Id, user.Email, user.UserName, roles, sessionId);
         var refreshToken = await _refreshTokenService.GenerateAndSaveRefreshTokenAsync(user.Id, sessionId);
 
-        // 6. Update last login
+        // 7. Update last login
         await _identityService.UpdateLastLoginAsync(user.Id, cancellationToken);
 
         return new LoginWithMicrosoftResponse
@@ -99,7 +104,8 @@ public class LoginWithMicrosoftCommandHandler : IRequestHandler<LoginWithMicroso
             Username = user.UserName,
             AvatarUrl = user.AvatarUrl,
             AccessToken = accessToken,
-            RefreshToken = refreshToken
+            RefreshToken = refreshToken,
+            RequiresSetup = requiresSetup
         };
     }
 }

@@ -5,6 +5,7 @@ using UteLearningHub.Application.Features.Auth.Commands.Login;
 using UteLearningHub.Application.Features.Auth.Commands.LoginWithMicrosoft;
 using UteLearningHub.Application.Features.Auth.Commands.RefreshToken;
 using UteLearningHub.Application.Features.Auth.Commands.Logout;
+using UteLearningHub.Application.Features.Auth.Commands.CompleteAccountSetup;
 
 namespace UteLearningHub.Api.Controllers;
 
@@ -46,5 +47,16 @@ public class AuthController : ControllerBase
         var command = new LogoutCommand();
         await _mediator.Send(command);
         return NoContent();
+    }
+
+    [HttpPost("setup")]
+    [Authorize]
+    public async Task<ActionResult<CompleteAccountSetupResponse>> CompleteSetup(
+        [FromBody] CompleteAccountSetupCommand command)
+    {
+        var result = await _mediator.Send(command);
+        if (!result.Success)
+            return BadRequest(result);
+        return Ok(result);
     }
 }

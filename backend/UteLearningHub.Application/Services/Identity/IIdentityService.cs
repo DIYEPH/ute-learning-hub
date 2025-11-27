@@ -12,6 +12,13 @@ public interface IIdentityService
     Task<IList<string>> GetRolesAsync(Guid userId);
     Task<bool> AddToRoleAsync(Guid userId, string roleName);
     Task UpdateLastLoginAsync(Guid userId, CancellationToken cancellationToken = default);
+    
+    // Account setup methods
+    Task<UserSetupStatusDto> GetUserSetupStatusAsync(Guid userId);
+    Task<(bool Succeeded, IEnumerable<string> Errors)> UpdateUsernameAsync(Guid userId, string newUsername);
+    Task<(bool Succeeded, IEnumerable<string> Errors)> SetPasswordAsync(Guid userId, string password);
+    Task<bool> HasPasswordAsync(Guid userId);
+    Task<bool> HasExternalLoginAsync(Guid userId, string loginProvider);
 }
 public record AppUserDto(
     Guid Id,
@@ -37,3 +44,10 @@ public record ExternalLoginInfoDto(
     string ProviderKey,
     string DisplayName
 );
+
+public record UserSetupStatusDto
+{
+    public bool RequiresUsernameSetup { get; init; }
+    public bool RequiresPasswordSetup { get; init; }
+    public string? CurrentUsername { get; init; }
+}
