@@ -14,7 +14,6 @@ public class SubjectConfiguration : IEntityTypeConfiguration<Subject>
 
         builder.HasKey(u => u.Id);
 
-        builder.Property(u => u.MajorId).HasColumnName("NganhId");
         builder.Property(u => u.SubjectName).HasColumnName("TenMonHoc");
         builder.Property(u => u.SubjectCode).HasColumnName("MaMonHoc");
 
@@ -26,11 +25,6 @@ public class SubjectConfiguration : IEntityTypeConfiguration<Subject>
         builder.HasOne<AppUser>()
             .WithMany(u => u.Subjects)
             .HasForeignKey(u => u.CreatedById)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne(u => u.Major)
-            .WithMany(u => u.Subjects)
-            .HasForeignKey(u => u.MajorId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

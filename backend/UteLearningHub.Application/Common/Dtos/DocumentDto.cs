@@ -26,6 +26,7 @@ namespace UteLearningHub.Application.Common.Dtos
         public Guid Id { get; init; }
         public string SubjectName { get; init; } = default!;
         public string SubjectCode { get; init; } = default!;
+        public IList<MajorDto> Majors { get; init; } = [];
     }
 
     public record TypeDto

@@ -21,14 +21,15 @@ public class GetSubjectsHandler : IRequestHandler<GetSubjectsQuery, PagedRespons
     public async Task<PagedResponse<SubjectDto>> Handle(GetSubjectsQuery request, CancellationToken cancellationToken)
     {
         var query = _subjectRepository.GetQueryableSet()
-            .Include(s => s.Major)
-                .ThenInclude(m => m.Faculty)
+            .Include(s => s.SubjectMajors)
+                .ThenInclude(sm => sm.Major)
+                    .ThenInclude(m => m.Faculty)
             .AsNoTracking();
 
-        // Filter by MajorId
-        if (request.MajorId.HasValue)
+        // Filter by MajorIds
+        if (request.MajorIds?.Any() == true)
         {
-            query = query.Where(s => s.MajorId == request.MajorId.Value);
+            query = query.Where(s => s.SubjectMajors.Any(sm => request.MajorIds.Contains(sm.MajorId)));
         }
 
         // Search by name or code
@@ -58,7 +59,19 @@ public class GetSubjectsHandler : IRequestHandler<GetSubjectsQuery, PagedRespons
             {
                 Id = s.Id,
                 SubjectName = s.SubjectName,
-                SubjectCode = s.SubjectCode
+                SubjectCode = s.SubjectCode,
+                Majors = s.SubjectMajors.Select(sm => new MajorDto
+                {
+                    Id = sm.Major.Id,
+                    MajorName = sm.Major.MajorName,
+                    MajorCode = sm.Major.MajorCode,
+                    Faculty = sm.Major.Faculty != null ? new FacultyDto
+                    {
+                        Id = sm.Major.Faculty.Id,
+                        FacultyName = sm.Major.Faculty.FacultyName,
+                        FacultyCode = sm.Major.Faculty.FacultyCode
+                    } : null
+                }).ToList()
             })
             .ToListAsync(cancellationToken);
 

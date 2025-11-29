@@ -21,8 +21,9 @@ public class GetSubjectByIdHandler : IRequestHandler<GetSubjectByIdQuery, Subjec
     public async Task<SubjectDetailDto> Handle(GetSubjectByIdQuery request, CancellationToken cancellationToken)
     {
         var subject = await _subjectRepository.GetQueryableSet()
-            .Include(s => s.Major)
-                .ThenInclude(m => m.Faculty)
+            .Include(s => s.SubjectMajors)
+                .ThenInclude(sm => sm.Major)
+                    .ThenInclude(m => m.Faculty)
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken);
 
@@ -35,26 +36,28 @@ public class GetSubjectByIdHandler : IRequestHandler<GetSubjectByIdQuery, Subjec
 
         var documentCount = await _subjectRepository.GetQueryableSet()
             .Where(s => s.Id == request.Id)
-            .Select(s => s.Documents.Count)
+            .Select(s => s.Documents.Count(d => !d.IsDeleted))
             .FirstOrDefaultAsync(cancellationToken);
+
+        var majors = subject.SubjectMajors.Select(sm => new MajorDto
+        {
+            Id = sm.Major.Id,
+            MajorName = sm.Major.MajorName,
+            MajorCode = sm.Major.MajorCode,
+            Faculty = sm.Major.Faculty != null ? new FacultyDto
+            {
+                Id = sm.Major.Faculty.Id,
+                FacultyName = sm.Major.Faculty.FacultyName,
+                FacultyCode = sm.Major.Faculty.FacultyCode
+            } : null
+        }).ToList();
 
         return new SubjectDetailDto
         {
             Id = subject.Id,
             SubjectName = subject.SubjectName,
             SubjectCode = subject.SubjectCode,
-            Major = new MajorDto
-            {
-                Id = subject.Major.Id,
-                MajorName = subject.Major.MajorName,
-                MajorCode = subject.Major.MajorCode,
-                Faculty = subject.Major.Faculty != null ? new FacultyDto
-                {
-                    Id = subject.Major.Faculty.Id,
-                    FacultyName = subject.Major.Faculty.FacultyName,
-                    FacultyCode = subject.Major.Faculty.FacultyCode
-                } : null
-            },
+            Majors = majors,
             DocumentCount = documentCount
         };
     }

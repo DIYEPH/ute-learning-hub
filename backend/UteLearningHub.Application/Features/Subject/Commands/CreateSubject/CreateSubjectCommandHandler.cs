@@ -43,14 +43,18 @@ public class CreateSubjectCommandHandler : IRequestHandler<CreateSubjectCommand,
         if (string.IsNullOrWhiteSpace(request.SubjectCode))
             throw new BadRequestException("SubjectCode cannot be empty");
 
-        // Validate MajorId exists
-        var major = await _majorRepository.GetQueryableSet()
-            .Include(m => m.Faculty)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == request.MajorId && !m.IsDeleted, cancellationToken);
-        
-        if (major == null)
-            throw new NotFoundException($"Major with id {request.MajorId} not found");
+        // ✅ Validate all MajorIds exist
+        if (request.MajorIds.Any())
+        {
+            var existingMajorIds = await _majorRepository.GetQueryableSet()
+                .Where(m => request.MajorIds.Contains(m.Id) && !m.IsDeleted)
+                .Select(m => m.Id)
+                .ToListAsync(cancellationToken);
+
+            var invalidMajorIds = request.MajorIds.Except(existingMajorIds).ToList();
+            if (invalidMajorIds.Any())
+                throw new BadRequestException($"Major IDs not found: {string.Join(", ", invalidMajorIds)}");
+        }
 
         // Check if subject name or code already exists
         var existingSubject = await _subjectRepository.GetQueryableSet()
@@ -72,34 +76,48 @@ public class CreateSubjectCommandHandler : IRequestHandler<CreateSubjectCommand,
         var subject = new SubjectEntity
         {
             Id = Guid.NewGuid(),
-            MajorId = request.MajorId,
             SubjectName = request.SubjectName,
             SubjectCode = request.SubjectCode,
-            ReviewStatus = ReviewStatus.Approved, // Admin tạo nhưng cần review
+            ReviewStatus = ReviewStatus.Approved,
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
         await _subjectRepository.AddAsync(subject, cancellationToken);
+
+        // Create SubjectMajor relationships
+        await _subjectRepository.AddSubjectMajorRelationshipsAsync(subject.Id, request.MajorIds, cancellationToken);
+
         await _subjectRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Get majors for response
+        var majors = new List<MajorDto>();
+        if (request.MajorIds.Any())
+        {
+            majors = await _majorRepository.GetQueryableSet()
+                .Include(m => m.Faculty)
+                .Where(m => request.MajorIds.Contains(m.Id))
+                .Select(m => new MajorDto
+                {
+                    Id = m.Id,
+                    MajorName = m.MajorName,
+                    MajorCode = m.MajorCode,
+                    Faculty = m.Faculty != null ? new FacultyDto
+                    {
+                        Id = m.Faculty.Id,
+                        FacultyName = m.Faculty.FacultyName,
+                        FacultyCode = m.Faculty.FacultyCode
+                    } : null
+                })
+                .ToListAsync(cancellationToken);
+        }
 
         return new SubjectDetailDto
         {
             Id = subject.Id,
             SubjectName = subject.SubjectName,
             SubjectCode = subject.SubjectCode,
-            Major = new MajorDto
-            {
-                Id = major.Id,
-                MajorName = major.MajorName,
-                MajorCode = major.MajorCode,
-                Faculty = major.Faculty != null ? new FacultyDto
-                {
-                    Id = major.Faculty.Id,
-                    FacultyName = major.Faculty.FacultyName,
-                    FacultyCode = major.Faculty.FacultyCode
-                } : null
-            },
+            Majors = majors,
             DocumentCount = 0
         };
     }

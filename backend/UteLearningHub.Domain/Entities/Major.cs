@@ -8,7 +8,7 @@ public class Major : BaseEntity<Guid>, IAggregateRoot, IAuditable
     public string MajorName { get; set; } = default!;
     public string MajorCode { get; set; } = default!;
     public Faculty Faculty { get; set; } = default!;
-    public ICollection<Subject> Subjects { get; set; } = [];
+    public ICollection<SubjectMajor> SubjectMajors { get; set; } = [];
 
     public Guid CreatedById { get; set; }
     public Guid? UpdatedById { get; set; }

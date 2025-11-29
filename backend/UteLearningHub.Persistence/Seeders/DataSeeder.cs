@@ -21,10 +21,10 @@ public class DataSeeder
     public async Task SeedAsync()
     {
         await SeedRolesAsync();
+        await SeedUsersAsync();
         await SeedFacultiesAsync();
         await SeedMajorsAsync();
-        await SeedUsersAsync();
-        await SeedSubjectsAsync();
+        // await SeedSubjectsAsync();
         //await SeedDocumentTypesAsync();
         //await SeedTagsAsync();
         //await SeedDocumentsAsync();
@@ -293,8 +293,7 @@ public class DataSeeder
     {
         if (await _userManager.Users.AnyAsync()) return;
 
-        var cnpmMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "CNPM");
-        var htttMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "HTTT");
+        var cnsMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7480201");
 
         // Admin User
         var admin = new AppUser
@@ -305,11 +304,10 @@ public class DataSeeder
             EmailConfirmed = true,
             FullName = "Administrator",
             Introduction = "System Administrator",
-            AvatarUrl = "https://via.placeholder.com/150",
-            TrustScore = 100,
+            AvatarUrl = "https://static.vecteezy.com/system/resources/thumbnails/019/194/935/small_2x/global-admin-icon-color-outline-vector.jpg",
+            TrustScore = 1000,
             TrustLever = TrustLever.Master,
             Gender = Gender.Other,
-            MajorId = cnpmMajor.Id,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -326,12 +324,12 @@ public class DataSeeder
                 Email = "student1@student.ute.edu.vn",
                 EmailConfirmed = true,
                 FullName = "Trần Văn Sinh viên",
-                Introduction = "Sinh viên năm 3 CNPM",
-                AvatarUrl = "https://via.placeholder.com/150",
+                Introduction = "Sinh viên năm 3 CNS",
+                AvatarUrl = "https://img.icons8.com/office40/1200/administrator-male.jpg",
                 TrustScore = 50,
                 TrustLever = TrustLever.Contributor,
                 Gender = Gender.Male,
-                MajorId = cnpmMajor.Id,
+                MajorId = cnsMajor.Id,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new AppUser
@@ -341,12 +339,12 @@ public class DataSeeder
                 Email = "student2@student.ute.edu.vn",
                 EmailConfirmed = true,
                 FullName = "Lê Thị Học sinh",
-                Introduction = "Sinh viên năm 2 HTTT",
-                AvatarUrl = "https://via.placeholder.com/150",
+                Introduction = "Sinh viên năm 2 CNS",
+                AvatarUrl = "https://img.icons8.com/office40/1200/administrator-male.jpg",
                 TrustScore = 30,
                 TrustLever = TrustLever.Newbie,
                 Gender = Gender.Female,
-                MajorId = htttMajor.Id,
+                MajorId = cnsMajor.Id,
                 CreatedAt = DateTimeOffset.UtcNow
             }
         }; 
@@ -357,60 +355,82 @@ public class DataSeeder
             await _userManager.AddToRoleAsync(student, "Student");
         }
     }
-    private async Task SeedSubjectsAsync()
-    {
-        if (await _context.Subjects.AnyAsync()) return;
+    // private async Task SeedSubjectsAsync()
+    // {
+    //     if (await _context.Subjects.AnyAsync()) return;
 
-        var cnpmMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "CNPM");
-        var htttMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "HTTT");
-        var adminUser = await _userManager.FindByEmailAsync("admin@ute.edu.vn");
+    //     var spktcnMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7140214");
 
-        var subjects = new List<Subject>
-        {
-            new()
-            {
-                Id = Guid.NewGuid(),
-                SubjectName = "Lập trình Web",
-                SubjectCode = "LTW",
-                MajorId = cnpmMajor.Id,
-                CreatedById = adminUser!.Id,
-                CreatedAt = DateTimeOffset.UtcNow,
-                ReviewStatus = ReviewStatus.Approved
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                SubjectName = "Cơ sở dữ liệu",
-                SubjectCode = "CSDL",
-                MajorId = cnpmMajor.Id,
-                CreatedById = adminUser.Id,
-                CreatedAt = DateTimeOffset.UtcNow,
-                ReviewStatus = ReviewStatus.Approved
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                SubjectName = "Phân tích thiết kế hệ thống",
-                SubjectCode = "PTTKHT",
-                MajorId = htttMajor.Id,
-                CreatedById = adminUser.Id,
-                CreatedAt = DateTimeOffset.UtcNow,
-                ReviewStatus = ReviewStatus.Approved
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                SubjectName = "Cấu trúc dữ liệu và giải thuật",
-                SubjectCode = "CTDL",
-                MajorId = cnpmMajor.Id,
-                CreatedById = adminUser.Id,
-                CreatedAt = DateTimeOffset.UtcNow,
-                ReviewStatus = ReviewStatus.Approved
-            }
-        };
+    //     var cnttMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7480201");
 
-        await _context.Subjects.AddRangeAsync(subjects);
-        await _context.SaveChangesAsync();
-    }
+    //     var cnktxdMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510103");
+    //     var cnktgtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510104 ");
+    //     var cnktktMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510101 ");
+
+    //     var cnktckMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510201 ");
+    //     var cnktcdtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510203 ");
+    //     var cnktotMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510205 ");
+    //     var cnktnMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510206 ");
+    //     var cnktddtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510301 ");
+
+    //     var cnktdtvtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510302 ");
+    //     var cnktdkvtdhMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510303 ");
+
+    //     var ktcshtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7580210");
+    //     var cnktmtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510406 ");
+    //     var kttpMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7540102 ");
+    //     var cnvlMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510402 ");
+    //     var cnkthhMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510401 ");
+
+    //     var adminUser = await _userManager.FindByEmailAsync("admin@ute.edu.vn");
+
+    //     var subjects = new List<Subject>
+    //     {
+    //         // Sư phạm kỹ thuật công nghiệp
+    //         new()
+    //         {
+    //             Id = Guid.NewGuid(),
+    //             SubjectName = "Lập trình Web",
+    //             SubjectCode = "LTW",
+    //             MajorId = spktcnMajor.Id,
+    //             CreatedById = adminUser!.Id,
+    //             CreatedAt = DateTimeOffset.UtcNow,
+    //             ReviewStatus = ReviewStatus.Approved
+    //         },
+    //         new()
+    //         {
+    //             Id = Guid.NewGuid(),
+    //             SubjectName = "Cơ sở dữ liệu",
+    //             SubjectCode = "CSDL",
+    //             MajorId = spktcnMajor.Id,
+    //             CreatedById = adminUser.Id,
+    //             CreatedAt = DateTimeOffset.UtcNow,
+    //             ReviewStatus = ReviewStatus.Approved
+    //         },
+    //         new()
+    //         {
+    //             Id = Guid.NewGuid(),
+    //             SubjectName = "Phân tích thiết kế hệ thống",
+    //             SubjectCode = "PTTKHT",
+    //             MajorId = spktcnMajor.Id,
+    //             CreatedById = adminUser.Id,
+    //             CreatedAt = DateTimeOffset.UtcNow,
+    //             ReviewStatus = ReviewStatus.Approved
+    //         },
+    //         new()
+    //         {
+    //             Id = Guid.NewGuid(),
+    //             SubjectName = "Cấu trúc dữ liệu và giải thuật",
+    //             SubjectCode = "CTDL",
+    //             MajorId = spktcnMajor.Id,
+    //             CreatedById = adminUser.Id,
+    //             CreatedAt = DateTimeOffset.UtcNow,
+    //             ReviewStatus = ReviewStatus.Approved
+    //         }
+    //     };
+
+    //     await _context.Subjects.AddRangeAsync(subjects);
+    //     await _context.SaveChangesAsync();
+    // }
 
 }

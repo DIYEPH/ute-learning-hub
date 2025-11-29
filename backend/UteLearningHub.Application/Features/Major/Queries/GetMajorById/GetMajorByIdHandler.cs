@@ -27,7 +27,7 @@ public class GetMajorByIdHandler : IRequestHandler<GetMajorByIdQuery, MajorDetai
 
         var subjectCount = await _majorRepository.GetQueryableSet()
             .Where(m => m.Id == request.Id)
-            .Select(m => m.Subjects.Count)
+            .Select(m => m.SubjectMajors.Count)
             .FirstOrDefaultAsync(cancellationToken);
 
         return new MajorDetailDto

@@ -38,7 +38,7 @@ public class DeleteMajorCommandHandler : IRequestHandler<DeleteMajorCommand, Uni
         // Check if major is being used by any subjects
         var subjectCount = await _majorRepository.GetQueryableSet()
             .Where(m => m.Id == request.Id)
-            .Select(m => m.Subjects.Count(s => !s.IsDeleted))
+            .Select(m => m.SubjectMajors.Count)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (subjectCount > 0)

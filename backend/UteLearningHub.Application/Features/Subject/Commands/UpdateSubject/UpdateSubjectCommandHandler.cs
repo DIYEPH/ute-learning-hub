@@ -46,14 +46,18 @@ public class UpdateSubjectCommandHandler : IRequestHandler<UpdateSubjectCommand,
         if (subject == null || subject.IsDeleted)
             throw new NotFoundException($"Subject with id {request.Id} not found");
 
-        // Validate MajorId exists
-        var major = await _majorRepository.GetQueryableSet()
-            .Include(m => m.Faculty)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(m => m.Id == request.MajorId && !m.IsDeleted, cancellationToken);
-        
-        if (major == null)
-            throw new NotFoundException($"Major with id {request.MajorId} not found");
+        // Validate all MajorIds exist
+        if (request.MajorIds.Any())
+        {
+            var existingMajorIds = await _majorRepository.GetQueryableSet()
+                .Where(m => request.MajorIds.Contains(m.Id) && !m.IsDeleted)
+                .Select(m => m.Id)
+                .ToListAsync(cancellationToken);
+
+            var invalidMajorIds = request.MajorIds.Except(existingMajorIds).ToList();
+            if (invalidMajorIds.Any())
+                throw new BadRequestException($"Major IDs not found: {string.Join(", ", invalidMajorIds)}");
+        }
 
         // Check if subject name or code already exists (excluding current subject)
         var existingSubject = await _subjectRepository.GetQueryableSet()
@@ -72,17 +76,42 @@ public class UpdateSubjectCommandHandler : IRequestHandler<UpdateSubjectCommand,
         }
 
         // Update subject
-        subject.MajorId = request.MajorId;
         subject.SubjectName = request.SubjectName;
         subject.SubjectCode = request.SubjectCode;
         subject.UpdatedById = userId;
         subject.UpdatedAt = _dateTimeProvider.OffsetNow;
 
         await _subjectRepository.UpdateAsync(subject, cancellationToken);
+
+        // Update SubjectMajor relationships
+        await _subjectRepository.UpdateSubjectMajorRelationshipsAsync(subject.Id, request.MajorIds, cancellationToken);
+
         await _subjectRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Get major info and document count
-        var subjectCount = await _subjectRepository.GetQueryableSet()
+        // Get majors for response
+        var majors = new List<MajorDto>();
+        if (request.MajorIds.Any())
+        {
+            majors = await _majorRepository.GetQueryableSet()
+                .Include(m => m.Faculty)
+                .Where(m => request.MajorIds.Contains(m.Id))
+                .Select(m => new MajorDto
+                {
+                    Id = m.Id,
+                    MajorName = m.MajorName,
+                    MajorCode = m.MajorCode,
+                    Faculty = m.Faculty != null ? new FacultyDto
+                    {
+                        Id = m.Faculty.Id,
+                        FacultyName = m.Faculty.FacultyName,
+                        FacultyCode = m.Faculty.FacultyCode
+                    } : null
+                })
+                .ToListAsync(cancellationToken);
+        }
+
+        // Get document count
+        var documentCount = await _subjectRepository.GetQueryableSet()
             .Where(s => s.Id == request.Id)
             .Select(s => s.Documents.Count(d => !d.IsDeleted))
             .FirstOrDefaultAsync(cancellationToken);
@@ -92,19 +121,8 @@ public class UpdateSubjectCommandHandler : IRequestHandler<UpdateSubjectCommand,
             Id = subject.Id,
             SubjectName = subject.SubjectName,
             SubjectCode = subject.SubjectCode,
-            Major = new MajorDto
-            {
-                Id = major.Id,
-                MajorName = major.MajorName,
-                MajorCode = major.MajorCode,
-                Faculty = major.Faculty != null ? new FacultyDto
-                {
-                    Id = major.Faculty.Id,
-                    FacultyName = major.Faculty.FacultyName,
-                    FacultyCode = major.Faculty.FacultyCode
-                } : null
-            },
-            DocumentCount = subjectCount
+            Majors = majors,
+            DocumentCount = documentCount
         };
     }
 }

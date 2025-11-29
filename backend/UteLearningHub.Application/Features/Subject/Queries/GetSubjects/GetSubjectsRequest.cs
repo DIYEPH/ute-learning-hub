@@ -4,6 +4,6 @@ namespace UteLearningHub.Application.Features.Subject.Queries.GetSubjects;
 
 public record GetSubjectsRequest : PagedRequest
 {
-    public Guid? MajorId { get; init; }
+    public List<Guid>? MajorIds { get; init; } = [];
     public string? SearchTerm { get; init; }
 }

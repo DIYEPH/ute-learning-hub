@@ -81,7 +81,7 @@ public class UpdateMajorCommandHandler : IRequestHandler<UpdateMajorCommand, Maj
         var facultyInfo = await _facultyRepository.GetByIdAsync(request.FacultyId, disableTracking: true, cancellationToken);
         var subjectCount = await _majorRepository.GetQueryableSet()
             .Where(m => m.Id == request.Id)
-            .Select(m => m.Subjects.Count)
+            .Select(m => m.SubjectMajors.Count)
             .FirstOrDefaultAsync(cancellationToken);
 
         return new MajorDetailDto

@@ -23,6 +23,7 @@ public static class DbTableNames
     public const string File = "TepDinhKem";
     public const string Major = "Nganh";
     public const string Message = "TinNhan";
+    public const string SubjectMajor = "MonHoc_Nganh";
     public const string MessageFile = "TinNhan_Tep";
     public const string Notification = "ThongBao";
     public const string NotificationRecipient = "ThongBao_NguoiNhan";
