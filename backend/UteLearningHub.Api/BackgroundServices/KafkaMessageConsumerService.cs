@@ -23,69 +23,74 @@ public class KafkaMessageConsumerService : BackgroundService
         _messageHubService = messageHubService;
         _logger = logger;
     }
-
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (string.IsNullOrWhiteSpace(_options.BootstrapServers) ||
             string.IsNullOrWhiteSpace(_options.MessageTopic))
         {
             _logger.LogWarning("Kafka configuration is missing. Kafka consumer will not start.");
-            return;
+            return Task.CompletedTask;
         }
 
-        var consumerConfig = new ConsumerConfig
+        return Task.Run(async () =>
         {
-            BootstrapServers = _options.BootstrapServers,
-            GroupId = _options.ConsumerGroupId ?? "ute-learninghub-chat-consumers",
-            AutoOffsetReset = AutoOffsetReset.Latest,
-            EnableAutoCommit = true
-        };
-
-        using var consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
-        consumer.Subscribe(_options.MessageTopic);
-
-        try
-        {
-            while (!stoppingToken.IsCancellationRequested)
+            var consumerConfig = new ConsumerConfig
             {
-                try
+                BootstrapServers = _options.BootstrapServers,
+                GroupId = _options.ConsumerGroupId ?? "ute-learninghub-chat-consumers",
+                AutoOffsetReset = AutoOffsetReset.Latest,
+                EnableAutoCommit = true
+            };
+
+            using var consumer = new ConsumerBuilder<string, string>(consumerConfig).Build();
+            consumer.Subscribe(_options.MessageTopic);
+
+            try
+            {
+                while (!stoppingToken.IsCancellationRequested)
                 {
-                    var result = consumer.Consume(stoppingToken);
-                    if (result?.Message?.Value == null)
-                        continue;
-
-                    var envelope = JsonSerializer.Deserialize<MessageQueueEvent>(result.Message.Value);
-                    if (envelope == null)
-                        continue;
-
-                    switch (envelope.EventType)
+                    try
                     {
-                        case MessageQueueEventTypes.MessageCreated:
-                            await _messageHubService.BroadcastMessageCreatedAsync(envelope.Payload, stoppingToken);
-                            break;
-                        default:
-                            _logger.LogWarning("Kafka event type {EventType} is not supported", envelope.EventType);
-                            break;
+                        var result = consumer.Consume(stoppingToken);
+                        if (result?.Message?.Value == null)
+                            continue;
+
+                        var envelope = JsonSerializer.Deserialize<MessageQueueEvent>(result.Message.Value);
+                        if (envelope == null)
+                            continue;
+
+                        switch (envelope.EventType)
+                        {
+                            case MessageQueueEventTypes.MessageCreated:
+                                _logger.LogInformation("Da nhan duoc message: {Payload}", envelope.Payload);
+                                await _messageHubService.BroadcastMessageCreatedAsync(envelope.Payload, stoppingToken);
+                                break;
+
+                            default:
+                                _logger.LogWarning("Kafka event type {EventType} is not supported", envelope.EventType);
+                                break;
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+                    catch (JsonException jsonEx)
+                    {
+                        _logger.LogError(jsonEx, "Failed to deserialize Kafka message");
+                    }
+                    catch (ConsumeException consumeEx)
+                    {
+                        _logger.LogError(consumeEx, "Kafka consume error");
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    break;
-                }
-                catch (JsonException jsonEx)
-                {
-                    _logger.LogError(jsonEx, "Failed to deserialize Kafka message");
-                }
-                catch (ConsumeException consumeEx)
-                {
-                    _logger.LogError(consumeEx, "Kafka consume error");
-                }
             }
-        }
-        finally
-        {
-            consumer.Close();
-        }
+            finally
+            {
+                consumer.Close();
+            }
+
+        }, stoppingToken);
     }
 }
 
