@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using UteLearningHub.Api.BackgroundServices;
 using UteLearningHub.Api.ConfigurationOptions;
 using UteLearningHub.Api.Hubs;
@@ -68,6 +69,7 @@ if (app.Environment.IsDevelopment())
     await seeder.SeedAsync();
 
     app.MapOpenApi();
+    app.MapScalarApiReference();
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();

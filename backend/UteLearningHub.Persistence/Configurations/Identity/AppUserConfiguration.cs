@@ -40,7 +40,5 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(u => u.LockoutEnd).HasColumnName("NgayHetKhoaTaiKhoan");
         builder.Property(u => u.LockoutEnabled).HasColumnName("ChoPhepKhoaTaiKhoan");
         builder.Property(u => u.AccessFailedCount).HasColumnName("SoLanDangNhapThatBai");
-
-
     }
 }

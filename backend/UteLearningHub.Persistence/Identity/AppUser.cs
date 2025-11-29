@@ -16,7 +16,7 @@ public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
     public bool IsSuggest { get; set; }
     public TrustLever TrustLever { get; set; } = TrustLever.None;
     public Gender Gender { get; set; } = Gender.Other;
-    public Major Major { get; set; } = default!;
+    public Major? Major { get; set; }
     public ICollection<UserTrustHistory> UserTrustHistories { get; set; } = [];
     public ICollection<Tag> Tags { get; set; } = [];
     public ICollection<DomainFile> Files { get; set; } = [];

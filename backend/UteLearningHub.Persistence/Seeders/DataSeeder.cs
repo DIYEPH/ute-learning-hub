@@ -52,14 +52,17 @@ public class DataSeeder
     {
         if (await _context.Faculty.AnyAsync()) return;
 
-        var adminId = Guid.NewGuid(); // Temporary admin ID
+        var adminUser = (await _userManager.GetUsersInRoleAsync("Admin")).FirstOrDefault();
+        var adminId = adminUser?.Id ?? Guid.NewGuid();
+
         var faculties = new List<Faculty>
         {
             new()
             {
                 Id = Guid.NewGuid(),
-                FacultyName = "Khoa Công nghệ Thông tin",
-                FacultyCode = "CNTT",
+                FacultyName = "Khoa Cơ Khí",
+                FacultyCode = "CK",
+                Logo = "/images/faculties/logo_ck.png",
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
@@ -68,22 +71,43 @@ public class DataSeeder
                 Id = Guid.NewGuid(),
                 FacultyName = "Khoa Điện - Điện tử",
                 FacultyCode = "DDT",
+                Logo = "/images/faculties/logo_ddt.png",
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Id = Guid.NewGuid(),
-                FacultyName = "Khoa Cơ khí",
-                FacultyCode = "CK",
+                FacultyName = "Khoa Kỹ Thuật Xây Dựng",
+                FacultyCode = "KTXD",
+                Logo = "/images/faculties/logo_ktxd.png",
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Id = Guid.NewGuid(),
-                FacultyName = "Khoa Kinh tế",
-                FacultyCode = "KT",
+                FacultyName = "Khoa Công Nghệ Hóa Học - Môi Trường",
+                FacultyCode = "CNHHMT",
+                Logo = "/images/faculties/logo_cnhhmt.png",
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                FacultyName = "Khoa Sư Phạm Công Nghiệp",
+                FacultyCode = "SPCN",
+                Logo = "/images/faculties/logo_spcn.png",
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                FacultyName = "Khoa Công Nghệ Số",
+                FacultyCode = "CNS",
+                Logo = "/images/faculties/logo_cns.png",
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             }
@@ -96,44 +120,167 @@ public class DataSeeder
     {
         if (await _context.Majors.AnyAsync()) return;
 
-        var cnttFaculty = await _context.Faculty.FirstAsync(f => f.FacultyCode == "CNTT");
+        var ckFaculty = await _context.Faculty.FirstAsync(f => f.FacultyCode == "CK");
         var ddtFaculty = await _context.Faculty.FirstAsync(f => f.FacultyCode == "DDT");
-        var adminId = Guid.NewGuid();
+        var ktxdFaculty = await _context.Faculty.FirstAsync(f => f.FacultyCode == "KTXD");
+        var cnhhmtFaculty = await _context.Faculty.FirstAsync(f => f.FacultyCode == "CNHHMT");
+        var spcnFaculty = await _context.Faculty.FirstAsync(f => f.FacultyCode == "SPCN");
+        var cnsFaculty = await _context.Faculty.FirstAsync(f => f.FacultyCode == "CNS");
+
+        var adminUser = (await _userManager.GetUsersInRoleAsync("Admin")).FirstOrDefault();
+        var adminId = adminUser?.Id ?? Guid.NewGuid();
 
         var majors = new List<Major>
         {
             new()
             {
                 Id = Guid.NewGuid(),
-                MajorName = "Công nghệ Phần mềm",
-                MajorCode = "CNPM",
-                FacultyId = cnttFaculty.Id,
+                MajorName = "Sư phạm kỹ thuật công nghiệp",
+                MajorCode = "7140214",
+                FacultyId = spcnFaculty.Id,
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Id = Guid.NewGuid(),
-                MajorName = "Hệ thống Thông tin",
-                MajorCode = "HTTT",
-                FacultyId = cnttFaculty.Id,
+                MajorName = "Công nghệ thông tin",
+                MajorCode = "7480201",
+                FacultyId = cnsFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ kỹ thuật xây dựng",
+                MajorCode = "7510103",
+                FacultyId = ktxdFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ kỹ thuật giao thông",
+                MajorCode = "7510104",
+                FacultyId = ktxdFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ kỹ thuật cơ khí",
+                MajorCode = "7510201",
+                FacultyId = ckFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ kỹ thuật cơ điện tử",
+                MajorCode = "7510203",
+                FacultyId = ckFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ kỹ thuật ô tô",
+                MajorCode = "7510205",
+                FacultyId = ckFaculty.Id,
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new(){
                 Id = Guid.NewGuid(),
-                MajorName = "Khoa học Máy tính",
-                MajorCode = "KHMT",
-                FacultyId = cnttFaculty.Id,
+                MajorName = "Công nghệ kỹ thuật nhiệt",
+                MajorCode = "7510206",
+                FacultyId = ckFaculty.Id,
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new()
             {
                 Id = Guid.NewGuid(),
-                MajorName = "Điện tử Viễn thông",
-                MajorCode = "DTVT",
+                MajorName = "Công nghệ kỹ thuật điện, điện tử",
+                MajorCode = "7510301",
+                FacultyId = ckFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ kỹ thuật điện tử, viễn thông",
+                MajorCode = "7510302",
                 FacultyId = ddtFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ kỹ thuật điều khiển và tự động hóa",
+                MajorCode = "7510303",
+                FacultyId = ddtFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Kỹ thuật cơ sở hạ tầng",
+                MajorCode = "7580210",
+                FacultyId = cnhhmtFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ kỹ thuật môi trường",
+                MajorCode = "7510406",
+                FacultyId = cnhhmtFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Kỹ thuật thực phẩm",
+                MajorCode = "7540102",
+                FacultyId = cnhhmtFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ vật liệu",
+                MajorCode = "7510402",
+                FacultyId = cnhhmtFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ kỹ thuật hóa học",
+                MajorCode = "7510401",
+                FacultyId = cnhhmtFaculty.Id,
+                CreatedById = adminId,
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                MajorName = "Công nghệ kỹ thuật kiến trúc",
+                MajorCode = "7510101",
+                FacultyId = ktxdFaculty.Id,
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             }
