@@ -23,7 +23,7 @@ public class GetSubjectsHandler : IRequestHandler<GetSubjectsQuery, PagedRespons
         var query = _subjectRepository.GetQueryableSet()
             .Include(s => s.SubjectMajors)
                 .ThenInclude(sm => sm.Major)
-                    .ThenInclude(m => m.Faculty)
+                .ThenInclude(m => m.Faculty)
             .AsNoTracking();
 
         // Filter by MajorIds

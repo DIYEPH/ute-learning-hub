@@ -23,7 +23,7 @@ public class GetSubjectByIdHandler : IRequestHandler<GetSubjectByIdQuery, Subjec
         var subject = await _subjectRepository.GetQueryableSet()
             .Include(s => s.SubjectMajors)
                 .ThenInclude(sm => sm.Major)
-                    .ThenInclude(m => m.Faculty)
+                .ThenInclude(m => m.Faculty)
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken);
 
