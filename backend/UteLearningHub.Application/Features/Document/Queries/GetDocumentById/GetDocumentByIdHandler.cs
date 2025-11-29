@@ -69,7 +69,19 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
             {
                 Id = document.Subject.Id,
                 SubjectName = document.Subject.SubjectName,
-                SubjectCode = document.Subject.SubjectCode
+                SubjectCode = document.Subject.SubjectCode,
+                Majors = document.Subject.SubjectMajors.Select(sm => new MajorDto
+                {
+                    Id = sm.Major.Id,
+                    MajorName = sm.Major.MajorName,
+                    MajorCode = sm.Major.MajorCode,
+                    Faculty = sm.Major.Faculty != null ? new FacultyDto
+                    {
+                        Id = sm.Major.Faculty.Id,
+                        FacultyName = sm.Major.Faculty.FacultyName,
+                        FacultyCode = sm.Major.Faculty.FacultyCode
+                    } : null
+                }).ToList()
             },
             Type = new TypeDto
             {

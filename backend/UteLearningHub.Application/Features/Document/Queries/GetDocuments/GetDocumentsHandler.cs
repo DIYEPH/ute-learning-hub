@@ -33,7 +33,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             query = query.Where(d => d.DocumentTags.Any(dt => dt.TagId == request.TagId.Value));
 
         if (request.MajorId.HasValue)
-            query = query.Where(d => d.Subject.MajorId == request.MajorId.Value);
+            query = query.Where(d => d.Subject.SubjectMajors.Any(sm => sm.MajorId == request.MajorId.Value));
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
@@ -93,7 +93,19 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                 {
                     Id = d.Subject.Id,
                     SubjectName = d.Subject.SubjectName,
-                    SubjectCode = d.Subject.SubjectCode
+                    SubjectCode = d.Subject.SubjectCode,
+                    Majors = d.Subject.SubjectMajors.Select(sm => new MajorDto
+                    {
+                        Id = sm.Major.Id,
+                        MajorName = sm.Major.MajorName,
+                        MajorCode = sm.Major.MajorCode,
+                        Faculty = sm.Major.Faculty != null ? new FacultyDto
+                        {
+                            Id = sm.Major.Faculty.Id,
+                            FacultyName = sm.Major.Faculty.FacultyName,
+                            FacultyCode = sm.Major.Faculty.FacultyCode
+                        } : null
+                    }).ToList()
                 },
                 Type = new TypeDto
                 {

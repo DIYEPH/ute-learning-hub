@@ -17,7 +17,9 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
     {
         var query = GetQueryableSet()
             .Include(d => d.Subject)
-                .ThenInclude(s => s.Major)
+                .ThenInclude(s => s.SubjectMajors)
+                    .ThenInclude(sm => sm.Major)
+                        .ThenInclude(m => m.Faculty)
             .Include(d => d.Type)
             .Include(d => d.DocumentTags)
                 .ThenInclude(dt => dt.Tag)
@@ -35,7 +37,9 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
     {
         return GetQueryableSet()
             .Include(d => d.Subject)
-                .ThenInclude(s => s.Major)
+                .ThenInclude(s => s.SubjectMajors)
+                    .ThenInclude(sm => sm.Major)
+                        .ThenInclude(m => m.Faculty)
             .Include(d => d.Type)
             .Include(d => d.DocumentTags)
                 .ThenInclude(dt => dt.Tag)
