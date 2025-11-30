@@ -44,8 +44,8 @@ public class UserService : IUserService
         var roles = await _identityService.GetRolesAsync(userId);
 
         var appUser = await _dbContext.Users
-            .Include(u => u.Major)
-                .ThenInclude(m => m.Faculty)
+            .Include(u => u.Major!)
+                .ThenInclude(m => m!.Faculty)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (appUser is null)
@@ -64,7 +64,8 @@ public class UserService : IUserService
                     {
                         Id = appUser.Major.Faculty.Id,
                         FacultyName = appUser.Major.Faculty.FacultyName,
-                        FacultyCode = appUser.Major.Faculty.FacultyCode
+                        FacultyCode = appUser.Major.Faculty.FacultyCode,
+                        Logo = appUser.Major.Faculty.Logo
                     }
                     : null
             };
@@ -102,8 +103,8 @@ public class UserService : IUserService
         CancellationToken cancellationToken = default)
     {
         var appUser = await _dbContext.Users
-            .Include(u => u.Major)
-                .ThenInclude(m => m.Faculty)
+            .Include(u => u.Major!)
+                .ThenInclude(m => m!.Faculty)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (appUser == null)
@@ -165,8 +166,8 @@ public class UserService : IUserService
     public async Task<PagedResponse<UserDto>> GetUsersAsync(GetUsersRequest request, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Users
-            .Include(u => u.Major)
-                .ThenInclude(m => m.Faculty)
+            .Include(u => u.Major!)
+                .ThenInclude(m => m!.Faculty)
             .AsNoTracking();
 
         // Search by name, email, or username
@@ -266,7 +267,8 @@ public class UserService : IUserService
                     {
                         Id = user.Major.Faculty.Id,
                         FacultyName = user.Major.Faculty.FacultyName,
-                        FacultyCode = user.Major.Faculty.FacultyCode
+                        FacultyCode = user.Major.Faculty.FacultyCode,
+                        Logo = user.Major.Faculty.Logo
                     } : null
                 } : null,
                 CreatedAt = user.CreatedAt,
@@ -292,8 +294,8 @@ public class UserService : IUserService
     public async Task<UserDto?> GetUserByIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var user = await _dbContext.Users
-            .Include(u => u.Major)
-                .ThenInclude(m => m.Faculty)
+            .Include(u => u.Major!)
+                .ThenInclude(m => m!.Faculty)
             .AsNoTracking()
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
@@ -342,8 +344,8 @@ public class UserService : IUserService
     public async Task<UserDto> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken cancellationToken = default)
     {
         var user = await _dbContext.Users
-            .Include(u => u.Major)
-                .ThenInclude(m => m.Faculty)
+            .Include(u => u.Major!)
+                .ThenInclude(m => m!.Faculty)
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (user == null)

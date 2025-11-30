@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
-import type { UpdateFacultyCommand, CreateFacultyCommand, FacultyDto2 } from "@/src/api/database/types.gen";
+import type { UpdateFacultyCommand, CreateFacultyCommand} from "@/src/api/database/types.gen";
 
 export interface FacultyFormData {
   facultyName?: string | null;
@@ -35,6 +35,7 @@ export function FacultyForm({ initialData, onSubmit, loading }: FacultyFormProps
     const command = {
       facultyName: formData.facultyName || undefined,
       facultyCode: formData.facultyCode || undefined,
+      logo: formData.logo || undefined,
     };
     await onSubmit(command);
   };

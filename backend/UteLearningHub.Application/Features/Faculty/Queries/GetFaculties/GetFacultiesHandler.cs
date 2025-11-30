@@ -40,7 +40,8 @@ public class GetFacultiesHandler : IRequestHandler<GetFacultiesQuery, PagedRespo
             {
                 Id = f.Id,
                 FacultyName = f.FacultyName,
-                FacultyCode = f.FacultyCode
+                FacultyCode = f.FacultyCode,
+                Logo = f.Logo
             })
             .ToListAsync(cancellationToken);
 

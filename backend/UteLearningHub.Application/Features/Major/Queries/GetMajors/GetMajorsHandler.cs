@@ -52,7 +52,8 @@ public class GetMajorsHandler : IRequestHandler<GetMajorsQuery, PagedResponse<Ma
                 {
                     Id = m.Faculty.Id,
                     FacultyName = m.Faculty.FacultyName,
-                    FacultyCode = m.Faculty.FacultyCode
+                    FacultyCode = m.Faculty.FacultyCode,
+                    Logo = m.Faculty.Logo
                 } : null
             })
             .ToListAsync(cancellationToken);

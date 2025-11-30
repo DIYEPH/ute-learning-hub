@@ -39,7 +39,8 @@ public class GetMajorByIdHandler : IRequestHandler<GetMajorByIdQuery, MajorDetai
             {
                 Id = major.Faculty.Id,
                 FacultyName = major.Faculty.FacultyName,
-                FacultyCode = major.Faculty.FacultyCode
+                FacultyCode = major.Faculty.FacultyCode,
+                Logo = major.Faculty.Logo
             },
             SubjectCount = subjectCount
         };

@@ -44,12 +44,13 @@ public class GetSubjectByIdHandler : IRequestHandler<GetSubjectByIdQuery, Subjec
             Id = sm.Major.Id,
             MajorName = sm.Major.MajorName,
             MajorCode = sm.Major.MajorCode,
-            Faculty = sm.Major.Faculty != null ? new FacultyDto
-            {
-                Id = sm.Major.Faculty.Id,
-                FacultyName = sm.Major.Faculty.FacultyName,
-                FacultyCode = sm.Major.Faculty.FacultyCode
-            } : null
+                    Faculty = sm.Major.Faculty != null ? new FacultyDto
+                    {
+                        Id = sm.Major.Faculty.Id,
+                        FacultyName = sm.Major.Faculty.FacultyName,
+                        FacultyCode = sm.Major.Faculty.FacultyCode,
+                        Logo = sm.Major.Faculty.Logo
+                    } : null
         }).ToList();
 
         return new SubjectDetailDto

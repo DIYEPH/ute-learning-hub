@@ -61,6 +61,7 @@ public class CreateFacultyCommandHandler : IRequestHandler<CreateFacultyCommand,
             Id = Guid.NewGuid(),
             FacultyName = request.FacultyName,
             FacultyCode = request.FacultyCode,
+            Logo = request.Logo ?? string.Empty,
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
@@ -73,6 +74,7 @@ public class CreateFacultyCommandHandler : IRequestHandler<CreateFacultyCommand,
             Id = faculty.Id,
             FacultyName = faculty.FacultyName,
             FacultyCode = faculty.FacultyCode,
+            Logo = faculty.Logo,
             MajorCount = 0
         };
     }

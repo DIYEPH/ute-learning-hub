@@ -62,6 +62,10 @@ public class UpdateFacultyCommandHandler : IRequestHandler<UpdateFacultyCommand,
         // Update faculty
         faculty.FacultyName = request.FacultyName;
         faculty.FacultyCode = request.FacultyCode;
+        if (request.Logo != null)
+        {
+            faculty.Logo = request.Logo;
+        }
         faculty.UpdatedById = userId;
         faculty.UpdatedAt = _dateTimeProvider.OffsetNow;
 
@@ -79,6 +83,7 @@ public class UpdateFacultyCommandHandler : IRequestHandler<UpdateFacultyCommand,
             Id = faculty.Id,
             FacultyName = faculty.FacultyName,
             FacultyCode = faculty.FacultyCode,
+            Logo = faculty.Logo,
             MajorCount = majorCount
         };
     }

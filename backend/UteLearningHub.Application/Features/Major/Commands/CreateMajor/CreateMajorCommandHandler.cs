@@ -89,7 +89,8 @@ public class CreateMajorCommandHandler : IRequestHandler<CreateMajorCommand, Maj
             {
                 Id = facultyInfo!.Id,
                 FacultyName = facultyInfo.FacultyName,
-                FacultyCode = facultyInfo.FacultyCode
+                FacultyCode = facultyInfo.FacultyCode,
+                Logo = facultyInfo.Logo
             },
             SubjectCount = 0
         };

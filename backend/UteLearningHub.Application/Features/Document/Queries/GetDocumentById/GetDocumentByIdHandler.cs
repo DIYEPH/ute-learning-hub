@@ -79,7 +79,8 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
                     {
                         Id = sm.Major.Faculty.Id,
                         FacultyName = sm.Major.Faculty.FacultyName,
-                        FacultyCode = sm.Major.Faculty.FacultyCode
+                        FacultyCode = sm.Major.Faculty.FacultyCode,
+                        Logo = sm.Major.Faculty.Logo
                     } : null
                 }).ToList()
             },

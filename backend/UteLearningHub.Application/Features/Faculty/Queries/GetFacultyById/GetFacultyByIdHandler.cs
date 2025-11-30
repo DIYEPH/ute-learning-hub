@@ -32,6 +32,7 @@ public class GetFacultyByIdHandler : IRequestHandler<GetFacultyByIdQuery, Facult
             Id = faculty.Id,
             FacultyName = faculty.FacultyName,
             FacultyCode = faculty.FacultyCode,
+            Logo = faculty.Logo,
             MajorCount = majorCount
         };
     }
