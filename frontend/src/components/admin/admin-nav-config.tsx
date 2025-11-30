@@ -1,4 +1,4 @@
-import { Users, FileText, BookOpen, Building, GraduationCap, Flag, Bell, MessageCircle, BarChart3 } from "lucide-react";
+import { Users, FileText, BookOpen, Building, GraduationCap, Flag, Bell, MessageCircle, BarChart3, Tag } from "lucide-react";
 
 export type AdminNavItem = {
   label: string;
@@ -13,6 +13,7 @@ export const ADMIN_NAV_CONFIG = [
   { labelKey: "admin.nav.subjects", href: "/admin/subjects", icon: BookOpen },
   { labelKey: "admin.nav.faculties", href: "/admin/faculties", icon: Building },
   { labelKey: "admin.nav.majors", href: "/admin/majors", icon: GraduationCap },
+  { labelKey: "admin.nav.types", href: "/admin/types", icon: Tag },
   { labelKey: "admin.nav.notifications", href: "/admin/notifications", icon: Bell },
   { labelKey: "admin.nav.conversations", href: "/admin/conversations", icon: MessageCircle },
   { labelKey: "admin.nav.reports", href: "/admin/reports", icon: Flag },

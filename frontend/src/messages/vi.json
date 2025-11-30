@@ -129,6 +129,7 @@
       "subjects": "Quản lý Môn học",
       "faculties": "Quản lý Khoa",
       "majors": "Quản lý Ngành",
+      "types": "Quản lý Loại tài liệu",
       "notifications": "Quản lý thông báo",
       "conversations": "Quản lý cuộc trò chuyện",
       "statistics": "Thống kê",
@@ -277,6 +278,31 @@
       "importDescription": "Chọn file Excel hoặc CSV để import danh sách ngành",
       "deleteAll": "Xóa tất cả",
       "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} ngành không?"
+    },
+    "types": {
+      "title": "Quản lý loại tài liệu",
+      "description": "Xem và quản lý tất cả loại tài liệu trong hệ thống",
+      "createTitle": "Thêm loại tài liệu",
+      "editTitle": "Sửa loại tài liệu",
+      "foundCount": "Tìm thấy {count} loại tài liệu",
+      "searchPlaceholder": "Tìm kiếm theo tên loại tài liệu...",
+      "import": "Import",
+      "deleteAll": "Xóa tất cả",
+      "importTitle": "Import loại tài liệu",
+      "importDescription": "Chọn file Excel hoặc CSV để import danh sách loại tài liệu",
+      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} loại tài liệu không?",
+      "form": {
+        "typeName": "Tên loại tài liệu"
+      },
+      "table": {
+        "typeName": "Tên loại tài liệu",
+        "edit": "Sửa",
+        "delete": "Xóa",
+        "loading": "Đang tải...",
+        "noData": "Không có dữ liệu",
+        "selectedCount": "Đã chọn {count}",
+        "deleteSelected": "Xóa đã chọn"
+      }
     },
     "faculties": {
       "title": "Quản lý khoa",

@@ -129,6 +129,7 @@
       "subjects": "Subject Management",
       "faculties": "Faculty Management",
       "majors": "Major Management",
+      "types": "Document Types",
       "notifications": "Notification Management",
       "conversations": "Conversation Management",
       "statistics": "Statistics",
@@ -277,6 +278,31 @@
       "importDescription": "Select an Excel or CSV file to import major list",
       "deleteAll": "Delete All",
       "deleteAllConfirm": "Are you sure you want to delete {count} majors?"
+    },
+    "types": {
+      "title": "Document Types Management",
+      "description": "View and manage all document types in the system",
+      "createTitle": "Add Document Type",
+      "editTitle": "Edit Document Type",
+      "foundCount": "Found {count} document types",
+      "searchPlaceholder": "Search by type name...",
+      "import": "Import",
+      "deleteAll": "Delete All",
+      "importTitle": "Import Document Types",
+      "importDescription": "Select an Excel or CSV file to import document types list",
+      "deleteAllConfirm": "Are you sure you want to delete {count} document types?",
+      "form": {
+        "typeName": "Type Name"
+      },
+      "table": {
+        "typeName": "Type Name",
+        "edit": "Edit",
+        "delete": "Delete",
+        "loading": "Loading...",
+        "noData": "No data",
+        "selectedCount": "Selected {count}",
+        "deleteSelected": "Delete Selected"
+      }
     },
     "faculties": {
       "title": "Faculty Management",
