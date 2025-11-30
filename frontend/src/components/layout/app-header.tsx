@@ -42,6 +42,7 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
             src="/images/ute_logo.png"
             alt="UTE Logo"
             fill
+            sizes="32px"
             className="object-contain"
             priority
           />

@@ -88,8 +88,7 @@
   },
   "dashboard": {
     "title": "Bảng điều khiển",
-    "welcome": "Chào mừng",
-    "description": "Đây là trang home – chỗ để sinh viên khám phá tài liệu, quiz, câu hỏi, v.v."
+    "welcome": "Xin chào"
   },
   "chat": {
     "title": "Trò chuyện",

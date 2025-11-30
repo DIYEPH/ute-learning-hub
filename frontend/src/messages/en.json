@@ -88,8 +88,7 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "welcome": "Welcome",
-    "description": "This is the home page – where students can explore documents, quizzes, questions, etc."
+    "welcome": "Welcome"
   },
   "chat": {
     "title": "Chat",
