@@ -12,7 +12,7 @@ public record DocumentDetailDto
     public bool IsDownload { get; init; }
     public VisibilityStatus Visibility { get; init; }
     public ReviewStatus ReviewStatus { get; init; }
-    public SubjectDto Subject { get; init; } = default!;
+    public SubjectDto? Subject { get; init; } 
     public TypeDto Type { get; init; } = default!;
     public IList<TagDto> Tags { get; init; } = [];
     public IList<DocumentFileDto> Files { get; init; } = [];

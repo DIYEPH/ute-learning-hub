@@ -11,6 +11,7 @@ using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 using DomainDocument = UteLearningHub.Domain.Entities.Document;
 using DomainFile = UteLearningHub.Domain.Entities.File;
+using DomainTag = UteLearningHub.Domain.Entities.Tag;
 
 namespace UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 
@@ -65,25 +66,69 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
         if (string.IsNullOrWhiteSpace(request.AuthorName))
             throw new BadRequestException("AuthorName cannot be empty");
 
-        // Validate SubjectId exists
-        var subject = await _subjectRepository.GetByIdAsync(request.SubjectId, disableTracking: true, cancellationToken);
-        if (subject == null || subject.IsDeleted)
-            throw new NotFoundException($"Subject with id {request.SubjectId} not found");
+        // Validate SubjectId exists (chỉ nếu có)
+        if (request.SubjectId.HasValue)
+        {
+            var subject = await _subjectRepository.GetByIdAsync(request.SubjectId.Value, disableTracking: true, cancellationToken);
+            if (subject == null || subject.IsDeleted)
+                throw new NotFoundException($"Subject with id {request.SubjectId.Value} not found");
+        }
 
         // Validate TypeId exists
         var type = await _typeRepository.GetByIdAsync(request.TypeId, disableTracking: true, cancellationToken);
         if (type == null || type.IsDeleted)
             throw new NotFoundException($"Type with id {request.TypeId} not found");
 
-        // Validate Tags if provided
+        // Handle Tags: Support both TagIds and TagNames
+        var tagIdsToAdd = new List<Guid>();
+
+        // Process TagIds (existing tags by ID)
         if (request.TagIds != null && request.TagIds.Any())
         {
-            var tags = await _tagRepository.GetQueryableSet()
+            var existingTags = await _tagRepository.GetQueryableSet()
                 .Where(t => request.TagIds.Contains(t.Id) && !t.IsDeleted)
                 .ToListAsync(cancellationToken);
 
-            if (tags.Count != request.TagIds.Count)
+            if (existingTags.Count != request.TagIds.Count)
                 throw new NotFoundException("One or more tags not found");
+
+            tagIdsToAdd.AddRange(existingTags.Select(t => t.Id));
+        }
+
+        // Process TagNames (create new tags if they don't exist)
+        if (request.TagNames != null && request.TagNames.Any())
+        {
+            foreach (var tagName in request.TagNames)
+            {
+                if (string.IsNullOrWhiteSpace(tagName)) continue;
+
+                // Check if tag already exists (case-insensitive)
+                var existingTag = await _tagRepository.GetQueryableSet()
+                    .Where(t => t.TagName.ToLower() == tagName.Trim().ToLower() && !t.IsDeleted)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (existingTag != null)
+                {
+                    // Tag exists, use its ID
+                    if (!tagIdsToAdd.Contains(existingTag.Id))
+                        tagIdsToAdd.Add(existingTag.Id);
+                }
+                else
+                {
+                    // Create new tag
+                    var newTag = new DomainTag
+                    {
+                        Id = Guid.NewGuid(),
+                        TagName = tagName.Trim(),
+                        ReviewStatus = ReviewStatus.Approved, 
+                        CreatedById = userId,
+                        CreatedAt = _dateTimeProvider.OffsetNow
+                    };
+
+                    await _tagRepository.AddAsync(newTag, cancellationToken);
+                    tagIdsToAdd.Add(newTag.Id);
+                }
+            }
         }
 
         // Validate file count - maximum 3 files
@@ -104,7 +149,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             Description = request.Description,
             AuthorName = request.AuthorName,
             DescriptionAuthor = request.DescriptionAuthor,
-            SubjectId = request.SubjectId,
+            SubjectId = request.SubjectId,  // Có thể null
             TypeId = request.TypeId,
             IsDownload = request.IsDownload,
             Visibility = request.Visibility,
@@ -114,10 +159,10 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
         };
 
         // Add tags
-        if (request.TagIds != null && request.TagIds.Any())
+        if (tagIdsToAdd.Any())
         {
             var tags = await _tagRepository.GetQueryableSet()
-                .Where(t => request.TagIds.Contains(t.Id) && !t.IsDeleted)
+                .Where(t => tagIdsToAdd.Contains(t.Id) && !t.IsDeleted)
                 .ToListAsync(cancellationToken);
 
             foreach (var tag in tags)
@@ -233,12 +278,12 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             IsDownload = document.IsDownload,
             Visibility = document.Visibility,
             ReviewStatus = document.ReviewStatus,
-            Subject = new SubjectDto
+            Subject = document.Subject != null ? new SubjectDto
             {
                 Id = document.Subject.Id,
                 SubjectName = document.Subject.SubjectName,
                 SubjectCode = document.Subject.SubjectCode
-            },
+            } : null, 
             Type = new TypeDto
             {
                 Id = document.Type.Id,

@@ -33,7 +33,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             query = query.Where(d => d.DocumentTags.Any(dt => dt.TagId == request.TagId.Value));
 
         if (request.MajorId.HasValue)
-            query = query.Where(d => d.Subject.SubjectMajors.Any(sm => sm.MajorId == request.MajorId.Value));
+            query = query.Where(d => d.Subject != null && d.Subject.SubjectMajors.Any(sm => sm.MajorId == request.MajorId.Value));
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
@@ -89,7 +89,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                 IsDownload = d.IsDownload,
                 Visibility = d.Visibility,
                 ReviewStatus = d.ReviewStatus,
-                Subject = new SubjectDto
+                Subject = d.Subject != null ? new SubjectDto
                 {
                     Id = d.Subject.Id,
                     SubjectName = d.Subject.SubjectName,
@@ -107,7 +107,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                             Logo = sm.Major.Faculty.Logo
                         } : null
                     }).ToList()
-                },
+                } : null,
                 Type = new TypeDto
                 {
                     Id = d.Type.Id,

@@ -5,7 +5,7 @@ namespace UteLearningHub.Domain.Entities;
 
 public class Document : BaseEntity<Guid>, IAggregateRoot, IAuditable, IReviewable
 {
-    public Guid SubjectId { get; set; }
+    public Guid? SubjectId { get; set; }
     public Guid TypeId { get; set; }
     public string Description { get; set; } = default!;
     public string DocumentName { get; set; } = default!;
@@ -14,7 +14,7 @@ public class Document : BaseEntity<Guid>, IAggregateRoot, IAuditable, IReviewabl
     public string NormalizedName { get; set; } = default!;
     public bool IsDownload { get; set; } = true;
     public VisibilityStatus Visibility { get; set; } = VisibilityStatus.Public;
-    public Subject Subject { get; set; } = default!;
+    public Subject? Subject { get; set; }
     public Type Type { get; set; } = default!;
     public ICollection<DocumentTag> DocumentTags { get; set; } = [];
     public ICollection<DocumentFile> DocumentFiles { get; set; } = [];

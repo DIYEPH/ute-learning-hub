@@ -285,12 +285,12 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
             IsDownload = document.IsDownload,
             Visibility = document.Visibility,
             ReviewStatus = document.ReviewStatus,
-            Subject = new SubjectDto
+            Subject = document.Subject != null ? new SubjectDto
             {
                 Id = document.Subject.Id,
                 SubjectName = document.Subject.SubjectName,
                 SubjectCode = document.Subject.SubjectCode
-            },
+            } : null, 
             Type = new TypeDto
             {
                 Id = document.Type.Id,

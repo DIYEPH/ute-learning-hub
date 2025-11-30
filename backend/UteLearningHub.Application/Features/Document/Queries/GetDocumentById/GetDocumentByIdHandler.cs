@@ -65,7 +65,7 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
             IsDownload = document.IsDownload,
             Visibility = document.Visibility,
             ReviewStatus = document.ReviewStatus,
-            Subject = new SubjectDto
+            Subject = document.Subject != null ? new SubjectDto
             {
                 Id = document.Subject.Id,
                 SubjectName = document.Subject.SubjectName,
@@ -83,7 +83,7 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
                         Logo = sm.Major.Faculty.Logo
                     } : null
                 }).ToList()
-            },
+            } : null,  
             Type = new TypeDto
             {
                 Id = document.Type.Id,
