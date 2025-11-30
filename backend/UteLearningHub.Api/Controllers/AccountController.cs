@@ -18,6 +18,7 @@ namespace UteLearningHub.Api.Controllers
         }
 
         [HttpGet("profile")]
+        [Authorize]
         public async Task<ActionResult<ProfileDto>> GetProfile()
         {
             var query = new GetProfileQuery { UserId = null };

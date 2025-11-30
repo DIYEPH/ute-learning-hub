@@ -11,7 +11,12 @@ import type { NavItem } from "./nav-config";
 import MobileSidebar from "./app-mobile-sidebar";
 import { useState } from "react";
 import LoginDialog from "../auth/login-dialog";
-import { Bell, Calendar, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import { useAuthState } from "@/src/hooks/use-auth-state";
+import { UserMenu } from "./user-menu";
+import { NotificationMenu } from "./notification-menu";
+import { EventMenu } from "./event-menu";
+
 type HeaderProps = {
   navItems: NavItem[];
   activePath?: string;
@@ -21,6 +26,7 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
   const t = useTranslations('common');
   const tCommon = useTranslations('common');
   const [open, setOpen] = useState(false);
+  const isAuthenticated = useAuthState();
 
   return (
     <header className="h-16 border-b bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex items-center px-4 gap-4">
@@ -58,26 +64,19 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
 
       {/* Auth buttons & Language switcher */}
       <div className="flex items-center gap-1">
-        {/* Calendar icon */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="hidden sm:flex h-9 w-9 rounded-full p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
-          aria-label="Calendar"
-        >
-          <Calendar size={18} className="text-slate-600 dark:text-slate-400" />
-        </Button>
+        {/* Event/Calendar icon */}
+        {isAuthenticated && (
+          <div className="hidden sm:block">
+            <EventMenu />
+          </div>
+        )}
 
         {/* Notification icon */}
-        <Button
-          variant="ghost"
-          size="sm"
-          className="hidden sm:flex h-9 w-9 rounded-full p-0 hover:bg-slate-100 dark:hover:bg-slate-800 relative"
-          aria-label="Notifications"
-        >
-          <Bell size={18} className="text-slate-600 dark:text-slate-400" />
-          {/* Badge indicator có thể thêm sau */}
-        </Button>
+        {isAuthenticated && (
+          <div className="hidden sm:block">
+            <NotificationMenu />
+          </div>
+        )}
 
         {/* Theme switcher */}
         <div className="hidden sm:block">
@@ -89,14 +88,20 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
           <LanguageSwitcher />
         </div>
 
-        {/* Login button */}
-        <Button
-          className="rounded-full bg-green-500 hover:bg-green-600 text-white px-4"
-          onClick={() => setOpen(true)}
-        >
-          {t('login')}
+        {/* Login/User Avatar */}
+        {isAuthenticated ? (
+          <UserMenu />
+        ) : (
+          <>
+            <Button
+              className="rounded-full bg-green-500 hover:bg-green-600 text-white px-4"
+              onClick={() => setOpen(true)}
+            >
+              {t('login')}
         </Button>
-        <LoginDialog open={open} onOpenChange={setOpen} />
+            <LoginDialog open={open} onOpenChange={setOpen} />
+          </>
+        )}
       </div>
     </header>
   );

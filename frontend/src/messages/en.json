@@ -1,8 +1,9 @@
 {
-  "common": {
-    "welcome": "Welcome to UTE Learning Hub",
-    "login": "Login",
-    "logout": "Logout",
+    "common": {
+      "welcome": "Welcome to UTE Learning Hub", 
+      "login": "Login",
+      "logout": "Logout",
+      "loggingOut": "Logging out...",
     "dashboard": "Dashboard",
     "search": "Search",
     "searchPlaceholder": "Search for documents",
@@ -28,11 +29,12 @@
     "actions": "Actions",
     "themeLight": "Light",
     "themeDark": "Dark",
-    "themeSystem": "System"
-  },
-  "nav": {
-    "home": "Home",
-    "documents": "Documents",
+    "themeSystem": "System",
+    "or": "Or"
+    },
+    "nav": {
+      "home": "Home",
+      "documents": "Documents", 
     "groups": "Groups",
     "myLibrary": "My Library",
     "aiNotes": "AI Notes",
@@ -118,5 +120,51 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "admin": {
+    "nav": {
+      "home": "Home",
+      "users": "User Management",
+      "documents": "Document Management",
+      "subjects": "Subject Management",
+      "faculties": "Faculty Management",
+      "majors": "Major Management",
+      "notifications": "Notification Management",
+      "conversations": "Conversation Management",
+      "statistics": "Statistics",
+      "reports": "Report Management"
+    },
+    "dashboard": {
+      "title": "Admin Dashboard",
+      "description": "Manage and operate the UTE Learning Hub system"
+    },
+    "users": {
+      "title": "User Management",
+      "description": "View and manage all users in the system"
+    },
+    "documents": {
+      "title": "Document Management",
+      "description": "Review and manage uploaded documents"
+    },
+    "subjects": {
+      "title": "Subject Management",
+      "description": "Add, edit, delete subjects"
+    },
+    "majors": {
+      "title": "Major Management",
+      "description": "Manage majors and faculties"
+    },
+    "events": {
+      "title": "Event Management",
+      "description": "Create and manage events"
+    },
+    "reports": {
+      "title": "Report Management",
+      "description": "View and handle reports"
+    },
+    "settings": {
+      "title": "System Settings",
+      "description": "Configure system settings"
+    }
   }
 }

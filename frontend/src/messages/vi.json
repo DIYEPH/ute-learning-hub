@@ -1,8 +1,9 @@
 {
-  "common": {
-    "welcome": "Chào mừng đến với UTE Learning Hub",
-    "login": "Đăng nhập",
-    "logout": "Đăng xuất",
+    "common": {
+      "welcome": "Chào mừng đến với UTE Learning Hub",
+      "login": "Đăng nhập",
+      "logout": "Đăng xuất",
+      "loggingOut": "Đang đăng xuất...",
     "dashboard": "Bảng điều khiển",
     "search": "Tìm kiếm",
     "searchPlaceholder": "Tìm kiếm tài liệu",
@@ -28,11 +29,12 @@
     "actions": "Thao tác",
     "themeLight": "Sáng",
     "themeDark": "Tối",
-    "themeSystem": "Hệ thống"
-  },
-  "nav": {
-    "home": "Trang chủ",
-    "documents": "Tài liệu",
+    "themeSystem": "Hệ thống",
+    "or": "Hoặc"
+    },
+    "nav": {
+      "home": "Trang chủ",
+      "documents": "Tài liệu",
     "groups": "Nhóm học",
     "myLibrary": "Thư viện của tôi",
     "aiNotes": "Ghi chú AI",
@@ -118,5 +120,51 @@
     "light": "Sáng",
     "dark": "Tối",
     "system": "Hệ thống"
+  },
+  "admin": {
+    "nav": {
+      "home": "Trang chủ",
+      "users": "Quản lý người dùng",
+      "documents": "Quản lý tài liệu",
+      "subjects": "Quản lý Môn học",
+      "faculties": "Quản lý Khoa",
+      "majors": "Quản lý Ngành",
+      "notifications": "Quản lý thông báo",
+      "conversations": "Quản lý cuộc trò chuyện",
+      "statistics": "Thống kê",
+      "reports": "Quản lý Báo cáo"
+    },
+    "dashboard": {
+      "title": "Bảng điều khiển quản trị",
+      "description": "Quản lý và điều hành hệ thống UTE Learning Hub"
+    },
+    "users": {
+      "title": "Quản lý người dùng",
+      "description": "Xem và quản lý tất cả người dùng trong hệ thống"
+    },
+    "documents": {
+      "title": "Quản lý tài liệu",
+      "description": "Duyệt và quản lý tài liệu được tải lên"
+    },
+    "subjects": {
+      "title": "Quản lý môn học",
+      "description": "Thêm, sửa, xóa môn học"
+    },
+    "majors": {
+      "title": "Quản lý ngành học",
+      "description": "Quản lý các ngành học và khoa"
+    },
+    "events": {
+      "title": "Quản lý sự kiện",
+      "description": "Tạo và quản lý các sự kiện"
+    },
+    "reports": {
+      "title": "Quản lý báo cáo",
+      "description": "Xem và xử lý các báo cáo"
+    },
+    "settings": {
+      "title": "Cài đặt hệ thống",
+      "description": "Cấu hình hệ thống"
+    }
   }
 }

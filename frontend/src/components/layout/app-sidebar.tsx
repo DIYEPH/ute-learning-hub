@@ -6,9 +6,10 @@ import { ScrollArea} from "../ui/scroll-area"
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback } from "../ui/avatar"
 import type { NavItem } from "./nav-config";
+import type { AdminNavItem } from "../admin/admin-nav-config";
 
 type SidebarProps = {
-  navItems: NavItem[];
+  navItems: (NavItem | AdminNavItem)[];
   activePath?: string;
 };
 
