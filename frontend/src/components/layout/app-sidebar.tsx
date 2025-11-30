@@ -31,9 +31,11 @@ export function AppSidebar({ navItems, activePath }: SidebarProps) {
                 {t('addUniversity')}
               </button>
             </div>
-          </div>
+          </div>*/}
 
-          <Button className="w-full rounded-full mt-2">{t('new')}</Button> */}
+          <Link href="/documents/upload">
+            <Button className="w-full rounded-full mt-2">{t('new-document')}</Button>
+          </Link> 
 
           {/* Nav */}
           <nav className="mt-4 space-y-1 text-sm">
