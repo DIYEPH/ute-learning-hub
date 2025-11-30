@@ -44,6 +44,25 @@ public static class InfrastructureExtensions
 
                 ClockSkew = TimeSpan.Zero
             };
+
+            // Đọc token từ cookie nếu không có trong Authorization header
+            // Middleware sẽ xử lý việc này, nhưng đây là fallback
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context =>
+                {
+                    // Chỉ đọc từ cookie nếu chưa có token trong header
+                    if (string.IsNullOrEmpty(context.Token))
+                    {
+                        var token = context.Request.Cookies["access_token"] 
+                                 ?? context.Request.Cookies["jwt_token"] 
+                                 ?? context.Request.Cookies["token"]
+                                 ?? context.Request.Cookies["auth_token"];
+                        context.Token = token;
+                    }
+                    return Task.CompletedTask;
+                }
+            };
         });
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();

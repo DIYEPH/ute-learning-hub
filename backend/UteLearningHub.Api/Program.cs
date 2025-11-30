@@ -1,3 +1,4 @@
+using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using UteLearningHub.Api.BackgroundServices;
 using UteLearningHub.Api.ConfigurationOptions;
@@ -53,7 +54,25 @@ else
 
 // Add Controllers
 services.AddControllers();
-services.AddOpenApi();
+services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+        
+        // Thêm Bearer JWT Security Scheme
+        document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
+        {
+            Type = SecuritySchemeType.Http,
+            Scheme = "bearer",
+            BearerFormat = "JWT",
+            Description = "Enter JWT token. If not provided, token will be read from cookies."
+        };
+        
+        return Task.CompletedTask;
+    });
+});
 services.AddSignalR();
 
 services.AddSingleton<IMessageHubService, SignalRMessageHubService>();
@@ -76,6 +95,9 @@ app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+// Middleware để đọc JWT token từ cookies nếu không có trong Authorization header
+app.UseMiddleware<JwtCookieMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
