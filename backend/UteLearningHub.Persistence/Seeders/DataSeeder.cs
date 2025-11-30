@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Persistence.Identity;
+using DomainType = UteLearningHub.Domain.Entities.Type;
+
 
 namespace UteLearningHub.Persistence.Seeders;
 
@@ -26,7 +28,7 @@ public class DataSeeder
         await SeedMajorsAsync();
         await SeedUsersAsync(); // Tạo các users khác (students)
         await SeedSubjectsAsync();
-        //await SeedDocumentTypesAsync();
+        await SeedTypesAsync();
         //await SeedTagsAsync();
         //await SeedDocumentsAsync();
 
@@ -458,6 +460,91 @@ public class DataSeeder
 
         // Then save SubjectMajor relationships
         await _context.Set<SubjectMajor>().AddRangeAsync(subjectMajors);
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task SeedTypesAsync()
+    {
+        if (await _context.Types.AnyAsync()) return;
+
+        var adminUser = await _userManager.FindByEmailAsync("admin@ute.edu.vn");
+        if (adminUser == null)
+            throw new InvalidOperationException("Admin user must be created before seeding types");
+
+        var adminId = adminUser.Id;
+
+        var types = new List<DomainType>
+        {
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Giáo trình",
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Đồ án tốt nghiệp",
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Tài liệu",
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Bài tập",
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Đề thi",
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Bài giảng",
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Tài liệu tham khảo",
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Báo cáo",
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Luận văn",
+                CreatedAt = DateTimeOffset.UtcNow
+            },
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Khóa luận",
+                CreatedAt = DateTimeOffset.UtcNow
+            }
+            ,
+            new()
+            {
+                Id = Guid.NewGuid(),
+                TypeName = "Khác",
+                CreatedAt = DateTimeOffset.UtcNow
+            }
+        };
+
+        await _context.Types.AddRangeAsync(types);
         await _context.SaveChangesAsync();
     }
 
