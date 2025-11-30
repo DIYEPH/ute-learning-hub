@@ -9,20 +9,29 @@ import { useTranslations } from "next-intl";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useTypes } from "@/src/hooks/use-types";
 import { getApiTag } from "@/src/api/database/sdk.gen";
-import type { SubjectDto2, TypeDto, TagDto } from "@/src/api/database/types.gen";
+import type {
+  SubjectDto2,
+  TypeDto,
+  TagDto,
+  PostApiDocumentData,
+} from "@/src/api/database/types.gen";
 
-export interface DocumentUploadFormData {
-  documentName?: string | null;
-  description?: string | null;
-  authorName?: string | null;
-  descriptionAuthor?: string | null;
-  subjectId?: string | null;
-  typeId?: string | null;
-  tagIds?: string[];
-  isDownload?: boolean;
-  visibility?: "Public" | "Private";
-  files?: File[];
-}
+// Sử dụng DTO có sẵn từ types.gen.ts (PostApiDocumentData['body'])
+// Map từ PascalCase (API) sang camelCase (form) và Files (IFormFile) -> files (File[])
+type ApiDocumentBody = PostApiDocumentData["body"];
+export type DocumentUploadFormData = {
+  documentName?: ApiDocumentBody["DocumentName"] | null;
+  description?: ApiDocumentBody["Description"] | null;
+  authorName?: ApiDocumentBody["AuthorName"] | null;
+  descriptionAuthor?: ApiDocumentBody["DescriptionAuthor"] | null;
+  subjectId?: ApiDocumentBody["SubjectId"] | null;
+  typeId?: ApiDocumentBody["TypeId"] | null;
+  tagIds?: ApiDocumentBody["TagIds"];
+  tagNames?: ApiDocumentBody["TagNames"];
+  isDownload?: ApiDocumentBody["IsDownload"];
+  visibility?: number; // VisibilityStatus enum: 0 = Public, 1 = Private
+  files?: File[]; // Map từ Files (IFormFile[]) -> File[]
+};
 
 interface DocumentUploadFormProps {
   initialData?: DocumentUploadFormData;
@@ -38,7 +47,7 @@ export function DocumentUploadForm({
   const t = useTranslations("documents");
   const { fetchSubjects, loading: loadingSubjects } = useSubjects();
   const { fetchTypes, loading: loadingTypes } = useTypes();
-  
+
   const [formData, setFormData] = useState<DocumentUploadFormData>({
     documentName: null,
     description: null,
@@ -47,8 +56,9 @@ export function DocumentUploadForm({
     subjectId: null,
     typeId: null,
     tagIds: [],
+    tagNames: [],
     isDownload: true,
-    visibility: "Public",
+    visibility: 0, // 0 = Public, 1 = Private
     files: [],
   });
 
@@ -56,6 +66,7 @@ export function DocumentUploadForm({
   const [types, setTypes] = useState<TypeDto[]>([]);
   const [tags, setTags] = useState<TagDto[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [newTagInput, setNewTagInput] = useState("");
 
   useEffect(() => {
     if (initialData) {
@@ -69,7 +80,9 @@ export function DocumentUploadForm({
         const [subjectsRes, typesRes, tagsRes] = await Promise.all([
           fetchSubjects({ Page: 1, PageSize: 1000 }),
           fetchTypes({ Page: 1, PageSize: 1000 }),
-          getApiTag({ query: { Page: 1, PageSize: 1000 } }).then((res: any) => res?.data || res),
+          getApiTag({ query: { Page: 1, PageSize: 1000 } }).then(
+            (res: any) => res?.data || res
+          ),
         ]);
 
         if (subjectsRes?.items) setSubjects(subjectsRes.items);
@@ -92,8 +105,8 @@ export function DocumentUploadForm({
       return;
     }
 
-    if (!formData.subjectId) {
-      setFileError("Vui lòng chọn môn học");
+    if (!formData.description?.trim()) {
+      setFileError("Mô tả không được để trống");
       return;
     }
 
@@ -144,12 +157,70 @@ export function DocumentUploadForm({
     setFormData((prev) => ({ ...prev, tagIds: selectedIds }));
   };
 
+  const handleAddNewTag = () => {
+    const tagName = newTagInput.trim();
+    if (!tagName) return;
+
+    // Kiểm tra tag đã tồn tại chưa
+    const existingTag = tags.find(
+      (tag) => tag.tagName?.toLowerCase() === tagName.toLowerCase() && tag.id
+    );
+
+    if (existingTag && existingTag.id) {
+      // Nếu tag đã tồn tại, thêm vào tagIds
+      const tagId = existingTag.id;
+      if (!formData.tagIds?.includes(tagId)) {
+        setFormData((prev) => ({
+          ...prev,
+          tagIds: [...(prev.tagIds || []), tagId],
+        }));
+      }
+    } else {
+      // Nếu tag chưa tồn tại, thêm vào tagNames
+      if (!formData.tagNames?.includes(tagName)) {
+        setFormData((prev) => ({
+          ...prev,
+          tagNames: [...(prev.tagNames || []), tagName],
+        }));
+      }
+    }
+
+    setNewTagInput("");
+  };
+
+  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleAddNewTag();
+    }
+  };
+
+  const handleRemoveTag = (tagIdOrName: string, isName: boolean) => {
+    if (isName) {
+      setFormData((prev) => ({
+        ...prev,
+        tagNames: (prev.tagNames || []).filter((name) => name !== tagIdOrName),
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        tagIds: (prev.tagIds || []).filter((id) => id !== tagIdOrName),
+      }));
+    }
+  };
+
   const isDisabled = loading || loadingSubjects || loadingTypes;
-  const selectClassName = "mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
-  const textareaClassName = "mt-1 flex w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+  const selectClassName =
+    "mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+  const textareaClassName =
+    "mt-1 flex w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
-    <form id="document-upload-form" onSubmit={handleSubmit} className="space-y-4">
+    <form
+      id="document-upload-form"
+      onSubmit={handleSubmit}
+      className="space-y-4"
+    >
       {fileError && (
         <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded">
           {fileError}
@@ -172,7 +243,22 @@ export function DocumentUploadForm({
             className="mt-1"
           />
         </div>
-
+        <div>
+          <Label htmlFor="description">
+            {t("description")} <span className="text-red-500">*</span>
+          </Label>
+          <textarea
+            id="description"
+            value={formData.description || ""}
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, description: e.target.value }))
+            }
+            rows={4}
+            required
+            disabled={isDisabled}
+            className={textareaClassName}
+          />
+        </div>
         <div>
           <Label htmlFor="authorName">{t("author")}</Label>
           <Input
@@ -188,26 +274,15 @@ export function DocumentUploadForm({
       </div>
 
       <div>
-        <Label htmlFor="description">{t("description")}</Label>
-        <textarea
-          id="description"
-          value={formData.description || ""}
-          onChange={(e) =>
-            setFormData((prev) => ({ ...prev, description: e.target.value }))
-          }
-          rows={4}
-          disabled={isDisabled}
-          className={textareaClassName}
-        />
-      </div>
-
-      <div>
         <Label htmlFor="descriptionAuthor">Mô tả tác giả</Label>
         <textarea
           id="descriptionAuthor"
           value={formData.descriptionAuthor || ""}
           onChange={(e) =>
-            setFormData((prev) => ({ ...prev, descriptionAuthor: e.target.value }))
+            setFormData((prev) => ({
+              ...prev,
+              descriptionAuthor: e.target.value,
+            }))
           }
           rows={3}
           disabled={isDisabled}
@@ -217,20 +292,20 @@ export function DocumentUploadForm({
 
       <div className="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="subjectId">
-            {t("subject")} <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="subjectId">{t("subject")} (Tùy chọn)</Label>
           <select
             id="subjectId"
             value={formData.subjectId || ""}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, subjectId: e.target.value || null }))
+              setFormData((prev) => ({
+                ...prev,
+                subjectId: e.target.value || null,
+              }))
             }
-            required
             disabled={isDisabled}
             className={selectClassName}
           >
-            <option value="">Chọn môn học</option>
+            <option value="">Chọn môn học (tùy chọn)</option>
             {subjects
               .filter((s): s is SubjectDto2 & { id: string } => !!s?.id)
               .map((subject) => (
@@ -249,7 +324,10 @@ export function DocumentUploadForm({
             id="typeId"
             value={formData.typeId || ""}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, typeId: e.target.value || null }))
+              setFormData((prev) => ({
+                ...prev,
+                typeId: e.target.value || null,
+              }))
             }
             required
             disabled={isDisabled}
@@ -289,6 +367,75 @@ export function DocumentUploadForm({
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           Giữ Ctrl/Cmd để chọn nhiều thẻ
         </p>
+
+        {/* Input để thêm tag mới */}
+        <div className="mt-2 flex gap-2">
+          <Input
+            type="text"
+            placeholder="Nhập tên tag mới và nhấn Enter"
+            value={newTagInput}
+            onChange={(e) => setNewTagInput(e.target.value)}
+            onKeyDown={handleTagInputKeyDown}
+            disabled={isDisabled}
+            className="flex-1"
+          />
+          <Button
+            type="button"
+            onClick={handleAddNewTag}
+            disabled={isDisabled || !newTagInput.trim()}
+            size="sm"
+          >
+            Thêm
+          </Button>
+        </div>
+
+        {/* Hiển thị tags đã chọn */}
+        {((formData.tagIds?.length || 0) > 0 ||
+          (formData.tagNames?.length || 0) > 0) && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {/* Tags từ tagIds (tag có sẵn) */}
+            {formData.tagIds?.map((tagId) => {
+              const tag = tags.find((t) => t.id === tagId);
+              if (!tag) return null;
+              return (
+                <div
+                  key={tagId}
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
+                >
+                  <span>{tag.tagName}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTag(tagId, false)}
+                    disabled={isDisabled}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              );
+            })}
+            {/* Tags từ tagNames (tag mới) */}
+            {formData.tagNames?.map((tagName) => (
+              <div
+                key={tagName}
+                className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
+              >
+                <span>{tagName}</span>
+                <span className="text-xs text-green-600 dark:text-green-400">
+                  (mới)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTag(tagName, true)}
+                  disabled={isDisabled}
+                  className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div>
@@ -313,7 +460,9 @@ export function DocumentUploadForm({
         >
           <Upload size={20} />
           <span className="text-sm">
-            {(formData.files?.length || 0) >= 3 ? "Đã đạt giới hạn 3 file" : "Chọn tệp"}
+            {(formData.files?.length || 0) >= 3
+              ? "Đã đạt giới hạn 3 file"
+              : "Chọn tệp"}
           </span>
         </label>
         {(formData.files?.length || 0) > 0 && (
@@ -344,7 +493,7 @@ export function DocumentUploadForm({
           </div>
         )}
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          Đã chọn {(formData.files?.length || 0)}/3 file
+          Đã chọn {formData.files?.length || 0}/3 file
         </p>
       </div>
 
@@ -369,22 +518,21 @@ export function DocumentUploadForm({
           <Label htmlFor="visibility">{t("visibility")}</Label>
           <select
             id="visibility"
-            value={formData.visibility || "Public"}
+            value={formData.visibility ?? 0}
             onChange={(e) =>
               setFormData((prev) => ({
                 ...prev,
-                visibility: e.target.value as "Public" | "Private",
+                visibility: parseInt(e.target.value, 10),
               }))
             }
             disabled={isDisabled}
             className={selectClassName}
           >
-            <option value="Public">Công khai</option>
-            <option value="Private">Riêng tư</option>
+            <option value={0}>Công khai</option>
+            <option value={1}>Riêng tư</option>
           </select>
         </div>
       </div>
     </form>
   );
 }
-

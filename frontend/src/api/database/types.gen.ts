@@ -193,7 +193,7 @@ export type DocumentDetailDto = {
     isDownload?: boolean;
     visibility?: VisibilityStatus;
     reviewStatus?: ReviewStatus;
-    subject?: SubjectDto2;
+    subject?: SubjectDto;
     type?: TypeDto;
     tags?: Array<TagDto>;
     files?: Array<DocumentFileDto>;
@@ -215,7 +215,7 @@ export type DocumentDto = {
     isDownload?: boolean;
     visibility?: VisibilityStatus;
     reviewStatus?: ReviewStatus;
-    subject?: SubjectDto2;
+    subject?: SubjectDto;
     type?: TypeDto;
     tags?: Array<TagDto>;
     fileCount?: number;
@@ -1167,6 +1167,7 @@ export type PostApiDocumentData = {
         SubjectId?: string;
         TypeId?: string;
         TagIds?: Array<string>;
+        TagNames?: Array<string>;
         IsDownload?: boolean;
         Visibility?: string;
     };

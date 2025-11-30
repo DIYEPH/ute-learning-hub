@@ -22,14 +22,12 @@ export default function UploadDocumentPage() {
     try {
       const formDataToSend = new FormData();
       
-      // Add files
       if (data.files && data.files.length > 0) {
         data.files.forEach((file) => {
           formDataToSend.append("Files", file);
         });
       }
 
-      // Add form fields
       formDataToSend.append("DocumentName", data.documentName || "");
       formDataToSend.append("Description", data.description || "");
       formDataToSend.append("AuthorName", data.authorName || "");
@@ -47,17 +45,26 @@ export default function UploadDocumentPage() {
           formDataToSend.append("TagIds", tagId);
         });
       }
+      if (data.tagNames && data.tagNames.length > 0) {
+        data.tagNames.forEach((tagName) => {
+          formDataToSend.append("TagNames", tagName);
+        });
+      }
       
       formDataToSend.append("IsDownload", (data.isDownload ?? true).toString());
-      formDataToSend.append("Visibility", data.visibility || "Public");
+      formDataToSend.append("Visibility", (data.visibility ?? 0).toString());
 
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7080";
       const token = getBearerToken();
-      const response = await axios.post("/api/Document", formDataToSend, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          ...(token && { Authorization: token }),
-        },
-      });
+      const response = await axios.post(
+        `${apiBaseUrl}/api/Document`,
+        formDataToSend,
+        {
+          headers: {
+            ...(token && { Authorization: token }),
+          },
+        }
+      );
 
       if (response.data) {
         router.push(`/documents/${response.data.id}`);

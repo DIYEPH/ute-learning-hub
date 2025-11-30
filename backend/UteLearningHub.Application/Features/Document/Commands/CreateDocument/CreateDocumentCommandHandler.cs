@@ -63,9 +63,6 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
         if (string.IsNullOrWhiteSpace(request.Description))
             throw new BadRequestException("Description cannot be empty");
 
-        if (string.IsNullOrWhiteSpace(request.AuthorName))
-            throw new BadRequestException("AuthorName cannot be empty");
-
         // Validate SubjectId exists (chỉ nếu có)
         if (request.SubjectId.HasValue)
         {
@@ -147,8 +144,8 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             DocumentName = request.DocumentName,
             NormalizedName = request.DocumentName.ToLowerInvariant(),
             Description = request.Description,
-            AuthorName = request.AuthorName,
-            DescriptionAuthor = request.DescriptionAuthor,
+            AuthorName = request.AuthorName ?? string.Empty,  // Xử lý null
+            DescriptionAuthor = request.DescriptionAuthor ?? string.Empty,  // Xử lý null
             SubjectId = request.SubjectId,  // Có thể null
             TypeId = request.TypeId,
             IsDownload = request.IsDownload,

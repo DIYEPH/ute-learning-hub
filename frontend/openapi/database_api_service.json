@@ -1231,6 +1231,12 @@
                       "format": "uuid"
                     }
                   },
+                  "TagNames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
                   "IsDownload": {
                     "type": "boolean"
                   },
@@ -4767,7 +4773,7 @@
             "$ref": "#/components/schemas/ReviewStatus"
           },
           "subject": {
-            "$ref": "#/components/schemas/SubjectDto2"
+            "$ref": "#/components/schemas/SubjectDto"
           },
           "type": {
             "$ref": "#/components/schemas/TypeDto"
@@ -4844,7 +4850,7 @@
             "$ref": "#/components/schemas/ReviewStatus"
           },
           "subject": {
-            "$ref": "#/components/schemas/SubjectDto2"
+            "$ref": "#/components/schemas/SubjectDto"
           },
           "type": {
             "$ref": "#/components/schemas/TypeDto"

@@ -7,7 +7,6 @@ using UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
 using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
-using UteLearningHub.Application.Features.Document.Queries.GetMyDocuments;
 using UteLearningHub.Application.Features.Document.Commands.ReviewDocument;
 
 namespace UteLearningHub.Api.Controllers
@@ -30,7 +29,7 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpGet("my")]
         [Authorize]
-        public async Task<ActionResult<PagedResponse<DocumentDto>>> GetMyDocuments([FromQuery] GetMyDocumentsQuery query)
+        public async Task<ActionResult<PagedResponse<DocumentDto>>> GetMyDocuments([FromQuery] GetDocumentsQuery query)
         {
             var result = await _mediator.Send(query);
             return Ok(result);
@@ -46,7 +45,7 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpPost]
         [Authorize]
-        [RequestSizeLimit(100_000_000)] 
+        [RequestSizeLimit(100_000_000)]
         public async Task<ActionResult<DocumentDetailDto>> CreateDocument([FromForm] CreateDocumentCommand command)
         {
             var result = await _mediator.Send(command);
@@ -55,7 +54,7 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpPut("{id}")]
         [Authorize]
-        [RequestSizeLimit(100_000_000)] // 100MB limit
+        [RequestSizeLimit(100_000_000)]
         public async Task<ActionResult<DocumentDetailDto>> UpdateDocument(Guid id, [FromForm] UpdateDocumentCommand command)
         {
             command = command with { Id = id };

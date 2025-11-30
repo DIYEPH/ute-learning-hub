@@ -12,13 +12,11 @@ using UteLearningHub.Infrastructure.ConfigurationOptions;
 using UteLearningHub.Infrastructure.DateTimes;
 using UteLearningHub.Persistence;
 using UteLearningHub.Persistence.Seeders;
+using UteLearningHub.Api.Binders;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Logging.AddConsole();
-
-
-// Add services to the container.
 
 var services = builder.Services;
 var configurations = builder.Configuration;
@@ -39,21 +37,20 @@ services.AddApplication()
 
 services.AddDateTimeProvider();
 
-// Configure File Storage: S3 or Local
 var s3Options = configurations.GetSection(AmazonS3Options.SectionName).Get<AmazonS3Options>();
 if (s3Options != null && !string.IsNullOrEmpty(s3Options.AccessKeyId) && !string.IsNullOrEmpty(s3Options.S3BucketName))
 {
-    // Use AWS S3
     services.AddS3FileStorage(s3Options);
 }
 else
 {
-    // Use Local Storage
     services.AddLocalFileStorage();
 }
 
-// Add Controllers
-services.AddControllers();
+services.AddControllers(options =>
+{
+    options.ModelBinderProviders.Insert(0, new OptionalListModelBinderProvider());
+});
 services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -70,7 +67,6 @@ services.AddOpenApi(options =>
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
         
-        // Thêm Bearer JWT Security Scheme
         document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.Http,
@@ -89,7 +85,6 @@ services.AddHostedService<KafkaMessageConsumerService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -106,7 +101,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseCors();
-app.UseMiddleware<JwtCookieMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
