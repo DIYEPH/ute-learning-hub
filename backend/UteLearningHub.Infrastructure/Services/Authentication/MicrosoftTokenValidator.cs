@@ -58,36 +58,25 @@ public class MicrosoftTokenValidator : IMicrosoftTokenValidator
         {
             var principal = _handler.ValidateToken(idToken, parameters, out _);
 
-            var email = principal.FindFirst("email")?.Value
-                     ?? principal.FindFirst("preferred_username")?.Value
-                     ?? principal.FindFirst(ClaimTypes.Email)?.Value;
+            var email = principal.FindFirst("preferred_username")?.Value
+                     ?? principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value;
 
             var name = principal.FindFirst("name")?.Value;
-            var givenName = principal.FindFirst("given_name")?.Value
-                         ?? principal.FindFirst(ClaimTypes.GivenName)?.Value;
-            var familyName = principal.FindFirst("family_name")?.Value
-                           ?? principal.FindFirst(ClaimTypes.Surname)?.Value;
-            var oid = principal.FindFirst("oid")?.Value
-                   ?? principal.FindFirst("sub")?.Value;
 
-            if (string.IsNullOrEmpty(oid))
+            var oid = principal.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+
+            if (string.IsNullOrEmpty(oid) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(name))
                 return null;
+            
 
-            return new MicrosoftUserInfo(
-                email ?? string.Empty,
-                name ?? email ?? oid,
-                givenName,
-                familyName,
-                oid);
+            return new MicrosoftUserInfo(email, name, oid);
         }
         catch (SecurityTokenException)
         {
-            // token invalid/expired
             return null;
         }
         catch
         {
-            // log...
             return null;
         }
     }

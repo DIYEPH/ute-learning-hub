@@ -54,6 +54,15 @@ else
 
 // Add Controllers
 services.AddControllers();
+services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer((document, context, cancellationToken) =>
@@ -96,9 +105,8 @@ app.UseHttpsRedirection();
 
 app.UseStaticFiles();
 
-// Middleware để đọc JWT token từ cookies nếu không có trong Authorization header
+app.UseCors();
 app.UseMiddleware<JwtCookieMiddleware>();
-
 app.UseAuthentication();
 app.UseAuthorization();
 

@@ -7,7 +7,5 @@ public interface IMicrosoftTokenValidator
 public record MicrosoftUserInfo(
     string Email,
     string Name,
-    string? GivenName,
-    string? FamilyName,
     string MicrosoftUserId
 );

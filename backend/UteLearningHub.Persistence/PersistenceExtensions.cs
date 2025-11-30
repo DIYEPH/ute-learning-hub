@@ -24,7 +24,7 @@ public static class PersistenceExtensions
             options.Password.RequiredUniqueChars = 1;
 
             //UserSettings
-            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._+";
+            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._+@";
             options.User.RequireUniqueEmail = true;
 
             // Lockout settings

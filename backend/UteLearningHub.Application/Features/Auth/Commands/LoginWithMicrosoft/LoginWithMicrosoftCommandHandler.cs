@@ -58,7 +58,7 @@ public class LoginWithMicrosoftCommandHandler : IRequestHandler<LoginWithMicroso
                 var (succeeded, userId, errors) = await _identityService.CreateUserAsync(
                     new CreateUserDto(
                         microsoftUser.Email,
-                        null,
+                        microsoftUser.Email,
                         microsoftUser.Name,
                         true,
                         null,
@@ -77,7 +77,7 @@ public class LoginWithMicrosoftCommandHandler : IRequestHandler<LoginWithMicroso
                         "Microsoft Account"
                     )
                 );
-                await _identityService.AddToRoleAsync(userId, "User");
+                await _identityService.AddToRoleAsync(userId, "Student");
                 user = await _identityService.FindByIdAsync(userId);
             }
         }
