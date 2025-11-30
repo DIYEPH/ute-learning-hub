@@ -1,8 +1,11 @@
 "use client";
 
 import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { InputWithIcon } from "../ui/input-with-icon";
 import { Label } from "../ui/label";
+import { useTranslations } from 'next-intl';
+import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 import AuthDialog from "./auth-dialog";
 
 interface LoginDialogProps {
@@ -10,22 +13,34 @@ interface LoginDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
+    const t = useTranslations('auth');
+    const [showPassword, setShowPassword] = useState(false);
+
     return (
-        <AuthDialog open={open} onOpenChange={onOpenChange} title="Đăng nhập">
+        <AuthDialog open={open} onOpenChange={onOpenChange} title={t('loginTitle')}>
             <div className="space-y-4">
                 <div className="space-y-1">
-                    <Label>Email or Tên đăng nhập</Label>
-                    <Input placeholder="Email or Tên đăng nhập"></Input>
+                    <Label>{t('emailOrUsername')}</Label>
+                    <InputWithIcon
+                        prefixIcon={Mail}
+                        placeholder={t('emailOrUsernamePlaceholder')}
+                    />
                 </div>
                 <div className="space-y-1">
-                    <Label>Mật khẩu</Label>
-                    <Input type="password" placeholder="Mật khẩu" />
+                    <Label>{t('password')}</Label>
+                    <InputWithIcon
+                        type={showPassword ? "text" : "password"}
+                        prefixIcon={Lock}
+                        suffixIcon={showPassword ? EyeOff : Eye}
+                        placeholder={t('passwordPlaceholder')}
+                        onSuffixClick={() => setShowPassword(!showPassword)}
+                    />
                     <div className="text-right text-sm text-blue-600 cursor-pointer mt-1">
-                        Quên mật khẩu?
+                        {t('forgotPassword')}
                     </div>
                 </div>
-                <Button className="w-full h-11 rounded-full text-base">Đăng nhập</Button>
-                <Button className="w-full h-11 rounded-full text-base">Đăng nhập với email trường</Button>
+                <Button className="w-full h-11 rounded-full text-base">{t('loginTitle')}</Button>
+                <Button className="w-full h-11 rounded-full text-base">{t('loginWithSchoolEmail')}</Button>
             </div>
         </AuthDialog>
     );

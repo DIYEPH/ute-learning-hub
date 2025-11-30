@@ -1,12 +1,14 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useTranslations } from 'next-intl';
 import type { ReactNode } from "react";
 
 import { AppHeader } from "./app-header";
 import { AppSidebar } from "./app-sidebar";
 import { AppFooter } from "./app-footer";
-import { MAIN_NAV } from "./nav-config";
+import { MAIN_NAV_CONFIG } from "./nav-config";
+import type { NavItem } from "./nav-config";
 
 type AppShellProps = {
   children: ReactNode;
@@ -14,17 +16,24 @@ type AppShellProps = {
 
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
+  const t = useTranslations();
+
+  // Generate nav items with translations
+  const navItems: NavItem[] = MAIN_NAV_CONFIG.map(item => ({
+    ...item,
+    label: t(item.labelKey as any)
+  }));
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
       {/* Header trên cùng */}
-      <AppHeader navItems={MAIN_NAV} activePath={pathname} />
+      <AppHeader navItems={navItems} activePath={pathname} />
 
       {/* Sidebar + nội dung */}
       <div className="flex-1 flex">
-        <AppSidebar navItems={MAIN_NAV} activePath={pathname} />
+        <AppSidebar navItems={navItems} activePath={pathname} />
 
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6 bg-background">{children}</main>
       </div>
 
       {/* Footer cuối trang */}

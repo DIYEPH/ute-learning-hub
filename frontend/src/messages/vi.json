@@ -1,12 +1,122 @@
 {
-    "common": {
-      "welcome": "Chào mừng đến với UTE Learning Hub",
-      "login": "Đăng nhập",
-      "dashboard": "Bảng điều khiển"
-    },
-    "nav": {
-      "home": "Trang chủ",
-      "documents": "Tài liệu",
-      "groups": "Nhóm học"
-    }
+  "common": {
+    "welcome": "Chào mừng đến với UTE Learning Hub",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "dashboard": "Bảng điều khiển",
+    "search": "Tìm kiếm",
+    "searchPlaceholder": "Tìm kiếm tài liệu",
+    "new": "Mới",
+    "guestUser": "Khách",
+    "addUniversity": "+ Thêm trường đại học của bạn",
+    "loading": "Đang tải...",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo mới",
+    "update": "Cập nhật",
+    "close": "Đóng",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước",
+    "submit": "Gửi",
+    "reset": "Đặt lại",
+    "filter": "Lọc",
+    "sort": "Sắp xếp",
+    "actions": "Thao tác",
+    "themeLight": "Sáng",
+    "themeDark": "Tối",
+    "themeSystem": "Hệ thống"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "documents": "Tài liệu",
+    "groups": "Nhóm học",
+    "myLibrary": "Thư viện của tôi",
+    "aiNotes": "Ghi chú AI",
+    "askAI": "Hỏi AI",
+    "recent": "Gần đây",
+    "chat": "Trò chuyện",
+    "profile": "Hồ sơ"
+  },
+  "auth": {
+    "title": "UTE Learning Hub",
+    "subtitle": "Nền tảng chia sẻ tài liệu học tập",
+    "feature1": "Tài liệu phong phú",
+    "feature2": "Học nhóm hiệu quả",
+    "feature3": "Chat thời gian thực",
+    "loginTitle": "Đăng nhập",
+    "emailOrUsername": "Email hoặc Tên đăng nhập",
+    "emailOrUsernamePlaceholder": "Email hoặc Tên đăng nhập",
+    "password": "Mật khẩu",
+    "passwordPlaceholder": "Mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "loginWithSchoolEmail": "Đăng nhập với email trường",
+    "forgotPasswordTitle": "Quên mật khẩu",
+    "forgotPasswordDescription": "Nhập email của bạn để đặt lại mật khẩu",
+    "resetPassword": "Đặt lại mật khẩu",
+    "resetPasswordTitle": "Đặt lại mật khẩu",
+    "resetPasswordDescription": "Nhập mật khẩu mới của bạn"
+  },
+  "documents": {
+    "title": "Tài liệu",
+    "upload": "Tải lên",
+    "uploadTitle": "Tải lên tài liệu",
+    "search": "Tìm kiếm tài liệu",
+    "noDocuments": "Không có tài liệu nào",
+    "documentName": "Tên tài liệu",
+    "description": "Mô tả",
+    "author": "Tác giả",
+    "subject": "Môn học",
+    "type": "Loại",
+    "tags": "Thẻ",
+    "visibility": "Hiển thị",
+    "download": "Tải xuống",
+    "view": "Xem",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "uploadedBy": "Được tải lên bởi",
+    "uploadedAt": "Được tải lên vào",
+    "fileCount": "Số lượng file",
+    "commentCount": "Số lượng bình luận"
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "welcome": "Chào mừng",
+    "description": "Đây là trang home – chỗ để sinh viên khám phá tài liệu, quiz, câu hỏi, v.v."
+  },
+  "chat": {
+    "title": "Trò chuyện",
+    "selectRoom": "Chọn phòng trò chuyện",
+    "noRooms": "Không có phòng nào",
+    "typeMessage": "Nhập tin nhắn...",
+    "send": "Gửi",
+    "onlineMembers": "Thành viên trực tuyến",
+    "members": "Thành viên"
+  },
+  "profile": {
+    "title": "Hồ sơ",
+    "editProfile": "Chỉnh sửa hồ sơ",
+    "fullName": "Họ và tên",
+    "email": "Email",
+    "introduction": "Giới thiệu",
+    "major": "Ngành học",
+    "faculty": "Khoa",
+    "gender": "Giới tính",
+    "avatar": "Ảnh đại diện",
+    "trustScore": "Điểm tin cậy",
+    "trustLevel": "Cấp độ tin cậy"
+  },
+  "language": {
+    "switch": "Chuyển ngôn ngữ",
+    "vietnamese": "Tiếng Việt",
+    "english": "English"
+  },
+  "theme": {
+    "light": "Sáng",
+    "dark": "Tối",
+    "system": "Hệ thống"
   }
+}

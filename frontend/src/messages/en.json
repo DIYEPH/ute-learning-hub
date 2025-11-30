@@ -1,12 +1,122 @@
 {
-    "common": {
-      "welcome": "Welcome to UTE Learning Hub", 
-      "login": "Login",
-      "dashboard": "Dashboard"
-    },
-    "nav": {
-      "home": "Home",
-      "documents": "Documents", 
-      "groups": "Groups"
-    }
+  "common": {
+    "welcome": "Welcome to UTE Learning Hub",
+    "login": "Login",
+    "logout": "Logout",
+    "dashboard": "Dashboard",
+    "search": "Search",
+    "searchPlaceholder": "Search for documents",
+    "new": "New",
+    "guestUser": "Guest",
+    "addUniversity": "+ Add your university",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "reset": "Reset",
+    "filter": "Filter",
+    "sort": "Sort",
+    "actions": "Actions",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "themeSystem": "System"
+  },
+  "nav": {
+    "home": "Home",
+    "documents": "Documents",
+    "groups": "Groups",
+    "myLibrary": "My Library",
+    "aiNotes": "AI Notes",
+    "askAI": "Ask AI",
+    "recent": "Recent",
+    "chat": "Chat",
+    "profile": "Profile"
+  },
+  "auth": {
+    "title": "UTE Learning Hub",
+    "subtitle": "Platform for sharing learning materials",
+    "feature1": "Rich documents",
+    "feature2": "Effective group study",
+    "feature3": "Real-time chat",
+    "loginTitle": "Login",
+    "emailOrUsername": "Email or Username",
+    "emailOrUsernamePlaceholder": "Email or Username",
+    "password": "Password",
+    "passwordPlaceholder": "Password",
+    "forgotPassword": "Forgot password?",
+    "loginWithSchoolEmail": "Login with school email",
+    "forgotPasswordTitle": "Forgot Password",
+    "forgotPasswordDescription": "Enter your email to reset password",
+    "resetPassword": "Reset Password",
+    "resetPasswordTitle": "Reset Password",
+    "resetPasswordDescription": "Enter your new password"
+  },
+  "documents": {
+    "title": "Documents",
+    "upload": "Upload",
+    "uploadTitle": "Upload Document",
+    "search": "Search Documents",
+    "noDocuments": "No documents found",
+    "documentName": "Document Name",
+    "description": "Description",
+    "author": "Author",
+    "subject": "Subject",
+    "type": "Type",
+    "tags": "Tags",
+    "visibility": "Visibility",
+    "download": "Download",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "uploadedBy": "Uploaded by",
+    "uploadedAt": "Uploaded at",
+    "fileCount": "File count",
+    "commentCount": "Comment count"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome",
+    "description": "This is the home page – where students can explore documents, quizzes, questions, etc."
+  },
+  "chat": {
+    "title": "Chat",
+    "selectRoom": "Select a chat room",
+    "noRooms": "No rooms available",
+    "typeMessage": "Type a message...",
+    "send": "Send",
+    "onlineMembers": "Online Members",
+    "members": "Members"
+  },
+  "profile": {
+    "title": "Profile",
+    "editProfile": "Edit Profile",
+    "fullName": "Full Name",
+    "email": "Email",
+    "introduction": "Introduction",
+    "major": "Major",
+    "faculty": "Faculty",
+    "gender": "Gender",
+    "avatar": "Avatar",
+    "trustScore": "Trust Score",
+    "trustLevel": "Trust Level"
+  },
+  "language": {
+    "switch": "Switch Language",
+    "vietnamese": "Tiếng Việt",
+    "english": "English"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   }
+}

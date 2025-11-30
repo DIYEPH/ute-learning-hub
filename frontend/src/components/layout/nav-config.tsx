@@ -1,4 +1,4 @@
-import { Home, Library, MessageCircle, Sparkles, Clock } from "lucide-react";
+import { Home, Library, MessageCircle, Clock, Brain } from "lucide-react";
 
 export type NavItem = {
   label: string;
@@ -6,10 +6,11 @@ export type NavItem = {
   icon: React.ComponentType<{ size?: number }>;
 };
 
-export const MAIN_NAV: NavItem[] = [
-  { label: "Home", href: "/", icon: Home },
-  { label: "My Library", href: "/library", icon: Library },
-  { label: "AI Notes", href: "/ai-notes", icon: Sparkles },
-  { label: "Ask AI", href: "/ask-ai", icon: MessageCircle },
-  { label: "Recent", href: "/recent", icon: Clock },
-];
+// Base nav config (without translations)
+export const MAIN_NAV_CONFIG = [
+  { labelKey: "nav.home", href: "/", icon: Home },
+  { labelKey: "nav.myLibrary", href: "/library", icon: Library },
+  { labelKey: "nav.chat", href: "/chat", icon: MessageCircle },
+  { labelKey: "nav.askAI", href: "/ask-ai", icon: Brain },
+  { labelKey: "nav.recent", href: "/recent", icon: Clock },
+] as const;
