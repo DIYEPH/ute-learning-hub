@@ -2080,6 +2080,50 @@
         }
       }
     },
+    "/api/Faculty/upload-logo": {
+      "post": {
+        "tags": [
+          "Faculty"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Major": {
       "get": {
         "tags": [
@@ -4581,6 +4625,10 @@
           },
           "facultyCode": {
             "type": "string"
+          },
+          "logo": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -4935,6 +4983,9 @@
           "facultyCode": {
             "type": "string"
           },
+          "logo": {
+            "type": "string"
+          },
           "majorCount": {
             "type": "integer",
             "format": "int32"
@@ -4953,6 +5004,9 @@
           },
           "facultyCode": {
             "type": "string"
+          },
+          "logo": {
+            "type": "string"
           }
         },
         "nullable": true
@@ -4968,6 +5022,9 @@
             "type": "string"
           },
           "facultyCode": {
+            "type": "string"
+          },
+          "logo": {
             "type": "string"
           }
         }
@@ -6114,6 +6171,10 @@
           },
           "facultyCode": {
             "type": "string"
+          },
+          "logo": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

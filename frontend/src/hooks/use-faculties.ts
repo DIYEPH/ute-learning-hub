@@ -17,10 +17,12 @@ import type {
   CreateFacultyCommand,
   UpdateFacultyCommand,
 } from "@/src/api/database/types.gen";
+import { useUploadLogo } from "./use-upload-logo";
 
 export function useFaculties() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { uploadLogo, uploading: uploadingLogo, error: uploadError } = useUploadLogo();
 
   const fetchFaculties = useCallback(
     async (params?: GetApiFacultyData["query"]): Promise<GetApiFacultyResponse | null> => {
@@ -125,8 +127,11 @@ export function useFaculties() {
     createFaculty,
     updateFaculty,
     deleteFaculty,
+    uploadLogo,
     loading,
     error,
+    uploadingLogo,
+    uploadError,
   };
 }
 

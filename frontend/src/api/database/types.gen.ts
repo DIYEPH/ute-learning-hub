@@ -143,6 +143,7 @@ export type CreateEventCommand = {
 export type CreateFacultyCommand = {
     facultyName?: string;
     facultyCode?: string;
+    logo?: string | null;
 };
 
 export type CreateMajorCommand = {
@@ -259,6 +260,7 @@ export type FacultyDetailDto = {
     id?: string;
     facultyName?: string;
     facultyCode?: string;
+    logo?: string;
     majorCount?: number;
 };
 
@@ -266,12 +268,14 @@ export type FacultyDto = {
     id?: string;
     facultyName?: string;
     facultyCode?: string;
+    logo?: string;
 } | null;
 
 export type FacultyDto2 = {
     id?: string;
     facultyName?: string;
     facultyCode?: string;
+    logo?: string;
 };
 
 export type GetOnlineMembersResponse = {
@@ -661,6 +665,7 @@ export type UpdateFacultyCommand = {
     id?: string;
     facultyName?: string;
     facultyCode?: string;
+    logo?: string | null;
 };
 
 export type UpdateMajorCommand = {
@@ -1465,6 +1470,24 @@ export type PutApiFacultyByIdResponses = {
 };
 
 export type PutApiFacultyByIdResponse = PutApiFacultyByIdResponses[keyof PutApiFacultyByIdResponses];
+
+export type PostApiFacultyUploadLogoData = {
+    body: {
+        file?: IFormFile;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/Faculty/upload-logo';
+};
+
+export type PostApiFacultyUploadLogoResponses = {
+    /**
+     * OK
+     */
+    200: string;
+};
+
+export type PostApiFacultyUploadLogoResponse = PostApiFacultyUploadLogoResponses[keyof PostApiFacultyUploadLogoResponses];
 
 export type GetApiMajorData = {
     body?: never;

@@ -69,9 +69,11 @@ export function useUsers() {
       setLoading(true);
       setError(null);
       try {
+        // Remove userId from data if present, as it's set by the controller from route parameter
+        const { userId, ...bodyData } = data;
         const response = await putApiUserById({
           path: { id },
-          body: { ...data, userId: id },
+          body: bodyData,
         });
         // @hey-api/client-axios returns { data: ... } structure
         return (response as any)?.data || response;

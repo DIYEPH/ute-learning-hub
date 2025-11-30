@@ -5,109 +5,135 @@ import { Button } from "@/src/components/ui/button";
 import { Pagination } from "@/src/components/ui/pagination";
 import { Plus, Upload, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { useMajors } from "@/src/hooks/use-majors";
 import { useFaculties } from "@/src/hooks/use-faculties";
-import { FacultyTable } from "@/src/components/admin/faculties/faculty-table";
-import { FacultyForm } from "@/src/components/admin/faculties/faculty-form";
+import { MajorTable } from "@/src/components/admin/majors/major-table";
+import { MajorForm } from "@/src/components/admin/majors/major-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
 import { EditModal } from "@/src/components/admin/modals/edit-modal";
 import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { ImportModal } from "@/src/components/admin/modals/import-modal";
-import { AdvancedSearchFilter } from "@/src/components/admin/advanced-search-filter";
+import { AdvancedSearchFilter, type FilterOption } from "@/src/components/admin/advanced-search-filter";
 import type {
+  MajorDto2,
+  CreateMajorCommand,
+  UpdateMajorCommand,
   FacultyDto2,
-  CreateFacultyCommand,
-  UpdateFacultyCommand,
 } from "@/src/api/database/types.gen";
 
-export default function FacultiesManagementPage() {
-  const t = useTranslations("admin.faculties");
+export default function MajorsManagementPage() {
+  const t = useTranslations("admin.majors");
   const tCommon = useTranslations("common");
   const {
-    fetchFaculties,
-    createFaculty,
-    updateFaculty,
-    deleteFaculty,
-    uploadLogo,
+    fetchMajors,
+    createMajor,
+    updateMajor,
+    deleteMajor,
     loading,
     error,
-    uploadingLogo,
-    uploadError,
-  } = useFaculties();
+  } = useMajors();
+  const { fetchFaculties } = useFaculties();
 
-  const [faculties, setFaculties] = useState<FacultyDto2[]>([]);
+  const [majors, setMajors] = useState<MajorDto2[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Filter states
+  const [facultyId, setFacultyId] = useState<string | null>(null);
+  const [faculties, setFaculties] = useState<FacultyDto2[]>([]);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [selectedFaculty, setSelectedFaculty] = useState<FacultyDto2 | null>(null);
+  const [selectedMajor, setSelectedMajor] = useState<MajorDto2 | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
 
-  const loadFaculties = useCallback(async () => {
+  const loadMajors = useCallback(async () => {
     try {
-      const response = await fetchFaculties({
+      const response = await fetchMajors({
         SearchTerm: searchTerm || undefined,
+        FacultyId: facultyId || undefined,
         Page: page,
         PageSize: pageSize,
       });
 
       if (response) {
-        setFaculties(response.items || []);
+        setMajors(response.items || []);
         setTotalCount(response.totalCount || 0);
       }
     } catch (err) {
-      console.error("Error loading faculties:", err);
+      console.error("Error loading majors:", err);
     }
-  }, [fetchFaculties, searchTerm, page, pageSize]);
+  }, [fetchMajors, searchTerm, facultyId, page, pageSize]);
 
   useEffect(() => {
-    loadFaculties();
-  }, [loadFaculties]);
+    const loadFacultiesForFilter = async () => {
+      try {
+        const response = await fetchFaculties({ Page: 1, PageSize: 1000 });
+        if (response?.items) {
+          setFaculties(response.items);
+        }
+      } catch (err) {
+        console.error("Error loading faculties:", err);
+      }
+    };
+    loadFacultiesForFilter();
+  }, [fetchFaculties]);
 
-  const handleCreate = async (command: CreateFacultyCommand | UpdateFacultyCommand) => {
+  useEffect(() => {
+    loadMajors();
+  }, [loadMajors]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadMajors();
+    }, 300); // Debounce 300ms
+    return () => clearTimeout(timer);
+  }, [facultyId]);
+
+  const handleCreate = async (command: CreateMajorCommand | UpdateMajorCommand) => {
     setFormLoading(true);
     try {
-      await createFaculty(command as CreateFacultyCommand);
-      await loadFaculties();
+      await createMajor(command as CreateMajorCommand);
+      await loadMajors();
       setCreateModalOpen(false);
     } catch (err) {
-      console.error("Error creating faculty:", err);
+      console.error("Error creating major:", err);
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleEdit = async (command: CreateFacultyCommand | UpdateFacultyCommand) => {
-    if (!selectedFaculty?.id) return;
+  const handleEdit = async (command: CreateMajorCommand | UpdateMajorCommand) => {
+    if (!selectedMajor?.id) return;
     setFormLoading(true);
     try {
-      await updateFaculty(selectedFaculty.id, command as UpdateFacultyCommand);
-      await loadFaculties();
+      await updateMajor(selectedMajor.id, command as UpdateMajorCommand);
+      await loadMajors();
       setEditModalOpen(false);
-      setSelectedFaculty(null);
+      setSelectedMajor(null);
     } catch (err) {
-      console.error("Error updating faculty:", err);
+      console.error("Error updating major:", err);
     } finally {
       setFormLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!selectedFaculty?.id) return;
+    if (!selectedMajor?.id) return;
     setFormLoading(true);
     try {
-      await deleteFaculty(selectedFaculty.id);
-      await loadFaculties();
+      await deleteMajor(selectedMajor.id);
+      await loadMajors();
       setDeleteModalOpen(false);
-      setSelectedFaculty(null);
+      setSelectedMajor(null);
     } catch (err) {
-      console.error("Error deleting faculty:", err);
+      console.error("Error deleting major:", err);
     } finally {
       setFormLoading(false);
     }
@@ -116,10 +142,26 @@ export default function FacultiesManagementPage() {
   const handleBulkDelete = async (ids: string[]) => {
     setFormLoading(true);
     try {
-      await Promise.all(ids.map((id) => deleteFaculty(id)));
-      await loadFaculties();
+      await Promise.all(ids.map((id) => deleteMajor(id)));
+      await loadMajors();
     } catch (err) {
-      console.error("Error bulk deleting faculties:", err);
+      console.error("Error bulk deleting majors:", err);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (majors.length === 0) return;
+    if (!confirm(t("deleteAllConfirm", { count: majors.length }))) return;
+    
+    setFormLoading(true);
+    try {
+      const ids = majors.map((m) => m.id).filter((id): id is string => !!id);
+      await Promise.all(ids.map((id) => deleteMajor(id)));
+      await loadMajors();
+    } catch (err) {
+      console.error("Error deleting all majors:", err);
     } finally {
       setFormLoading(false);
     }
@@ -130,39 +172,30 @@ export default function FacultiesManagementPage() {
     try {
       // TODO: Implement import logic
       console.log("Import file:", file);
-      // For now, just close the modal
       setImportModalOpen(false);
-      await loadFaculties();
+      await loadMajors();
     } catch (err) {
-      console.error("Error importing faculties:", err);
+      console.error("Error importing majors:", err);
     } finally {
       setImportLoading(false);
     }
   };
 
-  const handleDeleteAll = async () => {
-    if (faculties.length === 0) return;
-    if (!confirm(t("deleteAllConfirm", { count: faculties.length }))) return;
-    
-    setFormLoading(true);
-    try {
-      const ids = faculties.map((f) => f.id).filter((id): id is string => !!id);
-      await Promise.all(ids.map((id) => deleteFaculty(id)));
-      await loadFaculties();
-    } catch (err) {
-      console.error("Error deleting all faculties:", err);
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
   const handleSearch = () => {
     setPage(1);
-    loadFaculties();
+    loadMajors();
+  };
+
+  const handleFilterChange = (key: string, value: any) => {
+    if (key === "facultyId") {
+      setFacultyId(value);
+    }
+    setPage(1);
   };
 
   const handleReset = () => {
     setSearchTerm("");
+    setFacultyId(null);
     setSortKey(null);
     setSortDirection(null);
     setPage(1);
@@ -172,6 +205,21 @@ export default function FacultiesManagementPage() {
     setSortKey(key || null);
     setSortDirection(direction);
   };
+
+  const filters: FilterOption[] = [
+    {
+      key: "facultyId",
+      label: t("form.faculty"),
+      type: "select",
+      options: faculties
+        .filter((f): f is FacultyDto2 & { id: string } => !!f?.id)
+        .map((faculty) => ({
+          value: faculty.id,
+          label: `${faculty.facultyName || ""} (${faculty.facultyCode || ""})`,
+        })),
+      value: facultyId,
+    },
+  ];
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -184,7 +232,7 @@ export default function FacultiesManagementPage() {
             <Upload size={16} className="mr-1" />
             {t("import")}
           </Button>
-          {faculties.length > 0 && (
+          {majors.length > 0 && (
             <Button 
               onClick={handleDeleteAll} 
               variant="destructive" 
@@ -208,7 +256,8 @@ export default function FacultiesManagementPage() {
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           onSearchSubmit={handleSearch}
-          filters={[]}
+          filters={filters}
+          onFilterChange={handleFilterChange}
           onReset={handleReset}
           placeholder={t("searchPlaceholder")}
         />
@@ -220,20 +269,20 @@ export default function FacultiesManagementPage() {
         </div>
       )}
 
-      {faculties.length > 0 && (
+      {majors.length > 0 && (
         <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
           {t("foundCount", { count: totalCount })}
         </div>
       )}
 
-      <FacultyTable
-        faculties={faculties}
-        onEdit={(faculty) => {
-          setSelectedFaculty(faculty);
+      <MajorTable
+        majors={majors}
+        onEdit={(major) => {
+          setSelectedMajor(major);
           setEditModalOpen(true);
         }}
-        onDelete={(faculty) => {
-          setSelectedFaculty(faculty);
+        onDelete={(major) => {
+          setSelectedMajor(major);
           setDeleteModalOpen(true);
         }}
         onBulkDelete={handleBulkDelete}
@@ -259,19 +308,16 @@ export default function FacultiesManagementPage() {
         onOpenChange={setCreateModalOpen}
         title={t("createTitle")}
         onSubmit={async () => {
-          const form = document.getElementById("faculty-form") as HTMLFormElement;
+          const form = document.getElementById("major-form") as HTMLFormElement;
           if (form) {
             form.requestSubmit();
           }
         }}
         loading={formLoading}
       >
-        <FacultyForm
+        <MajorForm
           onSubmit={handleCreate}
           loading={formLoading}
-          onUploadLogo={uploadLogo}
-          uploadingLogo={uploadingLogo}
-          uploadError={uploadError}
         />
       </CreateModal>
 
@@ -279,24 +325,25 @@ export default function FacultiesManagementPage() {
         open={editModalOpen}
         onOpenChange={(open) => {
           setEditModalOpen(open);
-          if (!open) setSelectedFaculty(null);
+          if (!open) setSelectedMajor(null);
         }}
         title={t("editTitle")}
         onSubmit={async () => {
-          const form = document.getElementById("faculty-form") as HTMLFormElement;
+          const form = document.getElementById("major-form") as HTMLFormElement;
           if (form) {
             form.requestSubmit();
           }
         }}
         loading={formLoading}
       >
-        <FacultyForm
-          initialData={selectedFaculty || undefined}
+        <MajorForm
+          initialData={{
+            majorName: selectedMajor?.majorName || null,
+            majorCode: selectedMajor?.majorCode || null,
+            facultyId: selectedMajor?.faculty?.id || null,
+          }}
           onSubmit={handleEdit}
           loading={formLoading}
-          onUploadLogo={uploadLogo}
-          uploadingLogo={uploadingLogo}
-          uploadError={uploadError}
         />
       </EditModal>
 
@@ -304,9 +351,9 @@ export default function FacultiesManagementPage() {
         open={deleteModalOpen}
         onOpenChange={(open) => {
           setDeleteModalOpen(open);
-          if (!open) setSelectedFaculty(null);
+          if (!open) setSelectedMajor(null);
         }}
-        itemName={selectedFaculty?.facultyName}
+        itemName={selectedMajor?.majorName}
         onConfirm={handleDelete}
         loading={formLoading}
       />
@@ -322,3 +369,4 @@ export default function FacultiesManagementPage() {
     </div>
   );
 }
+

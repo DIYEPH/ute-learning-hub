@@ -26,7 +26,7 @@ export default function MobileSidebar({
           </SheetHeader>
           <ScrollArea className="h-full">
             <div className="p-4 space-y-4">
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 <Avatar>
                   <AvatarFallback>GU</AvatarFallback>
                 </Avatar>
@@ -38,7 +38,7 @@ export default function MobileSidebar({
                 </div>
               </div>
   
-              <Button className="w-full rounded-full mt-2">+ New</Button>
+              <Button className="w-full rounded-full mt-2">+ New</Button> */}
   
               <nav className="mt-4 space-y-1 text-sm">
                 {navItems.map((item) => {

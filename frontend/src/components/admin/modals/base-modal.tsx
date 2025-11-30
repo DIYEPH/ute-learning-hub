@@ -11,6 +11,7 @@ import {
 } from "@/src/components/ui/dialog";
 import { Button } from "@/src/components/ui/button";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 export interface BaseModalProps {
   open: boolean;
@@ -43,15 +44,15 @@ export function BaseModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={sizeClasses[size]}
+        className={cn(sizeClasses[size], "max-h-[90vh] flex flex-col")}
         showCloseButton={showCloseButton}
       >
-        <DialogHeader>
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
-        <div className="py-4">{children}</div>
-        {footer && <DialogFooter>{footer}</DialogFooter>}
+        <div className="py-4 overflow-y-auto flex-1 min-h-0">{children}</div>
+        {footer && <DialogFooter className="flex-shrink-0">{footer}</DialogFooter>}
       </DialogContent>
     </Dialog>
   );
