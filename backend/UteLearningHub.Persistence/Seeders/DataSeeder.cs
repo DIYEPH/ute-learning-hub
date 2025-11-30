@@ -21,10 +21,11 @@ public class DataSeeder
     public async Task SeedAsync()
     {
         await SeedRolesAsync();
-        await SeedUsersAsync();
+        await SeedAdminAsync(); // Tạo admin trước để lấy adminId
         await SeedFacultiesAsync();
         await SeedMajorsAsync();
-        // await SeedSubjectsAsync();
+        await SeedUsersAsync(); // Tạo các users khác (students)
+        await SeedSubjectsAsync();
         //await SeedDocumentTypesAsync();
         //await SeedTagsAsync();
         //await SeedDocumentsAsync();
@@ -52,8 +53,11 @@ public class DataSeeder
     {
         if (await _context.Faculty.AnyAsync()) return;
 
-        var adminUser = (await _userManager.GetUsersInRoleAsync("Admin")).FirstOrDefault();
-        var adminId = adminUser?.Id ?? Guid.NewGuid();
+        var adminUser = await _userManager.FindByEmailAsync("admin@ute.edu.vn");
+        if (adminUser == null)
+            throw new InvalidOperationException("Admin user must be created before seeding faculties");
+        
+        var adminId = adminUser.Id;
 
         var faculties = new List<Faculty>
         {
@@ -127,8 +131,11 @@ public class DataSeeder
         var spcnFaculty = await _context.Faculty.FirstAsync(f => f.FacultyCode == "SPCN");
         var cnsFaculty = await _context.Faculty.FirstAsync(f => f.FacultyCode == "CNS");
 
-        var adminUser = (await _userManager.GetUsersInRoleAsync("Admin")).FirstOrDefault();
-        var adminId = adminUser?.Id ?? Guid.NewGuid();
+        var adminUser = await _userManager.FindByEmailAsync("admin@ute.edu.vn");
+        if (adminUser == null)
+            throw new InvalidOperationException("Admin user must be created before seeding majors");
+        
+        var adminId = adminUser.Id;
 
         var majors = new List<Major>
         {
@@ -289,13 +296,13 @@ public class DataSeeder
         await _context.Majors.AddRangeAsync(majors);
         await _context.SaveChangesAsync();
     }
-    private async Task SeedUsersAsync()
+    private async Task SeedAdminAsync()
     {
-        if (await _userManager.Users.AnyAsync()) return;
+        // Check if admin already exists
+        var existingAdmin = await _userManager.FindByEmailAsync("admin@ute.edu.vn");
+        if (existingAdmin != null) return;
 
-        var cnsMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7480201");
-
-        // Admin User
+        // Create Admin User (không cần Major)
         var admin = new AppUser
         {
             Id = Guid.NewGuid(),
@@ -308,11 +315,23 @@ public class DataSeeder
             TrustScore = 1000,
             TrustLever = TrustLever.Master,
             Gender = Gender.Other,
+            MajorId = null, // Admin không thuộc ngành nào
             CreatedAt = DateTimeOffset.UtcNow
         };
 
         await _userManager.CreateAsync(admin, "Admin123!");
         await _userManager.AddToRoleAsync(admin, "Admin");
+    }
+
+    private async Task SeedUsersAsync()
+    {
+        // Check if students already exist
+        var existingStudents = await _userManager.Users
+            .Where(u => u.Email != null && u.Email.Contains("student"))
+            .AnyAsync();
+        if (existingStudents) return;
+
+        var cnsMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7480201");
 
         // Student Users
         var students = new[]
@@ -355,82 +374,91 @@ public class DataSeeder
             await _userManager.AddToRoleAsync(student, "Student");
         }
     }
-    // private async Task SeedSubjectsAsync()
-    // {
-    //     if (await _context.Subjects.AnyAsync()) return;
+    private async Task SeedSubjectsAsync()
+    {
+        if (await _context.Subjects.AnyAsync()) return;
 
-    //     var spktcnMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7140214");
+        // Load all majors into dictionary for easy lookup
+        var majors = await _context.Majors.ToListAsync();
+        var majorDict = majors.ToDictionary(m => m.MajorCode, m => m.Id);
 
-    //     var cnttMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7480201");
+        var adminUser = await _userManager.FindByEmailAsync("admin@ute.edu.vn");
+        if (adminUser == null) return;
 
-    //     var cnktxdMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510103");
-    //     var cnktgtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510104 ");
-    //     var cnktktMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510101 ");
+        var subjects = new List<Subject>();
+        var subjectMajors = new List<SubjectMajor>();
 
-    //     var cnktckMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510201 ");
-    //     var cnktcdtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510203 ");
-    //     var cnktotMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510205 ");
-    //     var cnktnMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510206 ");
-    //     var cnktddtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510301 ");
+        // Helper method to create subject with multiple majors
+        Subject CreateSubject(string name, string code, params string[] majorCodes)
+        {
+            var subject = new Subject
+            {
+                Id = Guid.NewGuid(),
+                SubjectName = name,
+                SubjectCode = code,
+                CreatedById = adminUser.Id,
+                CreatedAt = DateTimeOffset.UtcNow,
+                ReviewStatus = ReviewStatus.Approved
+            };
+            subjects.Add(subject);
 
-    //     var cnktdtvtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510302 ");
-    //     var cnktdkvtdhMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510303 ");
+            // Create SubjectMajor relationships
+            foreach (var majorCode in majorCodes)
+            {
+                if (majorDict.TryGetValue(majorCode, out var majorId))
+                {
+                    subjectMajors.Add(new SubjectMajor
+                    {
+                        SubjectId = subject.Id,
+                        MajorId = majorId
+                    });
+                }
+            }
 
-    //     var ktcshtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7580210");
-    //     var cnktmtMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510406 ");
-    //     var kttpMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7540102 ");
-    //     var cnvlMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510402 ");
-    //     var cnkthhMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7510401 ");
+            return subject;
+        }
 
-    //     var adminUser = await _userManager.FindByEmailAsync("admin@ute.edu.vn");
+        // ===== MÔN HỌC CHUNG (Tất cả ngành đều học) =====
+        var allMajorCodes = majorDict.Keys.ToArray();
+        CreateSubject("Toán cao cấp A1", "TOAN1", allMajorCodes);
+        CreateSubject("Toán cao cấp A2", "TOAN2", allMajorCodes);
+        CreateSubject("Tiếng Anh 1", "ENG1", allMajorCodes);
+        CreateSubject("Tiếng Anh 2", "ENG2", allMajorCodes);
+        CreateSubject("Giáo dục thể chất 1", "PE1", allMajorCodes);
+        CreateSubject("Giáo dục thể chất 2", "PE2", allMajorCodes);
+        CreateSubject("Giáo dục quốc phòng", "GDQP", allMajorCodes);
 
-    //     var subjects = new List<Subject>
-    //     {
-    //         // Sư phạm kỹ thuật công nghiệp
-    //         new()
-    //         {
-    //             Id = Guid.NewGuid(),
-    //             SubjectName = "Lập trình Web",
-    //             SubjectCode = "LTW",
-    //             MajorId = spktcnMajor.Id,
-    //             CreatedById = adminUser!.Id,
-    //             CreatedAt = DateTimeOffset.UtcNow,
-    //             ReviewStatus = ReviewStatus.Approved
-    //         },
-    //         new()
-    //         {
-    //             Id = Guid.NewGuid(),
-    //             SubjectName = "Cơ sở dữ liệu",
-    //             SubjectCode = "CSDL",
-    //             MajorId = spktcnMajor.Id,
-    //             CreatedById = adminUser.Id,
-    //             CreatedAt = DateTimeOffset.UtcNow,
-    //             ReviewStatus = ReviewStatus.Approved
-    //         },
-    //         new()
-    //         {
-    //             Id = Guid.NewGuid(),
-    //             SubjectName = "Phân tích thiết kế hệ thống",
-    //             SubjectCode = "PTTKHT",
-    //             MajorId = spktcnMajor.Id,
-    //             CreatedById = adminUser.Id,
-    //             CreatedAt = DateTimeOffset.UtcNow,
-    //             ReviewStatus = ReviewStatus.Approved
-    //         },
-    //         new()
-    //         {
-    //             Id = Guid.NewGuid(),
-    //             SubjectName = "Cấu trúc dữ liệu và giải thuật",
-    //             SubjectCode = "CTDL",
-    //             MajorId = spktcnMajor.Id,
-    //             CreatedById = adminUser.Id,
-    //             CreatedAt = DateTimeOffset.UtcNow,
-    //             ReviewStatus = ReviewStatus.Approved
-    //         }
-    //     };
+        // ===== MÔN HỌC CHUYÊN NGÀNH CNTT =====
+        CreateSubject("Lập trình Web", "LTW", "7480201"); // Công nghệ thông tin
+        CreateSubject("Cơ sở dữ liệu", "CSDL", "7480201");
+        CreateSubject("Cấu trúc dữ liệu và giải thuật", "CTDL", "7480201");
+        CreateSubject("Lập trình hướng đối tượng", "LTHDT", "7480201");
+        CreateSubject("Mạng máy tính", "MMT", "7480201");
 
-    //     await _context.Subjects.AddRangeAsync(subjects);
-    //     await _context.SaveChangesAsync();
-    // }
+        // ===== MÔN HỌC CHO NHIỀU NGÀNH KỸ THUẬT =====
+        var kyThuatMajorCodes = new[] { "7480201", "7510201", "7510302", "7510303" }; // CNTT, Cơ khí, Điện tử viễn thông, Điều khiển tự động
+        CreateSubject("Vật lý đại cương", "VLDC", kyThuatMajorCodes);
+        CreateSubject("Toán kỹ thuật", "TOANKT", kyThuatMajorCodes);
+
+        // ===== MÔN HỌC CHO NGÀNH XÂY DỰNG =====
+        CreateSubject("Sức bền vật liệu", "SBVL", "7510103", "7510104"); // Xây dựng, Giao thông
+        CreateSubject("Cơ học đất", "CHD", "7510103");
+
+        // ===== MÔN HỌC CHO NGÀNH CƠ KHÍ =====
+        CreateSubject("Cơ học kỹ thuật", "CHKT", "7510201", "7510203", "7510205"); // Cơ khí, Cơ điện tử, Ô tô
+        CreateSubject("Nguyên lý máy", "NLM", "7510201");
+
+        // ===== MÔN HỌC CHO NGÀNH HÓA HỌC =====
+        CreateSubject("Hóa học đại cương", "HHDC", "7510401", "7510406", "7540102"); // Hóa học, Môi trường, Thực phẩm
+        CreateSubject("Hóa phân tích", "HPT", "7510401");
+
+        // Save subjects first
+        await _context.Subjects.AddRangeAsync(subjects);
+        await _context.SaveChangesAsync();
+
+        // Then save SubjectMajor relationships
+        await _context.Set<SubjectMajor>().AddRangeAsync(subjectMajors);
+        await _context.SaveChangesAsync();
+    }
 
 }
