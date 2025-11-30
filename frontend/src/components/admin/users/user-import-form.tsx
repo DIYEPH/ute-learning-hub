@@ -38,6 +38,22 @@ export function UserImportForm({ onImport, loading }: UserImportFormProps) {
   const handleRemoveFile = () => {
     setFile(null);
     setError(null);
+    const input = document.getElementById("file-upload") as HTMLInputElement;
+    if (input) {
+      input.value = "";
+    }
+  };
+
+  const handleImport = async () => {
+    if (file) {
+      await onImport(file);
+      setFile(null);
+      setError(null);
+      const input = document.getElementById("file-upload") as HTMLInputElement;
+      if (input) {
+        input.value = "";
+      }
+    }
   };
 
   const handleDownloadTemplate = () => {
@@ -112,18 +128,24 @@ student2@student.ute.edu.vn,Trần Thị B,student2,Password123!,7480201,Female`
         </p>
       </div>
 
-      <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-md border border-blue-200 dark:border-blue-800">
-        <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-          Hướng dẫn:
-        </h4>
-        <ul className="text-xs text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
-          <li>File phải có các cột: Email, FullName, Username, Password, MajorCode, Gender</li>
-          <li>Email và FullName là bắt buộc</li>
-          <li>Password tối thiểu 6 ký tự</li>
-          <li>Gender: Male, Female, hoặc Other</li>
-          <li>MajorCode là mã ngành (có thể để trống)</li>
-        </ul>
+      <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-md border border-slate-200 dark:border-slate-800">
+        <p className="text-xs text-slate-600 dark:text-slate-400">
+          Cột bắt buộc: Email, FullName. Cột tùy chọn: Username, Password, MajorCode, Gender
+        </p>
       </div>
+
+      {file && (
+        <div className="flex justify-end">
+          <Button
+            type="button"
+            onClick={handleImport}
+            disabled={loading}
+            className="w-full sm:w-auto"
+          >
+            {loading ? "Đang import..." : "Import"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

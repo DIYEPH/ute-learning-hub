@@ -15,10 +15,12 @@ namespace UteLearningHub.Api.Controllers;
 public class FacultyController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IWebHostEnvironment _environment;
 
-    public FacultyController(IMediator mediator)
+    public FacultyController(IMediator mediator, IWebHostEnvironment environment)
     {
         _mediator = mediator;
+        _environment = environment;
     }
 
     [HttpGet]
@@ -60,5 +62,58 @@ public class FacultyController : ControllerBase
         var command = new DeleteFacultyCommand { Id = id };
         await _mediator.Send(command);
         return NoContent();
+    }
+
+    [HttpPost("upload-logo")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<string>> UploadLogo(IFormFile file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("No file uploaded");
+        }
+
+        // Validate file type
+        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".svg" };
+        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+        
+        if (!allowedExtensions.Contains(extension))
+        {
+            return BadRequest("Invalid file type. Only images are allowed.");
+        }
+
+        // Validate file size (max 5MB)
+        if (file.Length > 5 * 1024 * 1024)
+        {
+            return BadRequest("File size must be less than 5MB");
+        }
+
+        try
+        {
+            // Create directory if it doesn't exist
+            var uploadDir = Path.Combine(_environment.WebRootPath, "images", "faculties");
+            if (!Directory.Exists(uploadDir))
+            {
+                Directory.CreateDirectory(uploadDir);
+            }
+
+            // Generate unique filename
+            var fileName = $"{Guid.NewGuid()}{extension}";
+            var filePath = Path.Combine(uploadDir, fileName);
+
+            // Save file
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Return the URL path
+            var logoUrl = $"/images/faculties/{fileName}";
+            return Ok(new { url = logoUrl });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Error uploading file: {ex.Message}");
+        }
     }
 }

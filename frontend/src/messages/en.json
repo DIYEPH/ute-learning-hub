@@ -187,14 +187,31 @@
         "delete": "Delete",
         "ban": "Ban",
         "unban": "Unban",
+        "cannotBanSelf": "You cannot ban yourself",
         "selectedCount": "{count} items selected",
         "deleteSelected": "Delete Selected"
       },
       "import": "Import",
-      "importTitle": "Import Users from File",
-      "importDescription": "Select an Excel or CSV file to import user list",
+      "importTitle": "Import Users",
+      "importDescription": "Select Excel or CSV file",
       "deleteAll": "Delete All",
-      "deleteAllConfirm": "Are you sure you want to delete {count} users?"
+      "deleteAllConfirm": "Are you sure you want to delete {count} users?",
+      "banModal": {
+        "title": "Ban User",
+        "description": "Are you sure you want to ban user {name}?",
+        "user": "this user",
+        "banType": "Ban Type",
+        "temporary": "Temporary",
+        "permanent": "Permanent",
+        "days": "Days",
+        "hours": "Hours",
+        "banUntil": "Ban until",
+        "permanentWarning": "The user will be banned permanently until manually unbanned.",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "banning": "Banning...",
+        "cannotBanSelf": "You cannot ban yourself"
+      }
     },
     "documents": {
       "title": "Document Management",

@@ -187,14 +187,31 @@
         "delete": "Xóa",
         "ban": "Khóa",
         "unban": "Mở khóa",
+        "cannotBanSelf": "Bạn không thể khóa chính mình",
         "selectedCount": "{count} mục đã chọn",
         "deleteSelected": "Xóa đã chọn"
       },
       "import": "Import",
-      "importTitle": "Import người dùng từ file",
-      "importDescription": "Chọn file Excel hoặc CSV để import danh sách người dùng",
+      "importTitle": "Import người dùng",
+      "importDescription": "Chọn file Excel hoặc CSV",
       "deleteAll": "Xóa tất cả",
-      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} người dùng không?"
+      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} người dùng không?",
+      "banModal": {
+        "title": "Khóa người dùng",
+        "description": "Bạn có chắc chắn muốn khóa người dùng {name} không?",
+        "user": "người dùng này",
+        "banType": "Loại khóa",
+        "temporary": "Tạm thời",
+        "permanent": "Vĩnh viễn",
+        "days": "Số ngày",
+        "hours": "Số giờ",
+        "banUntil": "Khóa đến",
+        "permanentWarning": "Người dùng sẽ bị khóa vĩnh viễn cho đến khi được mở khóa thủ công.",
+        "cancel": "Hủy",
+        "confirm": "Xác nhận",
+        "banning": "Đang khóa...",
+        "cannotBanSelf": "Bạn không thể khóa chính mình"
+      }
     },
     "documents": {
       "title": "Quản lý tài liệu",

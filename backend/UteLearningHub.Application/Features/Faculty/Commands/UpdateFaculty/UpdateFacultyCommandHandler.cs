@@ -62,7 +62,7 @@ public class UpdateFacultyCommandHandler : IRequestHandler<UpdateFacultyCommand,
         // Update faculty
         faculty.FacultyName = request.FacultyName;
         faculty.FacultyCode = request.FacultyCode;
-        if (request.Logo != null)
+        if (!string.IsNullOrWhiteSpace(request.Logo))
         {
             faculty.Logo = request.Logo;
         }

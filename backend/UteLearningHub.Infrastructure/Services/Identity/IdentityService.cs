@@ -46,6 +46,7 @@ public class IdentityService : IIdentityService
 
         if (result.Succeeded)
         {
+            await _userManager.AddToRoleAsync(user, "Student");
             return (true, user.Id, Enumerable.Empty<string>());
         }
 

@@ -23,6 +23,7 @@ interface UserTableProps {
   onUnban?: (user: UserDto) => void;
   onBulkDelete?: (ids: string[]) => void | Promise<void>;
   loading?: boolean;
+  currentUserId?: string | null;
 }
 
 export function UserTable({
@@ -33,6 +34,7 @@ export function UserTable({
   onUnban,
   onBulkDelete,
   loading,
+  currentUserId,
 }: UserTableProps) {
   const t = useTranslations("admin.users");
   const tCommon = useTranslations("common");
@@ -222,7 +224,9 @@ export function UserTable({
                             variant="ghost"
                             size="sm"
                             onClick={() => onBan(user)}
+                            disabled={user.id === currentUserId}
                             className="h-7 px-2 text-xs sm:text-sm"
+                            title={user.id === currentUserId ? t("table.cannotBanSelf") : undefined}
                           >
                             {t("table.ban")}
                           </Button>

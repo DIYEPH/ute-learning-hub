@@ -7,6 +7,7 @@ import { Plus, Upload, Trash2 } from "lucide-react";
 import { useUsers } from "@/src/hooks/use-users";
 import { useMajors } from "@/src/hooks/use-majors";
 import { useFaculties } from "@/src/hooks/use-faculties";
+import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { UserTable } from "@/src/components/admin/users/user-table";
 import { UserForm } from "@/src/components/admin/users/user-form";
 import { UserImportForm } from "@/src/components/admin/users/user-import-form";
@@ -14,6 +15,7 @@ import { CreateModal } from "@/src/components/admin/modals/create-modal";
 import { EditModal } from "@/src/components/admin/modals/edit-modal";
 import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { ImportModal } from "@/src/components/admin/modals/import-modal";
+import { BanModal } from "@/src/components/admin/modals/ban-modal";
 import { AdvancedSearchFilter, type FilterOption } from "@/src/components/admin/advanced-search-filter";
 import type { UserDto, UpdateUserCommand, MajorDto2, FacultyDto2 } from "@/src/api/database/types.gen";
 import { useTranslations } from "next-intl";
@@ -25,6 +27,7 @@ export default function UsersManagementPage() {
   const { fetchUsers, fetchUserById, updateUser, banUser, unbanUser, loading, error } = useUsers();
   const { fetchMajors } = useMajors();
   const { fetchFaculties } = useFaculties();
+  const { profile: currentUserProfile } = useUserProfile();
 
   const [users, setUsers] = useState<UserDto[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -47,6 +50,7 @@ export default function UsersManagementPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const [banModalOpen, setBanModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserDto | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
@@ -170,10 +174,23 @@ export default function UsersManagementPage() {
 
   const handleBan = async (user: UserDto) => {
     if (!user.id) return;
+    // Check if trying to ban self
+    if (currentUserProfile?.id === user.id) {
+      alert(t("banModal.cannotBanSelf"));
+      return;
+    }
+    setSelectedUser(user);
+    setBanModalOpen(true);
+  };
+
+  const handleConfirmBan = async (banUntil: string | null) => {
+    if (!selectedUser?.id) return;
     setFormLoading(true);
     try {
-      await banUser(user.id);
+      await banUser(selectedUser.id, banUntil);
       await loadUsers();
+      setBanModalOpen(false);
+      setSelectedUser(null);
     } catch (err) {
       console.error("Error banning user:", err);
     } finally {
@@ -370,7 +387,7 @@ export default function UsersManagementPage() {
           onFilterChange={handleFilterChange}
           onReset={handleReset}
           placeholder={t("searchPlaceholder")}
-        />
+          />
       </div>
 
       {error && (
@@ -397,6 +414,7 @@ export default function UsersManagementPage() {
         }}
         onBan={handleBan}
         onUnban={handleUnban}
+        currentUserId={currentUserProfile?.id}
         onBulkDelete={handleBulkDelete}
         loading={loading}
       />
@@ -472,6 +490,17 @@ export default function UsersManagementPage() {
       >
         <UserImportForm onImport={handleImport} loading={formLoading} />
       </ImportModal>
+
+      <BanModal
+        open={banModalOpen}
+        onOpenChange={(open) => {
+          setBanModalOpen(open);
+          if (!open) setSelectedUser(null);
+        }}
+        userName={selectedUser?.fullName || selectedUser?.email}
+        onConfirm={handleConfirmBan}
+        loading={formLoading}
+      />
     </div>
   );
 }

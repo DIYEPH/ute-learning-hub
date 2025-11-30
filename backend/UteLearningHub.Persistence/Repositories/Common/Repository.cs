@@ -31,7 +31,7 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
         if (disableTracking)
             query = query.AsNoTracking();
 
-        return await query.FirstOrDefaultAsync(e => EqualityComparer<TKey>.Default.Equals(e.Id, id), cancellationToken);
+        return await query.FirstOrDefaultAsync(e => e.Id!.Equals(id), cancellationToken);
     }
 
     public async Task<List<TEntity>> GetAllAsync(bool disableTracking = false, CancellationToken cancellationToken = default)
