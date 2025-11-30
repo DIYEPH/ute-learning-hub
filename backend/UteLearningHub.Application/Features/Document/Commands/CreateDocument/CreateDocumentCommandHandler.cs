@@ -86,6 +86,10 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                 throw new NotFoundException("One or more tags not found");
         }
 
+        // Validate file count - maximum 3 files
+        if (request.Files != null && request.Files.Count > 3)
+            throw new BadRequestException("Maximum 3 files are allowed per document");
+
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
         var reviewStatus = (trustLevel.HasValue && trustLevel.Value >= TrustLever.Newbie)
             ? ReviewStatus.Approved

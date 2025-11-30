@@ -176,6 +176,18 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         var uploadedFileUrls = new List<string>(); // Track uploaded files for rollback
         if (request.FilesToAdd != null && request.FilesToAdd.Any())
         {
+            // Calculate current file count after removal
+            var currentFileCount = document.DocumentFiles.Count;
+            if (request.FileIdsToRemove != null && request.FileIdsToRemove.Any())
+            {
+                currentFileCount -= request.FileIdsToRemove.Count;
+            }
+
+            // Validate total file count - maximum 3 files
+            var totalFileCount = currentFileCount + request.FilesToAdd.Count;
+            if (totalFileCount > 3)
+                throw new BadRequestException("Maximum 3 files are allowed per document. Current files: " + currentFileCount + ", trying to add: " + request.FilesToAdd.Count);
+
             foreach (var formFile in request.FilesToAdd)
             {
                 if (formFile.Length > 0)
