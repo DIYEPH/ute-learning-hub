@@ -205,27 +205,27 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             var formFile = request.File;
             if (formFile.Length > 0)
             {
-                using var fileStream = formFile.OpenReadStream();
-                var fileUrl = await _fileStorageService.UploadFileAsync(
-                    fileStream,
-                    formFile.FileName,
-                    formFile.ContentType,
-                    cancellationToken);
+                        using var fileStream = formFile.OpenReadStream();
+                        var fileUrl = await _fileStorageService.UploadFileAsync(
+                            fileStream,
+                            formFile.FileName,
+                            formFile.ContentType,
+                            cancellationToken);
 
                 uploadedFileUrls.Add(fileUrl); 
 
-                var file = new DomainFile
-                {
-                    Id = Guid.NewGuid(),
-                    FileName = formFile.FileName,
-                    FileUrl = fileUrl,
-                    FileSize = formFile.Length,
-                    MimeType = formFile.ContentType,
-                    CreatedById = userId,
-                    CreatedAt = _dateTimeProvider.OffsetNow
-                };
+                        var file = new DomainFile
+                        {
+                            Id = Guid.NewGuid(),
+                            FileName = formFile.FileName,
+                            FileUrl = fileUrl,
+                            FileSize = formFile.Length,
+                            MimeType = formFile.ContentType,
+                            CreatedById = userId,
+                            CreatedAt = _dateTimeProvider.OffsetNow
+                        };
 
-                await _fileRepository.AddAsync(file, cancellationToken);
+                        await _fileRepository.AddAsync(file, cancellationToken);
 
                 document.FileId = file.Id;
             }

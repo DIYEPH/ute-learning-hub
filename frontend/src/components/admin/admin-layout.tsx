@@ -29,15 +29,11 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   useEffect(() => {
     if (isChecking) return;
 
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-
-    if (!isLoading && !isAdmin) {
+    if (!isAuthenticated || !isLoading && !isAdmin) {
       router.push('/');
       return;
     }
+    
   }, [isAuthenticated, isAdmin, isLoading, router, isChecking]);
 
   if (isChecking || isLoading) {

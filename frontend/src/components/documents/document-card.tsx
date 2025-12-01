@@ -1,38 +1,60 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { DocumentMenu } from "@/src/components/documents/document-menu";
 
 export interface DocumentCardProps {
   id?: string;
   title: string;
   subjectName?: string;
-  pageCount?: number | null;
   thumbnailUrl?: string | null;
+  fileMimeType?: string;
+  tags?: string[];
   href?: string;
   className?: string;
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onReport?: () => void;
 }
 
 export function DocumentCard({
   id,
   title,
   subjectName,
-  pageCount,
   thumbnailUrl,
+  fileMimeType,
+  tags,
   href,
   className,
+  onEdit,
+  onDelete,
+  onReport,
 }: DocumentCardProps) {
   const resolvedHref = href ?? (id ? `/documents/${id}` : "#");
+
+  const showMenu = Boolean(onEdit || onDelete || onReport);
 
   const content = (
     <div
       className={cn(
-        "flex flex-col rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden",
-        "border border-slate-100",
+        "relative flex flex-col rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm transition-all duration-200 cursor-pointer overflow-hidden",
+        "hover:shadow-lg hover:border-sky-200 hover:bg-white",
+        "dark:bg-slate-900/70 dark:border-slate-700 dark:hover:border-sky-500/60",
         className
       )}
     >
+      {showMenu && (
+        <div className="absolute right-2 top-2 z-10">
+          <DocumentMenu
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onReport={onReport}
+          />
+        </div>
+      )}
+
       {/* Thumbnail */}
-      <div className="relative p-3 pb-2">
-        <div className="mx-auto aspect-[4/5] w-full max-w-[140px] rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden">
+      <div className="relative p-1 pb-2">
+        <div className="aspect-[4/3] w-full rounded-2xl bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 flex items-center justify-center overflow-hidden border border-slate-200 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 dark:border-slate-700">
           {thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -41,28 +63,42 @@ export function DocumentCard({
               className="h-full w-full object-cover"
             />
           ) : (
-            <div className="h-full w-full flex items-center justify-center text-[10px] text-slate-500 px-2 text-center leading-snug">
-              {title}
+            <div className="h-full w-full flex flex-col items-center justify-center gap-1 text-slate-500 px-2 text-center leading-snug">
+              <span className="text-xs font-semibold uppercase tracking-wide">
+                {normalizeMimeType(fileMimeType) ?? "FILE"}
+              </span>
             </div>
           )}
         </div>
 
-        {typeof pageCount === "number" && pageCount > 0 && (
-          <span className="absolute bottom-2 right-4 text-[11px] font-medium text-slate-500">
-            {pageCount}
-          </span>
-        )}
       </div>
 
       {/* Info */}
-      <div className="px-3 pb-3">
-        <p className="text-sm font-semibold text-sky-600 leading-snug line-clamp-3">
+      <div className="px-4 pb-4">
+        <p className="text-sm font-semibold text-sky-700 leading-snug line-clamp-3 dark:text-sky-300">
           {title}
         </p>
-        {subjectName && (
-          <p className="mt-1 text-xs text-slate-400 line-clamp-1">
+        {subjectName ? (
+          <p className="mt-2 text-xs font-medium text-slate-500 line-clamp-1 dark:text-slate-400">
             {subjectName}
           </p>
+        ) : null}
+        {tags && tags.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {tags.slice(0, 2).map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+              >
+                {tag}
+              </span>
+            ))}
+            {tags.length > 2 && (
+              <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                +{tags.length - 2} …
+              </span>
+            )}
+          </div>
         )}
       </div>
     </div>
@@ -77,6 +113,18 @@ export function DocumentCard({
       {content}
     </Link>
   );
+}
+
+function normalizeMimeType(mimeType?: string) {
+  if (!mimeType) return null;
+  const lower = mimeType.toLowerCase();
+  if (lower.includes("pdf")) return "PDF";
+  if (lower.includes("word") || lower.includes("msword")) return "DOC";
+  if (lower.includes("presentation") || lower.includes("powerpoint")) return "PPT";
+  if (lower.startsWith("image/")) return "IMG";
+  if (lower.includes("excel")) return "XLS";
+  if (lower.includes("text")) return "TXT";
+  return mimeType.split("/").pop()?.toUpperCase() ?? "FILE";
 }
 
 

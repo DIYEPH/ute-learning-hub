@@ -470,49 +470,49 @@ export function DocumentUploadForm({
         {formData.file && (
           <div className="space-y-2 mt-2">
             <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-md">
-              <div className="flex items-center gap-2">
-                <FileText size={16} />
+                <div className="flex items-center gap-2">
+                  <FileText size={16} />
                 <span className="text-sm text-foreground">{formData.file.name}</span>
-                <span className="text-xs text-slate-500">
+                  <span className="text-xs text-slate-500">
                   ({(formData.file.size / 1024 / 1024).toFixed(2)} MB)
-                </span>
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
                 onClick={handleRemoveFile}
-                disabled={isDisabled}
-              >
-                <X size={16} />
-              </Button>
-            </div>
+                  disabled={isDisabled}
+                >
+                  <X size={16} />
+                </Button>
+              </div>
           </div>
         )}
 
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           {formData.file ? "Đã chọn 1 file" : "Chưa chọn file nào"}
         </p>
-      </div>
+        </div>
 
-      <div>
-        <Label htmlFor="visibility">{t("visibility")}</Label>
-        <select
-          id="visibility"
-          value={formData.visibility ?? 0}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              visibility: parseInt(e.target.value, 10),
-            }))
-          }
-          disabled={isDisabled}
-          className={selectClassName}
-        >
-          <option value={0}>Công khai</option>
-          <option value={1}>Riêng tư</option>
+        <div>
+          <Label htmlFor="visibility">{t("visibility")}</Label>
+          <select
+            id="visibility"
+            value={formData.visibility ?? 0}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                visibility: parseInt(e.target.value, 10),
+              }))
+            }
+            disabled={isDisabled}
+            className={selectClassName}
+          >
+            <option value={0}>Công khai</option>
+            <option value={1}>Riêng tư</option>
           <option value={2}>Nội bộ</option>
-        </select>
+          </select>
       </div>
     </form>
   );

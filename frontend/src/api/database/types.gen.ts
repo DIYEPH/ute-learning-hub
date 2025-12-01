@@ -218,6 +218,8 @@ export type DocumentDto = {
     subject?: SubjectDto;
     type?: TypeDto;
     tags?: Array<TagDto>;
+    fileMimeType?: string | null;
+    thumbnailUrl?: string | null;
     fileCount?: number;
     commentCount?: number;
     createdById?: string;

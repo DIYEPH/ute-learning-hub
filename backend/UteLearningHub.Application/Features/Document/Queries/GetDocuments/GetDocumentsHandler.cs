@@ -134,6 +134,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                     Id = dt.Tag.Id,
                     TagName = dt.Tag.TagName
                 }).ToList(),
+                FileMimeType = d.File != null ? d.File.MimeType : null,
                 FileCount = d.FileId != Guid.Empty ? 1 : 0,
                 CommentCount = d.Comments.Count,
                 CreatedById = d.CreatedById,
