@@ -20,16 +20,16 @@ type ApiDocumentBody = PostApiDocumentData["body"];
 export type DocumentUploadFormData = {
   documentName?: ApiDocumentBody["DocumentName"] | null;
   description?: ApiDocumentBody["Description"] | null;
-  authorName?: ApiDocumentBody["AuthorName"] | null;
-  descriptionAuthor?: ApiDocumentBody["DescriptionAuthor"] | null;
+  authorNames?: ApiDocumentBody["AuthorNames"];
   subjectId?: ApiDocumentBody["SubjectId"] | null;
   typeId?: ApiDocumentBody["TypeId"] | null;
   tagIds?: ApiDocumentBody["TagIds"];
   tagNames?: ApiDocumentBody["TagNames"];
   isDownload?: ApiDocumentBody["IsDownload"];
   visibility?: number;
-  // 1 document = 1 file
+  // File không bắt buộc - nếu không có file thì không tạo document
   file?: File | null;
+  coverFile?: File | null;
 };
 
 interface DocumentUploadFormProps {
@@ -50,8 +50,7 @@ export function DocumentUploadForm({
   const [formData, setFormData] = useState<DocumentUploadFormData>({
     documentName: null,
     description: null,
-    authorName: null,
-    descriptionAuthor: null,
+    authorNames: [],
     subjectId: null,
     typeId: null,
     tagIds: [],
@@ -59,6 +58,7 @@ export function DocumentUploadForm({
     isDownload: true,
     visibility: 2,
     file: null,
+    coverFile: null,
   });
 
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
@@ -66,6 +66,7 @@ export function DocumentUploadForm({
   const [tags, setTags] = useState<TagDto[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [newTagInput, setNewTagInput] = useState("");
+  const [authorNameInput, setAuthorNameInput] = useState("");
 
   useEffect(() => {
     if (initialData) {
@@ -121,37 +122,12 @@ export function DocumentUploadForm({
       return;
     }
 
-    // 1 file bắt buộc
-    if (!formData.file) {
-      setFileError("Vui lòng chọn 1 file");
-      return;
-    }
+    // File không bắt buộc - nếu không có file thì không tạo document
+    // Logic này sẽ được xử lý ở parent component
 
     await onSubmit(formData);
   };
 
-  // chỉ lấy 1 file đầu tiên, mỗi lần chọn sẽ ghi đè file cũ
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0] || null;
-
-    if (!selectedFile) {
-      setFormData((prev) => ({ ...prev, file: null }));
-      setFileError("Vui lòng chọn 1 file");
-      return;
-    }
-
-    setFileError(null);
-    setFormData((prev) => ({
-      ...prev,
-      file: selectedFile,
-    }));
-  };
-
-  // xóa file đã chọn
-  const handleRemoveFile = () => {
-    setFormData((prev) => ({ ...prev, file: null }));
-    setFileError(null);
-  };
 
   // chọn tag có sẵn (multi-select)
   const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -261,34 +237,73 @@ export function DocumentUploadForm({
           />
         </div>
         <div>
-          <Label htmlFor="authorName">{t("author")}</Label>
-          <Input
-            id="authorName"
-            value={formData.authorName || ""}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, authorName: e.target.value }))
-            }
-            disabled={isDisabled}
-            className="mt-1"
-          />
+          <Label htmlFor="authorNames">{t("author")} (Tùy chọn)</Label>
+          <div className="mt-1 flex gap-2">
+            <Input
+              id="authorNames"
+              type="text"
+              placeholder="Nhập tên tác giả và nhấn Enter"
+              value={authorNameInput}
+              onChange={(e) => setAuthorNameInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  const authorName = authorNameInput.trim();
+                  if (authorName && !formData.authorNames?.includes(authorName)) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      authorNames: [...(prev.authorNames || []), authorName],
+                    }));
+                    setAuthorNameInput("");
+                  }
+                }
+              }}
+              disabled={isDisabled}
+            />
+            <Button
+              type="button"
+              onClick={() => {
+                const authorName = authorNameInput.trim();
+                if (authorName && !formData.authorNames?.includes(authorName)) {
+                  setFormData((prev) => ({
+                    ...prev,
+                    authorNames: [...(prev.authorNames || []), authorName],
+                  }));
+                  setAuthorNameInput("");
+                }
+              }}
+              disabled={isDisabled || !authorNameInput.trim()}
+              size="sm"
+            >
+              Thêm
+            </Button>
+          </div>
+          {formData.authorNames && formData.authorNames.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {formData.authorNames.map((authorName) => (
+                <div
+                  key={authorName}
+                  className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
+                >
+                  <span>{authorName}</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorNames: prev.authorNames?.filter((n) => n !== authorName) || [],
+                      }));
+                    }}
+                    disabled={isDisabled}
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </div>
-
-      <div>
-        <Label htmlFor="descriptionAuthor">Mô tả tác giả</Label>
-        <textarea
-          id="descriptionAuthor"
-          value={formData.descriptionAuthor || ""}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              descriptionAuthor: e.target.value,
-            }))
-          }
-          rows={3}
-          disabled={isDisabled}
-          className={textareaClassName}
-        />
       </div>
 
       <div className="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -442,19 +457,20 @@ export function DocumentUploadForm({
       </div>
 
       <div>
-        <Label htmlFor="file">
-          Tệp đính kèm <span className="text-red-500">*</span>
-        </Label>
+        <Label htmlFor="coverFile">Ảnh bìa tài liệu (Tùy chọn)</Label>
         <input
           type="file"
-          id="file"
-          accept=".doc,.docx,.pdf,image/*"
-          onChange={handleFileChange}
+          id="coverFile"
+          accept="image/*"
+          onChange={(e) => {
+            const selectedFile = e.target.files?.[0] || null;
+            setFormData((prev) => ({ ...prev, coverFile: selectedFile }));
+          }}
           className="hidden"
           disabled={isDisabled}
         />
         <label
-          htmlFor="file"
+          htmlFor="coverFile"
           className={`mt-1 flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-md transition-colors ${
             isDisabled
               ? "border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed"
@@ -463,37 +479,25 @@ export function DocumentUploadForm({
         >
           <Upload size={20} />
           <span className="text-sm">
-            {formData.file ? "Đã chọn 1 file" : "Chọn tệp"}
+            {formData.coverFile ? formData.coverFile.name : "Chọn ảnh bìa"}
           </span>
         </label>
-
-        {formData.file && (
-          <div className="space-y-2 mt-2">
-            <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-md">
-                <div className="flex items-center gap-2">
-                  <FileText size={16} />
-                <span className="text-sm text-foreground">{formData.file.name}</span>
-                  <span className="text-xs text-slate-500">
-                  ({(formData.file.size / 1024 / 1024).toFixed(2)} MB)
-                  </span>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                onClick={handleRemoveFile}
-                  disabled={isDisabled}
-                >
-                  <X size={16} />
-                </Button>
-              </div>
+        {formData.coverFile && (
+          <div className="mt-2 flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-md">
+            <span className="text-sm">{formData.coverFile.name}</span>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setFormData((prev) => ({ ...prev, coverFile: null }))}
+              disabled={isDisabled}
+            >
+              <X size={16} />
+            </Button>
           </div>
         )}
+      </div>
 
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          {formData.file ? "Đã chọn 1 file" : "Chưa chọn file nào"}
-        </p>
-        </div>
 
         <div>
           <Label htmlFor="visibility">{t("visibility")}</Label>

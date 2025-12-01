@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { DocumentMenu } from "@/src/components/documents/document-menu";
+import { FileText, MessageSquare, ThumbsUp, ThumbsDown } from "lucide-react";
 
 export interface DocumentCardProps {
   id?: string;
@@ -11,6 +12,10 @@ export interface DocumentCardProps {
   tags?: string[];
   href?: string;
   className?: string;
+  fileCount?: number;
+  commentCount?: number;
+  usefulCount?: number;
+  notUsefulCount?: number;
   onEdit?: () => void;
   onDelete?: () => void;
   onReport?: () => void;
@@ -25,6 +30,10 @@ export function DocumentCard({
   tags,
   href,
   className,
+  fileCount,
+  commentCount,
+  usefulCount,
+  notUsefulCount,
   onEdit,
   onDelete,
   onReport,
@@ -74,7 +83,12 @@ export function DocumentCard({
             </div>
           )}
         </div>
-
+        {fileCount !== undefined && (
+          <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-md flex items-center gap-1">
+            <FileText className="h-3 w-3" />
+            <span>{fileCount}</span>
+          </div>
+        )}
       </div>
 
       {/* Info */}
@@ -110,6 +124,30 @@ export function DocumentCard({
             </span>
           )}
         </div>
+
+        {/* Stats */}
+        {(commentCount !== undefined || usefulCount !== undefined || notUsefulCount !== undefined) && (
+          <div className="mt-2 flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-700">
+            {usefulCount !== undefined && (
+              <div className="flex items-center gap-1.5" title="Hữu ích">
+                <ThumbsUp className={`h-4 w-4 flex-shrink-0 ${usefulCount > 0 ? 'text-emerald-600 dark:text-emerald-400 fill-emerald-600 dark:fill-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} />
+                <span className={`font-medium ${usefulCount > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>{usefulCount}</span>
+              </div>
+            )}
+            {notUsefulCount !== undefined && (
+              <div className="flex items-center gap-1.5" title="Không hữu ích">
+                <ThumbsDown className={`h-4 w-4 flex-shrink-0 ${notUsefulCount > 0 ? 'text-red-600 dark:text-red-400 fill-red-600 dark:fill-red-400' : 'text-slate-400 dark:text-slate-500'}`} />
+                <span className={`font-medium ${notUsefulCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}>{notUsefulCount}</span>
+              </div>
+            )}
+            {commentCount !== undefined && (
+              <div className="flex items-center gap-1.5" title="Số bình luận">
+                <MessageSquare className="h-4 w-4 flex-shrink-0 text-slate-600 dark:text-slate-400" />
+                <span className="font-medium">{commentCount}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

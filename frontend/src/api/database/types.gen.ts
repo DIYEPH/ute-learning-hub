@@ -4,6 +4,11 @@ export type ClientOptions = {
     baseURL: 'https://localhost:7080' | (string & {});
 };
 
+export type AuthorDto = {
+    id?: string;
+    fullName?: string;
+};
+
 export type BanUserCommand = {
     userId?: string;
     banUntil?: string | null;
@@ -12,6 +17,7 @@ export type BanUserCommand = {
 export type CommentDto = {
     id?: string;
     documentId?: string;
+    documentFileId?: string;
     parentId?: string | null;
     content?: string;
     authorName?: string;
@@ -104,7 +110,7 @@ export type ConversationStatus = number;
 export type ConversitionType = number;
 
 export type CreateCommentCommand = {
-    documentId?: string;
+    documentFileId?: string;
     parentId?: string | null;
     content?: string;
 };
@@ -124,7 +130,7 @@ export type CreateConversationJoinRequestCommand = {
 };
 
 export type CreateDocumentReviewCommand = {
-    documentId?: string;
+    documentFileId?: string;
     documentReviewType?: DocumentReviewType;
 };
 
@@ -188,15 +194,15 @@ export type DocumentDetailDto = {
     id?: string;
     documentName?: string;
     description?: string;
-    authorName?: string;
-    descriptionAuthor?: string;
     isDownload?: boolean;
     visibility?: VisibilityStatus;
     reviewStatus?: ReviewStatus;
     subject?: SubjectDto;
     type?: TypeDto;
     tags?: Array<TagDto>;
-    file?: DocumentFileDto;
+    authors?: Array<AuthorDto>;
+    coverUrl?: string | null;
+    files?: Array<DocumentFileDto>;
     commentCount?: number;
     usefulCount?: number;
     notUsefulCount?: number;
@@ -210,18 +216,18 @@ export type DocumentDto = {
     id?: string;
     documentName?: string;
     description?: string;
-    authorName?: string;
-    descriptionAuthor?: string;
     isDownload?: boolean;
     visibility?: VisibilityStatus;
     reviewStatus?: ReviewStatus;
     subject?: SubjectDto;
     type?: TypeDto;
     tags?: Array<TagDto>;
-    fileMimeType?: string | null;
+    authors?: Array<AuthorDto>;
     thumbnailUrl?: string | null;
     fileCount?: number;
     commentCount?: number;
+    usefulCount?: number;
+    notUsefulCount?: number;
     createdById?: string;
     createdAt?: string;
 };
@@ -232,11 +238,17 @@ export type DocumentFileDto = {
     fileUrl?: string;
     fileSize?: number;
     mimeType?: string;
-} | null;
+    title?: string | null;
+    order?: number | null;
+    isPrimary?: boolean;
+    totalPages?: number | null;
+    coverUrl?: string | null;
+};
 
 export type DocumentReviewDto = {
     id?: string;
     documentId?: string;
+    documentFileId?: string;
     documentReviewType?: DocumentReviewType;
     createdById?: string;
     createdAt?: string;
@@ -805,6 +817,24 @@ export type GetApiAccountProfileByUserIdResponses = {
 
 export type GetApiAccountProfileByUserIdResponse = GetApiAccountProfileByUserIdResponses[keyof GetApiAccountProfileByUserIdResponses];
 
+export type PostApiAccountAvatarData = {
+    body: {
+        file?: IFormFile;
+    };
+    path?: never;
+    query?: never;
+    url: '/api/Account/avatar';
+};
+
+export type PostApiAccountAvatarResponses = {
+    /**
+     * OK
+     */
+    200: string;
+};
+
+export type PostApiAccountAvatarResponse = PostApiAccountAvatarResponses[keyof PostApiAccountAvatarResponses];
+
 export type PostApiAuthLoginData = {
     body: LoginCommand;
     path?: never;
@@ -887,7 +917,7 @@ export type GetApiCommentData = {
     body?: never;
     path?: never;
     query?: {
-        DocumentId?: string;
+        DocumentFileId?: string;
         ParentId?: string;
         Page?: number;
         PageSize?: number;
@@ -921,6 +951,29 @@ export type PostApiCommentResponses = {
 };
 
 export type PostApiCommentResponse = PostApiCommentResponses[keyof PostApiCommentResponses];
+
+export type GetApiCommentDocumentData = {
+    body?: never;
+    path?: never;
+    query?: {
+        DocumentId?: string;
+        ParentId?: string;
+        Page?: number;
+        PageSize?: number;
+        Skip?: number;
+        Take?: number;
+    };
+    url: '/api/Comment/document';
+};
+
+export type GetApiCommentDocumentResponses = {
+    /**
+     * OK
+     */
+    200: PagedResponseOfCommentDto;
+};
+
+export type GetApiCommentDocumentResponse = GetApiCommentDocumentResponses[keyof GetApiCommentDocumentResponses];
 
 export type DeleteApiCommentByIdData = {
     body?: never;
@@ -1136,6 +1189,7 @@ export type GetApiDocumentData = {
         TypeId?: string;
         TagId?: string;
         MajorId?: string;
+        AuthorId?: string;
         SearchTerm?: string;
         Visibility?: string;
         ReviewStatus?: string;
@@ -1161,15 +1215,14 @@ export type GetApiDocumentResponse = GetApiDocumentResponses[keyof GetApiDocumen
 
 export type PostApiDocumentData = {
     body: {
-        File?: IFormFile;
+        CoverFile?: IFormFile;
         DocumentName?: string;
         Description?: string;
-        AuthorName?: string;
-        DescriptionAuthor?: string;
         SubjectId?: string;
         TypeId?: string;
         TagIds?: Array<string>;
         TagNames?: Array<string>;
+        AuthorNames?: Array<string>;
         IsDownload?: boolean;
         Visibility?: string;
     };
@@ -1194,7 +1247,6 @@ export type GetApiDocumentMyData = {
         SubjectId?: string;
         TypeId?: string;
         TagId?: string;
-        MajorId?: string;
         SearchTerm?: string;
         Visibility?: string;
         ReviewStatus?: string;
@@ -1256,12 +1308,10 @@ export type GetApiDocumentByIdResponse = GetApiDocumentByIdResponses[keyof GetAp
 
 export type PutApiDocumentByIdData = {
     body: {
-        File?: IFormFile;
+        CoverFile?: IFormFile;
         Id?: string;
         DocumentName?: string;
         Description?: string;
-        AuthorName?: string;
-        DescriptionAuthor?: string;
         SubjectId?: string;
         TypeId?: string;
         TagIds?: Array<string>;
@@ -1284,6 +1334,32 @@ export type PutApiDocumentByIdResponses = {
 };
 
 export type PutApiDocumentByIdResponse = PutApiDocumentByIdResponses[keyof PutApiDocumentByIdResponses];
+
+export type PostApiDocumentByIdFilesData = {
+    body: {
+        File?: IFormFile;
+        CoverFile?: IFormFile;
+        DocumentId?: string;
+        Title?: string;
+        Order?: number;
+        IsPrimary?: boolean;
+        TotalPages?: number;
+    };
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/Document/{id}/files';
+};
+
+export type PostApiDocumentByIdFilesResponses = {
+    /**
+     * OK
+     */
+    200: DocumentDetailDto;
+};
+
+export type PostApiDocumentByIdFilesResponse = PostApiDocumentByIdFilesResponses[keyof PostApiDocumentByIdFilesResponses];
 
 export type PostApiDocumentByIdReviewData = {
     body: ReviewDocumentCommand;

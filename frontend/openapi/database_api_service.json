@@ -126,6 +126,50 @@
         }
       }
     },
+    "/api/Account/avatar": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Auth/login": {
       "post": {
         "tags": [
@@ -341,7 +385,7 @@
         ],
         "parameters": [
           {
-            "name": "DocumentId",
+            "name": "DocumentFileId",
             "in": "query",
             "schema": {
               "type": "string",
@@ -453,6 +497,85 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CommentDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Comment/document": {
+      "get": {
+        "tags": [
+          "Comment"
+        ],
+        "parameters": [
+          {
+            "name": "DocumentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "ParentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Skip",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Take",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseOfCommentDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseOfCommentDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseOfCommentDto"
                 }
               }
             }
@@ -1091,6 +1214,14 @@
             }
           },
           {
+            "name": "AuthorId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
             "name": "SearchTerm",
             "in": "query",
             "schema": {
@@ -1198,19 +1329,13 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "File": {
+                  "CoverFile": {
                     "$ref": "#/components/schemas/IFormFile"
                   },
                   "DocumentName": {
                     "type": "string"
                   },
                   "Description": {
-                    "type": "string"
-                  },
-                  "AuthorName": {
-                    "type": "string"
-                  },
-                  "DescriptionAuthor": {
                     "type": "string"
                   },
                   "SubjectId": {
@@ -1229,6 +1354,12 @@
                     }
                   },
                   "TagNames": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "AuthorNames": {
                     "type": "array",
                     "items": {
                       "type": "string"
@@ -1294,14 +1425,6 @@
           },
           {
             "name": "TagId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "MajorId",
             "in": "query",
             "schema": {
               "type": "string",
@@ -1467,7 +1590,7 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "File": {
+                  "CoverFile": {
                     "$ref": "#/components/schemas/IFormFile"
                   },
                   "Id": {
@@ -1478,12 +1601,6 @@
                     "type": "string"
                   },
                   "Description": {
-                    "type": "string"
-                  },
-                  "AuthorName": {
-                    "type": "string"
-                  },
-                  "DescriptionAuthor": {
                     "type": "string"
                   },
                   "SubjectId": {
@@ -1575,6 +1692,82 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Document/{id}/files": {
+      "post": {
+        "tags": [
+          "Document"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "File": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  },
+                  "CoverFile": {
+                    "$ref": "#/components/schemas/IFormFile"
+                  },
+                  "DocumentId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "Title": {
+                    "type": "string"
+                  },
+                  "Order": {
+                    "type": "integer",
+                    "format": "int32"
+                  },
+                  "IsPrimary": {
+                    "type": "boolean"
+                  },
+                  "TotalPages": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDetailDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDetailDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDetailDto"
                 }
               }
             }
@@ -4207,6 +4400,18 @@
   },
   "components": {
     "schemas": {
+      "AuthorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          }
+        }
+      },
       "BanUserCommand": {
         "type": "object",
         "properties": {
@@ -4229,6 +4434,10 @@
             "format": "uuid"
           },
           "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentFileId": {
             "type": "string",
             "format": "uuid"
           },
@@ -4523,7 +4732,7 @@
       "CreateCommentCommand": {
         "type": "object",
         "properties": {
-          "documentId": {
+          "documentFileId": {
             "type": "string",
             "format": "uuid"
           },
@@ -4577,7 +4786,7 @@
       "CreateDocumentReviewCommand": {
         "type": "object",
         "properties": {
-          "documentId": {
+          "documentFileId": {
             "type": "string",
             "format": "uuid"
           },
@@ -4759,12 +4968,6 @@
           "description": {
             "type": "string"
           },
-          "authorName": {
-            "type": "string"
-          },
-          "descriptionAuthor": {
-            "type": "string"
-          },
           "isDownload": {
             "type": "boolean"
           },
@@ -4786,8 +4989,21 @@
               "$ref": "#/components/schemas/TagDto"
             }
           },
-          "file": {
-            "$ref": "#/components/schemas/DocumentFileDto"
+          "authors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthorDto"
+            }
+          },
+          "coverUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentFileDto"
+            }
           },
           "commentCount": {
             "type": "integer",
@@ -4833,12 +5049,6 @@
           "description": {
             "type": "string"
           },
-          "authorName": {
-            "type": "string"
-          },
-          "descriptionAuthor": {
-            "type": "string"
-          },
           "isDownload": {
             "type": "boolean"
           },
@@ -4860,9 +5070,11 @@
               "$ref": "#/components/schemas/TagDto"
             }
           },
-          "fileMimeType": {
-            "type": "string",
-            "nullable": true
+          "authors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthorDto"
+            }
           },
           "thumbnailUrl": {
             "type": "string",
@@ -4873,6 +5085,14 @@
             "format": "int32"
           },
           "commentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usefulCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notUsefulCount": {
             "type": "integer",
             "format": "int32"
           },
@@ -4905,9 +5125,29 @@
           },
           "mimeType": {
             "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "coverUrl": {
+            "type": "string",
+            "nullable": true
           }
-        },
-        "nullable": true
+        }
       },
       "DocumentReviewDto": {
         "type": "object",
@@ -4917,6 +5157,10 @@
             "format": "uuid"
           },
           "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentFileId": {
             "type": "string",
             "format": "uuid"
           },

@@ -65,8 +65,8 @@
   },
   "documents": {
     "title": "Documents",
-    "upload": "Upload",
-    "uploadTitle": "Upload Document",
+    "upload": "Create",
+    "uploadTitle": "Create Document",
     "search": "Search Documents",
     "noDocuments": "No documents found",
     "documentName": "Document Name",

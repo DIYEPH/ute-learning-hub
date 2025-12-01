@@ -65,8 +65,8 @@
   },
   "documents": {
     "title": "Tài liệu",
-    "upload": "Tải lên",
-    "uploadTitle": "Tải lên tài liệu",
+    "upload": "Tạo",
+    "uploadTitle": "Tạo tài liệu",
     "search": "Tìm kiếm tài liệu",
     "noDocuments": "Không có tài liệu nào",
     "documentName": "Tên tài liệu",

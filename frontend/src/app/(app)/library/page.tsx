@@ -162,7 +162,10 @@ export default function LibraryPage() {
               subjectName={doc.subject?.subjectName}
               tags={doc.tags?.map((tag) => tag.tagName ?? "").filter(Boolean)}
               thumbnailUrl={doc.thumbnailUrl}
-              fileMimeType={doc.fileMimeType ?? undefined}
+              fileCount={doc.fileCount}
+              commentCount={doc.commentCount}
+              usefulCount={doc.usefulCount}
+              notUsefulCount={doc.notUsefulCount}
               onEdit={() => handleEditDocument(doc.id)}
               onDelete={() => handleDeleteDocument(doc.id)}
               onReport={() => handleReportDocument(doc.id)}

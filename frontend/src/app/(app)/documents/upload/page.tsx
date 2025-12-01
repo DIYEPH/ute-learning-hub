@@ -20,53 +20,61 @@ export default function UploadDocumentPage() {
     setError(null);
 
     try {
-      const formDataToSend = new FormData();
-      
-      if (data.file) {
-        formDataToSend.append("File", data.file);
-      }
+      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7080";
+      const token = getBearerToken();
+      const headers = token ? { Authorization: token } : {};
 
-      formDataToSend.append("DocumentName", data.documentName || "");
-      formDataToSend.append("Description", data.description || "");
-      formDataToSend.append("AuthorName", data.authorName || "");
-      formDataToSend.append("DescriptionAuthor", data.descriptionAuthor || "");
+      // Chỉ tạo document (vỏ) - không upload file ở đây
+      // File/chương sẽ được upload sau ở trang chi tiết document
+      const documentFormData = new FormData();
+      documentFormData.append("DocumentName", data.documentName || "");
+      documentFormData.append("Description", data.description || "");
+      
+      if (data.coverFile) {
+        documentFormData.append("CoverFile", data.coverFile);
+      }
       
       if (data.subjectId) {
-        formDataToSend.append("SubjectId", data.subjectId);
+        documentFormData.append("SubjectId", data.subjectId);
       }
       if (data.typeId) {
-        formDataToSend.append("TypeId", data.typeId);
+        documentFormData.append("TypeId", data.typeId);
+      }
+      
+      if (data.authorNames && data.authorNames.length > 0) {
+        data.authorNames.forEach((authorName) => {
+          documentFormData.append("AuthorNames", authorName);
+        });
       }
       
       if (data.tagIds && data.tagIds.length > 0) {
         data.tagIds.forEach((tagId) => {
-          formDataToSend.append("TagIds", tagId);
+          documentFormData.append("TagIds", tagId);
         });
       }
       if (data.tagNames && data.tagNames.length > 0) {
         data.tagNames.forEach((tagName) => {
-          formDataToSend.append("TagNames", tagName);
+          documentFormData.append("TagNames", tagName);
         });
       }
       
-      formDataToSend.append("IsDownload", (data.isDownload ?? true).toString());
-      formDataToSend.append("Visibility", (data.visibility ?? 0).toString());
+      documentFormData.append("IsDownload", (data.isDownload ?? true).toString());
+      documentFormData.append("Visibility", (data.visibility ?? 0).toString());
 
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7080";
-      const token = getBearerToken();
-      const response = await axios.post(
+      const createResponse = await axios.post(
         `${apiBaseUrl}/api/Document`,
-        formDataToSend,
-        {
-          headers: {
-            ...(token && { Authorization: token }),
-          },
-        }
+        documentFormData,
+        { headers }
       );
 
-      if (response.data) {
-        router.push(`/documents/${response.data.id}`);
+      if (!createResponse.data?.id) {
+        throw new Error("Không thể tạo tài liệu");
       }
+
+      const documentId = createResponse.data.id;
+
+      // Chuyển đến trang chi tiết document - ở đó user sẽ upload từng chương/file
+      router.push(`/documents/${documentId}`);
     } catch (err: any) {
       const errorMessage =
         err?.response?.data?.message ||
