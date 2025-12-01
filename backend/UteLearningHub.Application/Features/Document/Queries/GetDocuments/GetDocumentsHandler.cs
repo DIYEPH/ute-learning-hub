@@ -10,11 +10,16 @@ namespace UteLearningHub.Application.Features.Document.Queries.GetDocuments;
 public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedResponse<DocumentDto>>
 {
     private readonly IDocumentRepository _documentRepository;
+    private readonly IDocumentReviewRepository _documentReviewRepository;
     private readonly ICurrentUserService _currentUserService;
 
-    public GetDocumentsHandler(IDocumentRepository documentRepository, ICurrentUserService currentUserService)
+    public GetDocumentsHandler(
+        IDocumentRepository documentRepository,
+        IDocumentReviewRepository documentReviewRepository,
+        ICurrentUserService currentUserService)
     {
         _documentRepository = documentRepository;
+        _documentReviewRepository = documentReviewRepository;
         _currentUserService = currentUserService;
     }
 
@@ -101,10 +106,37 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
         // Chỉ hiển thị tài liệu đã có ít nhất 1 file chương
         query = query.Where(d => d.DocumentFiles.Any());
 
-        var documents = await query
+        var documentIds = await query
             .Skip(request.Skip)
             .Take(request.Take)
-            .Select(d => new DocumentDto
+            .Select(d => d.Id)
+            .ToListAsync(cancellationToken);
+
+        // Get review stats for all documents
+        var reviewStats = await _documentReviewRepository.GetQueryableSet()
+            .Where(dr => documentIds.Contains(dr.DocumentId) && !dr.IsDeleted)
+            .GroupBy(dr => new { dr.DocumentId, dr.DocumentReviewType })
+            .Select(g => new
+            {
+                DocumentId = g.Key.DocumentId,
+                DocumentReviewType = g.Key.DocumentReviewType,
+                Count = g.Count()
+            })
+            .ToListAsync(cancellationToken);
+
+        var reviewStatsDict = reviewStats
+            .GroupBy(r => r.DocumentId)
+            .ToDictionary(
+                g => g.Key,
+                g => new
+                {
+                    UsefulCount = g.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.Useful)?.Count ?? 0,
+                    NotUsefulCount = g.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.NotUseful)?.Count ?? 0
+                });
+
+        var documentsData = await query
+            .Where(d => documentIds.Contains(d.Id))
+            .Select(d => new
             {
                 Id = d.Id,
                 DocumentName = d.DocumentName,
@@ -156,6 +188,27 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                 CreatedAt = d.CreatedAt
             })
             .ToListAsync(cancellationToken);
+
+        var documents = documentsData.Select(d => new DocumentDto
+        {
+            Id = d.Id,
+            DocumentName = d.DocumentName,
+            Description = d.Description,
+            IsDownload = d.IsDownload,
+            Visibility = d.Visibility,
+            ReviewStatus = d.ReviewStatus,
+            Subject = d.Subject,
+            Type = d.Type,
+            Tags = d.Tags,
+            Authors = d.Authors,
+            FileCount = d.FileCount,
+            ThumbnailUrl = d.ThumbnailUrl,
+            CommentCount = d.CommentCount,
+            UsefulCount = reviewStatsDict.TryGetValue(d.Id, out var stats) ? stats.UsefulCount : 0,
+            NotUsefulCount = reviewStatsDict.TryGetValue(d.Id, out var stats2) ? stats2.NotUsefulCount : 0,
+            CreatedById = d.CreatedById,
+            CreatedAt = d.CreatedAt
+        }).ToList();
 
         return new PagedResponse<DocumentDto>
         {

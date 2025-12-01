@@ -17,6 +17,8 @@ namespace UteLearningHub.Application.Common.Dtos
         public string? ThumbnailUrl { get; init; }
         public int FileCount { get; init; }
         public int CommentCount { get; init; }
+        public int UsefulCount { get; init; }
+        public int NotUsefulCount { get; init; }
         public Guid CreatedById { get; init; }
         public DateTimeOffset CreatedAt { get; init; }
     }
