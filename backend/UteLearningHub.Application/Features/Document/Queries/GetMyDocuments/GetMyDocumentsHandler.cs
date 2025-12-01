@@ -28,9 +28,8 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
 
         var query = _documentRepository.GetQueryableWithIncludes()
             .AsNoTracking()
-            .Where(d => d.CreatedById == userId); // Filter by current user
+            .Where(d => d.CreatedById == userId);
 
-        // Apply filters
         if (request.SubjectId.HasValue)
             query = query.Where(d => d.SubjectId == request.SubjectId.Value);
 
@@ -70,12 +69,11 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
             "createdat" or "date" => request.SortDescending
                 ? query.OrderByDescending(d => d.CreatedAt)
                 : query.OrderBy(d => d.CreatedAt),
-            _ => query.OrderByDescending(d => d.CreatedAt) // Default: newest first
+            _ => query.OrderByDescending(d => d.CreatedAt) 
         };
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        // Apply pagination
         var documents = await query
             .Skip(request.Skip)
             .Take(request.Take)
@@ -89,25 +87,29 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                 IsDownload = d.IsDownload,
                 Visibility = d.Visibility,
                 ReviewStatus = d.ReviewStatus,
-                Subject = new SubjectDto
-                {
-                    Id = d.Subject!.Id,
-                    SubjectName = d.Subject.SubjectName,
-                    SubjectCode = d.Subject.SubjectCode,
-                    Majors = d.Subject.SubjectMajors.Select(sm => new MajorDto
+                Subject = d.Subject != null
+                    ? new SubjectDto
                     {
-                        Id = sm.Major.Id,
-                        MajorName = sm.Major.MajorName,
-                        MajorCode = sm.Major.MajorCode,
-                        Faculty = sm.Major.Faculty != null ? new FacultyDto
+                        Id = d.Subject.Id,
+                        SubjectName = d.Subject.SubjectName,
+                        SubjectCode = d.Subject.SubjectCode,
+                        Majors = d.Subject.SubjectMajors.Select(sm => new MajorDto
                         {
-                            Id = sm.Major.Faculty.Id,
-                            FacultyName = sm.Major.Faculty.FacultyName,
-                            FacultyCode = sm.Major.Faculty.FacultyCode,
-                            Logo = sm.Major.Faculty.Logo
-                        } : null
-                    }).ToList()
-                },
+                            Id = sm.Major.Id,
+                            MajorName = sm.Major.MajorName,
+                            MajorCode = sm.Major.MajorCode,
+                            Faculty = sm.Major.Faculty != null
+                                ? new FacultyDto
+                                {
+                                    Id = sm.Major.Faculty.Id,
+                                    FacultyName = sm.Major.Faculty.FacultyName,
+                                    FacultyCode = sm.Major.Faculty.FacultyCode,
+                                    Logo = sm.Major.Faculty.Logo
+                                }
+                                : null
+                        }).ToList()
+                    }
+                    : null,
                 Type = new TypeDto
                 {
                     Id = d.Type.Id,
@@ -135,4 +137,3 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
         };
     }
 }
-

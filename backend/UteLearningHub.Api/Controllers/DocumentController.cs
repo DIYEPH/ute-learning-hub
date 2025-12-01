@@ -8,6 +8,7 @@ using UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
 using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
 using UteLearningHub.Application.Features.Document.Commands.ReviewDocument;
+using UteLearningHub.Application.Features.Document.Queries.GetMyDocuments;
 
 namespace UteLearningHub.Api.Controllers
 {
@@ -29,7 +30,7 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpGet("my")]
         [Authorize]
-        public async Task<ActionResult<PagedResponse<DocumentDto>>> GetMyDocuments([FromQuery] GetDocumentsQuery query)
+        public async Task<ActionResult<PagedResponse<DocumentDto>>> GetMyDocuments([FromQuery] GetMyDocumentsQuery query)
         {
             var result = await _mediator.Send(query);
             return Ok(result);

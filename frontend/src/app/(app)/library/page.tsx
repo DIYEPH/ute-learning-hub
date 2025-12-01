@@ -151,9 +151,6 @@ export default function LibraryPage() {
           <h2 className="text-lg font-semibold text-foreground">
             Chưa có tài liệu nào
           </h2>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              Hãy chia sẻ tài liệu của bạn tại đây.
-          </p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
