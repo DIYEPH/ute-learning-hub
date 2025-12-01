@@ -32,7 +32,14 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
             throw new NotFoundException($"Document with id {request.Id} not found");
 
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
+        var isAuthenticated = _currentUserService.IsAuthenticated;
+
+        // Chỉ admin mới xem được tài liệu chưa duyệt
         if (!isAdmin && document.ReviewStatus != ReviewStatus.Approved)
+            throw new NotFoundException($"Document with id {request.Id} not found");
+
+        // Người chưa đăng nhập chỉ xem được tài liệu Public
+        if (!isAuthenticated && document.Visibility != VisibilityStatus.Public)
             throw new NotFoundException($"Document with id {request.Id} not found");
 
         var commentCount = await _documentRepository.GetQueryableSet()

@@ -54,9 +54,26 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             query = query.Where(d => d.IsDownload == request.IsDownload.Value);
 
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
+        var isAuthenticated = _currentUserService.IsAuthenticated;
+
         if (!request.ReviewStatus.HasValue && !isAdmin)
         {
             query = query.Where(d => d.ReviewStatus == ReviewStatus.Approved);
+        }
+
+
+        if (!request.Visibility.HasValue)
+        {
+            if (!isAuthenticated)
+            {
+                query = query.Where(d => d.Visibility == VisibilityStatus.Public);
+            }
+            else
+            {
+                query = query.Where(d =>
+                    d.Visibility == VisibilityStatus.Public ||
+                    d.Visibility == VisibilityStatus.Internal);
+            }
         }
 
         query = request.SortBy?.ToLower() switch

@@ -13,7 +13,7 @@ public class Document : BaseEntity<Guid>, IAggregateRoot, IAuditable, IReviewabl
     public string DescriptionAuthor { get; set; } = default!;
     public string NormalizedName { get; set; } = default!;
     public bool IsDownload { get; set; } = true;
-    public VisibilityStatus Visibility { get; set; } = VisibilityStatus.Public;
+    public VisibilityStatus Visibility { get; set; } = VisibilityStatus.Internal;
     public Guid FileId { get; set; }
     public File File { get; set; } = default!;
 

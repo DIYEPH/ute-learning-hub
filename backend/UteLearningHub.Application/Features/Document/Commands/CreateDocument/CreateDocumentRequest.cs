@@ -13,5 +13,5 @@ public record CreateDocumentRequest
     public IList<Guid>? TagIds { get; init; }
     public IList<string>? TagNames { get; init; } 
     public bool IsDownload { get; init; } = true;
-    public VisibilityStatus Visibility { get; init; } = VisibilityStatus.Public;
+    public VisibilityStatus Visibility { get; init; } = VisibilityStatus.Internal;
 }
