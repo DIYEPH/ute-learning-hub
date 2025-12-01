@@ -61,7 +61,6 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             query = query.Where(d => d.ReviewStatus == ReviewStatus.Approved);
         }
 
-
         if (!request.Visibility.HasValue)
         {
             if (!isAuthenticated)

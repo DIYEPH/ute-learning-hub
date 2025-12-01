@@ -56,14 +56,12 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Validate required fields
         if (string.IsNullOrWhiteSpace(request.DocumentName))
             throw new BadRequestException("DocumentName cannot be empty");
 
         if (string.IsNullOrWhiteSpace(request.Description))
             throw new BadRequestException("Description cannot be empty");
 
-        // Validate SubjectId exists (chỉ nếu có)
         if (request.SubjectId.HasValue)
         {
             var subject = await _subjectRepository.GetByIdAsync(request.SubjectId.Value, disableTracking: true, cancellationToken);
@@ -71,15 +69,12 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                 throw new NotFoundException($"Subject with id {request.SubjectId.Value} not found");
         }
 
-        // Validate TypeId exists
         var type = await _typeRepository.GetByIdAsync(request.TypeId, disableTracking: true, cancellationToken);
         if (type == null || type.IsDeleted)
             throw new NotFoundException($"Type with id {request.TypeId} not found");
 
-        // Handle Tags: Support both TagIds and TagNames
         var tagIdsToAdd = new List<Guid>();
 
-        // Process TagIds (existing tags by ID)
         if (request.TagIds != null && request.TagIds.Any())
         {
             var existingTags = await _tagRepository.GetQueryableSet()
@@ -92,31 +87,36 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             tagIdsToAdd.AddRange(existingTags.Select(t => t.Id));
         }
 
-        // Process TagNames (create new tags if they don't exist)
         if (request.TagNames != null && request.TagNames.Any())
         {
             foreach (var tagName in request.TagNames)
             {
                 if (string.IsNullOrWhiteSpace(tagName)) continue;
 
-                // Check if tag already exists (case-insensitive)
+                var normalizedName = tagName.Trim();
+
                 var existingTag = await _tagRepository.GetQueryableSet()
-                    .Where(t => t.TagName.ToLower() == tagName.Trim().ToLower() && !t.IsDeleted)
-                    .FirstOrDefaultAsync(cancellationToken);
+                    .Where(t => !t.IsDeleted && t.TagName != null)
+                    .FirstOrDefaultAsync(
+                        t => string.Equals(t.TagName, normalizedName, StringComparison.OrdinalIgnoreCase),
+                        cancellationToken);
 
                 if (existingTag != null)
                 {
-                    // Tag exists, use its ID
                     if (!tagIdsToAdd.Contains(existingTag.Id))
                         tagIdsToAdd.Add(existingTag.Id);
                 }
                 else
                 {
-                    // Create new tag
+                    var titleCaseName = System.Globalization.CultureInfo
+                        .CurrentCulture
+                        .TextInfo
+                        .ToTitleCase(normalizedName.ToLower());
+
                     var newTag = new DomainTag
                     {
                         Id = Guid.NewGuid(),
-                        TagName = tagName.Trim(),
+                        TagName = titleCaseName,
                         ReviewStatus = ReviewStatus.Approved, 
                         CreatedById = userId,
                         CreatedAt = _dateTimeProvider.OffsetNow
@@ -128,11 +128,12 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             }
         }
 
-        // Validate file - exactly 1 file required
+        if (!tagIdsToAdd.Any())
+            throw new BadRequestException("Document must have at least one tag");
+
         if (request.File == null || request.File.Length == 0)
             throw new BadRequestException("Document must have exactly one file");
 
-        // Validate file type - only allow Word, images, and PDF
         var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             ".doc", ".docx",        // Word
@@ -142,12 +143,9 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
 
         var allowedMimeTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            // Word
             "application/msword",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            // PDF
             "application/pdf",
-            // Images
             "image/jpeg",
             "image/png",
             "image/gif",
@@ -167,16 +165,15 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             ? ReviewStatus.Approved
             : ReviewStatus.PendingReview;
 
-        // Create document
         var document = new DomainDocument
         {
             Id = Guid.NewGuid(),
             DocumentName = request.DocumentName,
             NormalizedName = request.DocumentName.ToLowerInvariant(),
             Description = request.Description,
-            AuthorName = request.AuthorName ?? string.Empty,  // Xử lý null
-            DescriptionAuthor = request.DescriptionAuthor ?? string.Empty,  // Xử lý null
-            SubjectId = request.SubjectId,  // Có thể null
+            AuthorName = request.AuthorName ?? string.Empty,  
+            DescriptionAuthor = request.DescriptionAuthor ?? string.Empty,  
+            SubjectId = request.SubjectId,  
             TypeId = request.TypeId,
             IsDownload = request.IsDownload,
             Visibility = request.Visibility,
@@ -185,7 +182,6 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        // Add tags
         if (tagIdsToAdd.Any())
         {
             var tags = await _tagRepository.GetQueryableSet()
@@ -202,15 +198,13 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             }
         }
 
-        // Upload file
-        var uploadedFileUrls = new List<string>(); // Track uploaded file for rollback
+        var uploadedFileUrls = new List<string>(); 
 
         try
         {
             var formFile = request.File;
             if (formFile.Length > 0)
             {
-                // Upload file to storage
                 using var fileStream = formFile.OpenReadStream();
                 var fileUrl = await _fileStorageService.UploadFileAsync(
                     fileStream,
@@ -218,9 +212,8 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                     formFile.ContentType,
                     cancellationToken);
 
-                uploadedFileUrls.Add(fileUrl); // Track for rollback
+                uploadedFileUrls.Add(fileUrl); 
 
-                // Create File entity
                 var file = new DomainFile
                 {
                     Id = Guid.NewGuid(),
@@ -242,7 +235,6 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
         }
         catch
         {
-            // Rollback: Delete uploaded files from storage
             foreach (var fileUrl in uploadedFileUrls)
             {
                 try
@@ -251,13 +243,11 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                 }
                 catch
                 {
-                    // Log error but continue cleanup
                 }
             }
-            throw; // Re-throw original exception
+            throw; 
         }
 
-        // Reload to get relationships
         document = await _documentRepository.GetByIdWithDetailsAsync(document.Id, disableTracking: true, cancellationToken);
 
         if (document == null)
@@ -268,7 +258,6 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             .Select(d => d.Comments.Count)
             .FirstOrDefaultAsync(cancellationToken);
 
-        // Get review stats
         var reviewStats = await _documentRepository.GetQueryableSet()
             .Where(d => d.Id == document.Id)
             .SelectMany(d => d.Reviews)

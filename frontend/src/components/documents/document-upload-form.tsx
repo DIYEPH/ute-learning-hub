@@ -57,7 +57,7 @@ export function DocumentUploadForm({
     tagIds: [],
     tagNames: [],
     isDownload: true,
-    visibility: 0,
+    visibility: 2,
     file: null,
   });
 
@@ -110,6 +110,14 @@ export function DocumentUploadForm({
 
     if (!formData.typeId) {
       setFileError("Vui lòng chọn loại tài liệu");
+      return;
+    }
+
+    if (
+      (!formData.tagIds || formData.tagIds.length === 0) &&
+      (!formData.tagNames || formData.tagNames.length === 0)
+    ) {
+      setFileError("Vui lòng chọn hoặc thêm ít nhất 1 tag");
       return;
     }
 
@@ -339,7 +347,9 @@ export function DocumentUploadForm({
       </div>
 
       <div>
-        <Label htmlFor="tagIds">{t("tags")} (Tùy chọn)</Label>
+        <Label htmlFor="tagIds">
+          {t("tags")} <span className="text-red-500">*</span>
+        </Label>
         <select
           id="tagIds"
           multiple
@@ -485,41 +495,24 @@ export function DocumentUploadForm({
         </p>
       </div>
 
-      <div className="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="isDownload"
-            checked={formData.isDownload ?? true}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, isDownload: e.target.checked }))
-            }
-            disabled={isDisabled}
-            className="cursor-pointer"
-          />
-          <Label htmlFor="isDownload" className="cursor-pointer">
-            Cho phép tải xuống
-          </Label>
-        </div>
-
-        <div>
-          <Label htmlFor="visibility">{t("visibility")}</Label>
-          <select
-            id="visibility"
-            value={formData.visibility ?? 0}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                visibility: parseInt(e.target.value, 10),
-              }))
-            }
-            disabled={isDisabled}
-            className={selectClassName}
-          >
-            <option value={0}>Công khai</option>
-            <option value={1}>Riêng tư</option>
-          </select>
-        </div>
+      <div>
+        <Label htmlFor="visibility">{t("visibility")}</Label>
+        <select
+          id="visibility"
+          value={formData.visibility ?? 0}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              visibility: parseInt(e.target.value, 10),
+            }))
+          }
+          disabled={isDisabled}
+          className={selectClassName}
+        >
+          <option value={0}>Công khai</option>
+          <option value={1}>Riêng tư</option>
+          <option value={2}>Nội bộ</option>
+        </select>
       </div>
     </form>
   );
