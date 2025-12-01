@@ -6,23 +6,28 @@ using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Domain.Entities;
+using DomainTag = UteLearningHub.Domain.Entities.Tag;
 
 namespace UteLearningHub.Application.Features.Conversation.Commands.UpdateConversation;
 
 public class UpdateConversationHandler : IRequestHandler<UpdateConversationCommand, ConversationDetailDto>
 {
     private readonly IConversationRepository _conversationRepository;
+    private readonly ITagRepository _tagRepository;
     private readonly IIdentityService _identityService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
 
     public UpdateConversationHandler(
         IConversationRepository conversationRepository,
+        ITagRepository tagRepository,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider)
     {
         _conversationRepository = conversationRepository;
+        _tagRepository = tagRepository;
         _identityService = identityService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
@@ -57,9 +62,6 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         if (!string.IsNullOrWhiteSpace(request.ConversationName))
             conversation.ConversationName = request.ConversationName;
 
-        if (!string.IsNullOrWhiteSpace(request.Topic))
-            conversation.Topic = request.Topic;
-
         if (request.ConversationStatus.HasValue)
             conversation.ConversationStatus = request.ConversationStatus.Value;
 
@@ -68,6 +70,84 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
 
         if (request.IsAllowMemberPin.HasValue)
             conversation.IsAllowMemberPin = request.IsAllowMemberPin.Value;
+
+        // Update tags if provided
+        if (request.TagIds != null || request.TagNames != null)
+        {
+            conversation.ConversationTags.Clear();
+
+            var tagIdsToAdd = new List<Guid>();
+
+            if (request.TagIds != null && request.TagIds.Any())
+            {
+                var existingTags = await _tagRepository.GetQueryableSet()
+                    .Where(t => request.TagIds.Contains(t.Id) && !t.IsDeleted)
+                    .ToListAsync(cancellationToken);
+
+                if (existingTags.Count != request.TagIds.Count)
+                    throw new NotFoundException("One or more tags not found");
+
+                tagIdsToAdd.AddRange(existingTags.Select(t => t.Id));
+            }
+
+            if (request.TagNames != null && request.TagNames.Any())
+            {
+                foreach (var tagName in request.TagNames)
+                {
+                    if (string.IsNullOrWhiteSpace(tagName)) continue;
+
+                    var normalizedName = tagName.Trim();
+                    var normalizedNameLower = normalizedName.ToLowerInvariant();
+
+                    var existingTag = await _tagRepository.GetQueryableSet()
+                        .Where(t => !t.IsDeleted && t.TagName != null)
+                        .FirstOrDefaultAsync(
+                            t => t.TagName!.ToLower() == normalizedNameLower,
+                            cancellationToken);
+
+                    if (existingTag != null)
+                    {
+                        if (!tagIdsToAdd.Contains(existingTag.Id))
+                            tagIdsToAdd.Add(existingTag.Id);
+                    }
+                    else
+                    {
+                        var titleCaseName = System.Globalization.CultureInfo
+                            .CurrentCulture
+                            .TextInfo
+                            .ToTitleCase(normalizedName.ToLower());
+
+                        var newTag = new DomainTag
+                        {
+                            Id = Guid.NewGuid(),
+                            TagName = titleCaseName,
+                            ReviewStatus = ReviewStatus.Approved,
+                            CreatedById = userId,
+                            CreatedAt = _dateTimeProvider.OffsetNow
+                        };
+
+                        await _tagRepository.AddAsync(newTag, cancellationToken);
+                        tagIdsToAdd.Add(newTag.Id);
+                    }
+                }
+            }
+
+            if (tagIdsToAdd.Any())
+            {
+                var tags = await _tagRepository.GetQueryableSet()
+                    .Where(t => tagIdsToAdd.Contains(t.Id) && !t.IsDeleted)
+                    .ToListAsync(cancellationToken);
+
+                foreach (var tag in tags)
+                {
+                    conversation.ConversationTags.Add(new ConversationTag
+                    {
+                        ConversationId = conversation.Id,
+                        TagId = tag.Id
+                    });
+                }
+            }
+        }
 
         conversation.UpdatedById = userId;
         conversation.UpdatedAt = _dateTimeProvider.OffsetNow;
@@ -111,7 +191,13 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         {
             Id = updatedConversation.Id,
             ConversationName = updatedConversation.ConversationName,
-            Topic = updatedConversation.Topic,
+            Tags = updatedConversation.ConversationTags
+                .Select(ct => new TagDto
+                {
+                    Id = ct.Tag.Id,
+                    TagName = ct.Tag.TagName
+                })
+                .ToList(),
             ConversationType = updatedConversation.ConversationType,
             ConversationStatus = updatedConversation.ConversationStatus,
             IsSuggestedByAI = updatedConversation.IsSuggestedByAI,

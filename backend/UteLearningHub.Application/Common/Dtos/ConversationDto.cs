@@ -6,7 +6,7 @@ public record ConversationDto
 {
     public Guid Id { get; init; }
     public string ConversationName { get; init; } = default!;
-    public string Topic { get; init; } = default!;
+    public IList<TagDto> Tags { get; init; } = [];
     public ConversitionType ConversationType { get; init; }
     public ConversationStatus ConversationStatus { get; init; }
     public bool IsSuggestedByAI { get; init; }
@@ -26,7 +26,7 @@ public record ConversationDetailDto
 {
     public Guid Id { get; init; }
     public string ConversationName { get; init; } = default!;
-    public string Topic { get; init; } = default!;
+    public IList<TagDto> Tags { get; init; } = [];
     public ConversitionType ConversationType { get; init; }
     public ConversationStatus ConversationStatus { get; init; }
     public bool IsSuggestedByAI { get; init; }

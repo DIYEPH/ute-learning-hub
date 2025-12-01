@@ -5,7 +5,8 @@ namespace UteLearningHub.Application.Features.Conversation.Commands.CreateConver
 public record CreateConversationRequest
 {
     public string ConversationName { get; init; } = default!;
-    public string Topic { get; init; } = default!;
+    public IList<Guid>? TagIds { get; init; }
+    public IList<string>? TagNames { get; init; }
     public ConversitionType ConversationType { get; init; }
     public Guid? SubjectId { get; init; }
     public bool IsSuggestedByAI { get; init; } = false;

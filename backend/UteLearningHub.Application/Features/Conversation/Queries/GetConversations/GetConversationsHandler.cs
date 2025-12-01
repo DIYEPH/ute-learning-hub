@@ -28,6 +28,8 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
         var query = _conversationRepository.GetQueryableSet()
             .Include(c => c.Subject)
             .Include(c => c.Members)
+            .Include(c => c.ConversationTags)
+                .ThenInclude(ct => ct.Tag)
             .AsNoTracking()
             .Where(c => !c.IsDeleted);
 
@@ -52,7 +54,7 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
             var searchTerm = request.SearchTerm.ToLower();
             query = query.Where(c =>
                 c.ConversationName.ToLower().Contains(searchTerm) ||
-                c.Topic.ToLower().Contains(searchTerm));
+                c.ConversationTags.Any(ct => ct.Tag.TagName.ToLower().Contains(searchTerm)));
         }
 
         // Sorting
@@ -91,7 +93,13 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
         {
             Id = c.Id,
             ConversationName = c.ConversationName,
-            Topic = c.Topic,
+            Tags = c.ConversationTags
+                .Select(ct => new TagDto
+                {
+                    Id = ct.Tag.Id,
+                    TagName = ct.Tag.TagName
+                })
+                .ToList(),
             ConversationType = c.ConversationType,
             ConversationStatus = c.ConversationStatus,
             IsSuggestedByAI = c.IsSuggestedByAI,

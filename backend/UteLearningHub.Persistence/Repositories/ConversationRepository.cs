@@ -25,6 +25,8 @@ public class ConversationRepository : Repository<Conversation, Guid>, IConversat
             .Include(c => c.Subject)
             .Include(c => c.Members)
             .Include(c => c.ConversationJoinRequests)
+            .Include(c => c.ConversationTags)
+                .ThenInclude(ct => ct.Tag)
             .Where(c => c.Id == id);
 
         if (disableTracking)

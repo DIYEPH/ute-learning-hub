@@ -56,7 +56,13 @@ public class GetConversationByIdHandler : IRequestHandler<GetConversationByIdQue
         {
             Id = conversation.Id,
             ConversationName = conversation.ConversationName,
-            Topic = conversation.Topic,
+            Tags = conversation.ConversationTags
+                .Select(ct => new TagDto
+                {
+                    Id = ct.Tag.Id,
+                    TagName = ct.Tag.TagName
+                })
+                .ToList(),
             ConversationType = conversation.ConversationType,
             ConversationStatus = conversation.ConversationStatus,
             IsSuggestedByAI = conversation.IsSuggestedByAI,

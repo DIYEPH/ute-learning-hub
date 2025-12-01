@@ -14,6 +14,7 @@ public static class DbTableNames
     public const string Conversation = "CuocTroChuyen";
     public const string ConversationJoinRequest = "YeuCauThamGiaNhom";
     public const string ConversationMember = "CuocTroChuyen_ThanhVien";
+    public const string ConversationTag = "CuocTroChuyen_The";
     public const string Document = "TaiLieu";
     public const string DocumentFile = "TaiLieu_Tep";
     public const string DocumentReview = "DanhGiaTaiLieu";

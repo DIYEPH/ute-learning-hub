@@ -19,6 +19,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<Conversation> Conversations { get; set; }
     public virtual DbSet<ConversationJoinRequest> ConversationsJoinRequests { get; set; }
     public virtual DbSet<ConversationMember> ConversationMembers { get; set; }
+    public virtual DbSet<ConversationTag> ConversationTags { get; set; }
     public virtual DbSet<Document> Documents { get; set; }
     public virtual DbSet<DocumentReview> DocumentReviews { get; set; }
     public virtual DbSet<DocumentTag> DocumentTags { get; set; }

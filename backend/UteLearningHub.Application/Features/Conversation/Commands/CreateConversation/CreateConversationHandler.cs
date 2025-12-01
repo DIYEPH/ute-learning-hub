@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -7,23 +8,27 @@ using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Domain.Entities;
 using DomainConversation = UteLearningHub.Domain.Entities.Conversation;
+using DomainTag = UteLearningHub.Domain.Entities.Tag;
 
 namespace UteLearningHub.Application.Features.Conversation.Commands.CreateConversation;
 
 public class CreateConversationHandler : IRequestHandler<CreateConversationCommand, ConversationDetailDto>
 {
     private readonly IConversationRepository _conversationRepository;
+    private readonly ITagRepository _tagRepository;
     private readonly IIdentityService _identityService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
 
     public CreateConversationHandler(
         IConversationRepository conversationRepository,
+        ITagRepository tagRepository,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider)
     {
         _conversationRepository = conversationRepository;
+        _tagRepository = tagRepository;
         _identityService = identityService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
@@ -43,11 +48,70 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
             // For now, we'll skip this check or add it later
         }
 
+        // Xử lý tags tương tự Document
+        var tagIdsToAdd = new List<Guid>();
+
+        if (request.TagIds != null && request.TagIds.Any())
+        {
+            var existingTags = await _tagRepository.GetQueryableSet()
+                .Where(t => request.TagIds.Contains(t.Id) && !t.IsDeleted)
+                .ToListAsync(cancellationToken);
+
+            if (existingTags.Count != request.TagIds.Count)
+                throw new NotFoundException("One or more tags not found");
+
+            tagIdsToAdd.AddRange(existingTags.Select(t => t.Id));
+        }
+
+        if (request.TagNames != null && request.TagNames.Any())
+        {
+            foreach (var tagName in request.TagNames)
+            {
+                if (string.IsNullOrWhiteSpace(tagName)) continue;
+
+                var normalizedName = tagName.Trim();
+                var normalizedNameLower = normalizedName.ToLowerInvariant();
+
+                var existingTag = await _tagRepository.GetQueryableSet()
+                    .Where(t => !t.IsDeleted && t.TagName != null)
+                    .FirstOrDefaultAsync(
+                        t => t.TagName!.ToLower() == normalizedNameLower,
+                        cancellationToken);
+
+                if (existingTag != null)
+                {
+                    if (!tagIdsToAdd.Contains(existingTag.Id))
+                        tagIdsToAdd.Add(existingTag.Id);
+                }
+                else
+                {
+                    var titleCaseName = System.Globalization.CultureInfo
+                        .CurrentCulture
+                        .TextInfo
+                        .ToTitleCase(normalizedName.ToLower());
+
+                    var newTag = new DomainTag
+                    {
+                        Id = Guid.NewGuid(),
+                        TagName = titleCaseName,
+                        ReviewStatus = ReviewStatus.Approved,
+                        CreatedById = userId,
+                        CreatedAt = _dateTimeProvider.OffsetNow
+                    };
+
+                    await _tagRepository.AddAsync(newTag, cancellationToken);
+                    tagIdsToAdd.Add(newTag.Id);
+                }
+            }
+        }
+
+        if (!tagIdsToAdd.Any())
+            throw new BadRequestException("Conversation must have at least one tag");
+
         var conversation = new DomainConversation
         {
             Id = Guid.NewGuid(),
             ConversationName = request.ConversationName,
-            Topic = request.Topic,
             ConversationType = request.ConversationType,
             ConversationStatus = ConversationStatus.Active,
             SubjectId = request.SubjectId,
@@ -56,6 +120,23 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
+
+        // Thêm tags vào conversation
+        if (tagIdsToAdd.Any())
+        {
+            var tags = await _tagRepository.GetQueryableSet()
+                .Where(t => tagIdsToAdd.Contains(t.Id) && !t.IsDeleted)
+                .ToListAsync(cancellationToken);
+
+            foreach (var tag in tags)
+            {
+                conversation.ConversationTags.Add(new ConversationTag
+                {
+                    ConversationId = conversation.Id,
+                    TagId = tag.Id
+                });
+            }
+        }
 
         // Add creator as owner
         var ownerMember = new ConversationMember
@@ -109,7 +190,13 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
         {
             Id = createdConversation.Id,
             ConversationName = createdConversation.ConversationName,
-            Topic = createdConversation.Topic,
+            Tags = createdConversation.ConversationTags
+                .Select(ct => new TagDto
+                {
+                    Id = ct.Tag.Id,
+                    TagName = ct.Tag.TagName
+                })
+                .ToList(),
             ConversationType = createdConversation.ConversationType,
             ConversationStatus = createdConversation.ConversationStatus,
             IsSuggestedByAI = createdConversation.IsSuggestedByAI,
