@@ -16,8 +16,6 @@ import type {
   PostApiDocumentData,
 } from "@/src/api/database/types.gen";
 
-// Sử dụng DTO có sẵn từ types.gen.ts (PostApiDocumentData['body'])
-// Map từ PascalCase (API) sang camelCase (form) và Files (IFormFile) -> files (File[])
 type ApiDocumentBody = PostApiDocumentData["body"];
 export type DocumentUploadFormData = {
   documentName?: ApiDocumentBody["DocumentName"] | null;
@@ -29,8 +27,9 @@ export type DocumentUploadFormData = {
   tagIds?: ApiDocumentBody["TagIds"];
   tagNames?: ApiDocumentBody["TagNames"];
   isDownload?: ApiDocumentBody["IsDownload"];
-  visibility?: number; // VisibilityStatus enum: 0 = Public, 1 = Private
-  files?: File[]; // Map từ Files (IFormFile[]) -> File[]
+  visibility?: number;
+  // 1 document = 1 file
+  file?: File | null;
 };
 
 interface DocumentUploadFormProps {
@@ -58,8 +57,8 @@ export function DocumentUploadForm({
     tagIds: [],
     tagNames: [],
     isDownload: true,
-    visibility: 0, // 0 = Public, 1 = Private
-    files: [],
+    visibility: 0,
+    file: null,
   });
 
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
@@ -99,7 +98,6 @@ export function DocumentUploadForm({
     e.preventDefault();
     setFileError(null);
 
-    // Validation
     if (!formData.documentName?.trim()) {
       setFileError("Tên tài liệu không được để trống");
       return;
@@ -115,59 +113,55 @@ export function DocumentUploadForm({
       return;
     }
 
-    if (!formData.files || formData.files.length === 0) {
-      setFileError("Vui lòng chọn ít nhất 1 file");
-      return;
-    }
-
-    if (formData.files.length > 3) {
-      setFileError("Tối đa chỉ được upload 3 file");
+    // 1 file bắt buộc
+    if (!formData.file) {
+      setFileError("Vui lòng chọn 1 file");
       return;
     }
 
     await onSubmit(formData);
   };
 
+  // chỉ lấy 1 file đầu tiên, mỗi lần chọn sẽ ghi đè file cũ
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files || []);
-    const currentFiles = formData.files || [];
-    const totalFiles = currentFiles.length + selectedFiles.length;
+    const selectedFile = e.target.files?.[0] || null;
 
-    if (totalFiles > 3) {
-      setFileError("Tối đa chỉ được upload 3 file");
+    if (!selectedFile) {
+      setFormData((prev) => ({ ...prev, file: null }));
+      setFileError("Vui lòng chọn 1 file");
       return;
     }
 
     setFileError(null);
     setFormData((prev) => ({
       ...prev,
-      files: [...currentFiles, ...selectedFiles],
+      file: selectedFile,
     }));
   };
 
-  const handleRemoveFile = (index: number) => {
-    const newFiles = (formData.files || []).filter((_, i) => i !== index);
-    setFormData((prev) => ({ ...prev, files: newFiles }));
+  // xóa file đã chọn
+  const handleRemoveFile = () => {
+    setFormData((prev) => ({ ...prev, file: null }));
     setFileError(null);
   };
 
+  // chọn tag có sẵn (multi-select)
   const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedOptions = Array.from(e.target.selectedOptions);
     const selectedIds = selectedOptions.map((option) => option.value);
     setFormData((prev) => ({ ...prev, tagIds: selectedIds }));
   };
 
+  // thêm tag mới (nếu đã tồn tại thì tự động gắn vào tagIds)
   const handleAddNewTag = () => {
     const tagName = newTagInput.trim();
     if (!tagName) return;
 
-    // Kiểm tra tag đã tồn tại chưa
     const existingTag = tags.find(
       (tag) => tag.tagName?.toLowerCase() === tagName.toLowerCase() && tag.id
     );
 
     if (existingTag && existingTag.id) {
-      // Nếu tag đã tồn tại, thêm vào tagIds
       const tagId = existingTag.id;
       if (!formData.tagIds?.includes(tagId)) {
         setFormData((prev) => ({
@@ -176,8 +170,7 @@ export function DocumentUploadForm({
         }));
       }
     } else {
-      // Nếu tag chưa tồn tại, thêm vào tagNames
-      if (!formData.tagNames?.includes(tagName)) {
+      if (!formData.tagNames?.some((n) => n.toLowerCase() === tagName.toLowerCase())) {
         setFormData((prev) => ({
           ...prev,
           tagNames: [...(prev.tagNames || []), tagName],
@@ -439,61 +432,56 @@ export function DocumentUploadForm({
       </div>
 
       <div>
-        <Label htmlFor="files">
-          Tệp đính kèm <span className="text-red-500">*</span> (Tối đa 3 file)
+        <Label htmlFor="file">
+          Tệp đính kèm <span className="text-red-500">*</span>
         </Label>
         <input
           type="file"
-          id="files"
-          multiple
+          id="file"
+          accept=".doc,.docx,.pdf,image/*"
           onChange={handleFileChange}
           className="hidden"
-          disabled={isDisabled || (formData.files?.length || 0) >= 3}
+          disabled={isDisabled}
         />
         <label
-          htmlFor="files"
+          htmlFor="file"
           className={`mt-1 flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-md transition-colors ${
-            isDisabled || (formData.files?.length || 0) >= 3
+            isDisabled
               ? "border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed"
               : "border-slate-300 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
           }`}
         >
           <Upload size={20} />
           <span className="text-sm">
-            {(formData.files?.length || 0) >= 3
-              ? "Đã đạt giới hạn 3 file"
-              : "Chọn tệp"}
+            {formData.file ? "Đã chọn 1 file" : "Chọn tệp"}
           </span>
         </label>
-        {(formData.files?.length || 0) > 0 && (
+
+        {formData.file && (
           <div className="space-y-2 mt-2">
-            {formData.files?.map((file, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-md"
-              >
-                <div className="flex items-center gap-2">
-                  <FileText size={16} />
-                  <span className="text-sm text-foreground">{file.name}</span>
-                  <span className="text-xs text-slate-500">
-                    ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                  </span>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveFile(index)}
-                  disabled={isDisabled}
-                >
-                  <X size={16} />
-                </Button>
+            <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-md">
+              <div className="flex items-center gap-2">
+                <FileText size={16} />
+                <span className="text-sm text-foreground">{formData.file.name}</span>
+                <span className="text-xs text-slate-500">
+                  ({(formData.file.size / 1024 / 1024).toFixed(2)} MB)
+                </span>
               </div>
-            ))}
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={handleRemoveFile}
+                disabled={isDisabled}
+              >
+                <X size={16} />
+              </Button>
+            </div>
           </div>
         )}
+
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          Đã chọn {formData.files?.length || 0}/3 file
+          {formData.file ? "Đã chọn 1 file" : "Chưa chọn file nào"}
         </p>
       </div>
 

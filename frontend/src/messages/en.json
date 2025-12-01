@@ -1,13 +1,13 @@
 {
     "common": {
-      "welcome": "Welcome to UTE Learning Hub", 
-      "login": "Login",
-      "logout": "Logout",
-      "loggingOut": "Logging out...",
+    "welcome": "Welcome to UTE Learning Hub", 
+    "login": "Login",
+    "logout": "Logout",
+    "loggingOut": "Logging out...",
     "dashboard": "Dashboard",
     "search": "Search",
     "searchPlaceholder": "Search for documents",
-    "new": "+ New Document",
+    "new-document": "+ New Document",
     "guestUser": "Guest",
     "loading": "Loading...",
     "save": "Save",

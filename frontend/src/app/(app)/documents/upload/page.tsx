@@ -22,10 +22,8 @@ export default function UploadDocumentPage() {
     try {
       const formDataToSend = new FormData();
       
-      if (data.files && data.files.length > 0) {
-        data.files.forEach((file) => {
-          formDataToSend.append("Files", file);
-        });
+      if (data.file) {
+        formDataToSend.append("File", data.file);
       }
 
       formDataToSend.append("DocumentName", data.documentName || "");

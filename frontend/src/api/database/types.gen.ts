@@ -196,7 +196,7 @@ export type DocumentDetailDto = {
     subject?: SubjectDto;
     type?: TypeDto;
     tags?: Array<TagDto>;
-    files?: Array<DocumentFileDto>;
+    file?: DocumentFileDto;
     commentCount?: number;
     usefulCount?: number;
     notUsefulCount?: number;
@@ -230,7 +230,7 @@ export type DocumentFileDto = {
     fileUrl?: string;
     fileSize?: number;
     mimeType?: string;
-};
+} | null;
 
 export type DocumentReviewDto = {
     id?: string;
@@ -1159,7 +1159,7 @@ export type GetApiDocumentResponse = GetApiDocumentResponses[keyof GetApiDocumen
 
 export type PostApiDocumentData = {
     body: {
-        Files?: Array<IFormFile>;
+        File?: IFormFile;
         DocumentName?: string;
         Description?: string;
         AuthorName?: string;
@@ -1192,6 +1192,7 @@ export type GetApiDocumentMyData = {
         SubjectId?: string;
         TypeId?: string;
         TagId?: string;
+        MajorId?: string;
         SearchTerm?: string;
         Visibility?: string;
         ReviewStatus?: string;
@@ -1253,7 +1254,7 @@ export type GetApiDocumentByIdResponse = GetApiDocumentByIdResponses[keyof GetAp
 
 export type PutApiDocumentByIdData = {
     body: {
-        FilesToAdd?: Array<IFormFile>;
+        File?: IFormFile;
         Id?: string;
         DocumentName?: string;
         Description?: string;

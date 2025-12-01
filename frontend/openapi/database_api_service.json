@@ -1198,11 +1198,8 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "Files": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/IFormFile"
-                    }
+                  "File": {
+                    "$ref": "#/components/schemas/IFormFile"
                   },
                   "DocumentName": {
                     "type": "string"
@@ -1297,6 +1294,14 @@
           },
           {
             "name": "TagId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "MajorId",
             "in": "query",
             "schema": {
               "type": "string",
@@ -1462,11 +1467,8 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "FilesToAdd": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/IFormFile"
-                    }
+                  "File": {
+                    "$ref": "#/components/schemas/IFormFile"
                   },
                   "Id": {
                     "type": "string",
@@ -4784,11 +4786,8 @@
               "$ref": "#/components/schemas/TagDto"
             }
           },
-          "files": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DocumentFileDto"
-            }
+          "file": {
+            "$ref": "#/components/schemas/DocumentFileDto"
           },
           "commentCount": {
             "type": "integer",
@@ -4899,7 +4898,8 @@
           "mimeType": {
             "type": "string"
           }
-        }
+        },
+        "nullable": true
       },
       "DocumentReviewDto": {
         "type": "object",
