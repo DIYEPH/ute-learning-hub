@@ -6,5 +6,6 @@ namespace UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 
 public record CreateDocumentCommand : CreateDocumentRequest, IRequest<DocumentDetailDto>
 {
-    public IList<IFormFile>? Files { get; init; }
+    // 1 document = 1 file
+    public IFormFile? File { get; init; }
 }

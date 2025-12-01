@@ -15,7 +15,7 @@ public record DocumentDetailDto
     public SubjectDto? Subject { get; init; } 
     public TypeDto Type { get; init; } = default!;
     public IList<TagDto> Tags { get; init; } = [];
-    public IList<DocumentFileDto> Files { get; init; } = [];
+    public DocumentFileDto? File { get; init; }
     public int CommentCount { get; init; }
     public int UsefulCount { get; init; }
     public int NotUsefulCount { get; init; }

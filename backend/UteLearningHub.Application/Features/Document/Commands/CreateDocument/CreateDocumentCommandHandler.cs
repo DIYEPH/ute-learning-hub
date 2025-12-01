@@ -128,9 +128,39 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             }
         }
 
-        // Validate file count - maximum 3 files
-        if (request.Files != null && request.Files.Count > 3)
-            throw new BadRequestException("Maximum 3 files are allowed per document");
+        // Validate file - exactly 1 file required
+        if (request.File == null || request.File.Length == 0)
+            throw new BadRequestException("Document must have exactly one file");
+
+        // Validate file type - only allow Word, images, and PDF
+        var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".doc", ".docx",        // Word
+            ".pdf",                 // PDF
+            ".jpg", ".jpeg", ".png", ".gif", ".webp" // Images
+        };
+
+        var allowedMimeTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            // Word
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            // PDF
+            "application/pdf",
+            // Images
+            "image/jpeg",
+            "image/png",
+            "image/gif",
+            "image/webp"
+        };
+
+        var fileExtension = Path.GetExtension(request.File.FileName);
+        var fileMimeType = request.File.ContentType;
+
+        if (!allowedExtensions.Contains(fileExtension) || !allowedMimeTypes.Contains(fileMimeType))
+        {
+            throw new BadRequestException("Only Word documents, images, and PDF files are allowed.");
+        }
 
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
         var reviewStatus = (trustLevel.HasValue && trustLevel.Value >= TrustLever.Newbie)
@@ -172,49 +202,39 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             }
         }
 
-        // Upload files if provided
-        var uploadedFileUrls = new List<string>(); // Track uploaded files for rollback
+        // Upload file
+        var uploadedFileUrls = new List<string>(); // Track uploaded file for rollback
 
         try
         {
-            if (request.Files != null && request.Files.Any())
+            var formFile = request.File;
+            if (formFile.Length > 0)
             {
-                foreach (var formFile in request.Files)
+                // Upload file to storage
+                using var fileStream = formFile.OpenReadStream();
+                var fileUrl = await _fileStorageService.UploadFileAsync(
+                    fileStream,
+                    formFile.FileName,
+                    formFile.ContentType,
+                    cancellationToken);
+
+                uploadedFileUrls.Add(fileUrl); // Track for rollback
+
+                // Create File entity
+                var file = new DomainFile
                 {
-                    if (formFile.Length > 0)
-                    {
-                        // Upload file to storage
-                        using var fileStream = formFile.OpenReadStream();
-                        var fileUrl = await _fileStorageService.UploadFileAsync(
-                            fileStream,
-                            formFile.FileName,
-                            formFile.ContentType,
-                            cancellationToken);
+                    Id = Guid.NewGuid(),
+                    FileName = formFile.FileName,
+                    FileUrl = fileUrl,
+                    FileSize = formFile.Length,
+                    MimeType = formFile.ContentType,
+                    CreatedById = userId,
+                    CreatedAt = _dateTimeProvider.OffsetNow
+                };
 
-                        uploadedFileUrls.Add(fileUrl); // Track for rollback
+                await _fileRepository.AddAsync(file, cancellationToken);
 
-                        // Create File entity
-                        var file = new DomainFile
-                        {
-                            Id = Guid.NewGuid(),
-                            FileName = formFile.FileName,
-                            FileUrl = fileUrl,
-                            FileSize = formFile.Length,
-                            MimeType = formFile.ContentType,
-                            CreatedById = userId,
-                            CreatedAt = _dateTimeProvider.OffsetNow
-                        };
-
-                        await _fileRepository.AddAsync(file, cancellationToken);
-
-                        // Create DocumentFile relationship
-                        document.DocumentFiles.Add(new DocumentFile
-                        {
-                            DocumentId = document.Id,
-                            FileId = file.Id
-                        });
-                    }
-                }
+                document.FileId = file.Id;
             }
 
             await _documentRepository.AddAsync(document, cancellationToken);
@@ -291,14 +311,14 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                 Id = dt.Tag.Id,
                 TagName = dt.Tag.TagName
             }).ToList(),
-            Files = document.DocumentFiles.Select(df => new DocumentFileDto
+            File = document.File == null ? null : new DocumentFileDto
             {
-                Id = df.File.Id,
-                FileName = df.File.FileName,
-                FileUrl = df.File.FileUrl,
-                FileSize = df.File.FileSize,
-                MimeType = df.File.MimeType
-            }).ToList(),
+                Id = document.File.Id,
+                FileName = document.File.FileName,
+                FileUrl = document.File.FileUrl,
+                FileSize = document.File.FileSize,
+                MimeType = document.File.MimeType
+            },
             CommentCount = commentCount,
             UsefulCount = usefulCount,
             NotUsefulCount = notUsefulCount,

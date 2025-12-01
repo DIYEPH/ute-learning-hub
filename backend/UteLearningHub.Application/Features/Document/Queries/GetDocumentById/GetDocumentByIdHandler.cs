@@ -94,14 +94,14 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
                 Id = dt.Tag.Id,
                 TagName = dt.Tag.TagName
             }).ToList(),
-            Files = document.DocumentFiles.Select(df => new DocumentFileDto
+            File = document.File == null ? null : new DocumentFileDto
             {
-                Id = df.File.Id,
-                FileName = df.File.FileName,
-                FileUrl = df.File.FileUrl,
-                FileSize = df.File.FileSize,
-                MimeType = df.File.MimeType
-            }).ToList(),
+                Id = document.File.Id,
+                FileName = document.File.FileName,
+                FileUrl = document.File.FileUrl,
+                FileSize = document.File.FileSize,
+                MimeType = document.File.MimeType
+            },
             CommentCount = commentCount,
             UsefulCount = usefulCount,
             NotUsefulCount = notUsefulCount,

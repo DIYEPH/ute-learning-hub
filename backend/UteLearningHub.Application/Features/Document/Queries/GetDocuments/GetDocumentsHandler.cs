@@ -118,7 +118,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                     Id = dt.Tag.Id,
                     TagName = dt.Tag.TagName
                 }).ToList(),
-                FileCount = d.DocumentFiles.Count,
+                FileCount = d.FileId != Guid.Empty ? 1 : 0,
                 CommentCount = d.Comments.Count,
                 CreatedById = d.CreatedById,
                 CreatedAt = d.CreatedAt

@@ -14,10 +14,12 @@ public class Document : BaseEntity<Guid>, IAggregateRoot, IAuditable, IReviewabl
     public string NormalizedName { get; set; } = default!;
     public bool IsDownload { get; set; } = true;
     public VisibilityStatus Visibility { get; set; } = VisibilityStatus.Public;
+    public Guid FileId { get; set; }
+    public File File { get; set; } = default!;
+
     public Subject? Subject { get; set; }
     public Type Type { get; set; } = default!;
     public ICollection<DocumentTag> DocumentTags { get; set; } = [];
-    public ICollection<DocumentFile> DocumentFiles { get; set; } = [];
     public ICollection<Comment> Comments { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
     public ICollection<DocumentReview> Reviews { get; set; } = [];

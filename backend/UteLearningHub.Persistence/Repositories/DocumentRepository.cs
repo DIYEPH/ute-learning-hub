@@ -16,15 +16,14 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
     public async Task<Document?> GetByIdWithDetailsAsync(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
         var query = GetQueryableSet()
-            .Include(d => d.Subject)
+            .Include(d => d.Subject!)
                 .ThenInclude(s => s.SubjectMajors)
                     .ThenInclude(sm => sm.Major)
                         .ThenInclude(m => m.Faculty)
             .Include(d => d.Type)
             .Include(d => d.DocumentTags)
                 .ThenInclude(dt => dt.Tag)
-            .Include(d => d.DocumentFiles)
-                .ThenInclude(df => df.File)
+            .Include(d => d.File)
             .Where(d => d.Id == id);
 
         if (disableTracking)
@@ -36,13 +35,13 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
     public IQueryable<Document> GetQueryableWithIncludes()
     {
         return GetQueryableSet()
-            .Include(d => d.Subject)
+            .Include(d => d.Subject!)
                 .ThenInclude(s => s.SubjectMajors)
                     .ThenInclude(sm => sm.Major)
                         .ThenInclude(m => m.Faculty)
             .Include(d => d.Type)
             .Include(d => d.DocumentTags)
                 .ThenInclude(dt => dt.Tag)
-            .Include(d => d.DocumentFiles);
+            .Include(d => d.File);
     }
 }

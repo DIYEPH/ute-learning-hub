@@ -59,7 +59,6 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         if (document == null || document.IsDeleted)
             throw new NotFoundException($"Document with id {request.Id} not found");
 
-        // Check permission: only owner, admin, or moderator can update
         var isOwner = document.CreatedById == userId;
         var isAdmin = _currentUserService.IsInRole("Admin");
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
@@ -71,7 +70,6 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         if (!canUpdate)
             throw new UnauthorizedException("You don't have permission to update this document");
 
-        // Update properties if provided
         if (!string.IsNullOrWhiteSpace(request.DocumentName))
         {
             document.DocumentName = request.DocumentName;
@@ -108,14 +106,11 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
 
         if (request.Visibility.HasValue)
             document.Visibility = request.Visibility.Value;
-
-        // Update tags if provided
+            
         if (request.TagIds != null)
         {
-            // Remove existing tags
             document.DocumentTags.Clear();
 
-            // Validate and add new tags
             if (request.TagIds.Any())
             {
                 var tags = await _tagRepository.GetQueryableSet()
@@ -136,93 +131,67 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
             }
         }
 
-        // Handle file removal
-        var filesToDeleteFromStorage = new List<string>(); // Track files to delete from storage
-        if (request.FileIdsToRemove != null && request.FileIdsToRemove.Any())
+        var uploadedFileUrls = new List<string>();
+        var filesToDeleteFromStorage = new List<string>(); 
+
+        if (request.File != null)
         {
-            // Validate that files belong to this document
-            var existingFileIds = document.DocumentFiles.Select(df => df.FileId).ToList();
-            var invalidFileIds = request.FileIdsToRemove.Where(fid => !existingFileIds.Contains(fid)).ToList();
-            
-            if (invalidFileIds.Any())
-                throw new NotFoundException($"One or more files not found in this document: {string.Join(", ", invalidFileIds)}");
-
-            // Get files to delete
-            var filesToRemove = await _fileRepository.GetQueryableSet()
-                .Where(f => request.FileIdsToRemove.Contains(f.Id) && !f.IsDeleted)
-                .ToListAsync(cancellationToken);
-
-            // Remove DocumentFile relationships
-            var documentFilesToRemove = document.DocumentFiles
-                .Where(df => request.FileIdsToRemove.Contains(df.FileId))
-                .ToList();
-
-            foreach (var docFile in documentFilesToRemove)
+            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                document.DocumentFiles.Remove(docFile);
-                filesToDeleteFromStorage.Add(filesToRemove.First(f => f.Id == docFile.FileId).FileUrl);
+                ".doc", ".docx",        // Word
+                ".pdf",                 // PDF
+                ".jpg", ".jpeg", ".png", ".gif", ".webp" // Images
+            };
+
+            var allowedMimeTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "application/pdf",
+                "image/jpeg",
+                "image/png",
+                "image/gif",
+                "image/webp"
+            };
+
+            var extension = Path.GetExtension(request.File.FileName);
+            var mimeType = request.File.ContentType;
+
+            if (!allowedExtensions.Contains(extension) || !allowedMimeTypes.Contains(mimeType))
+            {
+                throw new BadRequestException("Only Word documents, images, and PDF files are allowed.");
             }
 
-            // Delete File entities (soft delete)
-            foreach (var file in filesToRemove)
+            if (document.File != null)
             {
-                file.IsDeleted = true;
-                file.DeletedAt = _dateTimeProvider.OffsetNow;
-                file.DeletedById = userId;
-            }
-        }
-
-        // Handle file addition
-        var uploadedFileUrls = new List<string>(); // Track uploaded files for rollback
-        if (request.FilesToAdd != null && request.FilesToAdd.Any())
-        {
-            // Calculate current file count after removal
-            var currentFileCount = document.DocumentFiles.Count;
-            if (request.FileIdsToRemove != null && request.FileIdsToRemove.Any())
-            {
-                currentFileCount -= request.FileIdsToRemove.Count;
+                filesToDeleteFromStorage.Add(document.File.FileUrl);
             }
 
-            // Validate total file count - maximum 3 files
-            var totalFileCount = currentFileCount + request.FilesToAdd.Count;
-            if (totalFileCount > 3)
-                throw new BadRequestException("Maximum 3 files are allowed per document. Current files: " + currentFileCount + ", trying to add: " + request.FilesToAdd.Count);
-
-            foreach (var formFile in request.FilesToAdd)
+            if (request.File.Length > 0)
             {
-                if (formFile.Length > 0)
+                using var fileStream = request.File.OpenReadStream();
+                var fileUrl = await _fileStorageService.UploadFileAsync(
+                    fileStream,
+                    request.File.FileName,
+                    request.File.ContentType,
+                    cancellationToken);
+
+                uploadedFileUrls.Add(fileUrl); 
+
+                var file = new DomainFile
                 {
-                    // Upload file to storage
-                    using var fileStream = formFile.OpenReadStream();
-                    var fileUrl = await _fileStorageService.UploadFileAsync(
-                        fileStream,
-                        formFile.FileName,
-                        formFile.ContentType,
-                        cancellationToken);
+                    Id = Guid.NewGuid(),
+                    FileName = request.File.FileName,
+                    FileUrl = fileUrl,
+                    FileSize = request.File.Length,
+                    MimeType = request.File.ContentType,
+                    CreatedById = userId,
+                    CreatedAt = _dateTimeProvider.OffsetNow
+                };
 
-                    uploadedFileUrls.Add(fileUrl); // Track for rollback
+                await _fileRepository.AddAsync(file, cancellationToken);
 
-                    // Create File entity
-                    var file = new DomainFile
-                    {
-                        Id = Guid.NewGuid(),
-                        FileName = formFile.FileName,
-                        FileUrl = fileUrl,
-                        FileSize = formFile.Length,
-                        MimeType = formFile.ContentType,
-                        CreatedById = userId,
-                        CreatedAt = _dateTimeProvider.OffsetNow
-                    };
-
-                    await _fileRepository.AddAsync(file, cancellationToken);
-
-                    // Create DocumentFile relationship
-                    document.DocumentFiles.Add(new DocumentFile
-                    {
-                        DocumentId = document.Id,
-                        FileId = file.Id
-                    });
-                }
+                document.FileId = file.Id;
             }
         }
 
@@ -236,7 +205,6 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         }
         catch
         {
-            // Rollback: Delete uploaded files from storage
             foreach (var fileUrl in uploadedFileUrls)
             {
                 try
@@ -245,13 +213,11 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
                 }
                 catch
                 {
-                    // Log error but continue cleanup
                 }
             }
-            throw; // Re-throw original exception
+            throw; 
         }
 
-        // Delete files from storage after successful DB save
         foreach (var fileUrl in filesToDeleteFromStorage)
         {
             try
@@ -260,11 +226,9 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
             }
             catch
             {
-                // Log error but continue (file might already be deleted)
             }
         }
 
-        // Reload to get updated relationships
         document = await _documentRepository.GetByIdWithDetailsAsync(request.Id, disableTracking: true, cancellationToken);
 
         if (document == null)
@@ -301,14 +265,14 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
                 Id = dt.Tag.Id,
                 TagName = dt.Tag.TagName
             }).ToList(),
-            Files = document.DocumentFiles.Select(df => new DocumentFileDto
+            File = document.File == null ? null : new DocumentFileDto
             {
-                Id = df.File.Id,
-                FileName = df.File.FileName,
-                FileUrl = df.File.FileUrl,
-                FileSize = df.File.FileSize,
-                MimeType = df.File.MimeType
-            }).ToList(),
+                Id = document.File.Id,
+                FileName = document.File.FileName,
+                FileUrl = document.File.FileUrl,
+                FileSize = document.File.FileSize,
+                MimeType = document.File.MimeType
+            },
             CommentCount = commentCount,
             CreatedById = document.CreatedById,
             CreatedAt = document.CreatedAt,

@@ -6,5 +6,5 @@ namespace UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 
 public record UpdateDocumentCommand : UpdateDocumentRequest, IRequest<DocumentDetailDto>
 {
-    public IList<IFormFile>? FilesToAdd { get; init; }
+    public IFormFile? File { get; init; }
 }

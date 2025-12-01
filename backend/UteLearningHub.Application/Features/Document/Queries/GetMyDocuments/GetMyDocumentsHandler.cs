@@ -91,7 +91,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                 ReviewStatus = d.ReviewStatus,
                 Subject = new SubjectDto
                 {
-                    Id = d.Subject.Id,
+                    Id = d.Subject!.Id,
                     SubjectName = d.Subject.SubjectName,
                     SubjectCode = d.Subject.SubjectCode,
                     Majors = d.Subject.SubjectMajors.Select(sm => new MajorDto
@@ -118,7 +118,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                     Id = dt.Tag.Id,
                     TagName = dt.Tag.TagName
                 }).ToList(),
-                FileCount = d.DocumentFiles.Count,
+                FileCount = d.FileId != Guid.Empty ? 1 : 0,
                 CommentCount = d.Comments.Count,
                 CreatedById = d.CreatedById,
                 CreatedAt = d.CreatedAt
