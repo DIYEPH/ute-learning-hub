@@ -22,6 +22,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<Document> Documents { get; set; }
     public virtual DbSet<DocumentReview> DocumentReviews { get; set; }
     public virtual DbSet<DocumentTag> DocumentTags { get; set; }
+    public virtual DbSet<DocumentFile> DocumentFiles { get; set; }
+    public virtual DbSet<Author> Authors { get; set; }
+    public virtual DbSet<DocumentAuthor> DocumentAuthors { get; set; }
     public virtual DbSet<Event> Events { get; set; }
     public virtual DbSet<Faculty> Faculty { get; set; }
     public virtual DbSet<DomainFile> Files { get; set; }
@@ -33,6 +36,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<ProfileVector> ProfileVectors { get; set; }
     public virtual DbSet<ConversationVector> ConversationVectors { get; set; }
     public virtual DbSet<Report> Reports { get; set; }
+    public virtual DbSet<UserDocumentProgress> UserDocumentProgresses { get; set; }
     public virtual DbSet<Subject> Subjects { get; set; }
     public virtual DbSet<Tag> Tags { get; set; }
     public virtual DbSet<DomainType> Types { get; set; }

@@ -16,6 +16,7 @@ public record DocumentDetailDto
     public TypeDto Type { get; init; } = default!;
     public IList<TagDto> Tags { get; init; } = [];
     public DocumentFileDto? File { get; init; }
+    public IList<DocumentFileDto> Files { get; init; } = [];
     public int CommentCount { get; init; }
     public int UsefulCount { get; init; }
     public int NotUsefulCount { get; init; }
@@ -32,5 +33,10 @@ public record DocumentFileDto
     public string FileUrl { get; init; } = default!;
     public long FileSize { get; init; }
     public string MimeType { get; init; } = default!;
+    public string? Title { get; init; }
+    public int? Order { get; init; }
+    public bool IsPrimary { get; init; }
+    public int? TotalPages { get; init; }
+    public string? CoverUrl { get; init; }
 }
 

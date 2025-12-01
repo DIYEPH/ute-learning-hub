@@ -134,6 +134,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         var uploadedFileUrls = new List<string>();
         var filesToDeleteFromStorage = new List<string>(); 
 
+        // Cập nhật file nội dung chính
         if (request.File != null)
         {
             var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -193,6 +194,59 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
 
                 document.FileId = file.Id;
             }
+        }
+
+        // Cập nhật ảnh bìa nếu có
+        if (request.CoverFile != null && request.CoverFile.Length > 0)
+        {
+            var coverExtension = Path.GetExtension(request.CoverFile.FileName);
+            var coverMimeType = request.CoverFile.ContentType;
+
+            var allowedCoverExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ".jpg", ".jpeg", ".png", ".gif", ".webp"
+            };
+
+            var allowedCoverMimeTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "image/jpeg",
+                "image/png",
+                "image/gif",
+                "image/webp"
+            };
+
+            if (!allowedCoverExtensions.Contains(coverExtension) || !allowedCoverMimeTypes.Contains(coverMimeType))
+            {
+                throw new BadRequestException("Cover image must be an image file (jpg, png, gif, webp).");
+            }
+
+            if (document.CoverFile != null)
+            {
+                filesToDeleteFromStorage.Add(document.CoverFile.FileUrl);
+            }
+
+            using var coverStream = request.CoverFile.OpenReadStream();
+            var coverUrl = await _fileStorageService.UploadFileAsync(
+                coverStream,
+                request.CoverFile.FileName,
+                request.CoverFile.ContentType,
+                cancellationToken);
+
+            uploadedFileUrls.Add(coverUrl);
+
+            var coverFile = new DomainFile
+            {
+                Id = Guid.NewGuid(),
+                FileName = request.CoverFile.FileName,
+                FileUrl = coverUrl,
+                FileSize = request.CoverFile.Length,
+                MimeType = request.CoverFile.ContentType,
+                CreatedById = userId,
+                CreatedAt = _dateTimeProvider.OffsetNow
+            };
+
+            await _fileRepository.AddAsync(coverFile, cancellationToken);
+            document.CoverFileId = coverFile.Id;
         }
 
         document.UpdatedById = userId;

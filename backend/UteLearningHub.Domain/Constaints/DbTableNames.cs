@@ -34,4 +34,7 @@ public static class DbTableNames
     public const string Type = "LoaiTaiLieu";
     public const string Tag = "The";
     public const string UserTrustHistory = "LichSuDoTinCay";
+    public const string Author = "TacGia";
+    public const string DocumentAuthor = "TaiLieu_TacGia";
+    public const string UserDocumentProgress = "LichSuDocTaiLieu";
 }

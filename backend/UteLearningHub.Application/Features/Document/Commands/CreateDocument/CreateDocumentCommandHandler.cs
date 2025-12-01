@@ -206,29 +206,77 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             var formFile = request.File;
             if (formFile.Length > 0)
             {
-                        using var fileStream = formFile.OpenReadStream();
-                        var fileUrl = await _fileStorageService.UploadFileAsync(
-                            fileStream,
-                            formFile.FileName,
-                            formFile.ContentType,
-                            cancellationToken);
+                using var fileStream = formFile.OpenReadStream();
+                var fileUrl = await _fileStorageService.UploadFileAsync(
+                    fileStream,
+                    formFile.FileName,
+                    formFile.ContentType,
+                    cancellationToken);
 
                 uploadedFileUrls.Add(fileUrl); 
 
-                        var file = new DomainFile
-                        {
-                            Id = Guid.NewGuid(),
-                            FileName = formFile.FileName,
-                            FileUrl = fileUrl,
-                            FileSize = formFile.Length,
-                            MimeType = formFile.ContentType,
-                            CreatedById = userId,
-                            CreatedAt = _dateTimeProvider.OffsetNow
-                        };
+                var file = new DomainFile
+                {
+                    Id = Guid.NewGuid(),
+                    FileName = formFile.FileName,
+                    FileUrl = fileUrl,
+                    FileSize = formFile.Length,
+                    MimeType = formFile.ContentType,
+                    CreatedById = userId,
+                    CreatedAt = _dateTimeProvider.OffsetNow
+                };
 
-                        await _fileRepository.AddAsync(file, cancellationToken);
+                await _fileRepository.AddAsync(file, cancellationToken);
 
                 document.FileId = file.Id;
+            }
+
+            // Ảnh bìa tùy chọn
+            if (request.CoverFile != null && request.CoverFile.Length > 0)
+            {
+                var coverExtension = Path.GetExtension(request.CoverFile.FileName);
+                var coverMimeType = request.CoverFile.ContentType;
+
+                var allowedCoverExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    ".jpg", ".jpeg", ".png", ".gif", ".webp"
+                };
+
+                var allowedCoverMimeTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "image/jpeg",
+                    "image/png",
+                    "image/gif",
+                    "image/webp"
+                };
+
+                if (!allowedCoverExtensions.Contains(coverExtension) || !allowedCoverMimeTypes.Contains(coverMimeType))
+                {
+                    throw new BadRequestException("Cover image must be an image file (jpg, png, gif, webp).");
+                }
+
+                using var coverStream = request.CoverFile.OpenReadStream();
+                var coverUrl = await _fileStorageService.UploadFileAsync(
+                    coverStream,
+                    request.CoverFile.FileName,
+                    request.CoverFile.ContentType,
+                    cancellationToken);
+
+                uploadedFileUrls.Add(coverUrl);
+
+                var coverFile = new DomainFile
+                {
+                    Id = Guid.NewGuid(),
+                    FileName = request.CoverFile.FileName,
+                    FileUrl = coverUrl,
+                    FileSize = request.CoverFile.Length,
+                    MimeType = request.CoverFile.ContentType,
+                    CreatedById = userId,
+                    CreatedAt = _dateTimeProvider.OffsetNow
+                };
+
+                await _fileRepository.AddAsync(coverFile, cancellationToken);
+                document.CoverFileId = coverFile.Id;
             }
 
             await _documentRepository.AddAsync(document, cancellationToken);

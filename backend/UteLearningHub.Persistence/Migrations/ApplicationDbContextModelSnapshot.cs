@@ -172,6 +172,78 @@ namespace UteLearningHub.Persistence.Migrations
                     b.ToTable("NguoiDung_Token", (string)null);
                 });
 
+            modelBuilder.Entity("UteLearningHub.Domain.Entities.Author", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayTao");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TaoBoi");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayXoa");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BiXoaBoi");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("MoTa");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("TenTacGia");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("CoDaXoa");
+
+                    b.Property<string>("ReviewNote")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("NoiDungDuyet");
+
+                    b.Property<int>("ReviewStatus")
+                        .HasColumnType("int")
+                        .HasColumnName("TrangThaiDuyet");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayDuyet");
+
+                    b.Property<Guid?>("ReviewedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("DuyetBoi");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("PhienBanHang");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayCapNhat");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CapNhatBoi");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TacGia", (string)null);
+                });
+
             modelBuilder.Entity("UteLearningHub.Domain.Entities.Comment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -539,6 +611,10 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("TacGia");
 
+                    b.Property<Guid?>("CoverFileId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TepBiaId");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("NgayTao");
@@ -630,6 +706,8 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CoverFileId");
+
                     b.HasIndex("CreatedById");
 
                     b.HasIndex("FileId");
@@ -639,6 +717,107 @@ namespace UteLearningHub.Persistence.Migrations
                     b.HasIndex("TypeId");
 
                     b.ToTable("TaiLieu", (string)null);
+                });
+
+            modelBuilder.Entity("UteLearningHub.Domain.Entities.DocumentAuthor", b =>
+                {
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TaiLieuId");
+
+                    b.Property<Guid>("AuthorId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TacGiaId");
+
+                    b.Property<string>("Role")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("VaiTro");
+
+                    b.HasKey("DocumentId", "AuthorId");
+
+                    b.HasIndex("AuthorId");
+
+                    b.ToTable("TaiLieu_TacGia", (string)null);
+                });
+
+            modelBuilder.Entity("UteLearningHub.Domain.Entities.DocumentFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("CoverFileId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TepBiaId");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayTao");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TaoBoi");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayXoa");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BiXoaBoi");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TaiLieuId");
+
+                    b.Property<Guid>("FileId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TepDinhKemId");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("CoDaXoa");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("bit")
+                        .HasColumnName("LaChinh");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int")
+                        .HasColumnName("ThuTu");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("PhienBanHang");
+
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("TieuDe");
+
+                    b.Property<int?>("TotalPages")
+                        .HasColumnType("int")
+                        .HasColumnName("TongSoTrang");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayCapNhat");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CapNhatBoi");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoverFileId");
+
+                    b.HasIndex("DocumentId");
+
+                    b.HasIndex("FileId");
+
+                    b.ToTable("TaiLieu_Tep", (string)null);
                 });
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.DocumentReview", b =>
@@ -1566,6 +1745,78 @@ namespace UteLearningHub.Persistence.Migrations
                     b.ToTable("LoaiTaiLieu", (string)null);
                 });
 
+            modelBuilder.Entity("UteLearningHub.Domain.Entities.UserDocumentProgress", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayTao");
+
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayXoa");
+
+                    b.Property<Guid?>("DeletedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("BiXoaBoi");
+
+                    b.Property<Guid?>("DocumentFileId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TaiLieu_TepId");
+
+                    b.Property<Guid>("DocumentId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TaiLieuId");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit")
+                        .HasColumnName("CoDaXoa");
+
+                    b.Property<DateTimeOffset>("LastAccessedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("LanTruyCapGanNhat");
+
+                    b.Property<int>("LastPage")
+                        .HasColumnType("int")
+                        .HasColumnName("TrangCuoiCung");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion")
+                        .HasColumnName("PhienBanHang");
+
+                    b.Property<int?>("TotalPages")
+                        .HasColumnType("int")
+                        .HasColumnName("TongSoTrang");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayCapNhat");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("NguoiDungId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DocumentFileId");
+
+                    b.HasIndex("DocumentId");
+
+                    b.ToTable("LichSuDocTaiLieu", (string)null);
+                });
+
             modelBuilder.Entity("UteLearningHub.Domain.Entities.UserTrustHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1914,6 +2165,11 @@ namespace UteLearningHub.Persistence.Migrations
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.Document", b =>
                 {
+                    b.HasOne("UteLearningHub.Domain.Entities.File", "CoverFile")
+                        .WithMany()
+                        .HasForeignKey("CoverFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("UteLearningHub.Persistence.Identity.AppUser", null)
                         .WithMany("Documents")
                         .HasForeignKey("CreatedById")
@@ -1937,11 +2193,58 @@ namespace UteLearningHub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("CoverFile");
+
                     b.Navigation("File");
 
                     b.Navigation("Subject");
 
                     b.Navigation("Type");
+                });
+
+            modelBuilder.Entity("UteLearningHub.Domain.Entities.DocumentAuthor", b =>
+                {
+                    b.HasOne("UteLearningHub.Domain.Entities.Author", "Author")
+                        .WithMany("DocumentAuthors")
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("UteLearningHub.Domain.Entities.Document", "Document")
+                        .WithMany("DocumentAuthors")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Document");
+                });
+
+            modelBuilder.Entity("UteLearningHub.Domain.Entities.DocumentFile", b =>
+                {
+                    b.HasOne("UteLearningHub.Domain.Entities.File", "CoverFile")
+                        .WithMany()
+                        .HasForeignKey("CoverFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("UteLearningHub.Domain.Entities.Document", "Document")
+                        .WithMany("DocumentFiles")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("UteLearningHub.Domain.Entities.File", "File")
+                        .WithMany()
+                        .HasForeignKey("FileId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CoverFile");
+
+                    b.Navigation("Document");
+
+                    b.Navigation("File");
                 });
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.DocumentReview", b =>
@@ -2142,6 +2445,24 @@ namespace UteLearningHub.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("UteLearningHub.Domain.Entities.UserDocumentProgress", b =>
+                {
+                    b.HasOne("UteLearningHub.Domain.Entities.DocumentFile", "DocumentFile")
+                        .WithMany()
+                        .HasForeignKey("DocumentFileId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("UteLearningHub.Domain.Entities.Document", "Document")
+                        .WithMany("UserProgresses")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Document");
+
+                    b.Navigation("DocumentFile");
+                });
+
             modelBuilder.Entity("UteLearningHub.Domain.Entities.UserTrustHistory", b =>
                 {
                     b.HasOne("UteLearningHub.Persistence.Identity.AppUser", null)
@@ -2158,6 +2479,11 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasForeignKey("MajorId");
 
                     b.Navigation("Major");
+                });
+
+            modelBuilder.Entity("UteLearningHub.Domain.Entities.Author", b =>
+                {
+                    b.Navigation("DocumentAuthors");
                 });
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.Comment", b =>
@@ -2180,11 +2506,17 @@ namespace UteLearningHub.Persistence.Migrations
                 {
                     b.Navigation("Comments");
 
+                    b.Navigation("DocumentAuthors");
+
+                    b.Navigation("DocumentFiles");
+
                     b.Navigation("DocumentTags");
 
                     b.Navigation("Reports");
 
                     b.Navigation("Reviews");
+
+                    b.Navigation("UserProgresses");
                 });
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.Faculty", b =>

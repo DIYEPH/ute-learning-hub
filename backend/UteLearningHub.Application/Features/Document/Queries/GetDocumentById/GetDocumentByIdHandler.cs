@@ -101,14 +101,39 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
                 Id = dt.Tag.Id,
                 TagName = dt.Tag.TagName
             }).ToList(),
+            // Ảnh bìa nếu có
+            // (frontend có thể dùng từ Document.CoverFile.FileUrl thay cho ThumbnailUrl của list)
+            // File chính (giữ nguyên cách cũ: dùng Document.File)
             File = document.File == null ? null : new DocumentFileDto
             {
                 Id = document.File.Id,
                 FileName = document.File.FileName,
                 FileUrl = document.File.FileUrl,
                 FileSize = document.File.FileSize,
-                MimeType = document.File.MimeType
+                MimeType = document.File.MimeType,
+                Title = document.DocumentName,
+                Order = 1,
+                IsPrimary = true,
+                TotalPages = null
             },
+            // Danh sách các file/chương (DocumentFiles)
+            Files = document.DocumentFiles
+                .OrderBy(df => df.Order)
+                .ThenBy(df => df.CreatedAt)
+                .Select(df => new DocumentFileDto
+                {
+                    Id = df.File.Id,
+                    FileName = df.File.FileName,
+                    FileUrl = df.File.FileUrl,
+                    FileSize = df.File.FileSize,
+                    MimeType = df.File.MimeType,
+                    Title = df.Title,
+                    Order = df.Order,
+                    IsPrimary = df.IsPrimary,
+                    TotalPages = df.TotalPages,
+                    CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null
+                })
+                .ToList(),
             CommentCount = commentCount,
             UsefulCount = usefulCount,
             NotUsefulCount = notUsefulCount,

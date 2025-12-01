@@ -122,6 +122,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                 }).ToList(),
                 FileMimeType = d.File != null ? d.File.MimeType : null,
                 FileCount = d.FileId != Guid.Empty ? 1 : 0,
+                ThumbnailUrl = d.CoverFile != null ? d.CoverFile.FileUrl : null,
                 CommentCount = d.Comments.Count,
                 CreatedById = d.CreatedById,
                 CreatedAt = d.CreatedAt

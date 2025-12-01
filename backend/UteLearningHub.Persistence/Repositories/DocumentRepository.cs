@@ -24,6 +24,9 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
             .Include(d => d.DocumentTags)
                 .ThenInclude(dt => dt.Tag)
             .Include(d => d.File)
+            .Include(d => d.CoverFile)
+            .Include(d => d.DocumentFiles)
+                .ThenInclude(df => df.File)
             .Where(d => d.Id == id);
 
         if (disableTracking)
@@ -42,6 +45,11 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
             .Include(d => d.Type)
             .Include(d => d.DocumentTags)
                 .ThenInclude(dt => dt.Tag)
-            .Include(d => d.File);
+            .Include(d => d.File)
+            .Include(d => d.CoverFile)
+            .Include(d => d.DocumentFiles)
+                .ThenInclude(df => df.File)
+            .Include(d => d.DocumentFiles)
+                .ThenInclude(df => df.CoverFile);
     }
 }

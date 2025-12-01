@@ -22,6 +22,7 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(u => u.NormalizedName).HasColumnName("TenChuanHoa");
         builder.Property(u => u.IsDownload).HasColumnName("CoDuocTai");
         builder.Property(u => u.Visibility).HasColumnName("CoHienThi");
+        builder.Property(u => u.CoverFileId).HasColumnName("TepBiaId");
 
         builder.ApplySoftDelete<Document>()
             .ApplyTrack<Document>()
@@ -41,6 +42,11 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.HasOne(u => u.Type)
             .WithMany(u => u.Documents)
             .HasForeignKey(u => u.TypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(u => u.CoverFile)
+            .WithMany()
+            .HasForeignKey(u => u.CoverFileId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
