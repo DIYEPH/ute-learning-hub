@@ -94,11 +94,12 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                 if (string.IsNullOrWhiteSpace(tagName)) continue;
 
                 var normalizedName = tagName.Trim();
+                var normalizedNameLower = normalizedName.ToLowerInvariant();
 
                 var existingTag = await _tagRepository.GetQueryableSet()
                     .Where(t => !t.IsDeleted && t.TagName != null)
                     .FirstOrDefaultAsync(
-                        t => string.Equals(t.TagName, normalizedName, StringComparison.OrdinalIgnoreCase),
+                        t => t.TagName!.ToLower() == normalizedNameLower,
                         cancellationToken);
 
                 if (existingTag != null)

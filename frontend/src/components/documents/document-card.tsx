@@ -32,11 +32,15 @@ export function DocumentCard({
   const resolvedHref = href ?? (id ? `/documents/${id}` : "#");
 
   const showMenu = Boolean(onEdit || onDelete || onReport);
+  const hasSubject = Boolean(subjectName);
+  const visibleTags = tags?.filter(Boolean) ?? [];
+  const mainTags = visibleTags.slice(0, 2);
+  const extraTagCount = visibleTags.length > 2 ? visibleTags.length - 2 : 0;
 
   const content = (
     <div
       className={cn(
-        "relative flex flex-col rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm transition-all duration-200 cursor-pointer overflow-hidden",
+        "relative flex h-full flex-col rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm transition-all duration-200 cursor-pointer overflow-hidden",
         "hover:shadow-lg hover:border-sky-200 hover:bg-white",
         "dark:bg-slate-900/70 dark:border-slate-700 dark:hover:border-sky-500/60",
         className
@@ -74,18 +78,25 @@ export function DocumentCard({
       </div>
 
       {/* Info */}
-      <div className="px-4 pb-4">
+      <div className="px-4 pb-4 pt-1 flex flex-col gap-1 min-h-[80px]">
         <p className="text-sm font-semibold text-sky-700 leading-snug line-clamp-3 dark:text-sky-300">
           {title}
         </p>
-        {subjectName ? (
-          <p className="mt-2 text-xs font-medium text-slate-500 line-clamp-1 dark:text-slate-400">
-            {subjectName}
-          </p>
-        ) : null}
-        {tags && tags.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {tags.slice(0, 2).map((tag) => (
+        <p
+          className={cn(
+            "mt-2 text-xs font-medium text-slate-500 line-clamp-1 dark:text-slate-400",
+            !hasSubject && "invisible"
+          )}
+        >
+          {hasSubject ? subjectName : "placeholder-subject"}
+        </p>
+        <div
+          className={cn(
+            "mt-2 flex flex-wrap gap-1 min-h-[18px]",
+            visibleTags.length === 0 && "invisible"
+          )}
+        >
+          {mainTags.map((tag) => (
               <span
                 key={tag}
                 className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300"
@@ -93,13 +104,12 @@ export function DocumentCard({
                 {tag}
               </span>
             ))}
-            {tags.length > 2 && (
-              <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                +{tags.length - 2} …
-              </span>
-            )}
-          </div>
-        )}
+          {extraTagCount > 0 && (
+            <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+              +{extraTagCount} …
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
