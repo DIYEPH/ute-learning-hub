@@ -9,6 +9,7 @@ public record GetDocumentsRequest : PagedRequest
     public Guid? TypeId { get; init; }
     public Guid? TagId { get; init; }
     public Guid? MajorId { get; init; }
+    public Guid? AuthorId { get; init; }
     public string? SearchTerm { get; init; }
     public VisibilityStatus? Visibility { get; init; }
     public ReviewStatus? ReviewStatus { get; init; }

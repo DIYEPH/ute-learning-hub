@@ -44,8 +44,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
             var searchTerm = request.SearchTerm.ToLower();
             query = query.Where(d =>
                 d.DocumentName.ToLower().Contains(searchTerm) ||
-                d.Description.ToLower().Contains(searchTerm) ||
-                d.AuthorName.ToLower().Contains(searchTerm));
+                d.Description.ToLower().Contains(searchTerm));
         }
 
         if (request.Visibility.HasValue)
@@ -63,9 +62,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
             "name" => request.SortDescending
                 ? query.OrderByDescending(d => d.DocumentName)
                 : query.OrderBy(d => d.DocumentName),
-            "author" or "authorname" => request.SortDescending
-                ? query.OrderByDescending(d => d.AuthorName)
-                : query.OrderBy(d => d.AuthorName),
+            // "author" sort tạm bỏ, sẽ dùng bảng Author/DocumentAuthor sau
             "createdat" or "date" => request.SortDescending
                 ? query.OrderByDescending(d => d.CreatedAt)
                 : query.OrderBy(d => d.CreatedAt),
@@ -82,8 +79,6 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                 Id = d.Id,
                 DocumentName = d.DocumentName,
                 Description = d.Description,
-                AuthorName = d.AuthorName,
-                DescriptionAuthor = d.DescriptionAuthor,
                 IsDownload = d.IsDownload,
                 Visibility = d.Visibility,
                 ReviewStatus = d.ReviewStatus,
@@ -120,10 +115,17 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                     Id = dt.Tag.Id,
                     TagName = dt.Tag.TagName
                 }).ToList(),
-                FileMimeType = d.File != null ? d.File.MimeType : null,
-                FileCount = d.FileId != Guid.Empty ? 1 : 0,
+                Authors = d.DocumentAuthors
+                    .Select(da => new AuthorDto
+                    {
+                        Id = da.Author.Id,
+                        FullName = da.Author.FullName
+                    })
+                    .Distinct()
+                    .ToList(),
+                FileCount = d.DocumentFiles.Count,
                 ThumbnailUrl = d.CoverFile != null ? d.CoverFile.FileUrl : null,
-                CommentCount = d.Comments.Count,
+                CommentCount = d.DocumentFiles.SelectMany(df => df.Comments).Count(),
                 CreatedById = d.CreatedById,
                 CreatedAt = d.CreatedAt
             })

@@ -62,7 +62,8 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
         return new CommentDto
         {
             Id = comment.Id,
-            DocumentId = comment.DocumentId,
+            DocumentId = comment.DocumentFile.DocumentId,
+            DocumentFileId = comment.DocumentFileId,
             ParentId = comment.ParentId,
             Content = comment.Content,
             AuthorName = author?.FullName ?? "Unknown",

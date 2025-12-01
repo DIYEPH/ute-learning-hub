@@ -16,6 +16,7 @@ public class DocumentReviewConfiguration : IEntityTypeConfiguration<DocumentRevi
         builder.HasKey(u => u.Id);
 
         builder.Property(u => u.DocumentId).HasColumnName("TaiLieuId");
+        builder.Property(u => u.DocumentFileId).HasColumnName("TaiLieu_TepId");
         builder.Property(u => u.DocumentReviewType).HasColumnName("LoaiDanhGia");
 
         builder.ApplySoftDelete<DocumentReview>()
@@ -30,6 +31,11 @@ public class DocumentReviewConfiguration : IEntityTypeConfiguration<DocumentRevi
         builder.HasOne(u => u.Document)
             .WithMany(u => u.Reviews)
             .HasForeignKey(u => u.DocumentId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(u => u.DocumentFile)
+            .WithMany() 
+            .HasForeignKey(u => u.DocumentFileId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

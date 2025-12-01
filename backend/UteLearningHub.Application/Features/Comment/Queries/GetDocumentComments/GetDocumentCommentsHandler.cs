@@ -6,16 +6,16 @@ using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Repositories;
 
-namespace UteLearningHub.Application.Features.Comment.Queries.GetComments;
+namespace UteLearningHub.Application.Features.Comment.Queries.GetDocumentComments;
 
-public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedResponse<CommentDto>>
+public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQuery, PagedResponse<CommentDto>>
 {
     private readonly ICommentRepository _commentRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly ICommentService _commentService;
 
-    public GetCommentsHandler(
-        ICommentRepository commentRepository, 
+    public GetDocumentCommentsHandler(
+        ICommentRepository commentRepository,
         ICurrentUserService currentUserService,
         ICommentService commentService)
     {
@@ -24,20 +24,20 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
         _commentService = commentService;
     }
 
-    public async Task<PagedResponse<CommentDto>> Handle(GetCommentsQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResponse<CommentDto>> Handle(GetDocumentCommentsQuery request, CancellationToken cancellationToken)
     {
         var query = _commentRepository.GetQueryableSet()
             .Include(c => c.DocumentFile)
-            .ThenInclude(df => df.Document)
+                .ThenInclude(df => df.Document)
             .AsNoTracking()
-            .Where(c => c.DocumentFileId == request.DocumentFileId);
+            .Where(c => c.DocumentFile.DocumentId == request.DocumentId);
 
         if (request.ParentId.HasValue)
             query = query.Where(c => c.ParentId == request.ParentId.Value);
         else
             query = query.Where(c => c.ParentId == null);
 
-        // Only show approved comments for public users, admin can see all
+        // Only show approved comments for public users, admin có thể xem tất cả
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
         if (!isAdmin)
             query = query.Where(c => c.ReviewStatus == ReviewStatus.Approved);
@@ -77,11 +77,11 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
             DocumentFileId = c.DocumentFileId,
             ParentId = c.ParentId,
             Content = c.Content,
-            AuthorName = authorInfo.TryGetValue(c.CreatedById, out var author) 
-                ? author.FullName 
+            AuthorName = authorInfo.TryGetValue(c.CreatedById, out var author)
+                ? author.FullName
                 : "Unknown",
-            AuthorAvatarUrl = authorInfo.TryGetValue(c.CreatedById, out var authorInfoValue) 
-                ? authorInfoValue.AvatarUrl 
+            AuthorAvatarUrl = authorInfo.TryGetValue(c.CreatedById, out var authorInfoValue)
+                ? authorInfoValue.AvatarUrl
                 : null,
             CreatedById = c.CreatedById,
             ReviewStatus = c.ReviewStatus,
@@ -99,3 +99,5 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
         };
     }
 }
+
+

@@ -9,6 +9,7 @@ using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
 using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
 using UteLearningHub.Application.Features.Document.Commands.ReviewDocument;
 using UteLearningHub.Application.Features.Document.Queries.GetMyDocuments;
+using UteLearningHub.Application.Features.Document.Commands.AddDocumentFile;
 
 namespace UteLearningHub.Api.Controllers
 {
@@ -59,6 +60,16 @@ namespace UteLearningHub.Api.Controllers
         public async Task<ActionResult<DocumentDetailDto>> UpdateDocument(Guid id, [FromForm] UpdateDocumentCommand command)
         {
             command = command with { Id = id };
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpPost("{id}/files")]
+        [Authorize]
+        [RequestSizeLimit(100_000_000)]
+        public async Task<ActionResult<DocumentDetailDto>> AddDocumentFile(Guid id, [FromForm] AddDocumentFileCommand command)
+        {
+            command = command with { DocumentId = id };
             var result = await _mediator.Send(command);
             return Ok(result);
         }

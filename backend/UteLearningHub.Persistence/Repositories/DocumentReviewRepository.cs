@@ -13,10 +13,10 @@ public class DocumentReviewRepository : Repository<DocumentReview, Guid>, IDocum
     {
     }
 
-    public async Task<DocumentReview?> GetByDocumentIdAndUserIdAsync(Guid documentId, Guid userId, bool disableTracking = false, CancellationToken cancellationToken = default)
+    public async Task<DocumentReview?> GetByDocumentFileIdAndUserIdAsync(Guid documentFileId, Guid userId, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
         var query = GetQueryableSet()
-            .Where(dr => dr.DocumentId == documentId && dr.CreatedById == userId && !dr.IsDeleted);
+            .Where(dr => dr.DocumentFileId == documentFileId && dr.CreatedById == userId && !dr.IsDeleted);
 
         if (disableTracking)
             query = query.AsNoTracking();

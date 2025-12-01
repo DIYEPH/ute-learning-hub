@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UteLearningHub.Persistence;
 
@@ -11,9 +12,11 @@ using UteLearningHub.Persistence;
 namespace UteLearningHub.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251201163909_UpdateDocumentAndComment")]
+    partial class UpdateDocumentAndComment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -827,10 +830,6 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("BiXoaBoi");
 
-                    b.Property<Guid>("DocumentFileId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("TaiLieu_TepId");
-
                     b.Property<Guid>("DocumentId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("TaiLieuId");
@@ -861,8 +860,6 @@ namespace UteLearningHub.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
-
-                    b.HasIndex("DocumentFileId");
 
                     b.HasIndex("DocumentId");
 
@@ -2238,12 +2235,6 @@ namespace UteLearningHub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("UteLearningHub.Domain.Entities.DocumentFile", "DocumentFile")
-                        .WithMany()
-                        .HasForeignKey("DocumentFileId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("UteLearningHub.Domain.Entities.Document", "Document")
                         .WithMany("Reviews")
                         .HasForeignKey("DocumentId")
@@ -2251,8 +2242,6 @@ namespace UteLearningHub.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Document");
-
-                    b.Navigation("DocumentFile");
                 });
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.DocumentTag", b =>

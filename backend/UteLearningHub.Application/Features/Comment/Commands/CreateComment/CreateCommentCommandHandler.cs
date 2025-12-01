@@ -39,16 +39,17 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Validate document exists
-        var document = await _documentRepository.GetByIdAsync(request.DocumentId, disableTracking: true, cancellationToken);
-        if (document == null || document.IsDeleted)
-            throw new NotFoundException($"Document with id {request.DocumentId} not found");
+        // Validate document file exists and belongs to a non-deleted document
+        var documentId = await _documentRepository.GetDocumentIdByDocumentFileIdAsync(request.DocumentFileId, cancellationToken);
+
+        if (!documentId.HasValue)
+            throw new NotFoundException($"Document file with id {request.DocumentFileId} not found");
 
         // If ParentId is provided, validate parent comment exists
         if (request.ParentId.HasValue)
         {
             var parentComment = await _commentRepository.GetByIdAsync(request.ParentId.Value, disableTracking: true, cancellationToken);
-            if (parentComment == null || parentComment.IsDeleted || parentComment.DocumentId != request.DocumentId)
+            if (parentComment == null || parentComment.IsDeleted || parentComment.DocumentFileId != request.DocumentFileId)
                 throw new NotFoundException($"Parent comment with id {request.ParentId.Value} not found");
         }
 
@@ -56,7 +57,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
         var comment = new EntityComment
         {
             Id = Guid.NewGuid(),
-            DocumentId = request.DocumentId,
+            DocumentFileId = request.DocumentFileId,
             ParentId = request.ParentId,
             Content = request.Content,
             ReviewStatus = ReviewStatus.Approved, // Comments are auto-approved, or can be PendingReview
@@ -74,7 +75,8 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
         return new CommentDto
         {
             Id = comment.Id,
-            DocumentId = comment.DocumentId,
+            DocumentId = documentId.Value,
+            DocumentFileId = comment.DocumentFileId,
             ParentId = comment.ParentId,
             Content = comment.Content,
             AuthorName = author?.FullName ?? "Unknown",

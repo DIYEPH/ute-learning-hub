@@ -7,15 +7,13 @@ namespace UteLearningHub.Application.Common.Dtos
         public Guid Id { get; init; }
         public string DocumentName { get; init; } = default!;
         public string Description { get; init; } = default!;
-        public string AuthorName { get; init; } = default!;
-        public string DescriptionAuthor { get; init; } = default!;
         public bool IsDownload { get; init; }
         public VisibilityStatus Visibility { get; init; }
         public ReviewStatus ReviewStatus { get; init; }
         public SubjectDto? Subject { get; init; }
         public TypeDto Type { get; init; } = default!;
         public IList<TagDto> Tags { get; init; } = [];
-        public string? FileMimeType { get; init; }
+        public IList<AuthorDto> Authors { get; init; } = [];
         public string? ThumbnailUrl { get; init; }
         public int FileCount { get; init; }
         public int CommentCount { get; init; }
@@ -41,5 +39,11 @@ namespace UteLearningHub.Application.Common.Dtos
     {
         public Guid Id { get; init; }
         public string TagName { get; init; } = default!;
+    }
+
+    public record AuthorDto
+    {
+        public Guid Id { get; init; }
+        public string FullName { get; init; } = default!;
     }
 }

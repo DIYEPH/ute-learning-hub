@@ -4,6 +4,6 @@ namespace UteLearningHub.Application.Features.DocumentReview.Commands.CreateDocu
 
 public record CreateDocumentReviewRequest
 {
-    public Guid DocumentId { get; init; }
+    public Guid DocumentFileId { get; init; }
     public DocumentReviewType DocumentReviewType { get; init; }
 }

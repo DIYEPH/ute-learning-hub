@@ -39,6 +39,7 @@ public static class PersistenceExtensions
 
         //Register Repositories
         services.AddScoped<IDocumentRepository, DocumentRepository>();
+        services.AddScoped<IAuthorRepository, AuthorRepository>();
         services.AddScoped<ICommentRepository, CommentRepository>();
         services.AddScoped<IDocumentReviewRepository, DocumentReviewRepository>();
         services.AddScoped<IConversationRepository, ConversationRepository>();

@@ -79,12 +79,6 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         if (!string.IsNullOrWhiteSpace(request.Description))
             document.Description = request.Description;
 
-        if (!string.IsNullOrWhiteSpace(request.AuthorName))
-            document.AuthorName = request.AuthorName;
-
-        if (!string.IsNullOrWhiteSpace(request.DescriptionAuthor))
-            document.DescriptionAuthor = request.DescriptionAuthor;
-
         if (request.SubjectId.HasValue)
         {
             var subject = await _subjectRepository.GetByIdAsync(request.SubjectId.Value, disableTracking: true, cancellationToken);
@@ -133,68 +127,6 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
 
         var uploadedFileUrls = new List<string>();
         var filesToDeleteFromStorage = new List<string>(); 
-
-        // Cập nhật file nội dung chính
-        if (request.File != null)
-        {
-            var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                ".doc", ".docx",        // Word
-                ".pdf",                 // PDF
-                ".jpg", ".jpeg", ".png", ".gif", ".webp" // Images
-            };
-
-            var allowedMimeTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "application/msword",
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                "application/pdf",
-                "image/jpeg",
-                "image/png",
-                "image/gif",
-                "image/webp"
-            };
-
-            var extension = Path.GetExtension(request.File.FileName);
-            var mimeType = request.File.ContentType;
-
-            if (!allowedExtensions.Contains(extension) || !allowedMimeTypes.Contains(mimeType))
-            {
-                throw new BadRequestException("Only Word documents, images, and PDF files are allowed.");
-            }
-
-            if (document.File != null)
-            {
-                filesToDeleteFromStorage.Add(document.File.FileUrl);
-            }
-
-            if (request.File.Length > 0)
-            {
-                using var fileStream = request.File.OpenReadStream();
-                var fileUrl = await _fileStorageService.UploadFileAsync(
-                    fileStream,
-                    request.File.FileName,
-                    request.File.ContentType,
-                    cancellationToken);
-
-                uploadedFileUrls.Add(fileUrl); 
-
-                var file = new DomainFile
-                {
-                    Id = Guid.NewGuid(),
-                    FileName = request.File.FileName,
-                    FileUrl = fileUrl,
-                    FileSize = request.File.Length,
-                    MimeType = request.File.ContentType,
-                    CreatedById = userId,
-                    CreatedAt = _dateTimeProvider.OffsetNow
-                };
-
-                await _fileRepository.AddAsync(file, cancellationToken);
-
-                document.FileId = file.Id;
-            }
-        }
 
         // Cập nhật ảnh bìa nếu có
         if (request.CoverFile != null && request.CoverFile.Length > 0)
@@ -290,7 +222,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
 
         var commentCount = await _documentRepository.GetQueryableSet()
             .Where(d => d.Id == request.Id)
-            .Select(d => d.Comments.Count)
+            .Select(d => d.DocumentFiles.SelectMany(df => df.Comments).Count())
             .FirstOrDefaultAsync(cancellationToken);
 
         return new DocumentDetailDto
@@ -298,8 +230,6 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
             Id = document.Id,
             DocumentName = document.DocumentName,
             Description = document.Description,
-            AuthorName = document.AuthorName,
-            DescriptionAuthor = document.DescriptionAuthor,
             IsDownload = document.IsDownload,
             Visibility = document.Visibility,
             ReviewStatus = document.ReviewStatus,
@@ -319,14 +249,31 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
                 Id = dt.Tag.Id,
                 TagName = dt.Tag.TagName
             }).ToList(),
-            File = document.File == null ? null : new DocumentFileDto
-            {
-                Id = document.File.Id,
-                FileName = document.File.FileName,
-                FileUrl = document.File.FileUrl,
-                FileSize = document.File.FileSize,
-                MimeType = document.File.MimeType
-            },
+            Authors = document.DocumentAuthors
+                .Select(da => new AuthorDto
+                {
+                    Id = da.Author.Id,
+                    FullName = da.Author.FullName
+                })
+                .Distinct()
+                .ToList(),
+            Files = document.DocumentFiles
+                .OrderBy(df => df.Order)
+                .ThenBy(df => df.CreatedAt)
+                .Select(df => new DocumentFileDto
+                {
+                    Id = df.File.Id,
+                    FileName = df.File.FileName,
+                    FileUrl = df.File.FileUrl,
+                    FileSize = df.File.FileSize,
+                    MimeType = df.File.MimeType,
+                    Title = df.Title,
+                    Order = df.Order,
+                    IsPrimary = df.IsPrimary,
+                    TotalPages = df.TotalPages,
+                    CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null
+                })
+                .ToList(),
             CommentCount = commentCount,
             CreatedById = document.CreatedById,
             CreatedAt = document.CreatedAt,

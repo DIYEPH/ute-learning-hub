@@ -7,15 +7,14 @@ public record DocumentDetailDto
     public Guid Id { get; init; }
     public string DocumentName { get; init; } = default!;
     public string Description { get; init; } = default!;
-    public string AuthorName { get; init; } = default!;
-    public string DescriptionAuthor { get; init; } = default!;
     public bool IsDownload { get; init; }
     public VisibilityStatus Visibility { get; init; }
     public ReviewStatus ReviewStatus { get; init; }
     public SubjectDto? Subject { get; init; } 
     public TypeDto Type { get; init; } = default!;
     public IList<TagDto> Tags { get; init; } = [];
-    public DocumentFileDto? File { get; init; }
+    public IList<AuthorDto> Authors { get; init; } = [];
+    public string? CoverUrl { get; init; }
     public IList<DocumentFileDto> Files { get; init; } = [];
     public int CommentCount { get; init; }
     public int UsefulCount { get; init; }

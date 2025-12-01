@@ -19,6 +19,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
 {
     private readonly IDocumentRepository _documentRepository;
     private readonly IFileRepository _fileRepository;
+    private readonly IAuthorRepository _authorRepository;
     private readonly ISubjectRepository _subjectRepository;
     private readonly ITypeRepository _typeRepository;
     private readonly ITagRepository _tagRepository;
@@ -30,6 +31,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
     public CreateDocumentCommandHandler(
         IDocumentRepository documentRepository,
         IFileRepository fileRepository,
+        IAuthorRepository authorRepository,
         ISubjectRepository subjectRepository,
         ITypeRepository typeRepository,
         ITagRepository tagRepository,
@@ -40,6 +42,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
     {
         _documentRepository = documentRepository;
         _fileRepository = fileRepository;
+        _authorRepository = authorRepository;
         _subjectRepository = subjectRepository;
         _typeRepository = typeRepository;
         _tagRepository = tagRepository;
@@ -74,6 +77,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             throw new NotFoundException($"Type with id {request.TypeId} not found");
 
         var tagIdsToAdd = new List<Guid>();
+        var authorIdsToAdd = new List<Guid>();
 
         if (request.TagIds != null && request.TagIds.Any())
         {
@@ -132,33 +136,43 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
         if (!tagIdsToAdd.Any())
             throw new BadRequestException("Document must have at least one tag");
 
-        if (request.File == null || request.File.Length == 0)
-            throw new BadRequestException("Document must have exactly one file");
-
-        var allowedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        // Xử lý danh sách tác giả (đa tác giả)
+        if (request.AuthorNames != null && request.AuthorNames.Any())
         {
-            ".doc", ".docx",        // Word
-            ".pdf",                 // PDF
-            ".jpg", ".jpeg", ".png", ".gif", ".webp" // Images
-        };
+            foreach (var authorName in request.AuthorNames)
+            {
+                if (string.IsNullOrWhiteSpace(authorName)) continue;
 
-        var allowedMimeTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "application/msword",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "application/pdf",
-            "image/jpeg",
-            "image/png",
-            "image/gif",
-            "image/webp"
-        };
+                var normalizedName = authorName.Trim();
+                var normalizedNameLower = normalizedName.ToLowerInvariant();
 
-        var fileExtension = Path.GetExtension(request.File.FileName);
-        var fileMimeType = request.File.ContentType;
+                var existingAuthor = await _authorRepository.GetQueryableSet()
+                    .Where(a => !a.IsDeleted)
+                    .FirstOrDefaultAsync(
+                        a => a.FullName.ToLower() == normalizedNameLower,
+                        cancellationToken);
 
-        if (!allowedExtensions.Contains(fileExtension) || !allowedMimeTypes.Contains(fileMimeType))
-        {
-            throw new BadRequestException("Only Word documents, images, and PDF files are allowed.");
+                if (existingAuthor != null)
+                {
+                    if (!authorIdsToAdd.Contains(existingAuthor.Id))
+                        authorIdsToAdd.Add(existingAuthor.Id);
+                }
+                else
+                {
+                    var newAuthor = new Author
+                    {
+                        Id = Guid.NewGuid(),
+                        FullName = normalizedName,
+                        Description = string.Empty,
+                        ReviewStatus = ReviewStatus.Approved,
+                        CreatedById = userId,
+                        CreatedAt = _dateTimeProvider.OffsetNow
+                    };
+
+                    await _authorRepository.AddAsync(newAuthor, cancellationToken);
+                    authorIdsToAdd.Add(newAuthor.Id);
+                }
+            }
         }
 
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
@@ -172,8 +186,6 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             DocumentName = request.DocumentName,
             NormalizedName = request.DocumentName.ToLowerInvariant(),
             Description = request.Description,
-            AuthorName = request.AuthorName ?? string.Empty,  
-            DescriptionAuthor = request.DescriptionAuthor ?? string.Empty,  
             SubjectId = request.SubjectId,  
             TypeId = request.TypeId,
             IsDownload = request.IsDownload,
@@ -199,38 +211,22 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             }
         }
 
+        if (authorIdsToAdd.Any())
+        {
+            foreach (var authorId in authorIdsToAdd)
+            {
+                document.DocumentAuthors.Add(new DocumentAuthor
+                {
+                    DocumentId = document.Id,
+                    AuthorId = authorId
+                });
+            }
+        }
+
         var uploadedFileUrls = new List<string>(); 
 
         try
         {
-            var formFile = request.File;
-            if (formFile.Length > 0)
-            {
-                using var fileStream = formFile.OpenReadStream();
-                var fileUrl = await _fileStorageService.UploadFileAsync(
-                    fileStream,
-                    formFile.FileName,
-                    formFile.ContentType,
-                    cancellationToken);
-
-                uploadedFileUrls.Add(fileUrl); 
-
-                var file = new DomainFile
-                {
-                    Id = Guid.NewGuid(),
-                    FileName = formFile.FileName,
-                    FileUrl = fileUrl,
-                    FileSize = formFile.Length,
-                    MimeType = formFile.ContentType,
-                    CreatedById = userId,
-                    CreatedAt = _dateTimeProvider.OffsetNow
-                };
-
-                await _fileRepository.AddAsync(file, cancellationToken);
-
-                document.FileId = file.Id;
-            }
-
             // Ảnh bìa tùy chọn
             if (request.CoverFile != null && request.CoverFile.Length > 0)
             {
@@ -304,7 +300,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
 
         var commentCount = await _documentRepository.GetQueryableSet()
             .Where(d => d.Id == document.Id)
-            .Select(d => d.Comments.Count)
+            .Select(d => d.DocumentFiles.SelectMany(df => df.Comments).Count())
             .FirstOrDefaultAsync(cancellationToken);
 
         var reviewStats = await _documentRepository.GetQueryableSet()
@@ -328,8 +324,6 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             Id = document.Id,
             DocumentName = document.DocumentName,
             Description = document.Description,
-            AuthorName = document.AuthorName,
-            DescriptionAuthor = document.DescriptionAuthor,
             IsDownload = document.IsDownload,
             Visibility = document.Visibility,
             ReviewStatus = document.ReviewStatus,
@@ -349,14 +343,31 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                 Id = dt.Tag.Id,
                 TagName = dt.Tag.TagName
             }).ToList(),
-            File = document.File == null ? null : new DocumentFileDto
-            {
-                Id = document.File.Id,
-                FileName = document.File.FileName,
-                FileUrl = document.File.FileUrl,
-                FileSize = document.File.FileSize,
-                MimeType = document.File.MimeType
-            },
+            Authors = document.DocumentAuthors
+                .Select(da => new AuthorDto
+                {
+                    Id = da.Author.Id,
+                    FullName = da.Author.FullName
+                })
+                .Distinct()
+                .ToList(),
+            Files = document.DocumentFiles
+                .OrderBy(df => df.Order)
+                .ThenBy(df => df.CreatedAt)
+                .Select(df => new DocumentFileDto
+                {
+                    Id = df.File.Id,
+                    FileName = df.File.FileName,
+                    FileUrl = df.File.FileUrl,
+                    FileSize = df.File.FileSize,
+                    MimeType = df.File.MimeType,
+                    Title = df.Title,
+                    Order = df.Order,
+                    IsPrimary = df.IsPrimary,
+                    TotalPages = df.TotalPages,
+                    CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null
+                })
+                .ToList(),
             CommentCount = commentCount,
             UsefulCount = usefulCount,
             NotUsefulCount = notUsefulCount,

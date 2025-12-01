@@ -5,10 +5,10 @@ namespace UteLearningHub.Domain.Entities;
 
 public class Comment : BaseEntity<Guid>, IAuditable, IReviewable, IAggregateRoot
 {
-    public Guid DocumentId { get; set; }
+    public Guid DocumentFileId { get; set; }
     public Guid? ParentId { get; set; }
     public string Content { get; set; } = default!;
-    public Document Document { get; set; } = default!;
+    public DocumentFile DocumentFile { get; set; } = default!;
     public ICollection<Comment> Childrens { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
 

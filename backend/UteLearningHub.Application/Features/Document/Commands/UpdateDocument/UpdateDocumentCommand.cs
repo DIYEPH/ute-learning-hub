@@ -6,7 +6,6 @@ namespace UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 
 public record UpdateDocumentCommand : UpdateDocumentRequest, IRequest<DocumentDetailDto>
 {
-    public IFormFile? File { get; init; }
     // Ảnh bìa tùy chọn
     public IFormFile? CoverFile { get; init; }
 }

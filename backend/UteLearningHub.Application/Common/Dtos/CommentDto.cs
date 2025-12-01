@@ -6,6 +6,7 @@ public record CommentDto
 {
     public Guid Id { get; init; }
     public Guid DocumentId { get; init; }
+    public Guid DocumentFileId { get; init; }
     public Guid? ParentId { get; init; }
     public string Content { get; init; } = default!;
     public string AuthorName { get; init; } = default!;

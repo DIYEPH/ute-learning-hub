@@ -35,13 +35,15 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
         if (request.MajorId.HasValue)
             query = query.Where(d => d.Subject != null && d.Subject.SubjectMajors.Any(sm => sm.MajorId == request.MajorId.Value));
 
+        if (request.AuthorId.HasValue)
+            query = query.Where(d => d.DocumentAuthors.Any(da => da.AuthorId == request.AuthorId.Value));
+
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             var searchTerm = request.SearchTerm.ToLower();
             query = query.Where(d =>
                 d.DocumentName.ToLower().Contains(searchTerm) ||
-                d.Description.ToLower().Contains(searchTerm) ||
-                d.AuthorName.ToLower().Contains(searchTerm));
+                d.Description.ToLower().Contains(searchTerm));
         }
 
         if (request.Visibility.HasValue)
@@ -81,8 +83,12 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                 ? query.OrderByDescending(d => d.DocumentName)
                 : query.OrderBy(d => d.DocumentName),
             "author" or "authorname" => request.SortDescending
-                ? query.OrderByDescending(d => d.AuthorName)
-                : query.OrderBy(d => d.AuthorName),
+                ? query.OrderByDescending(d => d.DocumentAuthors
+                    .Select(da => da.Author.FullName)
+                    .FirstOrDefault())
+                : query.OrderBy(d => d.DocumentAuthors
+                    .Select(da => da.Author.FullName)
+                    .FirstOrDefault()),
             "createdat" or "date" => request.SortDescending
                 ? query.OrderByDescending(d => d.CreatedAt)
                 : query.OrderBy(d => d.CreatedAt),
@@ -92,6 +98,9 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
         var totalCount = await query.CountAsync(cancellationToken);
 
         // Apply pagination
+        // Chỉ hiển thị tài liệu đã có ít nhất 1 file chương
+        query = query.Where(d => d.DocumentFiles.Any());
+
         var documents = await query
             .Skip(request.Skip)
             .Take(request.Take)
@@ -100,8 +109,6 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                 Id = d.Id,
                 DocumentName = d.DocumentName,
                 Description = d.Description,
-                AuthorName = d.AuthorName,
-                DescriptionAuthor = d.DescriptionAuthor,
                 IsDownload = d.IsDownload,
                 Visibility = d.Visibility,
                 ReviewStatus = d.ReviewStatus,
@@ -134,9 +141,17 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                     Id = dt.Tag.Id,
                     TagName = dt.Tag.TagName
                 }).ToList(),
-                FileMimeType = d.File != null ? d.File.MimeType : null,
-                FileCount = d.FileId != Guid.Empty ? 1 : 0,
-                CommentCount = d.Comments.Count,
+                Authors = d.DocumentAuthors
+                    .Select(da => new AuthorDto
+                    {
+                        Id = da.Author.Id,
+                        FullName = da.Author.FullName
+                    })
+                    .Distinct()
+                    .ToList(),
+                FileCount = d.DocumentFiles.Count,
+                ThumbnailUrl = d.CoverFile != null ? d.CoverFile.FileUrl : null,
+                CommentCount = d.DocumentFiles.SelectMany(df => df.Comments).Count(),
                 CreatedById = d.CreatedById,
                 CreatedAt = d.CreatedAt
             })

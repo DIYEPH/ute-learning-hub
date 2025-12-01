@@ -16,7 +16,7 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
         builder.HasKey(e => e.Id);
 
         builder.Property(u => u.ParentId).HasColumnName("PhanTuChaId");
-        builder.Property(u => u.DocumentId).HasColumnName("TaiLieuId");
+        builder.Property(u => u.DocumentFileId).HasColumnName("TaiLieu_TepId");
         builder.Property(u => u.Content).HasColumnName("NoiDung");
 
         builder.ApplySoftDelete<Comment>()
@@ -39,9 +39,9 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
             .HasForeignKey(u => u.ParentId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(u => u.Document)
+        builder.HasOne(u => u.DocumentFile)
             .WithMany(u => u.Comments)
-            .HasForeignKey(u => u.DocumentId)
+            .HasForeignKey(u => u.DocumentFileId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

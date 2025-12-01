@@ -6,6 +6,7 @@ using UteLearningHub.Application.Features.Comment.Commands.CreateComment;
 using UteLearningHub.Application.Features.Comment.Commands.DeleteComment;
 using UteLearningHub.Application.Features.Comment.Commands.UpdateComment;
 using UteLearningHub.Application.Features.Comment.Queries.GetComments;
+using UteLearningHub.Application.Features.Comment.Queries.GetDocumentComments;
 
 namespace UteLearningHub.Api.Controllers;
 
@@ -22,6 +23,13 @@ public class CommentController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<PagedResponse<CommentDto>>> GetComments([FromQuery] GetCommentsQuery query)
+    {
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("document")]
+    public async Task<ActionResult<PagedResponse<CommentDto>>> GetDocumentComments([FromQuery] GetDocumentCommentsQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);

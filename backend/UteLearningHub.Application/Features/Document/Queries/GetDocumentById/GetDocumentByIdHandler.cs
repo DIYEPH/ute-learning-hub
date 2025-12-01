@@ -44,7 +44,7 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
 
         var commentCount = await _documentRepository.GetQueryableSet()
             .Where(d => d.Id == request.Id)
-            .Select(d => d.Comments.Count)
+            .Select(d => d.DocumentFiles.SelectMany(df => df.Comments).Count())
             .FirstOrDefaultAsync(cancellationToken);
 
         // Get review stats
@@ -67,8 +67,6 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
             Id = document.Id,
             DocumentName = document.DocumentName,
             Description = document.Description,
-            AuthorName = document.AuthorName,
-            DescriptionAuthor = document.DescriptionAuthor,
             IsDownload = document.IsDownload,
             Visibility = document.Visibility,
             ReviewStatus = document.ReviewStatus,
@@ -101,21 +99,15 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
                 Id = dt.Tag.Id,
                 TagName = dt.Tag.TagName
             }).ToList(),
-            // Ảnh bìa nếu có
-            // (frontend có thể dùng từ Document.CoverFile.FileUrl thay cho ThumbnailUrl của list)
-            // File chính (giữ nguyên cách cũ: dùng Document.File)
-            File = document.File == null ? null : new DocumentFileDto
-            {
-                Id = document.File.Id,
-                FileName = document.File.FileName,
-                FileUrl = document.File.FileUrl,
-                FileSize = document.File.FileSize,
-                MimeType = document.File.MimeType,
-                Title = document.DocumentName,
-                Order = 1,
-                IsPrimary = true,
-                TotalPages = null
-            },
+            Authors = document.DocumentAuthors
+                .Select(da => new AuthorDto
+                {
+                    Id = da.Author.Id,
+                    FullName = da.Author.FullName
+                })
+                .Distinct()
+                .ToList(),
+            CoverUrl = document.CoverFile != null ? document.CoverFile.FileUrl : null,
             // Danh sách các file/chương (DocumentFiles)
             Files = document.DocumentFiles
                 .OrderBy(df => df.Order)
