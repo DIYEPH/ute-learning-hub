@@ -8,4 +8,5 @@ public interface IConversationRepository : IRepository<Conversation, Guid>
 {
     IQueryable<ConversationJoinRequest> GetJoinRequestsQueryable();
     Task<Conversation?> GetByIdWithDetailsAsync(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default);
+    Task AddMemberAsync(ConversationMember member, CancellationToken cancellationToken = default);
 }

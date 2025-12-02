@@ -20,6 +20,8 @@ public record ConversationDto
     public Guid CreatedById { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; init; }
+    public bool? IsCurrentUserMember { get; init; }
+    public bool? HasPendingJoinRequest { get; init; } 
 }
 
 public record ConversationDetailDto

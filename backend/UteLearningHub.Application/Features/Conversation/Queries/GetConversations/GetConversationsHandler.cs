@@ -28,6 +28,7 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
         var query = _conversationRepository.GetQueryableSet()
             .Include(c => c.Subject)
             .Include(c => c.Members)
+            .Include(c => c.ConversationJoinRequests)
             .Include(c => c.ConversationTags)
                 .ThenInclude(ct => ct.Tag)
             .AsNoTracking()
@@ -36,6 +37,9 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
         // Filters
         if (request.SubjectId.HasValue)
             query = query.Where(c => c.SubjectId == request.SubjectId.Value);
+
+        if (request.TagId.HasValue)
+            query = query.Where(c => c.ConversationTags.Any(ct => ct.TagId == request.TagId.Value));
 
         if (request.ConversationType.HasValue)
             query = query.Where(c => c.ConversationType == request.ConversationType.Value);
@@ -89,39 +93,53 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
             }
         }
 
-        var conversationDtos = conversations.Select(c => new ConversationDto
+        // Get current user ID if authenticated
+        var currentUserId = _currentUserService.IsAuthenticated ? _currentUserService.UserId : null;
+
+        var conversationDtos = conversations.Select(c =>
         {
-            Id = c.Id,
-            ConversationName = c.ConversationName,
-            Tags = c.ConversationTags
-                .Select(ct => new TagDto
-                {
-                    Id = ct.Tag.Id,
-                    TagName = ct.Tag.TagName
-                })
-                .ToList(),
-            ConversationType = c.ConversationType,
-            ConversationStatus = c.ConversationStatus,
-            IsSuggestedByAI = c.IsSuggestedByAI,
-            IsAllowMemberPin = c.IsAllowMemberPin,
-            Subject = c.Subject != null ? new SubjectDto
+            var isMember = currentUserId.HasValue && c.Members.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
+            var hasPendingRequest = currentUserId.HasValue && c.ConversationJoinRequests.Any(r =>
+                r.CreatedById == currentUserId.Value &&
+                r.ReviewStatus == Domain.Constaints.Enums.ReviewStatus.PendingReview &&
+                !r.IsDeleted);
+
+            return new ConversationDto
             {
-                Id = c.Subject.Id,
-                SubjectName = c.Subject.SubjectName,
-                SubjectCode = c.Subject.SubjectCode
-            } : null,
-            CreatorName = creatorInfo.TryGetValue(c.CreatedById, out var info)
-                ? info.FullName
-                : "Unknown",
-            CreatorAvatarUrl = creatorInfo.TryGetValue(c.CreatedById, out var creator)
-                ? creator.AvatarUrl
-                : null,
-            MemberCount = c.Members.Count(m => !m.IsDeleted),
-            MessageCount = 0, // Will be calculated if needed
-            LastMessageId = c.LastMessage,
-            CreatedById = c.CreatedById,
-            CreatedAt = c.CreatedAt,
-            UpdatedAt = c.UpdatedAt
+                Id = c.Id,
+                ConversationName = c.ConversationName,
+                Tags = c.ConversationTags
+                    .Select(ct => new TagDto
+                    {
+                        Id = ct.Tag.Id,
+                        TagName = ct.Tag.TagName
+                    })
+                    .ToList(),
+                ConversationType = c.ConversationType,
+                ConversationStatus = c.ConversationStatus,
+                IsSuggestedByAI = c.IsSuggestedByAI,
+                IsAllowMemberPin = c.IsAllowMemberPin,
+                Subject = c.Subject != null ? new SubjectDto
+                {
+                    Id = c.Subject.Id,
+                    SubjectName = c.Subject.SubjectName,
+                    SubjectCode = c.Subject.SubjectCode
+                } : null,
+                CreatorName = creatorInfo.TryGetValue(c.CreatedById, out var info)
+                    ? info.FullName
+                    : "Unknown",
+                CreatorAvatarUrl = creatorInfo.TryGetValue(c.CreatedById, out var creator)
+                    ? creator.AvatarUrl
+                    : null,
+                MemberCount = c.Members.Count(m => !m.IsDeleted),
+                MessageCount = 0, // Will be calculated if needed
+                LastMessageId = c.LastMessage,
+                CreatedById = c.CreatedById,
+                CreatedAt = c.CreatedAt,
+                UpdatedAt = c.UpdatedAt,
+                IsCurrentUserMember = currentUserId.HasValue ? isMember : null,
+                HasPendingJoinRequest = currentUserId.HasValue ? hasPendingRequest : null
+            };
         }).ToList();
 
         return new PagedResponse<ConversationDto>

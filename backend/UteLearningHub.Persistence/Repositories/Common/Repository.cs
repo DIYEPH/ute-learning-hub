@@ -11,7 +11,7 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
     where TEntity : BaseEntity<TKey>, IAggregateRoot
 {
     protected readonly ApplicationDbContext _dbContext;
-    private readonly IDateTimeProvider _dateTimeProvider;
+    protected readonly IDateTimeProvider _dateTimeProvider;
     public Repository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
     {
         _dbContext = dbContext;

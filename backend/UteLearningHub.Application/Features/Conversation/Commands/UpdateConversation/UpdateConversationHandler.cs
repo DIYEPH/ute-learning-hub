@@ -62,6 +62,9 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         if (!string.IsNullOrWhiteSpace(request.ConversationName))
             conversation.ConversationName = request.ConversationName;
 
+        if (request.ConversationType.HasValue)
+            conversation.ConversationType = request.ConversationType.Value;
+
         if (request.ConversationStatus.HasValue)
             conversation.ConversationStatus = request.ConversationStatus.Value;
 

@@ -34,4 +34,10 @@ public class ConversationRepository : Repository<Conversation, Guid>, IConversat
 
         return await query.FirstOrDefaultAsync(cancellationToken);
     }
+
+    public async Task AddMemberAsync(ConversationMember member, CancellationToken cancellationToken = default)
+    {
+        member.CreatedAt = _dateTimeProvider.OffsetNow;
+        await _dbContext.ConversationMembers.AddAsync(member, cancellationToken);
+    }
 }

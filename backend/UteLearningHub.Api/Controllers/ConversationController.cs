@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Conversation.Commands.CreateConversation;
 using UteLearningHub.Application.Features.Conversation.Commands.DeleteConversation;
+using UteLearningHub.Application.Features.Conversation.Commands.JoinConversation;
 using UteLearningHub.Application.Features.Conversation.Commands.UpdateConversation;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversationById;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversations;
@@ -63,6 +64,15 @@ public class ConversationController : ControllerBase
         var command = new DeleteConversationCommand { Id = id };
         await _mediator.Send(command);
         return NoContent();
+    }
+
+    [HttpPost("{id}/join")]
+    [Authorize]
+    public async Task<ActionResult<ConversationDetailDto>> JoinConversation(Guid id)
+    {
+        var command = new JoinConversationCommand { ConversationId = id };
+        var result = await _mediator.Send(command);
+        return Ok(result);
     }
 
     [HttpGet("{conversationId}/online-members")]

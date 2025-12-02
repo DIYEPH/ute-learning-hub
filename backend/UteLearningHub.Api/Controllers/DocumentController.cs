@@ -48,6 +48,7 @@ namespace UteLearningHub.Api.Controllers
         [HttpPost]
         [Authorize]
         [RequestSizeLimit(100_000_000)]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<DocumentDetailDto>> CreateDocument([FromForm] CreateDocumentCommand command)
         {
             var result = await _mediator.Send(command);
@@ -57,6 +58,7 @@ namespace UteLearningHub.Api.Controllers
         [HttpPut("{id}")]
         [Authorize]
         [RequestSizeLimit(100_000_000)]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<DocumentDetailDto>> UpdateDocument(Guid id, [FromForm] UpdateDocumentCommand command)
         {
             command = command with { Id = id };
@@ -67,6 +69,7 @@ namespace UteLearningHub.Api.Controllers
         [HttpPost("{id}/files")]
         [Authorize]
         [RequestSizeLimit(100_000_000)]
+        [Consumes("multipart/form-data")]
         public async Task<ActionResult<DocumentDetailDto>> AddDocumentFile(Guid id, [FromForm] AddDocumentFileCommand command)
         {
             command = command with { DocumentId = id };
