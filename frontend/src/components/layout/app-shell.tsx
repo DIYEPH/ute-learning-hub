@@ -37,11 +37,13 @@ export function AppShell({ children }: AppShellProps) {
       <div className="flex-1 flex">
         <AppSidebar navItems={navItems} activePath={pathname} />
 
-        <main className="flex-1 p-4 md:p-6 bg-background">{children}</main>
+        <main className={`flex-1 ${pathname?.startsWith('/chat') ? '' : 'p-4 md:p-6 bg-background'}`}>
+          {children}
+        </main>
       </div>
 
       {/* Footer cuối trang */}
-      <AppFooter />
+      <AppFooter className={pathname?.startsWith('/chat') ? 'hidden md:flex' : ''} />
     </div>
   );
 }

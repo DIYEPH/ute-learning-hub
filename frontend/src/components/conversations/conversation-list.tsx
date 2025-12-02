@@ -27,7 +27,7 @@ export function ConversationList({
             key={conversation.id}
             onClick={() => conversation.id && onSelect(conversation.id)}
             className={cn(
-              "w-full p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors",
+              "w-full p-2 md:p-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors",
               isSelected && "bg-sky-50 dark:bg-sky-950 border-r-2 border-sky-500"
             )}
           >
@@ -59,10 +59,22 @@ export function ConversationList({
                   )}
                 </div>
 
-                {conversation.topic && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mb-1">
-                    {conversation.topic}
-                  </p>
+                {conversation.tags && conversation.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-1">
+                    {conversation.tags.slice(0, 3).map((tag) => (
+                      <span
+                        key={tag.id}
+                        className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                      >
+                        {tag.tagName}
+                      </span>
+                    ))}
+                    {conversation.tags.length > 3 && (
+                      <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                        +{conversation.tags.length - 3}
+                      </span>
+                    )}
+                  </div>
                 )}
 
                 <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">

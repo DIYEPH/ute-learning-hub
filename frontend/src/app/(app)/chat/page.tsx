@@ -14,6 +14,8 @@ import { Input } from "@/src/components/ui/input";
 import { ConversationList } from "@/src/components/conversations/conversation-list";
 import { ConversationDetail } from "@/src/components/conversations/conversation-detail";
 import { CreateConversationModal } from "@/src/components/conversations/create-conversation-modal";
+import { useUserProfile } from "@/src/hooks/use-user-profile";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
@@ -21,6 +23,7 @@ export default function ChatPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selectedConversationId = searchParams.get("id");
+  const { profile } = useUserProfile();
 
   const [conversations, setConversations] = useState<ConversationDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,10 +32,14 @@ export default function ChatPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
-    void fetchConversations();
-  }, [searchTerm]);
+    if (profile?.id) {
+      void fetchConversations();
+    }
+  }, [searchTerm, profile?.id]);
 
   const fetchConversations = async () => {
+    if (!profile?.id) return;
+
     setLoading(true);
     setError(null);
 
@@ -42,6 +49,7 @@ export default function ChatPage() {
           Page: 1,
           PageSize: PAGE_SIZE,
           SearchTerm: searchTerm || undefined,
+          MemberId: profile.id, // Filter by current user as member
         },
       });
 
@@ -49,7 +57,12 @@ export default function ChatPage() {
         response) as PagedResponseOfConversationDto | undefined;
       const items = payload?.items ?? [];
 
-      setConversations(items);
+      // Additional filter: only show conversations where user is a member
+      const filteredItems = items.filter(
+        (conv) => conv.isCurrentUserMember === true
+      );
+
+      setConversations(filteredItems);
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||
@@ -81,7 +94,15 @@ export default function ChatPage() {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar: Danh sách conversations */}
-      <div className="w-80 border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 flex flex-col">
+      <div
+        className={cn(
+          "border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 flex flex-col transition-transform duration-300",
+          "w-full md:w-80",
+          selectedConversationId
+            ? "hidden md:flex"
+            : "flex"
+        )}
+      >
         {/* Header */}
         <div className="p-4 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between mb-4">
@@ -131,7 +152,12 @@ export default function ChatPage() {
       </div>
 
       {/* Main: Conversation Detail */}
-      <div className="flex-1 flex flex-col">
+      <div
+        className={cn(
+          "flex-1 flex flex-col",
+          !selectedConversationId && "hidden md:flex"
+        )}
+      >
         {selectedConversationId ? (
           <ConversationDetail
             conversationId={selectedConversationId}

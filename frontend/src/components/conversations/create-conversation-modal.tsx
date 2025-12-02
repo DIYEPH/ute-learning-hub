@@ -5,10 +5,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { useSubjects } from "@/src/hooks/use-subjects";
-import { postApiConversation } from "@/src/api/database/sdk.gen";
-import type { CreateConversationCommand, SubjectDto2 } from "@/src/api/database/types.gen";
+import { postApiConversation, getApiTag } from "@/src/api/database/sdk.gen";
+import type { CreateConversationCommand, SubjectDto2, TagDto } from "@/src/api/database/types.gen";
 
 interface CreateConversationModalProps {
   open: boolean;
@@ -25,14 +25,18 @@ export function CreateConversationModal({
 
   const [formData, setFormData] = useState<CreateConversationCommand>({
     conversationName: "",
-    topic: "",
-    conversationType: 0, // 0 = Public, 1 = Private, etc.
+    tagIds: [],
+    tagNames: [],
+    conversationType: 0, // 0 = Public, 1 = Private
     subjectId: null,
     isSuggestedByAI: false,
     isAllowMemberPin: false,
   });
 
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
+  const [tags, setTags] = useState<TagDto[]>([]);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const [newTagInput, setNewTagInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,29 +44,40 @@ export function CreateConversationModal({
     if (open) {
       setFormData({
         conversationName: "",
-        topic: "",
+        tagIds: [],
+        tagNames: [],
         conversationType: 0,
         subjectId: null,
         isSuggestedByAI: false,
         isAllowMemberPin: false,
       });
+      setSelectedTagIds([]);
+      setNewTagInput("");
       setError(null);
     }
   }, [open]);
 
   useEffect(() => {
-    const loadSubjects = async () => {
+    const loadData = async () => {
       try {
-        const subjectsRes = await fetchSubjects({ Page: 1, PageSize: 1000 });
+        const [subjectsRes, tagsRes] = await Promise.all([
+          fetchSubjects({ Page: 1, PageSize: 1000 }),
+          getApiTag({ query: { Page: 1, PageSize: 1000 } }).then(
+            (res: any) => res?.data || res
+          ),
+        ]);
         if (subjectsRes?.items) {
           setSubjects(subjectsRes.items);
         }
+        if (tagsRes?.items) {
+          setTags(tagsRes.items);
+        }
       } catch (err) {
-        console.error("Error loading subjects:", err);
+        console.error("Error loading data:", err);
       }
     };
     if (open) {
-      loadSubjects();
+      loadData();
     }
   }, [open, fetchSubjects]);
 
@@ -75,11 +90,27 @@ export function CreateConversationModal({
       return;
     }
 
+    if (selectedTagIds.length === 0 && (formData.tagNames?.length ?? 0) === 0 && !newTagInput.trim()) {
+      setError("Cuộc trò chuyện phải có ít nhất một thẻ");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const tagNamesToSubmit = [...(formData.tagNames || [])];
+      if (newTagInput.trim()) {
+        tagNamesToSubmit.push(newTagInput.trim());
+      }
+
+      const submitData: CreateConversationCommand = {
+        ...formData,
+        tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined,
+        tagNames: tagNamesToSubmit.length > 0 ? tagNamesToSubmit : undefined,
+      };
+
       const response = await postApiConversation({
-        body: formData,
+        body: submitData,
       });
 
       if (response.data || response) {
@@ -132,16 +163,103 @@ export function CreateConversationModal({
           </div>
 
           <div>
-            <Label htmlFor="topic">Chủ đề (tùy chọn)</Label>
-            <Input
-              id="topic"
-              value={formData.topic || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, topic: e.target.value }))
-              }
+            <Label htmlFor="tagIds">
+              Thẻ <span className="text-red-500">*</span>
+            </Label>
+            <select
+              id="tagIds"
+              multiple
+              value={selectedTagIds}
+              onChange={(e) => {
+                const values = Array.from(e.target.selectedOptions, (option) => option.value);
+                setSelectedTagIds(values);
+                setFormData((prev) => ({ ...prev, tagIds: values }));
+              }}
               disabled={loading}
-              className="mt-1"
-            />
+              size={5}
+              className="mt-1 flex h-auto w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {tags
+                .filter((tag): tag is TagDto & { id: string } => !!tag?.id)
+                .map((tag) => (
+                  <option key={tag.id} value={tag.id}>
+                    {tag.tagName}
+                  </option>
+                ))}
+            </select>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Giữ Ctrl/Cmd để chọn nhiều thẻ
+            </p>
+
+            {/* Input để thêm tag mới */}
+            <div className="mt-2 flex gap-2">
+              <Input
+                type="text"
+                placeholder="Nhập tên tag mới"
+                value={newTagInput}
+                onChange={(e) => setNewTagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newTagInput.trim()) {
+                    e.preventDefault();
+                    setFormData((prev) => ({
+                      ...prev,
+                      tagNames: [...(prev.tagNames || []), newTagInput.trim()],
+                    }));
+                    setNewTagInput("");
+                  }
+                }}
+                disabled={loading}
+                className="flex-1"
+              />
+            </div>
+
+            {/* Hiển thị tags đã chọn */}
+            {(selectedTagIds.length > 0 || (formData.tagNames?.length ?? 0) > 0) && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {selectedTagIds.map((tagId) => {
+                  const tag = tags.find((t) => t.id === tagId);
+                  return tag ? (
+                    <span
+                      key={tagId}
+                      className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-1 text-xs text-sky-700 dark:bg-sky-900 dark:text-sky-300"
+                    >
+                      {tag.tagName}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newIds = selectedTagIds.filter((id) => id !== tagId);
+                          setSelectedTagIds(newIds);
+                          setFormData((prev) => ({ ...prev, tagIds: newIds }));
+                        }}
+                        className="hover:text-sky-900"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ) : null;
+                })}
+                {formData.tagNames?.map((tagName, idx) => (
+                  <span
+                    key={`new-${idx}`}
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                  >
+                    {tagName}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          tagNames: prev.tagNames?.filter((_, i) => i !== idx) || [],
+                        }));
+                      }}
+                      className="hover:text-emerald-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>

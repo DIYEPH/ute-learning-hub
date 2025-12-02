@@ -44,7 +44,7 @@ export type CompleteAccountSetupResponse = {
 export type ConversationDetailDto = {
     id?: string;
     conversationName?: string;
-    topic?: string;
+    tags?: Array<TagDto>;
     conversationType?: ConversitionType;
     conversationStatus?: ConversationStatus;
     isSuggestedByAI?: boolean;
@@ -63,7 +63,7 @@ export type ConversationDetailDto = {
 export type ConversationDto = {
     id?: string;
     conversationName?: string;
-    topic?: string;
+    tags?: Array<TagDto>;
     conversationType?: ConversitionType;
     conversationStatus?: ConversationStatus;
     isSuggestedByAI?: boolean;
@@ -77,6 +77,8 @@ export type ConversationDto = {
     createdById?: string;
     createdAt?: string;
     updatedAt?: string | null;
+    isCurrentUserMember?: boolean | null;
+    hasPendingJoinRequest?: boolean | null;
 };
 
 export type ConversationJoinRequestDto = {
@@ -117,7 +119,8 @@ export type CreateCommentCommand = {
 
 export type CreateConversationCommand = {
     conversationName?: string;
-    topic?: string;
+    tagIds?: Array<string> | null;
+    tagNames?: Array<string> | null;
     conversationType?: ConversitionType;
     subjectId?: string | null;
     isSuggestedByAI?: boolean;
@@ -402,6 +405,8 @@ export type NotificationType = number;
 
 export type NullableOfConversationStatus = number | null;
 
+export type NullableOfConversitionType = number | null;
+
 export type NullableOfGender = number | null;
 
 export type PagedResponseOfCommentDto = {
@@ -656,7 +661,9 @@ export type UpdateCommentCommand = {
 export type UpdateConversationCommand = {
     id?: string;
     conversationName?: string | null;
-    topic?: string | null;
+    tagIds?: Array<string> | null;
+    tagNames?: Array<string> | null;
+    conversationType?: NullableOfConversitionType;
     conversationStatus?: NullableOfConversationStatus;
     subjectId?: string | null;
     isAllowMemberPin?: boolean | null;
@@ -1014,6 +1021,7 @@ export type GetApiConversationData = {
     path?: never;
     query?: {
         SubjectId?: string;
+        TagId?: string;
         ConversationType?: string;
         ConversationStatus?: string;
         CreatedById?: string;
@@ -1105,6 +1113,24 @@ export type PutApiConversationByIdResponses = {
 };
 
 export type PutApiConversationByIdResponse = PutApiConversationByIdResponses[keyof PutApiConversationByIdResponses];
+
+export type PostApiConversationByIdJoinData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/Conversation/{id}/join';
+};
+
+export type PostApiConversationByIdJoinResponses = {
+    /**
+     * OK
+     */
+    200: ConversationDetailDto;
+};
+
+export type PostApiConversationByIdJoinResponse = PostApiConversationByIdJoinResponses[keyof PostApiConversationByIdJoinResponses];
 
 export type GetApiConversationByConversationIdOnlineMembersData = {
     body?: never;
