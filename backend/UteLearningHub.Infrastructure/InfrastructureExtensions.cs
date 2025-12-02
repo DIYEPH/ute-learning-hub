@@ -75,6 +75,7 @@ public static class InfrastructureExtensions
         services.AddSingleton<IMessageQueueProducer, KafkaMessageProducer>();
         services.AddSingleton<IConnectionTracker, ConnectionTrackerService>();
         services.AddScoped<IUserConversationService, UserConversationService>();
+        services.AddScoped<IConversationSystemMessageService, ConversationSystemMessageService>();
 
         // Add HttpContextAccessor for CurrentUserService
         services.AddHttpContextAccessor();

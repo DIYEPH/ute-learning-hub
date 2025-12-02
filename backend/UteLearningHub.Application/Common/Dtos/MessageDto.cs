@@ -1,3 +1,5 @@
+using UteLearningHub.Domain.Constaints.Enums;
+
 namespace UteLearningHub.Application.Common.Dtos;
 
 public record MessageDto
@@ -8,6 +10,7 @@ public record MessageDto
     public string Content { get; init; } = default!;
     public bool IsEdit { get; init; }
     public bool IsPined { get; init; }
+    public MessageType? Type { get; init; }
     public Guid CreatedById { get; init; }
     public string SenderName { get; init; } = default!;
     public string? SenderAvatarUrl { get; init; }

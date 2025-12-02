@@ -1000,6 +1000,29 @@
         }
       }
     },
+    "/api/Conversation/{id}/leave": {
+      "post": {
+        "tags": [
+          "Conversation"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Conversation/{conversationId}/online-members": {
       "get": {
         "tags": [
@@ -1036,6 +1059,58 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/Conversation/{id}/members/{memberId}/role": {
+      "put": {
+        "tags": [
+          "Conversation"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberRoleCommand"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberRoleCommand"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberRoleCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -5560,6 +5635,9 @@
           "isPined": {
             "type": "boolean"
           },
+          "type": {
+            "$ref": "#/components/schemas/NullableOfMessageType"
+          },
           "createdById": {
             "type": "string",
             "format": "uuid"
@@ -5677,6 +5755,10 @@
         "nullable": true
       },
       "NullableOfGender": {
+        "type": "integer",
+        "nullable": true
+      },
+      "NullableOfMessageType": {
         "type": "integer",
         "nullable": true
       },
@@ -6544,6 +6626,22 @@
           },
           "majorCode": {
             "type": "string"
+          }
+        }
+      },
+      "UpdateMemberRoleCommand": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "memberId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "roleType": {
+            "$ref": "#/components/schemas/ConversationMemberRoleType"
           }
         }
       },

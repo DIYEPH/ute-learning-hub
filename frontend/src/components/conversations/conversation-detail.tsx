@@ -17,10 +17,13 @@ import type {
 } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { EditConversationSidebar } from "@/src/components/conversations/edit-conversation-sidebar";
 import { ConversationFilesSidebar } from "@/src/components/conversations/conversation-files-sidebar";
+import { MessageItem } from "@/src/components/conversations/message-item";
+import { PinnedMessagesSection } from "@/src/components/conversations/pinned-messages-section";
+import { useUserProfile } from "@/src/hooks/use-user-profile";
+import { usePinMessage } from "@/src/hooks/use-pin-message";
 
 interface ConversationDetailProps {
   conversationId: string;
@@ -31,6 +34,7 @@ export function ConversationDetail({
   conversationId,
   onBack,
 }: ConversationDetailProps) {
+  const { profile } = useUserProfile();
   const [conversation, setConversation] = useState<ConversationDetailDto | null>(null);
   const [messages, setMessages] = useState<MessageDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -43,6 +47,20 @@ export function ConversationDetail({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { togglePin } = usePinMessage(conversationId, (updatedMessage) => {
+    setMessages((prev) =>
+      prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
+    );
+  });
+
+  const pinnedMessages = messages
+    .filter((m) => m.isPined)
+    .sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA; // Mới nhất trước
+    });
 
   useEffect(() => {
     void fetchConversation();
@@ -227,6 +245,24 @@ export function ConversationDetail({
         </div>
       </div>
 
+      {/* Pinned Messages Section */}
+      {pinnedMessages.length > 0 && (
+        <PinnedMessagesSection
+          pinnedMessages={pinnedMessages}
+          conversationId={conversationId}
+          onMessageClick={(messageId) => {
+            // Scroll to message
+            const element = document.querySelector(`[data-message-id="${messageId}"]`);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }}
+          onUnpin={(message) => {
+            void togglePin(message);
+          }}
+        />
+      )}
+
       {/* Messages */}
       <ScrollArea className="flex-1 p-2 md:p-4" ref={scrollAreaRef}>
         <div className="space-y-4">
@@ -241,91 +277,42 @@ export function ConversationDetail({
               <p>Chưa có tin nhắn nào</p>
             </div>
           ) : (
-            messages.map((message) => {
-              const messageDate = message.createdAt
+            messages.map((message, index) => {
+              // So sánh ngày của tin nhắn hiện tại với tin nhắn trước đó
+              const currentDate = message.createdAt
                 ? new Date(message.createdAt)
                 : null;
-              const showDate = messageDate
-                ? messageDate.toLocaleString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : null;
+              const previousMessage = index > 0 ? messages[index - 1] : null;
+              const previousDate =
+                previousMessage?.createdAt
+                  ? new Date(previousMessage.createdAt)
+                  : null;
+
+              // Chỉ hiển thị date nếu là tin nhắn đầu tiên hoặc khác ngày với tin nhắn trước
+              const showDate =
+                index === 0 ||
+                !currentDate ||
+                !previousDate ||
+                currentDate.toDateString() !== previousDate.toDateString();
 
               return (
-                <div
-                  key={message.id}
-                  className="flex items-start gap-3 group hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg p-2 -m-2 transition-colors"
-                >
-                  <Avatar className="h-8 w-8 flex-shrink-0">
-                    <AvatarImage
-                      src={message.senderAvatarUrl || undefined}
-                      alt={message.senderName || "User"}
-                    />
-                    <AvatarFallback>
-                      {message.senderName?.[0]?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <span className="text-sm font-semibold text-foreground">
-                        {message.senderName || "Người dùng"}
-                      </span>
-                      {showDate && (
-                        <span className="text-xs text-slate-500 dark:text-slate-400">
-                          {showDate}
-                        </span>
-                      )}
-                      {message.isEdit && (
-                        <span className="text-xs text-slate-400 italic">
-                          (đã chỉnh sửa)
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="text-sm text-foreground whitespace-pre-wrap break-words">
-                      {message.content}
-                    </div>
-
-                    {message.files && message.files.length > 0 && (
-                      <div className="mt-2 space-y-2">
-                        {message.files.map((file) => {
-                          const isImage = file.mimeType?.startsWith("image/");
-                          return isImage ? (
-                            <a
-                              key={file.fileId}
-                              href={file.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block"
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={file.fileUrl}
-                                alt={file.fileName || "Image"}
-                                className="max-w-full max-h-64 rounded-lg border border-slate-200 dark:border-slate-700 cursor-pointer hover:opacity-90 transition-opacity"
-                              />
-                            </a>
-                          ) : (
-                            <a
-                              key={file.fileId}
-                              href={file.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-xs text-sky-600 dark:text-sky-400 hover:underline p-2 rounded border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                            >
-                              <Paperclip className="h-4 w-4" />
-                              <span className="truncate">{file.fileName}</span>
-                            </a>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                <div key={message.id} data-message-id={message.id}>
+                  <MessageItem
+                    message={message}
+                    conversationId={conversationId}
+                    currentUserId={profile?.id}
+                    showDate={showDate}
+                    onUpdate={(updatedMessage) => {
+                      setMessages((prev) =>
+                        prev.map((m) =>
+                          m.id === updatedMessage.id ? updatedMessage : m
+                        )
+                      );
+                    }}
+                    onDelete={(messageId) => {
+                      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+                    }}
+                  />
                 </div>
               );
             })

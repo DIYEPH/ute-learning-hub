@@ -367,6 +367,7 @@ export type MessageDto = {
     content?: string;
     isEdit?: boolean;
     isPined?: boolean;
+    type?: NullableOfMessageType;
     createdById?: string;
     senderName?: string;
     senderAvatarUrl?: string | null;
@@ -408,6 +409,8 @@ export type NullableOfConversationStatus = number | null;
 export type NullableOfConversitionType = number | null;
 
 export type NullableOfGender = number | null;
+
+export type NullableOfMessageType = number | null;
 
 export type PagedResponseOfCommentDto = {
     items?: Array<CommentDto>;
@@ -694,6 +697,12 @@ export type UpdateMajorCommand = {
     facultyId?: string;
     majorName?: string;
     majorCode?: string;
+};
+
+export type UpdateMemberRoleCommand = {
+    conversationId?: string;
+    memberId?: string;
+    roleType?: ConversationMemberRoleType;
 };
 
 export type UpdateMessageCommand = {
@@ -1132,6 +1141,22 @@ export type PostApiConversationByIdJoinResponses = {
 
 export type PostApiConversationByIdJoinResponse = PostApiConversationByIdJoinResponses[keyof PostApiConversationByIdJoinResponses];
 
+export type PostApiConversationByIdLeaveData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/Conversation/{id}/leave';
+};
+
+export type PostApiConversationByIdLeaveResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type GetApiConversationByConversationIdOnlineMembersData = {
     body?: never;
     path: {
@@ -1149,6 +1174,23 @@ export type GetApiConversationByConversationIdOnlineMembersResponses = {
 };
 
 export type GetApiConversationByConversationIdOnlineMembersResponse = GetApiConversationByConversationIdOnlineMembersResponses[keyof GetApiConversationByConversationIdOnlineMembersResponses];
+
+export type PutApiConversationByIdMembersByMemberIdRoleData = {
+    body: UpdateMemberRoleCommand;
+    path: {
+        id: string;
+        memberId: string;
+    };
+    query?: never;
+    url: '/api/Conversation/{id}/members/{memberId}/role';
+};
+
+export type PutApiConversationByIdMembersByMemberIdRoleResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
 
 export type GetApiConversationJoinRequestData = {
     body?: never;

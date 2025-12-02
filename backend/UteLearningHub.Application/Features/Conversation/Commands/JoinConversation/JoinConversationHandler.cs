@@ -1,6 +1,7 @@
 using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Message;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
@@ -15,17 +16,20 @@ public class JoinConversationHandler : IRequestHandler<JoinConversationCommand, 
     private readonly IIdentityService _identityService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IConversationSystemMessageService _systemMessageService;
 
     public JoinConversationHandler(
         IConversationRepository conversationRepository,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IConversationSystemMessageService systemMessageService)
     {
         _conversationRepository = conversationRepository;
         _identityService = identityService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _systemMessageService = systemMessageService;
     }
 
     public async Task<ConversationDetailDto> Handle(JoinConversationCommand request, CancellationToken cancellationToken)
@@ -77,6 +81,12 @@ public class JoinConversationHandler : IRequestHandler<JoinConversationCommand, 
         }
 
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+        await _systemMessageService.CreateAsync(
+            conversation.Id,
+            userId,
+            MessageType.MemberJoined,
+            null,
+            cancellationToken);
         var updatedConversation = await _conversationRepository.GetByIdWithDetailsAsync(
             conversation.Id,
             disableTracking: true,

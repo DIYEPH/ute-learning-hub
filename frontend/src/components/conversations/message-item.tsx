@@ -1,0 +1,406 @@
+"use client";
+
+import { useState } from "react";
+import { MoreVertical, Edit, Trash2, Paperclip, Pin, PinOff } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { MessageDto } from "@/src/api/database/types.gen";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
+import { Button } from "@/src/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/src/components/ui/dropdown-menu";
+import {
+  deleteApiConversationsByConversationIdMessagesById,
+  putApiConversationsByConversationIdMessagesById,
+} from "@/src/api/database/sdk.gen";
+import { Input } from "@/src/components/ui/input";
+import { usePinMessage } from "@/src/hooks/use-pin-message";
+
+interface MessageItemProps {
+  message: MessageDto;
+  conversationId: string;
+  currentUserId?: string;
+  showDate?: boolean;
+  onUpdate?: (message: MessageDto) => void;
+  onDelete?: (messageId: string) => void;
+}
+
+export function MessageItem({
+  message,
+  conversationId,
+  currentUserId,
+  showDate: shouldShowDate = false,
+  onUpdate,
+  onDelete,
+}: MessageItemProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(message.content || "");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showClickedDate, setShowClickedDate] = useState(false);
+  
+  const { togglePin, isPinning } = usePinMessage(conversationId, onUpdate);
+
+  const isOwnMessage = message.createdById === currentUserId;
+  const messageDate = message.createdAt
+    ? new Date(message.createdAt)
+    : null;
+  const formattedDate = messageDate && shouldShowDate
+    ? messageDate.toLocaleString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
+  
+  const clickedDate = messageDate
+    ? messageDate.toLocaleString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
+
+  const handleMessageClick = () => {
+    if (!isEditing) {
+      setShowClickedDate((prev) => !prev);
+    }
+  };
+
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditContent(message.content || "");
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent(message.content || "");
+  };
+
+  const handleSaveEdit = async () => {
+    if (!message.id || !conversationId) return;
+
+    setIsUpdating(true);
+    try {
+      const response = await putApiConversationsByConversationIdMessagesById({
+        path: {
+          conversationId,
+          id: message.id,
+        },
+        body: {
+          id: message.id,
+          conversationId,
+          content: editContent.trim(),
+        },
+      });
+
+      const updatedMessage = (response.data ?? response) as MessageDto | undefined;
+      if (updatedMessage) {
+        onUpdate?.(updatedMessage);
+        setIsEditing(false);
+      }
+    } catch (err: any) {
+      console.error("Error updating message:", err);
+      alert(err?.response?.data?.message || "Không thể cập nhật tin nhắn");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!message.id || !conversationId) return;
+
+    if (!confirm("Bạn có chắc chắn muốn xóa tin nhắn này?")) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteApiConversationsByConversationIdMessagesById({
+        path: {
+          conversationId,
+          id: message.id,
+        },
+      });
+
+      onDelete?.(message.id);
+    } catch (err: any) {
+      console.error("Error deleting message:", err);
+      alert(err?.response?.data?.message || "Không thể xóa tin nhắn");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex items-end gap-2 group hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg p-1 -m-1 transition-colors",
+        isOwnMessage && "flex-row-reverse"
+      )}
+    >
+      {/* Avatar - chỉ hiển thị bên trái cho tin nhắn của người khác */}
+      {!isOwnMessage && (
+        <Avatar className="h-8 w-8 flex-shrink-0">
+          <AvatarImage
+            src={message.senderAvatarUrl || undefined}
+            alt={message.senderName || "User"}
+          />
+          <AvatarFallback>
+            {message.senderName?.[0]?.toUpperCase() || "U"}
+          </AvatarFallback>
+        </Avatar>
+      )}
+
+      {/* Message Content */}
+      <div
+        className={cn(
+          "flex-1 min-w-0 flex flex-col",
+          isOwnMessage ? "items-end" : "items-start"
+        )}
+      >
+        {/* Header with date - outside bubble */}
+        {formattedDate && (
+          <div
+            className={cn(
+              "flex items-baseline gap-2 mb-1 w-full",
+              isOwnMessage ? "justify-end" : "justify-start"
+            )}
+          >
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {formattedDate}
+            </span>
+          </div>
+        )}
+
+        {/* Message Content */}
+        {isEditing ? (
+          <div className="w-full space-y-2">
+            <Input
+              value={editContent}
+              onChange={(e) => setEditContent(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  void handleSaveEdit();
+                }
+                if (e.key === "Escape") {
+                  handleCancelEdit();
+                }
+              }}
+              className="text-sm"
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCancelEdit}
+                disabled={isUpdating}
+              >
+                Hủy
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSaveEdit}
+                disabled={isUpdating || !editContent.trim()}
+              >
+                {isUpdating ? "Đang lưu..." : "Lưu"}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div
+              className={cn(
+                "rounded-2xl px-4 py-2.5 max-w-[80%] md:max-w-[70%] shadow-sm relative group/message cursor-pointer",
+                isOwnMessage
+                  ? "bg-sky-500 text-white rounded-br-md"
+                  : "bg-slate-200 dark:bg-slate-700 text-foreground rounded-bl-md"
+              )}
+              onClick={handleMessageClick}
+            >
+            {/* Pin indicator - bottom right to avoid conflict with menu */}
+            {message.isPined && (
+              <div className={cn(
+                "absolute bottom-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium z-10",
+                isOwnMessage
+                  ? "bg-white/20 text-white"
+                  : "bg-sky-500/20 text-sky-600 dark:text-sky-400"
+              )}>
+                <Pin className="h-3 w-3" />
+              </div>
+            )}
+
+            {/* Menu button - absolute positioned */}
+            {isOwnMessage && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={cn(
+                      "absolute h-6 w-6 p-0 opacity-0 group-hover/message:opacity-100 transition-opacity z-10",
+                      isOwnMessage
+                        ? "top-2 right-2 hover:bg-white/20 text-white"
+                        : "top-2 left-2 hover:bg-slate-100 dark:hover:bg-slate-700"
+                    )}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align={isOwnMessage ? "end" : "start"}
+                  className="min-w-[120px] p-1"
+                >
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void togglePin(message);
+                    }}
+                    disabled={isDeleting || isUpdating || isPinning}
+                    className="text-xs py-1.5 px-2"
+                  >
+                    {message.isPined ? (
+                      <>
+                        <PinOff className="h-3.5 w-3.5 mr-2" />
+                        Bỏ ghim
+                      </>
+                    ) : (
+                      <>
+                        <Pin className="h-3.5 w-3.5 mr-2" />
+                        Ghim
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit();
+                    }}
+                    disabled={isDeleting || isUpdating || isPinning}
+                    className="text-xs py-1.5 px-2"
+                  >
+                    <Edit className="h-3.5 w-3.5 mr-2" />
+                    Chỉnh sửa
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete();
+                    }}
+                    disabled={isDeleting || isUpdating || isPinning}
+                    className="text-xs py-1.5 px-2 text-red-600 dark:text-red-400"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-2" />
+                    Xóa
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+
+            {/* Header with name - inside bubble */}
+            {(!isOwnMessage || message.isEdit) && (
+              <div
+                className={cn(
+                  "flex items-baseline gap-2 mb-1.5",
+                  isOwnMessage ? "justify-end" : "justify-start"
+                )}
+              >
+                {!isOwnMessage && (
+                  <span className={cn(
+                    "text-xs font-semibold",
+                    isOwnMessage ? "text-white/90" : "text-foreground/80"
+                  )}>
+                    {message.senderName || "Người dùng"}
+                  </span>
+                )}
+                {message.isEdit && (
+                  <span className={cn(
+                    "text-[10px] italic",
+                    isOwnMessage ? "text-white/70" : "text-slate-400"
+                  )}>
+                    (đã chỉnh sửa)
+                  </span>
+                )}
+              </div>
+            )}
+            <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
+              {message.content}
+            </div>
+
+            {/* Files */}
+            {message.files && message.files.length > 0 && (
+              <div className="mt-2 space-y-2">
+                {message.files.map((file) => {
+                  const isImage = file.mimeType?.startsWith("image/");
+                  return isImage ? (
+                    <a
+                      key={file.fileId}
+                      href={file.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={file.fileUrl}
+                        alt={file.fileName || "Image"}
+                        className={cn(
+                          "max-w-full max-h-64 rounded-xl border cursor-pointer hover:opacity-90 transition-opacity",
+                          isOwnMessage
+                            ? "border-sky-400/30"
+                            : "border-slate-300 dark:border-slate-600"
+                        )}
+                      />
+                    </a>
+                  ) : (
+                    <a
+                      key={file.fileId}
+                      href={file.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={cn(
+                        "flex items-center gap-2 text-xs hover:underline p-2 rounded-xl border transition-colors",
+                        isOwnMessage
+                          ? "bg-sky-400/20 border-sky-400/30 text-white"
+                          : "border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600"
+                      )}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Paperclip className="h-3.5 w-3.5" />
+                      <span className="truncate">{file.fileName}</span>
+                    </a>
+                  );
+                })}
+              </div>
+            )}
+            </div>
+            
+            {/* Clicked date - below bubble */}
+            {showClickedDate && clickedDate && (
+              <div
+                className={cn(
+                  "flex items-center justify-center mt-1 w-full",
+                  isOwnMessage ? "justify-end" : "justify-start"
+                )}
+              >
+                <span className="text-xs text-slate-500 dark:text-slate-400 px-2">
+                  {clickedDate}
+                </span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+

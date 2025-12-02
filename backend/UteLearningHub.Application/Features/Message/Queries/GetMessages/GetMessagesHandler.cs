@@ -96,6 +96,7 @@ public class GetMessagesHandler : IRequestHandler<GetMessagesQuery, PagedRespons
             Content = m.Content,
             IsEdit = m.IsEdit,
             IsPined = m.IsPined,
+            Type = m.Type,
             CreatedById = m.CreatedById,
             SenderName = senderInfo.TryGetValue(m.CreatedById, out var info)
                 ? info.FullName

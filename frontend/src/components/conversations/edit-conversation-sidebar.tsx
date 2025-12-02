@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { X, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSubjects } from "@/src/hooks/use-subjects";
-import { putApiConversationById, getApiTag } from "@/src/api/database/sdk.gen";
+import { useUserProfile } from "@/src/hooks/use-user-profile";
+import { putApiConversationById, getApiTag, postApiConversationByIdLeave } from "@/src/api/database/sdk.gen";
 import type { UpdateConversationCommand, SubjectDto2, TagDto, ConversationDetailDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
+import { MemberManagement } from "@/src/components/conversations/member-management";
 
 interface EditConversationSidebarProps {
   open: boolean;
@@ -24,7 +27,16 @@ export function EditConversationSidebar({
   conversation,
   onSuccess,
 }: EditConversationSidebarProps) {
+  const router = useRouter();
   const { fetchSubjects, loading: loadingSubjects } = useSubjects();
+  const { profile } = useUserProfile();
+
+  const currentUserMember = conversation?.members?.find(
+    (m) => m.userId === profile?.id
+  );
+
+  const isOwnerOrDeputy = currentUserMember?.roleType === 2 || currentUserMember?.roleType === 1;
+  const isOwner = currentUserMember?.roleType === 2;
 
   const [formData, setFormData] = useState<UpdateConversationCommand>({
     id: conversation?.id || undefined,
@@ -42,6 +54,7 @@ export function EditConversationSidebar({
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [newTagInput, setNewTagInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [leaving, setLeaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -145,6 +158,32 @@ export function EditConversationSidebar({
     }
   };
 
+  const handleLeave = async () => {
+    if (!conversation?.id) return;
+
+    if (!confirm("Bạn có chắc chắn muốn rời nhóm này?")) return;
+
+    setLeaving(true);
+    setError(null);
+
+    try {
+      await postApiConversationByIdLeave({
+        path: { id: conversation.id },
+      });
+
+      // Quay về danh sách chat
+      router.push("/chat");
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Không thể rời nhóm";
+      setError(errorMessage);
+    } finally {
+      setLeaving(false);
+    }
+  };
+
   if (!conversation) {
     return null;
   }
@@ -167,9 +206,9 @@ export function EditConversationSidebar({
           open ? "translate-x-0" : "translate-x-full"
         )}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
             <h3 className="text-lg font-semibold text-foreground">
               Chỉnh sửa cuộc trò chuyện
             </h3>
@@ -184,8 +223,9 @@ export function EditConversationSidebar({
           </div>
 
           {/* Content */}
-          <ScrollArea className="flex-1">
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <ScrollArea className="flex-1 min-h-0">
+            <div className="p-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
               {error && (
                 <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded">
                   {error}
@@ -336,63 +376,67 @@ export function EditConversationSidebar({
                 </select>
               </div>
 
-              <div>
-                <Label htmlFor="conversationType">
-                  Loại nhóm <span className="text-red-500">*</span>
-                </Label>
-                <select
-                  id="conversationType"
-                  value={formData.conversationType ?? ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      conversationType: e.target.value ? parseInt(e.target.value) : null,
-                    }))
-                  }
-                  required
-                  disabled={loading}
-                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">Chọn loại nhóm</option>
-                  <option value="0">Riêng tư</option>
-                  <option value="1">Công khai</option>
-                  <option value="2">AI</option>
-                </select>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  Riêng tư: Cần yêu cầu tham gia. Công khai: Ai cũng có thể tham gia.
-                </p>
-              </div>
+              {isOwnerOrDeputy && (
+                <>
+                  <div>
+                    <Label htmlFor="conversationType">
+                      Loại nhóm <span className="text-red-500">*</span>
+                    </Label>
+                    <select
+                      id="conversationType"
+                      value={formData.conversationType ?? ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          conversationType: e.target.value ? parseInt(e.target.value) : null,
+                        }))
+                      }
+                      required
+                      disabled={loading}
+                      className="mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">Chọn loại nhóm</option>
+                      <option value="0">Riêng tư</option>
+                      <option value="1">Công khai</option>
+                      <option value="2">AI</option>
+                    </select>
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      Riêng tư: Cần yêu cầu tham gia. Công khai: Ai cũng có thể tham gia.
+                    </p>
+                  </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isAllowMemberPin"
-                  checked={formData.isAllowMemberPin ?? false}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      isAllowMemberPin: e.target.checked,
-                    }))
-                  }
-                  disabled={loading}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-                <Label htmlFor="isAllowMemberPin" className="cursor-pointer">
-                  Cho phép thành viên ghim tin nhắn
-                </Label>
-              </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="isAllowMemberPin"
+                      checked={formData.isAllowMemberPin ?? false}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          isAllowMemberPin: e.target.checked,
+                        }))
+                      }
+                      disabled={loading}
+                      className="h-4 w-4 rounded border-gray-300"
+                    />
+                    <Label htmlFor="isAllowMemberPin" className="cursor-pointer">
+                      Cho phép thành viên ghim tin nhắn
+                    </Label>
+                  </div>
+                </>
+              )}
 
               <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={onClose}
-                  disabled={loading}
+                  disabled={loading || leaving}
                   className="flex-1"
                 >
                   Hủy
                 </Button>
-                <Button type="submit" disabled={loading} className="flex-1">
+                <Button type="submit" disabled={loading || leaving} className="flex-1">
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -403,7 +447,35 @@ export function EditConversationSidebar({
                   )}
                 </Button>
               </div>
-            </form>
+              </form>
+
+              {/* Member Management Section */}
+              {conversation && (
+                <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700">
+                  <MemberManagement conversation={conversation} onSuccess={onSuccess} />
+                </div>
+              )}
+
+              {/* Leave Conversation Button */}
+              <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleLeave}
+                  disabled={leaving || loading}
+                  className="w-full"
+                >
+                  {leaving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Đang rời nhóm...
+                    </>
+                  ) : (
+                    "Rời nhóm"
+                  )}
+                </Button>
+              </div>
+            </div>
           </ScrollArea>
         </div>
       </div>

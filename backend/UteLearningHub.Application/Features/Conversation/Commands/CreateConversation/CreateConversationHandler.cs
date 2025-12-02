@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Message;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
@@ -19,19 +20,22 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
     private readonly IIdentityService _identityService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IConversationSystemMessageService _systemMessageService;
 
     public CreateConversationHandler(
         IConversationRepository conversationRepository,
         ITagRepository tagRepository,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IConversationSystemMessageService systemMessageService)
     {
         _conversationRepository = conversationRepository;
         _tagRepository = tagRepository;
         _identityService = identityService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _systemMessageService = systemMessageService;
     }
 
     public async Task<ConversationDetailDto> Handle(CreateConversationCommand request, CancellationToken cancellationToken)
@@ -40,6 +44,9 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
             throw new UnauthorizedException("You must be authenticated to create a conversation");
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+
+        var creator = await _identityService.FindByIdAsync(userId)
+            ?? throw new UnauthorizedException();
 
         // Verify subject exists if provided
         if (request.SubjectId.HasValue)
@@ -153,6 +160,13 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
         await _conversationRepository.AddAsync(conversation, cancellationToken);
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
+        await _systemMessageService.CreateAsync(
+            conversation.Id,
+            userId,
+            MessageType.ConversationCreated,
+            null,
+            cancellationToken);
+
         var createdConversation = await _conversationRepository.GetByIdWithDetailsAsync(
             conversation.Id,
             disableTracking: true,
@@ -160,10 +174,6 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
 
         if (createdConversation == null)
             throw new NotFoundException("Failed to create conversation");
-
-        var creator = await _identityService.FindByIdAsync(userId);
-        if (creator == null)
-            throw new UnauthorizedException();
 
         var memberUserIds = createdConversation.Members
             .Where(m => !m.IsDeleted)

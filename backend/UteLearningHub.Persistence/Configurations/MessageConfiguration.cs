@@ -20,6 +20,7 @@ public class MessageConfiguration : IEntityTypeConfiguration<Message>
         builder.Property(u => u.Content).HasColumnName("NoiDung");
         builder.Property(u => u.IsEdit).HasColumnName("CoChinhSua");
         builder.Property(u => u.IsPined).HasColumnName("CoDaGhim");
+        builder.Property(u => u.Type).HasColumnName("LoaiTinNhan");
 
         builder.ApplySoftDelete<Message>()
             .ApplyTrack<Message>()

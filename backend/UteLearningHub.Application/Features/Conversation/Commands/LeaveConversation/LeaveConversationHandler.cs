@@ -1,5 +1,6 @@
 using MediatR;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Message;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
@@ -10,13 +11,19 @@ public class LeaveConversationHandler : IRequestHandler<LeaveConversationCommand
 {
     private readonly IConversationRepository _conversationRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IIdentityService _identityService;
+    private readonly IConversationSystemMessageService _systemMessageService;
 
     public LeaveConversationHandler(
         IConversationRepository conversationRepository,
-        ICurrentUserService currentUserService)
+        ICurrentUserService currentUserService,
+        IIdentityService identityService,
+        IConversationSystemMessageService systemMessageService)
     {
         _conversationRepository = conversationRepository;
         _currentUserService = currentUserService;
+        _identityService = identityService;
+        _systemMessageService = systemMessageService;
     }
 
     public async Task Handle(LeaveConversationCommand request, CancellationToken cancellationToken)
@@ -47,6 +54,13 @@ public class LeaveConversationHandler : IRequestHandler<LeaveConversationCommand
 
         await _conversationRepository.RemoveMemberAsync(request.ConversationId, userId, cancellationToken);
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        await _systemMessageService.CreateAsync(
+            request.ConversationId,
+            userId,
+            MessageType.MemberLeft,
+            null,
+            cancellationToken);
     }
 }
 

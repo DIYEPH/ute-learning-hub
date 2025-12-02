@@ -1,9 +1,10 @@
 using MediatR;
+using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Message;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
-using UteLearningHub.Application.Services.Identity;
 
 namespace UteLearningHub.Application.Features.Message.Commands.PinMessage;
 
@@ -13,17 +14,23 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
     private readonly IConversationRepository _conversationRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IIdentityService _identityService;
+    private readonly IConversationSystemMessageService _systemMessageService;
 
     public PinMessageCommandHandler(
         IMessageRepository messageRepository,
         IConversationRepository conversationRepository,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IIdentityService identityService,
+        IConversationSystemMessageService systemMessageService)
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _identityService = identityService;
+        _systemMessageService = systemMessageService;
     }
 
     public async Task<Unit> Handle(PinMessageCommand request, CancellationToken cancellationToken)
@@ -75,6 +82,14 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
         await _messageRepository.UpdateAsync(message, cancellationToken);
         await _messageRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
+        await _systemMessageService.CreateAsync(
+            conversation.Id,
+            userId,
+            request.IsPined ? MessageType.MessagePinned : MessageType.MessageUnpinned,
+            message.Id,
+            cancellationToken);
+
         return Unit.Value;
     }
+
 }
