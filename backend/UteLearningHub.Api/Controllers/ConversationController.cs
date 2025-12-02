@@ -5,7 +5,9 @@ using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Conversation.Commands.CreateConversation;
 using UteLearningHub.Application.Features.Conversation.Commands.DeleteConversation;
 using UteLearningHub.Application.Features.Conversation.Commands.JoinConversation;
+using UteLearningHub.Application.Features.Conversation.Commands.LeaveConversation;
 using UteLearningHub.Application.Features.Conversation.Commands.UpdateConversation;
+using UteLearningHub.Application.Features.Conversation.Commands.UpdateMemberRole;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversationById;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversations;
 using UteLearningHub.Application.Features.Conversation.Queries.GetOnlineMembers;
@@ -75,6 +77,15 @@ public class ConversationController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("{id}/leave")]
+    [Authorize]
+    public async Task<IActionResult> LeaveConversation(Guid id)
+    {
+        var command = new LeaveConversationCommand { ConversationId = id };
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
     [HttpGet("{conversationId}/online-members")]
     [Authorize]
     public async Task<ActionResult<GetOnlineMembersResponse>> GetOnlineMembers(Guid conversationId)
@@ -82,5 +93,14 @@ public class ConversationController : ControllerBase
         var query = new GetOnlineMembersQuery(conversationId);
         var result = await _mediator.Send(query);
         return Ok(result);
+    }
+
+    [HttpPut("{id}/members/{memberId}/role")]
+    [Authorize]
+    public async Task<IActionResult> UpdateMemberRole(Guid id, Guid memberId, [FromBody] UpdateMemberRoleCommand command)
+    {
+        command = command with { ConversationId = id, MemberId = memberId };
+        await _mediator.Send(command);
+        return NoContent();
     }
 }

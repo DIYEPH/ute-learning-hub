@@ -40,4 +40,34 @@ public class ConversationRepository : Repository<Conversation, Guid>, IConversat
         member.CreatedAt = _dateTimeProvider.OffsetNow;
         await _dbContext.ConversationMembers.AddAsync(member, cancellationToken);
     }
+
+    public async Task RemoveMemberAsync(Guid conversationId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        var member = await _dbContext.ConversationMembers
+            .FirstOrDefaultAsync(m => m.ConversationId == conversationId && m.UserId == userId && !m.IsDeleted, cancellationToken);
+        
+        if (member != null)
+        {
+            member.IsDeleted = true;
+            member.DeletedAt = _dateTimeProvider.OffsetNow;
+            member.DeletedById = userId; // User tự xóa chính mình
+            _dbContext.ConversationMembers.Update(member);
+        }
+    }
+
+    public async Task<ConversationMember?> GetDeletedMemberAsync(Guid conversationId, Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.ConversationMembers
+            .FirstOrDefaultAsync(m => m.ConversationId == conversationId && m.UserId == userId && m.IsDeleted, cancellationToken);
+    }
+
+    public async Task RestoreMemberAsync(ConversationMember member, CancellationToken cancellationToken = default)
+    {
+        member.IsDeleted = false;
+        member.DeletedAt = null;
+        member.DeletedById = null;
+        member.UpdatedAt = _dateTimeProvider.OffsetNow;
+        _dbContext.ConversationMembers.Update(member);
+        await Task.CompletedTask;
+    }
 }

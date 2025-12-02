@@ -2,6 +2,7 @@
 
 public enum ConversationMemberRoleType
 {
-    Member,
-    Owner,
+    Member = 0,
+    Deputy = 1,  
+    Owner = 2, 
 }

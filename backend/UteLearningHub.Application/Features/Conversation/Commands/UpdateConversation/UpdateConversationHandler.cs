@@ -48,17 +48,15 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         if (conversation == null || conversation.IsDeleted)
             throw new NotFoundException($"Conversation with id {request.Id} not found");
 
-        // Check permission: Admin or Owner
         var isAdmin = _currentUserService.IsInRole("Admin");
-        var isOwner = conversation.Members.Any(m =>
+        var isOwnerOrDeputy = conversation.Members.Any(m =>
             m.UserId == userId &&
-            m.ConversationMemberRoleType == ConversationMemberRoleType.Owner &&
+            (m.ConversationMemberRoleType == ConversationMemberRoleType.Owner ||
+             m.ConversationMemberRoleType == ConversationMemberRoleType.Deputy) &&
             !m.IsDeleted);
 
-        if (!isAdmin && !isOwner)
-            throw new UnauthorizedException("Only administrators or conversation owners can update conversations");
-
-        // Update fields
+        if (!isAdmin && !isOwnerOrDeputy)
+            throw new UnauthorizedException("Only administrators, conversation owners, or deputies can update conversations");
         if (!string.IsNullOrWhiteSpace(request.ConversationName))
             conversation.ConversationName = request.ConversationName;
 
@@ -74,7 +72,6 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         if (request.IsAllowMemberPin.HasValue)
             conversation.IsAllowMemberPin = request.IsAllowMemberPin.Value;
 
-        // Update tags if provided
         if (request.TagIds != null || request.TagNames != null)
         {
             conversation.ConversationTags.Clear();
@@ -158,7 +155,6 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         await _conversationRepository.UpdateAsync(conversation, cancellationToken);
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Reload with details
         var updatedConversation = await _conversationRepository.GetByIdWithDetailsAsync(
             request.Id,
             disableTracking: true,
@@ -167,12 +163,10 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         if (updatedConversation == null)
             throw new NotFoundException("Failed to update conversation");
 
-        // Get creator information
         var creator = await _identityService.FindByIdAsync(updatedConversation.CreatedById);
         if (creator == null)
             throw new NotFoundException("Creator not found");
 
-        // Get member information
         var memberUserIds = updatedConversation.Members
             .Where(m => !m.IsDeleted)
             .Select(m => m.UserId)

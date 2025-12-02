@@ -38,7 +38,7 @@ public class DeleteConversationHandler : IRequestHandler<DeleteConversationComma
         if (conversation == null || conversation.IsDeleted)
             throw new NotFoundException($"Conversation with id {request.Id} not found");
 
-        // Check permission: Admin or Owner
+        // Check permission: Admin or Owner (Deputy cannot delete)
         var isAdmin = _currentUserService.IsInRole("Admin");
         var isOwner = conversation.Members.Any(m =>
             m.UserId == userId &&

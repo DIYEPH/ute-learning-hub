@@ -48,7 +48,6 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
         if (message.ConversationId != request.ConversationId)
             throw new BadRequestException("Message does not belong to the specified conversation");
 
-        // Validate conversation exists
         var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
             request.ConversationId, 
             disableTracking: false, 
@@ -57,26 +56,24 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
         if (conversation == null || conversation.IsDeleted)
             throw new NotFoundException("Conversation not found");
 
-        // Check permission: owner, admin, or user with high trust level
         var isOwner = message.CreatedById == userId;
         var isAdmin = _currentUserService.IsInRole("Admin");
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
 
-        // Check if user is conversation owner
-        var isConversationOwner = conversation.Members.Any(m =>
+        var isConversationOwnerOrDeputy = conversation.Members.Any(m =>
             m.UserId == userId &&
-            m.ConversationMemberRoleType == ConversationMemberRoleType.Owner &&
+            (m.ConversationMemberRoleType == ConversationMemberRoleType.Owner ||
+             m.ConversationMemberRoleType == ConversationMemberRoleType.Deputy) &&
             !m.IsDeleted);
 
         var canDelete = isOwner || 
                        isAdmin || 
-                       isConversationOwner ||
+                       isConversationOwnerOrDeputy ||
                        (trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator);
 
         if (!canDelete)
             throw new UnauthorizedException("You don't have permission to delete this message");
 
-        // Soft delete
         message.IsDeleted = true;
         message.DeletedAt = _dateTimeProvider.OffsetNow;
         message.DeletedById = userId;

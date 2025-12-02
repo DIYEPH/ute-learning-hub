@@ -66,8 +66,7 @@ public class GetMessagesHandler : IRequestHandler<GetMessagesQuery, PagedRespons
         else
             query = query.Where(m => m.ParentId == null);
 
-        // Order by newest first
-        query = query.OrderByDescending(m => m.CreatedAt);
+        query = query.OrderBy(m => m.CreatedAt);
 
         var totalCount = await query.CountAsync(cancellationToken);
 

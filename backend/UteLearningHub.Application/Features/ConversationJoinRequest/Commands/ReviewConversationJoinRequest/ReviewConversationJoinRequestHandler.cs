@@ -44,20 +44,21 @@ public class ReviewConversationJoinRequestHandler : IRequestHandler<ReviewConver
         if (joinRequest.Conversation.ConversationType != ConversitionType.Private)
             throw new BadRequestException("Join requests are only available for private conversations");
 
-        // Check permission: Admin, Moderator, or Owner of the conversation
+        // Check permission: Admin, Owner, or Deputy
         var isAdmin = _currentUserService.IsInRole("Admin");    
 
-        var isOwner = await _conversationRepository.GetQueryableSet()
+        var isOwnerOrDeputy = await _conversationRepository.GetQueryableSet()
             .Where(c => c.Id == joinRequest.ConversationId)
             .SelectMany(c => c.Members)
             .AnyAsync(m => m.UserId == userId 
-                        && m.ConversationMemberRoleType == ConversationMemberRoleType.Owner 
+                        && (m.ConversationMemberRoleType == ConversationMemberRoleType.Owner ||
+                            m.ConversationMemberRoleType == ConversationMemberRoleType.Deputy)
                         && !m.IsDeleted, cancellationToken);
 
-        var canReview = isAdmin || isOwner;
+        var canReview = isAdmin || isOwnerOrDeputy;
 
         if (!canReview)
-            throw new UnauthorizedException("Only administrators or conversation owners can review join requests");
+            throw new UnauthorizedException("Only administrators, conversation owners, or deputies can review join requests");
 
         // Update review information
         joinRequest.ReviewStatus = request.ReviewStatus;

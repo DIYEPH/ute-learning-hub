@@ -138,7 +138,6 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
             }
         }
 
-        // Add creator as owner
         var ownerMember = new ConversationMember
         {
             Id = Guid.NewGuid(),
@@ -154,7 +153,6 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
         await _conversationRepository.AddAsync(conversation, cancellationToken);
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Reload with details
         var createdConversation = await _conversationRepository.GetByIdWithDetailsAsync(
             conversation.Id,
             disableTracking: true,
@@ -163,12 +161,10 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
         if (createdConversation == null)
             throw new NotFoundException("Failed to create conversation");
 
-        // Get creator information
         var creator = await _identityService.FindByIdAsync(userId);
         if (creator == null)
             throw new UnauthorizedException();
 
-        // Get member information
         var memberUserIds = createdConversation.Members
             .Where(m => !m.IsDeleted)
             .Select(m => m.UserId)

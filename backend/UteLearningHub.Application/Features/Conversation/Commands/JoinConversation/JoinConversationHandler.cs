@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -48,30 +47,36 @@ public class JoinConversationHandler : IRequestHandler<JoinConversationCommand, 
         if (conversation.ConversationStatus != ConversationStatus.Active)
             throw new BadRequestException("Conversation is not active");
 
-        // Check if user is already a member
-        var isMember = conversation.Members.Any(m => m.UserId == userId && !m.IsDeleted);
-        if (isMember)
+        var isActiveMember = conversation.Members.Any(m => m.UserId == userId && !m.IsDeleted);
+        if (isActiveMember)
             throw new BadRequestException("You are already a member of this conversation");
 
-        // For private conversations, user must use join request
         if (conversation.ConversationType == ConversitionType.Private)
             throw new BadRequestException("Private conversations require a join request. Please use the join request endpoint.");
 
-        // For public conversations, add user as member directly
-        var newMember = new ConversationMember
+        var deletedMember = await _conversationRepository.GetDeletedMemberAsync(conversation.Id, userId, cancellationToken);
+        
+        if (deletedMember != null)
         {
-            Id = Guid.NewGuid(),
-            UserId = userId,
-            ConversationId = conversation.Id,
-            ConversationMemberRoleType = ConversationMemberRoleType.Member,
-            IsMuted = false
-        };
+            deletedMember.ConversationMemberRoleType = ConversationMemberRoleType.Member;
+            deletedMember.IsMuted = false;
+            await _conversationRepository.RestoreMemberAsync(deletedMember, cancellationToken);
+        }
+        else
+        {
+            var newMember = new ConversationMember
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                ConversationId = conversation.Id,
+                ConversationMemberRoleType = ConversationMemberRoleType.Member,
+                IsMuted = false
+            };
 
-        // Add member directly to DbContext to avoid concurrency issues
-        await _conversationRepository.AddMemberAsync(newMember, cancellationToken);
+            await _conversationRepository.AddMemberAsync(newMember, cancellationToken);
+        }
+
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
-
-        // Reload with details
         var updatedConversation = await _conversationRepository.GetByIdWithDetailsAsync(
             conversation.Id,
             disableTracking: true,
@@ -80,12 +85,10 @@ public class JoinConversationHandler : IRequestHandler<JoinConversationCommand, 
         if (updatedConversation == null)
             throw new NotFoundException("Failed to join conversation");
 
-        // Get creator information
         var creator = await _identityService.FindByIdAsync(updatedConversation.CreatedById);
         if (creator == null)
             throw new NotFoundException("Creator not found");
 
-        // Get member information
         var memberUserIds = updatedConversation.Members
             .Where(m => !m.IsDeleted)
             .Select(m => m.UserId)

@@ -44,7 +44,6 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
         if (message.ConversationId != request.ConversationId)
             throw new BadRequestException("Message does not belong to the specified conversation");
             
-        // Validate conversation exists and get member info
         var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
             request.ConversationId, 
             disableTracking: false, 
@@ -56,21 +55,19 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
         if (conversation.ConversationStatus != ConversationStatus.Active)
             throw new BadRequestException("Conversation is not active");
 
-        // Check if user is a member
         var member = conversation.Members.FirstOrDefault(m =>
             m.UserId == userId && !m.IsDeleted);
 
         if (member == null)
             throw new ForbidenException("You are not a member of this conversation");
 
-        // Check permission to pin
-        var isOwner = member.ConversationMemberRoleType == ConversationMemberRoleType.Owner;
-        var canPin = isOwner || conversation.IsAllowMemberPin;
+        var isOwnerOrDeputy = member.ConversationMemberRoleType == ConversationMemberRoleType.Owner ||
+                              member.ConversationMemberRoleType == ConversationMemberRoleType.Deputy;
+        var canPin = isOwnerOrDeputy || conversation.IsAllowMemberPin;
 
         if (!canPin)
             throw new UnauthorizedException("You don't have permission to pin messages in this conversation");
 
-        // Update pin status
         message.IsPined = request.IsPined;
         message.UpdatedById = userId;
         message.UpdatedAt = _dateTimeProvider.OffsetNow;

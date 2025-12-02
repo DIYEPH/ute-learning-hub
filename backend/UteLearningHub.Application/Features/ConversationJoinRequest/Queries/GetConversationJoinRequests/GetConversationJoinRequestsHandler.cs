@@ -54,18 +54,19 @@ public class GetConversationJoinRequestsHandler : IRequestHandler<GetConversatio
             if (conversation.ConversationType != ConversitionType.Private)
                 throw new BadRequestException("Join requests are only available for private conversations");
 
-            // Check if user is owner
+            // Check if user is owner or deputy
             if (!isAdmin)
             {
                 isOwner = await _conversationRepository.GetQueryableSet()
                     .Where(c => c.Id == request.ConversationId.Value)
                     .SelectMany(c => c.Members)
                     .AnyAsync(m => m.UserId == userId 
-                                && m.ConversationMemberRoleType == ConversationMemberRoleType.Owner 
+                                && (m.ConversationMemberRoleType == ConversationMemberRoleType.Owner ||
+                                    m.ConversationMemberRoleType == ConversationMemberRoleType.Deputy)
                                 && !m.IsDeleted, cancellationToken);
 
                 if (!isOwner)
-                    throw new UnauthorizedException("Only conversation owners can view join requests for this conversation");
+                    throw new UnauthorizedException("Only conversation owners or deputies can view join requests for this conversation");
             }
         }
 
