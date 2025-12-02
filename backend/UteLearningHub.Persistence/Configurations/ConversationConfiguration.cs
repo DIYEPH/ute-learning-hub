@@ -18,6 +18,7 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
         builder.Property(u => u.SubjectId).HasColumnName("MonHocId");
         builder.Property(u => u.LastMessage).HasColumnName("TinNhanMoiNhat");
         builder.Property(u => u.ConversationName).HasColumnName("TenCuocTroChuyen");
+        builder.Property(u => u.AvatarUrl).HasColumnName("AnhDaiDien");
         builder.Property(u => u.IsSuggestedByAI).HasColumnName("CoDuocTaoBoiAI");
         builder.Property(u => u.IsAllowMemberPin).HasColumnName("CoChoThanhVienGhimTinNhan");
         builder.Property(u => u.ConversationType).HasColumnName("LoaiCuocTroChuyen");

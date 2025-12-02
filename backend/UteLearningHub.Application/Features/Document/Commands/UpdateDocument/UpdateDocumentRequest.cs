@@ -13,4 +13,5 @@ public record UpdateDocumentRequest
     public bool? IsDownload { get; init; }
     public VisibilityStatus? Visibility { get; init; }
     public IList<Guid>? FileIdsToRemove { get; init; }
+    public Guid? CoverFileId { get; init; }
 }

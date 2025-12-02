@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
@@ -10,43 +10,40 @@ using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 using DomainDocument = UteLearningHub.Domain.Entities.Document;
-using DomainFile = UteLearningHub.Domain.Entities.File;
 using DomainTag = UteLearningHub.Domain.Entities.Tag;
+using DomainFile = UteLearningHub.Domain.Entities.File;
 
 namespace UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 
 public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentCommand, DocumentDetailDto>
 {
     private readonly IDocumentRepository _documentRepository;
-    private readonly IFileRepository _fileRepository;
+    private readonly IFileUsageService _fileUsageService;
     private readonly IAuthorRepository _authorRepository;
     private readonly ISubjectRepository _subjectRepository;
     private readonly ITypeRepository _typeRepository;
     private readonly ITagRepository _tagRepository;
-    private readonly IFileStorageService _fileStorageService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
 
     public CreateDocumentCommandHandler(
         IDocumentRepository documentRepository,
-        IFileRepository fileRepository,
+        IFileUsageService fileUsageService,
         IAuthorRepository authorRepository,
         ISubjectRepository subjectRepository,
         ITypeRepository typeRepository,
         ITagRepository tagRepository,
-        IFileStorageService fileStorageService,
         ICurrentUserService currentUserService,
         IUserService userService,
         IDateTimeProvider dateTimeProvider)
     {
         _documentRepository = documentRepository;
-        _fileRepository = fileRepository;
+        _fileUsageService = fileUsageService;
         _authorRepository = authorRepository;
         _subjectRepository = subjectRepository;
         _typeRepository = typeRepository;
         _tagRepository = tagRepository;
-        _fileStorageService = fileStorageService;
         _currentUserService = currentUserService;
         _userService = userService;
         _dateTimeProvider = dateTimeProvider;
@@ -223,75 +220,23 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             }
         }
 
-        var uploadedFileUrls = new List<string>(); 
+        var filesToPromote = new List<DomainFile>();
 
-        try
+        if (request.CoverFileId.HasValue)
         {
-            // Ảnh bìa tùy chọn
-            if (request.CoverFile != null && request.CoverFile.Length > 0)
-            {
-                var coverExtension = Path.GetExtension(request.CoverFile.FileName);
-                var coverMimeType = request.CoverFile.ContentType;
+            if (request.CoverFileId.Value == Guid.Empty)
+                throw new BadRequestException("CoverFileId is invalid.");
 
-                var allowedCoverExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    ".jpg", ".jpeg", ".png", ".gif", ".webp"
-                };
-
-                var allowedCoverMimeTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                {
-                    "image/jpeg",
-                    "image/png",
-                    "image/gif",
-                    "image/webp"
-                };
-
-                if (!allowedCoverExtensions.Contains(coverExtension) || !allowedCoverMimeTypes.Contains(coverMimeType))
-                {
-                    throw new BadRequestException("Cover image must be an image file (jpg, png, gif, webp).");
-                }
-
-                using var coverStream = request.CoverFile.OpenReadStream();
-                var coverUrl = await _fileStorageService.UploadFileAsync(
-                    coverStream,
-                    request.CoverFile.FileName,
-                    request.CoverFile.ContentType,
-                    cancellationToken);
-
-                uploadedFileUrls.Add(coverUrl);
-
-                var coverFile = new DomainFile
-                {
-                    Id = Guid.NewGuid(),
-                    FileName = request.CoverFile.FileName,
-                    FileUrl = coverUrl,
-                    FileSize = request.CoverFile.Length,
-                    MimeType = request.CoverFile.ContentType,
-                    CreatedById = userId,
-                    CreatedAt = _dateTimeProvider.OffsetNow
-                };
-
-                await _fileRepository.AddAsync(coverFile, cancellationToken);
-                document.CoverFileId = coverFile.Id;
-            }
-
-            await _documentRepository.AddAsync(document, cancellationToken);
-            await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+            var coverFile = await _fileUsageService.EnsureFileAsync(request.CoverFileId.Value, cancellationToken);
+            document.CoverFileId = coverFile.Id;
+            filesToPromote.Add(coverFile);
         }
-        catch
-        {
-            foreach (var fileUrl in uploadedFileUrls)
-            {
-                try
-                {
-                    await _fileStorageService.DeleteFileAsync(fileUrl, cancellationToken);
-                }
-                catch
-                {
-                }
-            }
-            throw; 
-        }
+
+        await _documentRepository.AddAsync(document, cancellationToken);
+        await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (filesToPromote.Any())
+            await _fileUsageService.MarkFilesAsPermanentAsync(filesToPromote, cancellationToken);
 
         document = await _documentRepository.GetByIdWithDetailsAsync(document.Id, disableTracking: true, cancellationToken);
 

@@ -34,11 +34,9 @@ public class MessageController : ControllerBase
     }
 
     [HttpPost]
-    [RequestSizeLimit(100_000_000)] 
-    [Consumes("multipart/form-data")]
     public async Task<ActionResult<MessageDto>> CreateMessage(
         Guid conversationId, 
-        [FromForm] CreateMessageCommand command)
+        [FromBody] CreateMessageCommand command)
     {
         command = command with { ConversationId = conversationId };
         var result = await _mediator.Send(command);

@@ -45,9 +45,9 @@ public class FileStorageService : IFileStorageService
             var fileName = Path.GetFileName(fileUrl);
             var filePath = Path.Combine(_basePath, fileName);
             
-            if (File.Exists(filePath))
+            if (System.IO.File.Exists(filePath))
             {
-                File.Delete(filePath);
+                System.IO.File.Delete(filePath);
                 return Task.FromResult(true);
             }
             
@@ -66,7 +66,7 @@ public class FileStorageService : IFileStorageService
             var fileName = Path.GetFileName(fileUrl);
             var filePath = Path.Combine(_basePath, fileName);
             
-            if (File.Exists(filePath))
+            if (System.IO.File.Exists(filePath))
             {
                 return Task.FromResult<Stream?>(new FileStream(filePath, FileMode.Open, FileAccess.Read));
             }

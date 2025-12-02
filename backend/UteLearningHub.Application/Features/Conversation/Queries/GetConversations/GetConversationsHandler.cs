@@ -80,19 +80,6 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
             .Take(request.Take)
             .ToListAsync(cancellationToken);
 
-        // Get creator information
-        var creatorIds = conversations.Select(c => c.CreatedById).Distinct();
-        var creatorInfo = new Dictionary<Guid, (string FullName, string? AvatarUrl)>();
-
-        foreach (var creatorId in creatorIds)
-        {
-            var creator = await _identityService.FindByIdAsync(creatorId);
-            if (creator != null)
-            {
-                creatorInfo[creatorId] = (creator.FullName, creator.AvatarUrl);
-            }
-        }
-
         // Get current user ID if authenticated
         var currentUserId = _currentUserService.IsAuthenticated ? _currentUserService.UserId : null;
 
@@ -125,14 +112,9 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
                     SubjectName = c.Subject.SubjectName,
                     SubjectCode = c.Subject.SubjectCode
                 } : null,
-                CreatorName = creatorInfo.TryGetValue(c.CreatedById, out var info)
-                    ? info.FullName
-                    : "Unknown",
-                CreatorAvatarUrl = creatorInfo.TryGetValue(c.CreatedById, out var creator)
-                    ? creator.AvatarUrl
-                    : null,
+                AvatarUrl = c.AvatarUrl,
                 MemberCount = c.Members.Count(m => !m.IsDeleted),
-                MessageCount = 0, // Will be calculated if needed
+                MessageCount = 0, 
                 LastMessageId = c.LastMessage,
                 CreatedById = c.CreatedById,
                 CreatedAt = c.CreatedAt,

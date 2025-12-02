@@ -137,8 +137,6 @@ public class JoinConversationHandler : IRequestHandler<JoinConversationCommand, 
                 SubjectName = updatedConversation.Subject.SubjectName,
                 SubjectCode = updatedConversation.Subject.SubjectCode
             } : null,
-            CreatorName = creator.FullName,
-            CreatorAvatarUrl = creator.AvatarUrl,
             Members = updatedConversation.Members
                 .Where(m => !m.IsDeleted)
                 .Select(m => new ConversationMemberDto

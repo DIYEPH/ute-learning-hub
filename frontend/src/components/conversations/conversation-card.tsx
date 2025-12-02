@@ -84,8 +84,8 @@ export function ConversationCard({
       <div className="flex items-start gap-3">
         <Avatar className="h-12 w-12 flex-shrink-0">
           <AvatarImage
-            src={conversation.creatorAvatarUrl || undefined}
-            alt={conversation.creatorName || "Avatar"}
+          src={(conversation as any).avatarUrl || conversation.creatorAvatarUrl || undefined}
+          alt={conversation.conversationName || conversation.creatorName || "Avatar"}
           />
           <AvatarFallback>
             <MessageCircle className="h-6 w-6" />

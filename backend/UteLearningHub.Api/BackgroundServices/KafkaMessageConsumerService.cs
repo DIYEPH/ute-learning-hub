@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Confluent.Kafka;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using UteLearningHub.Application.Common.Events;
 using UteLearningHub.Application.Services.Message;

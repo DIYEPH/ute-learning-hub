@@ -12,8 +12,7 @@ public record ConversationDto
     public bool IsSuggestedByAI { get; init; }
     public bool IsAllowMemberPin { get; init; }
     public SubjectDto? Subject { get; init; }
-    public string CreatorName { get; init; } = default!;
-    public string? CreatorAvatarUrl { get; init; }
+    public string? AvatarUrl { get; init; }
     public int MemberCount { get; init; }
     public int MessageCount { get; init; }
     public Guid? LastMessageId { get; init; }
@@ -34,8 +33,7 @@ public record ConversationDetailDto
     public bool IsSuggestedByAI { get; init; }
     public bool IsAllowMemberPin { get; init; }
     public SubjectDto? Subject { get; init; }
-    public string CreatorName { get; init; } = default!;
-    public string? CreatorAvatarUrl { get; init; }
+    public string? AvatarUrl { get; init; }
     public IList<ConversationMemberDto> Members { get; init; } = [];
     public int MessageCount { get; init; }
     public Guid? LastMessageId { get; init; }

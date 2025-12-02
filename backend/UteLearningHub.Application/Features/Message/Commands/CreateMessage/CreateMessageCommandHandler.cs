@@ -1,8 +1,7 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Common.Events;
-using UteLearningHub.Application.Services.FileStorage;
+using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -17,8 +16,7 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
 {
     private readonly IMessageRepository _messageRepository;
     private readonly IConversationRepository _conversationRepository;
-    private readonly IFileRepository _fileRepository;
-    private readonly IFileStorageService _fileStorageService;
+    private readonly IFileUsageService _fileUsageService;
     private readonly IIdentityService _identityService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
@@ -27,8 +25,7 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
     public CreateMessageCommandHandler(
         IMessageRepository messageRepository,
         IConversationRepository conversationRepository,
-        IFileRepository fileRepository,
-        IFileStorageService fileStorageService,
+        IFileUsageService fileUsageService,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider,
@@ -36,8 +33,7 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
-        _fileRepository = fileRepository;
-        _fileStorageService = fileStorageService;
+        _fileUsageService = fileUsageService;
         _identityService = identityService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
@@ -83,17 +79,6 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
                 throw new NotFoundException($"Parent message with id {request.ParentId.Value} not found");
         }
 
-        // Validate file IDs if provided
-        if (request.FileIds != null && request.FileIds.Any())
-        {
-            var files = await _fileRepository.GetQueryableSet()
-                .Where(f => request.FileIds.Contains(f.Id) && !f.IsDeleted)
-                .ToListAsync(cancellationToken);
-            
-            if (files.Count != request.FileIds.Count)
-                throw new NotFoundException("One or more files not found");
-        }
-
         // Create message
         var message = new DomainMessage
         {
@@ -107,83 +92,34 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        var uploadedFileUrls = new List<string>();
+        var filesToPromote = new List<DomainFile>();
 
-        try
+        if (request.FileIds != null && request.FileIds.Any())
         {
-            // Upload new files if provided
-            if (request.Files != null && request.Files.Any())
+            var files = await _fileUsageService.EnsureFilesAsync(request.FileIds, cancellationToken);
+            filesToPromote.AddRange(files);
+
+            foreach (var file in files)
             {
-                foreach (var formFile in request.Files)
+                message.MessageFiles.Add(new Domain.Entities.MessageFile
                 {
-                    if (formFile.Length > 0)
-                    {
-                        using var fileStream = formFile.OpenReadStream();
-                        var fileUrl = await _fileStorageService.UploadFileAsync(
-                            fileStream,
-                            formFile.FileName,
-                            formFile.ContentType,
-                            cancellationToken);
-
-                        uploadedFileUrls.Add(fileUrl);
-
-                        var file = new DomainFile
-                        {
-                            Id = Guid.NewGuid(),
-                            FileName = formFile.FileName,
-                            FileUrl = fileUrl,
-                            FileSize = formFile.Length,
-                            MimeType = formFile.ContentType,
-                            CreatedById = userId,
-                            CreatedAt = _dateTimeProvider.OffsetNow
-                        };
-
-                        await _fileRepository.AddAsync(file, cancellationToken);
-
-                        message.MessageFiles.Add(new Domain.Entities.MessageFile
-                        {
-                            MessageId = message.Id,
-                            FileId = file.Id
-                        });
-                    }
-                }
+                    MessageId = message.Id,
+                    FileId = file.Id
+                });
             }
-
-            // Link existing files if provided
-            if (request.FileIds != null && request.FileIds.Any())
-            {
-                foreach (var fileId in request.FileIds)
-                {
-                    message.MessageFiles.Add(new Domain.Entities.MessageFile
-                    {
-                        MessageId = message.Id,
-                        FileId = fileId
-                    });
-                }
-            }
-
-            await _messageRepository.AddAsync(message, cancellationToken);
-
-            // Update conversation's LastMessage
-            conversation.LastMessage = message.Id;
-            conversation.UpdatedAt = _dateTimeProvider.OffsetNow;
-            await _conversationRepository.UpdateAsync(conversation, cancellationToken);
-
-            await _messageRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
         }
-        catch
-        {
-            // Rollback uploaded files
-            foreach (var fileUrl in uploadedFileUrls)
-            {
-                try
-                {
-                    await _fileStorageService.DeleteFileAsync(fileUrl, cancellationToken);
-                }
-                catch { }
-            }
-            throw;
-        }
+
+        await _messageRepository.AddAsync(message, cancellationToken);
+
+        // Update conversation's LastMessage
+        conversation.LastMessage = message.Id;
+        conversation.UpdatedAt = _dateTimeProvider.OffsetNow;
+        await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+
+        await _messageRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        if (filesToPromote.Any())
+            await _fileUsageService.MarkFilesAsPermanentAsync(filesToPromote, cancellationToken);
 
         // Reload message with details
         var createdMessage = await _messageRepository.GetByIdWithDetailsAsync(

@@ -81,7 +81,7 @@ public class UserService : IUserService
             Introduction = user.Introduction,
             TrustScore = appUser.TrustScore,
             TrustLevel = appUser.TrustLever.ToString(),
-            Gender = appUser.Gender.ToString(),
+            Gender = appUser.Gender,
             Roles = roles.ToList(),
             Major = majorDto,
             CreatedAt = appUser.CreatedAt
@@ -255,7 +255,7 @@ public class UserService : IUserService
                 Introduction = user.Introduction,
                 TrustScore = user.TrustScore,
                 TrustLevel = user.TrustLever.ToString(),
-                Gender = user.Gender.ToString(),
+                Gender = user.Gender,
                 IsSuggest = user.IsSuggest,
                 Roles = roles.ToList(),
                 Major = user.Major != null ? new MajorDto
@@ -315,7 +315,7 @@ public class UserService : IUserService
             Introduction = user.Introduction,
             TrustScore = user.TrustScore,
             TrustLevel = user.TrustLever.ToString(),
-            Gender = user.Gender.ToString(),
+            Gender = user.Gender,
             IsSuggest = user.IsSuggest,
             Roles = roles.ToList(),
             Major = user.Major != null ? new MajorDto

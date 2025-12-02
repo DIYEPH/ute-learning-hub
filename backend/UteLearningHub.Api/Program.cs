@@ -12,7 +12,6 @@ using UteLearningHub.Infrastructure.ConfigurationOptions;
 using UteLearningHub.Infrastructure.DateTimes;
 using UteLearningHub.Persistence;
 using UteLearningHub.Persistence.Seeders;
-using UteLearningHub.Api.Binders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +29,7 @@ services.Configure<MicrosoftAuthOptions>(configurations.GetSection(MicrosoftAuth
 services.Configure<AmazonS3Options>(configurations.GetSection(AmazonS3Options.SectionName));
 services.Configure<FileStorageOptions>(configurations.GetSection(FileStorageOptions.SectionName));
 services.Configure<KafkaOptions>(configurations.GetSection(KafkaOptions.SectionName));
+services.Configure<TemporaryFileCleanupOptions>(configurations.GetSection(TemporaryFileCleanupOptions.SectionName));
 
 services.AddApplication()
     .AddPersistence(appSettings.ConnectionStrings.DefaultConnection)
@@ -47,10 +47,7 @@ else
     services.AddLocalFileStorage();
 }
 
-services.AddControllers(options =>
-{
-    options.ModelBinderProviders.Insert(0, new OptionalListModelBinderProvider());
-});
+services.AddControllers();
 services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -82,6 +79,7 @@ services.AddSignalR();
 
 services.AddSingleton<IMessageHubService, SignalRMessageHubService>();
 services.AddHostedService<KafkaMessageConsumerService>();
+services.AddHostedService<TemporaryFileCleanupService>();
 
 var app = builder.Build();
 

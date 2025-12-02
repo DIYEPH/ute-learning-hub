@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -17,6 +18,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
 {
     private readonly IConversationRepository _conversationRepository;
     private readonly ITagRepository _tagRepository;
+    private readonly IFileUsageService _fileUsageService;
     private readonly IIdentityService _identityService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
@@ -25,6 +27,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
     public CreateConversationHandler(
         IConversationRepository conversationRepository,
         ITagRepository tagRepository,
+        IFileUsageService fileUsageService,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider,
@@ -32,6 +35,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
     {
         _conversationRepository = conversationRepository;
         _tagRepository = tagRepository;
+        _fileUsageService = fileUsageService;
         _identityService = identityService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
@@ -119,6 +123,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
         {
             Id = Guid.NewGuid(),
             ConversationName = request.ConversationName,
+            AvatarUrl = request.AvatarUrl,
             ConversationType = request.ConversationType,
             ConversationStatus = ConversationStatus.Active,
             SubjectId = request.SubjectId,
@@ -175,6 +180,13 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
         if (createdConversation == null)
             throw new NotFoundException("Failed to create conversation");
 
+        if (!string.IsNullOrWhiteSpace(request.AvatarUrl))
+        {
+            var avatarFile = await _fileUsageService.TryGetByUrlAsync(request.AvatarUrl, cancellationToken);
+            if (avatarFile != null)
+                await _fileUsageService.MarkFilesAsPermanentAsync(new[] { avatarFile }, cancellationToken);
+        }
+
         var memberUserIds = createdConversation.Members
             .Where(m => !m.IsDeleted)
             .Select(m => m.UserId)
@@ -213,8 +225,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
                 SubjectName = createdConversation.Subject.SubjectName,
                 SubjectCode = createdConversation.Subject.SubjectCode
             } : null,
-            CreatorName = creator.FullName,
-            CreatorAvatarUrl = creator.AvatarUrl,
+            AvatarUrl = createdConversation.AvatarUrl,
             Members = createdConversation.Members
                 .Where(m => !m.IsDeleted)
                 .Select(m => new ConversationMemberDto

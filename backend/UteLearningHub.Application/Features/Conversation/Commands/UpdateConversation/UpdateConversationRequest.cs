@@ -12,4 +12,5 @@ public record UpdateConversationRequest
     public ConversationStatus? ConversationStatus { get; init; }
     public Guid? SubjectId { get; init; }
     public bool? IsAllowMemberPin { get; init; }
+    public string? AvatarUrl { get; init; }
 }

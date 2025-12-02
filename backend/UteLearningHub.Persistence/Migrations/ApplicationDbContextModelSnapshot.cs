@@ -333,6 +333,10 @@ namespace UteLearningHub.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AvatarUrl")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("AnhDaiDien");
+
                     b.Property<string>("ConversationName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -1076,6 +1080,12 @@ namespace UteLearningHub.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
                         .HasColumnName("CoDaXoa");
+
+                    b.Property<bool>("IsTemporary")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false)
+                        .HasColumnName("LaTam");
 
                     b.Property<string>("MimeType")
                         .IsRequired()

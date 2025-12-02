@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Services.FileStorage;
+using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -16,32 +16,29 @@ namespace UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentCommand, DocumentDetailDto>
 {
     private readonly IDocumentRepository _documentRepository;
-    private readonly IFileRepository _fileRepository;
+    private readonly IFileUsageService _fileUsageService;
     private readonly ISubjectRepository _subjectRepository;
     private readonly ITypeRepository _typeRepository;
     private readonly ITagRepository _tagRepository;
-    private readonly IFileStorageService _fileStorageService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
 
     public UpdateDocumentCommandHandler(
         IDocumentRepository documentRepository,
-        IFileRepository fileRepository,
+        IFileUsageService fileUsageService,
         ISubjectRepository subjectRepository,
         ITypeRepository typeRepository,
         ITagRepository tagRepository,
-        IFileStorageService fileStorageService,
         ICurrentUserService currentUserService,
         IUserService userService,
         IDateTimeProvider dateTimeProvider)
     {
         _documentRepository = documentRepository;
-        _fileRepository = fileRepository;
+        _fileUsageService = fileUsageService;
         _subjectRepository = subjectRepository;
         _typeRepository = typeRepository;
         _tagRepository = tagRepository;
-        _fileStorageService = fileStorageService;
         _currentUserService = currentUserService;
         _userService = userService;
         _dateTimeProvider = dateTimeProvider;
@@ -125,95 +122,44 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
             }
         }
 
-        var uploadedFileUrls = new List<string>();
-        var filesToDeleteFromStorage = new List<string>(); 
+        var filesToPromote = new List<DomainFile>();
+        DomainFile? fileToDelete = null;
 
-        // Cập nhật ảnh bìa nếu có
-        if (request.CoverFile != null && request.CoverFile.Length > 0)
+        if (request.CoverFileId.HasValue && request.CoverFileId.Value == Guid.Empty)
+            throw new BadRequestException("CoverFileId is invalid");
+
+        if (request.CoverFileId.HasValue)
         {
-            var coverExtension = Path.GetExtension(request.CoverFile.FileName);
-            var coverMimeType = request.CoverFile.ContentType;
-
-            var allowedCoverExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            if (!document.CoverFileId.HasValue || document.CoverFileId.Value != request.CoverFileId.Value)
             {
-                ".jpg", ".jpeg", ".png", ".gif", ".webp"
-            };
+                var newCoverFile = await _fileUsageService.EnsureFileAsync(request.CoverFileId.Value, cancellationToken);
 
-            var allowedCoverMimeTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "image/jpeg",
-                "image/png",
-                "image/gif",
-                "image/webp"
-            };
+                if (document.CoverFileId.HasValue)
+                {
+                    fileToDelete = document.CoverFile ?? await _fileUsageService.EnsureFileAsync(document.CoverFileId.Value, cancellationToken);
+                }
 
-            if (!allowedCoverExtensions.Contains(coverExtension) || !allowedCoverMimeTypes.Contains(coverMimeType))
-            {
-                throw new BadRequestException("Cover image must be an image file (jpg, png, gif, webp).");
+                document.CoverFileId = newCoverFile.Id;
+                filesToPromote.Add(newCoverFile);
             }
-
-            if (document.CoverFile != null)
-            {
-                filesToDeleteFromStorage.Add(document.CoverFile.FileUrl);
-            }
-
-            using var coverStream = request.CoverFile.OpenReadStream();
-            var coverUrl = await _fileStorageService.UploadFileAsync(
-                coverStream,
-                request.CoverFile.FileName,
-                request.CoverFile.ContentType,
-                cancellationToken);
-
-            uploadedFileUrls.Add(coverUrl);
-
-            var coverFile = new DomainFile
-            {
-                Id = Guid.NewGuid(),
-                FileName = request.CoverFile.FileName,
-                FileUrl = coverUrl,
-                FileSize = request.CoverFile.Length,
-                MimeType = request.CoverFile.ContentType,
-                CreatedById = userId,
-                CreatedAt = _dateTimeProvider.OffsetNow
-            };
-
-            await _fileRepository.AddAsync(coverFile, cancellationToken);
-            document.CoverFileId = coverFile.Id;
+        }
+        else if (document.CoverFileId.HasValue)
+        {
+            fileToDelete = document.CoverFile ?? await _fileUsageService.EnsureFileAsync(document.CoverFileId.Value, cancellationToken);
+            document.CoverFileId = null;
         }
 
         document.UpdatedById = userId;
         document.UpdatedAt = _dateTimeProvider.OffsetNow;
 
-        try
-        {
-            await _documentRepository.UpdateAsync(document, cancellationToken);
-            await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
-        }
-        catch
-        {
-            foreach (var fileUrl in uploadedFileUrls)
-            {
-                try
-                {
-                    await _fileStorageService.DeleteFileAsync(fileUrl, cancellationToken);
-                }
-                catch
-                {
-                }
-            }
-            throw; 
-        }
+        await _documentRepository.UpdateAsync(document, cancellationToken);
+        await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        foreach (var fileUrl in filesToDeleteFromStorage)
-        {
-            try
-            {
-                await _fileStorageService.DeleteFileAsync(fileUrl, cancellationToken);
-            }
-            catch
-            {
-            }
-        }
+        if (filesToPromote.Any())
+            await _fileUsageService.MarkFilesAsPermanentAsync(filesToPromote, cancellationToken);
+
+        if (fileToDelete != null)
+            await _fileUsageService.DeleteFileAsync(fileToDelete, cancellationToken);
 
         document = await _documentRepository.GetByIdWithDetailsAsync(request.Id, disableTracking: true, cancellationToken);
 

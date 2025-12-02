@@ -1,3 +1,5 @@
+using UteLearningHub.Domain.Constaints.Enums;
+
 namespace UteLearningHub.Application.Common.Dtos;
 
 public record UserDto
@@ -11,7 +13,7 @@ public record UserDto
     public string? Introduction { get; init; }
     public int TrustScore { get; init; }
     public string TrustLevel { get; init; } = default!;
-    public string Gender { get; init; } = default!;
+    public Gender Gender { get; init; }
     public bool IsSuggest { get; init; }
     public IList<string> Roles { get; init; } = [];
     public MajorDto? Major { get; init; }

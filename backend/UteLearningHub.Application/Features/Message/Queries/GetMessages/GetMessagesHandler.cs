@@ -59,12 +59,9 @@ public class GetMessagesHandler : IRequestHandler<GetMessagesQuery, PagedRespons
         var query = _messageRepository.GetQueryableWithDetails()
             .AsNoTracking()
             .Where(m => m.ConversationId == request.ConversationId && !m.IsDeleted);
-
-        // Filter by parent
+            
         if (request.ParentId.HasValue)
             query = query.Where(m => m.ParentId == request.ParentId.Value);
-        else
-            query = query.Where(m => m.ParentId == null);
 
         query = query.OrderBy(m => m.CreatedAt);
 

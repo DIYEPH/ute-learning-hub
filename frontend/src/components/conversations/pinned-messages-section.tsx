@@ -25,14 +25,19 @@ export function PinnedMessagesSection({
   onMessageClick,
   onUnpin,
 }: PinnedMessagesSectionProps) {
+  // Bỏ qua tin nhắn hệ thống trong danh sách ghim (phòng trường hợp backend thay đổi)
+  const userPinnedMessages = pinnedMessages.filter(
+    (m) => m.type === null || m.type === undefined
+  );
+
   const [isExpanded, setIsExpanded] = useState(false);
   const visibleCount = 1;
-  const hasMore = pinnedMessages.length > visibleCount;
+  const hasMore = userPinnedMessages.length > visibleCount;
   const visibleMessages = isExpanded
-    ? pinnedMessages
-    : pinnedMessages.slice(0, visibleCount);
+    ? userPinnedMessages
+    : userPinnedMessages.slice(0, visibleCount);
 
-  if (pinnedMessages.length === 0) return null;
+  if (userPinnedMessages.length === 0) return null;
 
   const formatTime = (dateString?: string) => {
     if (!dateString) return "";
@@ -82,7 +87,7 @@ export function PinnedMessagesSection({
                     onClick={() => setIsExpanded(true)}
                     className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 flex items-center gap-1 font-medium"
                   >
-                    +{pinnedMessages.length - 1} ghim
+                    +{userPinnedMessages.length - 1} ghim
                     <ChevronDown className="h-3 w-3" />
                   </button>
                 )}

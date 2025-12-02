@@ -73,8 +73,7 @@ public class GetConversationByIdHandler : IRequestHandler<GetConversationByIdQue
                 SubjectName = conversation.Subject.SubjectName,
                 SubjectCode = conversation.Subject.SubjectCode
             } : null,
-            CreatorName = creator.FullName,
-            CreatorAvatarUrl = creator.AvatarUrl,
+            AvatarUrl = conversation.AvatarUrl,
             Members = conversation.Members
                 .Where(m => !m.IsDeleted)
                 .Select(m => new ConversationMemberDto
@@ -91,7 +90,7 @@ public class GetConversationByIdHandler : IRequestHandler<GetConversationByIdQue
                     IsMuted = m.IsMuted,
                     JoinedAt = m.CreatedAt
                 }).ToList(),
-            MessageCount = 0, // Will be calculated if needed
+            MessageCount = 0, 
             LastMessageId = conversation.LastMessage,
             CreatedById = conversation.CreatedById,
             CreatedAt = conversation.CreatedAt,

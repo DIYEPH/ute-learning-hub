@@ -8,6 +8,7 @@ public class Conversation : BaseEntity<Guid>, IAggregateRoot, IAuditable
     public Guid? SubjectId { get; set; }
     public Guid? LastMessage { get; set; }
     public string ConversationName { get; set; } = default!;
+    public string? AvatarUrl { get; set; }
     public bool IsSuggestedByAI { get; set; }
     public bool IsAllowMemberPin { get; set; }
     public ConversitionType ConversationType { get; set; }

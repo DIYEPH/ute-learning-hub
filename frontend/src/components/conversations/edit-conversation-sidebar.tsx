@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
-import { putApiConversationById, getApiTag, postApiConversationByIdLeave } from "@/src/api/database/sdk.gen";
+import { deleteApiConversationById, putApiConversationById, getApiTag, postApiConversationByIdLeave } from "@/src/api/database/sdk.gen";
 import type { UpdateConversationCommand, SubjectDto2, TagDto, ConversationDetailDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
@@ -55,6 +55,7 @@ export function EditConversationSidebar({
   const [newTagInput, setNewTagInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -181,6 +182,34 @@ export function EditConversationSidebar({
       setError(errorMessage);
     } finally {
       setLeaving(false);
+    }
+  };
+
+  const handleDeleteConversation = async () => {
+    if (!conversation?.id) return;
+    if (!isOwner) return;
+
+    if (!confirm("Bạn có chắc chắn muốn giải tán nhóm này? Tất cả tin nhắn và dữ liệu liên quan sẽ bị xóa.")) {
+      return;
+    }
+
+    setDeleting(true);
+    setError(null);
+
+    try {
+      await deleteApiConversationById({
+        path: { id: conversation.id },
+      });
+
+      router.push("/chat");
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Không thể giải tán nhóm";
+      setError(errorMessage);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -456,14 +485,14 @@ export function EditConversationSidebar({
                 </div>
               )}
 
-              {/* Leave Conversation Button */}
-              <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700">
+              {/* Leave / Delete Conversation Buttons */}
+              <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700 space-y-2">
                 <Button
                   type="button"
-                  variant="destructive"
+                  variant="outline"
                   onClick={handleLeave}
-                  disabled={leaving || loading}
-                  className="w-full"
+                  disabled={leaving || loading || deleting}
+                  className="w-full border-red-200 text-red-600 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
                 >
                   {leaving ? (
                     <>
@@ -474,6 +503,25 @@ export function EditConversationSidebar({
                     "Rời nhóm"
                   )}
                 </Button>
+
+                {isOwner && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleDeleteConversation}
+                    disabled={deleting || loading || leaving}
+                    className="w-full"
+                  >
+                    {deleting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Đang giải tán nhóm...
+                      </>
+                    ) : (
+                      "Giải tán nhóm"
+                    )}
+                  </Button>
+                )}
               </div>
             </div>
           </ScrollArea>

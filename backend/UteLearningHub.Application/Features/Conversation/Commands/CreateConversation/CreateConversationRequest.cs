@@ -11,4 +11,5 @@ public record CreateConversationRequest
     public Guid? SubjectId { get; init; }
     public bool IsSuggestedByAI { get; init; } = false;
     public bool IsAllowMemberPin { get; init; } = true;
+    public string? AvatarUrl { get; init; }
 }

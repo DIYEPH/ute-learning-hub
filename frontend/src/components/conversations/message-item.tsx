@@ -68,11 +68,32 @@ export function MessageItem({
       })
     : null;
 
+  const isSystemMessage =
+    message.type !== null && message.type !== undefined;
+
   const handleMessageClick = () => {
     if (!isEditing) {
       setShowClickedDate((prev) => !prev);
     }
   };
+
+  // System message: render ở giữa, style đơn giản, không cho sửa/xóa
+  if (isSystemMessage) {
+    const systemText = getSystemMessageText(message, currentUserId);
+
+    return (
+      <div className="my-2 flex flex-col items-center">
+        {formattedDate && (
+          <span className="mb-1 text-[11px] text-slate-400 dark:text-slate-500">
+            {formattedDate}
+          </span>
+        )}
+        <div className="rounded-full bg-slate-100 px-3 py-1 text-[11px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+          {systemText}
+        </div>
+      </div>
+    );
+  }
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -402,5 +423,52 @@ export function MessageItem({
       </div>
     </div>
   );
+}
+
+// Mapping type number -> text hiển thị
+function getSystemMessageText(message: MessageDto, currentUserId?: string) {
+  const actorName = message.senderName || "Hệ thống";
+  const isSelf = currentUserId && message.createdById === currentUserId;
+
+  // Backend enum MessageType:
+  // 0: ConversationCreated
+  // 1: MemberJoined
+  // 2: MemberLeft
+  // 3: MemberRoleUpdated
+  // 4: MessagePinned
+  // 5: MessageUnpinned
+  // 6: JoinRequestApproved
+  switch (message.type) {
+    case 0:
+      return isSelf
+        ? "Bạn đã tạo cuộc trò chuyện"
+        : `${actorName} đã tạo cuộc trò chuyện`;
+    case 1:
+      return isSelf
+        ? "Bạn đã tham gia cuộc trò chuyện"
+        : `${actorName} đã tham gia cuộc trò chuyện`;
+    case 2:
+      return isSelf
+        ? "Bạn đã rời cuộc trò chuyện"
+        : `${actorName} đã rời cuộc trò chuyện`;
+    case 3:
+      return isSelf
+        ? "Bạn đã cập nhật quyền của một thành viên"
+        : `${actorName} đã cập nhật quyền của một thành viên`;
+    case 4:
+      return isSelf
+        ? "Bạn đã ghim một tin nhắn"
+        : `${actorName} đã ghim một tin nhắn`;
+    case 5:
+      return isSelf
+        ? "Bạn đã bỏ ghim một tin nhắn"
+        : `${actorName} đã bỏ ghim một tin nhắn`;
+    case 6:
+      return isSelf
+        ? "Bạn đã chấp nhận một thành viên tham gia cuộc trò chuyện"
+        : `${actorName} đã chấp nhận một thành viên tham gia cuộc trò chuyện`;
+    default:
+      return actorName;
+  }
 }
 

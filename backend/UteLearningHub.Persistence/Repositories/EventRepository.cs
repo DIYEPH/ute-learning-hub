@@ -7,13 +7,10 @@ namespace UteLearningHub.Persistence.Repositories;
 
 public class EventRepository : Repository<Event, Guid>, IEventRepository
 {
-    private readonly IDateTimeProvider _dateTimeProvider;
-
-    public EventRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
-        : base(dbContext, dateTimeProvider)
+    public EventRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider) : base(dbContext, dateTimeProvider)
     {
-        _dateTimeProvider = dateTimeProvider;
     }
+
     public IQueryable<Event> GetActiveEvents(int? take = null)
     {
         var now = _dateTimeProvider.OffsetNow;

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
@@ -16,6 +17,7 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
     private readonly IConversationRepository _conversationRepository;
     private readonly ITagRepository _tagRepository;
     private readonly IIdentityService _identityService;
+    private readonly IFileUsageService _fileUsageService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
 
@@ -23,12 +25,14 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         IConversationRepository conversationRepository,
         ITagRepository tagRepository,
         IIdentityService identityService,
+        IFileUsageService fileUsageService,
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider)
     {
         _conversationRepository = conversationRepository;
         _tagRepository = tagRepository;
         _identityService = identityService;
+        _fileUsageService = fileUsageService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
     }
@@ -59,6 +63,11 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
             throw new UnauthorizedException("Only administrators, conversation owners, or deputies can update conversations");
         if (!string.IsNullOrWhiteSpace(request.ConversationName))
             conversation.ConversationName = request.ConversationName;
+
+        var previousAvatarUrl = conversation.AvatarUrl;
+
+        if (!string.IsNullOrWhiteSpace(request.AvatarUrl))
+            conversation.AvatarUrl = request.AvatarUrl;
 
         if (request.ConversationType.HasValue)
             conversation.ConversationType = request.ConversationType.Value;
@@ -155,6 +164,21 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         await _conversationRepository.UpdateAsync(conversation, cancellationToken);
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
+        if (!string.IsNullOrWhiteSpace(request.AvatarUrl) &&
+            !string.Equals(previousAvatarUrl, request.AvatarUrl, StringComparison.OrdinalIgnoreCase))
+        {
+            var newAvatar = await _fileUsageService.TryGetByUrlAsync(request.AvatarUrl, cancellationToken);
+            if (newAvatar != null)
+                await _fileUsageService.MarkFilesAsPermanentAsync(new[] { newAvatar }, cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(previousAvatarUrl))
+            {
+                var oldAvatar = await _fileUsageService.TryGetByUrlAsync(previousAvatarUrl, cancellationToken);
+                if (oldAvatar != null)
+                    await _fileUsageService.DeleteFileAsync(oldAvatar, cancellationToken);
+            }
+        }
+
         var updatedConversation = await _conversationRepository.GetByIdWithDetailsAsync(
             request.Id,
             disableTracking: true,
@@ -205,8 +229,6 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
                 SubjectName = updatedConversation.Subject.SubjectName,
                 SubjectCode = updatedConversation.Subject.SubjectCode
             } : null,
-            CreatorName = creator.FullName,
-            CreatorAvatarUrl = creator.AvatarUrl,
             Members = updatedConversation.Members
                 .Where(m => !m.IsDeleted)
                 .Select(m => new ConversationMemberDto

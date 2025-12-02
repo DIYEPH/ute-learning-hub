@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using UteLearningHub.Application.Services.Authentication;
 using UteLearningHub.Application.Services.Comment;
+using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
@@ -14,6 +15,7 @@ using UteLearningHub.Infrastructure.Services.Comment;
 using UteLearningHub.Infrastructure.Services.Identity;
 using UteLearningHub.Infrastructure.Services.Message;
 using UteLearningHub.Infrastructure.Services.User;
+using UteLearningHub.Infrastructure.Services.File;
 using UteLearningHub.Infrastructure.Services.FileStorage;
 using Amazon.S3;
 using Microsoft.Extensions.Options;
@@ -80,6 +82,7 @@ public static class InfrastructureExtensions
         // Add HttpContextAccessor for CurrentUserService
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IFileUsageService, FileUsageService>();
 
         return services;
     }

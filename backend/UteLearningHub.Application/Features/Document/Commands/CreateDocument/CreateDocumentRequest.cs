@@ -13,4 +13,5 @@ public record CreateDocumentRequest
     public IList<string>? AuthorNames { get; init; }
     public bool IsDownload { get; init; } = true;
     public VisibilityStatus Visibility { get; init; } = VisibilityStatus.Internal;
+    public Guid? CoverFileId { get; init; }
 }

@@ -4,6 +4,16 @@ export type ClientOptions = {
     baseURL: 'https://localhost:7080' | (string & {});
 };
 
+export type AddDocumentFileCommand = {
+    documentId?: string;
+    title?: string | null;
+    order?: number | null;
+    isPrimary?: boolean;
+    totalPages?: number | null;
+    fileId?: string;
+    coverFileId?: string | null;
+};
+
 export type AuthorDto = {
     id?: string;
     fullName?: string;
@@ -50,8 +60,8 @@ export type ConversationDetailDto = {
     isSuggestedByAI?: boolean;
     isAllowMemberPin?: boolean;
     subject?: SubjectDto;
+    avatarUrl?: string | null;
     creatorName?: string;
-    creatorAvatarUrl?: string | null;
     members?: Array<ConversationMemberDto>;
     messageCount?: number;
     lastMessageId?: string | null;
@@ -69,8 +79,8 @@ export type ConversationDto = {
     isSuggestedByAI?: boolean;
     isAllowMemberPin?: boolean;
     subject?: SubjectDto;
+    avatarUrl?: string | null;
     creatorName?: string;
-    creatorAvatarUrl?: string | null;
     memberCount?: number;
     messageCount?: number;
     lastMessageId?: string | null;
@@ -125,11 +135,25 @@ export type CreateConversationCommand = {
     subjectId?: string | null;
     isSuggestedByAI?: boolean;
     isAllowMemberPin?: boolean;
+    avatarUrl?: string | null;
 };
 
 export type CreateConversationJoinRequestCommand = {
     conversationId?: string;
     content?: string;
+};
+
+export type CreateDocumentCommand = {
+    documentName?: string;
+    description?: string;
+    subjectId?: string | null;
+    typeId?: string;
+    tagIds?: Array<string> | null;
+    tagNames?: Array<string> | null;
+    authorNames?: Array<string> | null;
+    isDownload?: boolean;
+    visibility?: VisibilityStatus;
+    coverFileId?: string | null;
 };
 
 export type CreateDocumentReviewCommand = {
@@ -295,12 +319,19 @@ export type FacultyDto2 = {
     logo?: string;
 };
 
+export type FileDto = {
+    id?: string;
+    fileName?: string;
+    fileUrl?: string;
+    fileSize?: number;
+    mimeType?: string;
+    isTemporary?: boolean;
+};
+
 export type GetOnlineMembersResponse = {
     conversationId?: string;
     onlineUserIds?: Array<string>;
 };
-
-export type IFormFile = Blob | File;
 
 export type LoginCommand = {
     emailOrUsername?: string;
@@ -411,6 +442,8 @@ export type NullableOfConversitionType = number | null;
 export type NullableOfGender = number | null;
 
 export type NullableOfMessageType = number | null;
+
+export type NullableOfVisibilityStatus = number | null;
 
 export type PagedResponseOfCommentDto = {
     items?: Array<CommentDto>;
@@ -670,6 +703,20 @@ export type UpdateConversationCommand = {
     conversationStatus?: NullableOfConversationStatus;
     subjectId?: string | null;
     isAllowMemberPin?: boolean | null;
+    avatarUrl?: string | null;
+};
+
+export type UpdateDocumentCommand = {
+    id?: string;
+    documentName?: string | null;
+    description?: string | null;
+    subjectId?: string | null;
+    typeId?: string | null;
+    tagIds?: Array<string> | null;
+    isDownload?: boolean | null;
+    visibility?: NullableOfVisibilityStatus;
+    fileIdsToRemove?: Array<string> | null;
+    coverFileId?: string | null;
 };
 
 export type UpdateEventCommand = {
@@ -832,24 +879,6 @@ export type GetApiAccountProfileByUserIdResponses = {
 };
 
 export type GetApiAccountProfileByUserIdResponse = GetApiAccountProfileByUserIdResponses[keyof GetApiAccountProfileByUserIdResponses];
-
-export type PostApiAccountAvatarData = {
-    body: {
-        file?: IFormFile;
-    };
-    path?: never;
-    query?: never;
-    url: '/api/Account/avatar';
-};
-
-export type PostApiAccountAvatarResponses = {
-    /**
-     * OK
-     */
-    200: string;
-};
-
-export type PostApiAccountAvatarResponse = PostApiAccountAvatarResponses[keyof PostApiAccountAvatarResponses];
 
 export type PostApiAuthLoginData = {
     body: LoginCommand;
@@ -1282,18 +1311,7 @@ export type GetApiDocumentResponses = {
 export type GetApiDocumentResponse = GetApiDocumentResponses[keyof GetApiDocumentResponses];
 
 export type PostApiDocumentData = {
-    body: {
-        CoverFile?: IFormFile;
-        DocumentName?: string;
-        Description?: string;
-        SubjectId?: string;
-        TypeId?: string;
-        TagIds?: Array<string>;
-        TagNames?: Array<string>;
-        AuthorNames?: Array<string>;
-        IsDownload?: boolean;
-        Visibility?: string;
-    };
+    body: CreateDocumentCommand;
     path?: never;
     query?: never;
     url: '/api/Document';
@@ -1375,18 +1393,7 @@ export type GetApiDocumentByIdResponses = {
 export type GetApiDocumentByIdResponse = GetApiDocumentByIdResponses[keyof GetApiDocumentByIdResponses];
 
 export type PutApiDocumentByIdData = {
-    body: {
-        CoverFile?: IFormFile;
-        Id?: string;
-        DocumentName?: string;
-        Description?: string;
-        SubjectId?: string;
-        TypeId?: string;
-        TagIds?: Array<string>;
-        IsDownload?: boolean;
-        Visibility?: string;
-        FileIdsToRemove?: Array<string>;
-    };
+    body: UpdateDocumentCommand;
     path: {
         id: string;
     };
@@ -1404,15 +1411,7 @@ export type PutApiDocumentByIdResponses = {
 export type PutApiDocumentByIdResponse = PutApiDocumentByIdResponses[keyof PutApiDocumentByIdResponses];
 
 export type PostApiDocumentByIdFilesData = {
-    body: {
-        File?: IFormFile;
-        CoverFile?: IFormFile;
-        DocumentId?: string;
-        Title?: string;
-        Order?: number;
-        IsPrimary?: boolean;
-        TotalPages?: number;
-    };
+    body: AddDocumentFileCommand;
     path: {
         id: string;
     };
@@ -1619,23 +1618,25 @@ export type PutApiFacultyByIdResponses = {
 
 export type PutApiFacultyByIdResponse = PutApiFacultyByIdResponses[keyof PutApiFacultyByIdResponses];
 
-export type PostApiFacultyUploadLogoData = {
+export type PostApiFileData = {
     body: {
-        file?: IFormFile;
+        file?: Blob | File;
     };
     path?: never;
-    query?: never;
-    url: '/api/Faculty/upload-logo';
+    query?: {
+        category?: string;
+    };
+    url: '/api/File';
 };
 
-export type PostApiFacultyUploadLogoResponses = {
+export type PostApiFileResponses = {
     /**
      * OK
      */
-    200: string;
+    200: FileDto;
 };
 
-export type PostApiFacultyUploadLogoResponse = PostApiFacultyUploadLogoResponses[keyof PostApiFacultyUploadLogoResponses];
+export type PostApiFileResponse = PostApiFileResponses[keyof PostApiFileResponses];
 
 export type GetApiMajorData = {
     body?: never;
@@ -1755,7 +1756,6 @@ export type GetApiConversationsByConversationIdMessagesResponse = GetApiConversa
 
 export type PostApiConversationsByConversationIdMessagesData = {
     body: {
-        Files?: Array<IFormFile>;
         ConversationId?: string;
         ParentId?: string;
         Content?: string;
