@@ -7,18 +7,21 @@ import { useRouter } from "next/navigation";
 
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { useMajors } from "@/src/hooks/use-majors";
+import { useFileUpload } from "@/src/hooks/use-file-upload";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
-import { putApiAccountProfile } from "@/src/api/database/sdk.gen";
-import { getApiUserByIdTrustHistory } from "@/src/api/database/sdk.gen";
+import { putApiAccountProfile, getApiUserByIdTrustHistory } from "@/src/api/database/sdk.gen";
 import type { UpdateProfileCommand, MajorDto2, UserTrustHistoryDto } from "@/src/api/database/types.gen";
 import { Input } from "@/src/components/ui/input";
+import { useNotification } from "@/src/components/ui/notification-center";
 
 const ProfilePage = () => {
   const router = useRouter();
   const { profile, loading, error } = useUserProfile();
   const { fetchMajors, loading: loadingMajors } = useMajors();
+  const { uploadFile } = useFileUpload();
+  const { success: notifySuccess, error: notifyError } = useNotification();
 
   const [majors, setMajors] = React.useState<MajorDto2[]>([]);
   const [trustHistory, setTrustHistory] = React.useState<UserTrustHistoryDto[]>([]);
@@ -28,6 +31,7 @@ const ProfilePage = () => {
     fullName: profile?.fullName ?? "",
     introduction: profile?.introduction ?? "",
     majorId: profile?.major?.id ?? null,
+    // Backend: Gender { Other = 0, Male = 1, Female = 2 }
     gender: (profile?.gender as any) ?? null,
     avatarUrl: profile?.avatarUrl ?? null,
   });
@@ -115,29 +119,11 @@ const ProfilePage = () => {
     setSaveSuccess(false);
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("/api/Account/avatar", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || "Không thể tải ảnh đại diện lên.");
+      const uploaded = await uploadFile(file, "AvatarUser");
+      if (!uploaded.fileUrl) {
+        throw new Error("Phản hồi upload avatar không hợp lệ.");
       }
-
-      const data = await response.json();
-      const url =
-        (data && (data.url || data.avatarUrl)) ??
-        (data.data && (data.data.url || data.data.avatarUrl));
-
-      if (!url) {
-        throw new Error("Phản hồi không hợp lệ từ máy chủ.");
-      }
-
-      handleChange("avatarUrl", url);
+      handleChange("avatarUrl", uploaded.fileUrl);
     } catch (err: any) {
       setSaveError(
         err?.message || "Không thể tải ảnh đại diện lên. Vui lòng thử lại.",
@@ -157,7 +143,7 @@ const ProfilePage = () => {
     setSaveSuccess(false);
 
     try {
-      await putApiAccountProfile({
+      await putApiAccountProfile<true>({
         body: {
           fullName: form.fullName,
           introduction: form.introduction,
@@ -165,14 +151,17 @@ const ProfilePage = () => {
           gender: form.gender,
           avatarUrl: form.avatarUrl ?? null,
         },
+        throwOnError: true,
       });
       setSaveSuccess(true);
+      notifySuccess("Đã lưu hồ sơ thành công.");
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||
         err?.message ||
         "Không thể cập nhật hồ sơ";
       setSaveError(message);
+      notifyError(message);
     } finally {
       setSaving(false);
     }
@@ -247,6 +236,16 @@ const ProfilePage = () => {
             <p className="text-sm text-slate-500 dark:text-slate-400">
               {profile.email}
               {profile.username ? ` • @${profile.username}` : ""}
+            </p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Giới tính:{" "}
+              {form.gender === 1
+                ? "Nam"
+                : form.gender === 2
+                ? "Nữ"
+                : form.gender === 0
+                ? "Khác"
+                : "Không xác định"}
             </p>
           </div>
         </div>
@@ -324,17 +323,19 @@ const ProfilePage = () => {
               <select
                 className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 value={form.gender ?? ""}
-                onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+                onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
+                  const raw = event.target.value;
                   handleChange(
                     "gender",
-                    event.target.value === "" ? null : event.target.value
-                  )
-                }
+                    raw === "" ? null : Number.parseInt(raw, 10)
+                  );
+                }}
               >
                 <option value="">Không xác định</option>
-                <option value="Male">Nam</option>
-                <option value="Female">Nữ</option>
-                <option value="Other">Khác</option>
+                {/* Backend: Gender { Other = 0, Male = 1, Female = 2 } */}
+                <option value="1">Nam</option>
+                <option value="2">Nữ</option>
+                <option value="0">Khác</option>
               </select>
             </div>
           </div>

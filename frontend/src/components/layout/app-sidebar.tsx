@@ -17,8 +17,8 @@ export function AppSidebar({ navItems, activePath }: SidebarProps) {
   const t = useTranslations('common');
 
   return (
-    <aside className="hidden md:flex w-64 border-r bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
-      <ScrollArea className="w-full">
+    <aside className="hidden md:flex w-64 flex-shrink-0 border-r bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 h-full overflow-hidden">
+      <ScrollArea className="w-full h-full">
         <div className="p-4 space-y-4">
           {/* User box */}
           {/* <div className="flex items-center gap-3">

@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import axios from "axios";
-import { getBearerToken } from "@/src/api/client";
+import { useFileUpload } from "@/src/hooks/use-file-upload";
 
 interface UseUploadLogoReturn {
   uploadLogo: (file: File) => Promise<string | null>;
@@ -11,44 +10,28 @@ interface UseUploadLogoReturn {
 }
 
 export function useUploadLogo(): UseUploadLogoReturn {
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { uploadFile, uploading, error } = useFileUpload();
+  const [localError, setLocalError] = useState<string | null>(null);
 
-  const uploadLogo = useCallback(async (file: File): Promise<string | null> => {
-    setUploading(true);
-    setError(null);
-
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const token = getBearerToken();
-
-      const response = await axios.post("/api/faculty/upload-logo", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          ...(token && { Authorization: token }),
-        },
-      });
-
-      if (response.data?.url) {
-        return response.data.url;
+  const uploadLogo = useCallback(
+    async (file: File): Promise<string | null> => {
+      setLocalError(null);
+      try {
+        // Không truyền category để FileController dùng rule ảnh mặc định
+        const uploaded = await uploadFile(file);
+        return uploaded.fileUrl || null;
+      } catch (err: any) {
+        const message =
+          err?.response?.data?.message ||
+          err?.response?.data ||
+          err?.message ||
+          "Không thể upload file";
+        setLocalError(message);
+        throw err;
       }
+    },
+    [uploadFile],
+  );
 
-      return null;
-    } catch (err: any) {
-      const errorMessage =
-        err?.response?.data?.message ||
-        err?.response?.data ||
-        err?.message ||
-        "Không thể upload file";
-      setError(errorMessage);
-      throw err;
-    } finally {
-      setUploading(false);
-    }
-  }, []);
-
-  return { uploadLogo, uploading, error };
+  return { uploadLogo, uploading, error: error ?? localError };
 }
-

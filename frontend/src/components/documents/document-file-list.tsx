@@ -9,7 +9,7 @@ interface DocumentFileListProps {
   document: DocumentDetailDto;
 }
 
-export function DocumentFileList({ files, document }: DocumentFileListProps) {
+export function DocumentFileList({ files, document: doc }: DocumentFileListProps) {
   if (files.length === 0) {
     return (
       <div className="text-center py-8 text-slate-500 dark:text-slate-400">
@@ -66,15 +66,15 @@ export function DocumentFileList({ files, document }: DocumentFileListProps) {
                       size="sm"
                       variant="outline"
                       onClick={() => {
-                        const link = document.createElement("a");
+                        const link = window.document.createElement("a");
                         link.href = fileUrl;
                         link.target = "_blank";
                         link.download = file.fileName || "file";
-                        document.body.appendChild(link);
+                        window.document.body.appendChild(link);
                         link.click();
-                        document.body.removeChild(link);
+                        window.document.body.removeChild(link);
                       }}
-                      disabled={!fileUrl || document.isDownload === false}
+                      disabled={!fileUrl || doc.isDownload === false}
                       className="h-7 px-2"
                     >
                       <Download className="h-3 w-3" />

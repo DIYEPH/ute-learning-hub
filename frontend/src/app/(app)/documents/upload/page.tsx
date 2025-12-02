@@ -4,9 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/src/components/ui/button";
 import { useTranslations } from "next-intl";
-import { getBearerToken } from "@/src/api/client";
 import { DocumentUploadForm, type DocumentUploadFormData } from "@/src/components/documents/document-upload-form";
-import axios from "axios";
+import { useFileUpload } from "@/src/hooks/use-file-upload";
+import { postApiDocument } from "@/src/api/database/sdk.gen";
+import type { CreateDocumentCommand, DocumentDetailDto } from "@/src/api/database/types.gen";
 
 export default function UploadDocumentPage() {
   const t = useTranslations("documents");
@@ -14,67 +15,48 @@ export default function UploadDocumentPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { uploadFile } = useFileUpload();
 
   const handleSubmit = async (data: DocumentUploadFormData) => {
     setLoading(true);
     setError(null);
 
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7080";
-      const token = getBearerToken();
-      const headers = token ? { Authorization: token } : {};
-
-      // Chỉ tạo document (vỏ) - không upload file ở đây
-      // File/chương sẽ được upload sau ở trang chi tiết document
-      const documentFormData = new FormData();
-      documentFormData.append("DocumentName", data.documentName || "");
-      documentFormData.append("Description", data.description || "");
-      
+      // Upload ảnh bìa nếu có
+      let coverFileId: string | null = null;
       if (data.coverFile) {
-        documentFormData.append("CoverFile", data.coverFile);
+        const uploadedCover = await uploadFile(data.coverFile, "DocumentCover");
+        coverFileId = uploadedCover.id ?? null;
       }
-      
-      if (data.subjectId) {
-        documentFormData.append("SubjectId", data.subjectId);
-      }
-      if (data.typeId) {
-        documentFormData.append("TypeId", data.typeId);
-      }
-      
-      if (data.authorNames && data.authorNames.length > 0) {
-        data.authorNames.forEach((authorName) => {
-          documentFormData.append("AuthorNames", authorName);
-        });
-      }
-      
-      if (data.tagIds && data.tagIds.length > 0) {
-        data.tagIds.forEach((tagId) => {
-          documentFormData.append("TagIds", tagId);
-        });
-      }
-      if (data.tagNames && data.tagNames.length > 0) {
-        data.tagNames.forEach((tagName) => {
-          documentFormData.append("TagNames", tagName);
-        });
-      }
-      
-      documentFormData.append("IsDownload", (data.isDownload ?? true).toString());
-      documentFormData.append("Visibility", (data.visibility ?? 0).toString());
 
-      const createResponse = await axios.post(
-        `${apiBaseUrl}/api/Document`,
-        documentFormData,
-        { headers }
-      );
+      const body: CreateDocumentCommand = {
+        documentName: data.documentName || "",
+        description: data.description || "",
+        subjectId: data.subjectId || null,
+        typeId: data.typeId!,
+        authorNames:
+          data.authorNames && data.authorNames.length > 0
+            ? data.authorNames
+            : null,
+        tagIds:
+          data.tagIds && data.tagIds.length > 0 ? data.tagIds : null,
+        tagNames:
+          data.tagNames && data.tagNames.length > 0 ? data.tagNames : null,
+        isDownload: data.isDownload ?? true,
+        visibility: (data.visibility as any) ?? 0,
+        coverFileId,
+      };
 
-      if (!createResponse.data?.id) {
+      const response = await postApiDocument({
+        body,
+      });
+
+      const created = (response.data ?? response) as DocumentDetailDto | undefined;
+      if (!created?.id) {
         throw new Error("Không thể tạo tài liệu");
       }
 
-      const documentId = createResponse.data.id;
-
-      // Chuyển đến trang chi tiết document - ở đó user sẽ upload từng chương/file
-      router.push(`/documents/${documentId}`);
+      router.push(`/documents/${created.id}`);
     } catch (err: any) {
       const errorMessage =
         err?.response?.data?.message ||

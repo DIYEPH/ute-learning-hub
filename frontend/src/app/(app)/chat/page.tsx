@@ -92,19 +92,19 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-full overflow-hidden">
       {/* Sidebar: Danh sách conversations */}
       <div
         className={cn(
-          "border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 flex flex-col transition-transform duration-300",
-          "w-full md:w-80",
+          "border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 flex flex-col h-full overflow-hidden transition-transform duration-300",
+          "w-full md:w-80 flex-shrink-0",
           selectedConversationId
             ? "hidden md:flex"
             : "flex"
         )}
       >
         {/* Header */}
-        <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
               <MessageCircle className="h-5 w-5" />
@@ -131,7 +131,7 @@ export default function ChatPage() {
         </div>
 
         {/* Conversation List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {error ? (
             <div className="p-4 text-sm text-red-600 dark:text-red-400">
               {error}
@@ -154,7 +154,7 @@ export default function ChatPage() {
       {/* Main: Conversation Detail */}
       <div
         className={cn(
-          "flex-1 flex flex-col",
+          "flex-1 min-h-0 flex flex-col overflow-hidden",
           !selectedConversationId && "hidden md:flex"
         )}
       >

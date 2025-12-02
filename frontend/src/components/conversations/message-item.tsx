@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreVertical, Edit, Trash2, Paperclip, Pin, PinOff } from "lucide-react";
+import { MoreVertical, Edit, Trash2, Paperclip, Pin, PinOff, Reply } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MessageDto } from "@/src/api/database/types.gen";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
@@ -24,8 +24,11 @@ interface MessageItemProps {
   conversationId: string;
   currentUserId?: string;
   showDate?: boolean;
+  allMessages?: MessageDto[];
   onUpdate?: (message: MessageDto) => void;
   onDelete?: (messageId: string) => void;
+  onReply?: (message: MessageDto) => void;
+  onScrollToMessage?: (messageId: string) => void;
 }
 
 export function MessageItem({
@@ -33,8 +36,11 @@ export function MessageItem({
   conversationId,
   currentUserId,
   showDate: shouldShowDate = false,
+  allMessages = [],
   onUpdate,
   onDelete,
+  onReply,
+  onScrollToMessage,
 }: MessageItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content || "");
@@ -70,6 +76,10 @@ export function MessageItem({
 
   const isSystemMessage =
     message.type !== null && message.type !== undefined;
+
+  const parentMessage = message.parentId
+    ? allMessages.find((m) => m.id === message.parentId)
+    : null;
 
   const handleMessageClick = () => {
     if (!isEditing) {
@@ -259,71 +269,120 @@ export function MessageItem({
             )}
 
             {/* Menu button - absolute positioned */}
-            {isOwnMessage && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "absolute h-6 w-6 p-0 opacity-0 group-hover/message:opacity-100 transition-opacity z-10",
-                      isOwnMessage
-                        ? "top-2 right-2 hover:bg-white/20 text-white"
-                        : "top-2 left-2 hover:bg-slate-100 dark:hover:bg-slate-700"
-                    )}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align={isOwnMessage ? "end" : "start"}
-                  className="min-w-[120px] p-1"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "absolute h-6 w-6 p-0 opacity-0 group-hover/message:opacity-100 transition-opacity z-10",
+                    isOwnMessage
+                      ? "top-2 right-2 hover:bg-white/20 text-white"
+                      : "top-2 left-2 hover:bg-slate-100 dark:hover:bg-slate-700"
+                  )}
+                  onClick={(e) => e.stopPropagation()}
                 >
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align={isOwnMessage ? "end" : "start"}
+                className="min-w-[120px] p-1"
+              >
+                {onReply && (
                   <DropdownMenuItem
                     onClick={(e) => {
                       e.stopPropagation();
-                      void togglePin(message);
+                      onReply(message);
                     }}
                     disabled={isDeleting || isUpdating || isPinning}
                     className="text-xs py-1.5 px-2"
                   >
-                    {message.isPined ? (
-                      <>
-                        <PinOff className="h-3.5 w-3.5 mr-2" />
-                        Bỏ ghim
-                      </>
-                    ) : (
-                      <>
-                        <Pin className="h-3.5 w-3.5 mr-2" />
-                        Ghim
-                      </>
-                    )}
+                    <Reply className="h-3.5 w-3.5 mr-2" />
+                    Trả lời
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit();
-                    }}
-                    disabled={isDeleting || isUpdating || isPinning}
-                    className="text-xs py-1.5 px-2"
-                  >
-                    <Edit className="h-3.5 w-3.5 mr-2" />
-                    Chỉnh sửa
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete();
-                    }}
-                    disabled={isDeleting || isUpdating || isPinning}
-                    className="text-xs py-1.5 px-2 text-red-600 dark:text-red-400"
-                  >
-                    <Trash2 className="h-3.5 w-3.5 mr-2" />
-                    Xóa
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
+                {isOwnMessage && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void togglePin(message);
+                      }}
+                      disabled={isDeleting || isUpdating || isPinning}
+                      className="text-xs py-1.5 px-2"
+                    >
+                      {message.isPined ? (
+                        <>
+                          <PinOff className="h-3.5 w-3.5 mr-2" />
+                          Bỏ ghim
+                        </>
+                      ) : (
+                        <>
+                          <Pin className="h-3.5 w-3.5 mr-2" />
+                          Ghim
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit();
+                      }}
+                      disabled={isDeleting || isUpdating || isPinning}
+                      className="text-xs py-1.5 px-2"
+                    >
+                      <Edit className="h-3.5 w-3.5 mr-2" />
+                      Chỉnh sửa
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete();
+                      }}
+                      disabled={isDeleting || isUpdating || isPinning}
+                      className="text-xs py-1.5 px-2 text-red-600 dark:text-red-400"
+                    >
+                      <Trash2 className="h-3.5 w-3.5 mr-2" />
+                      Xóa
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Reply quote - hiển thị tin nhắn được trả lời */}
+            {parentMessage && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onScrollToMessage && parentMessage.id) {
+                    onScrollToMessage(parentMessage.id);
+                  }
+                }}
+                className={cn(
+                  "mb-2 flex items-start gap-2 rounded-lg border-l-4 px-2 py-1.5 text-left transition-colors hover:opacity-80",
+                  isOwnMessage
+                    ? "border-sky-300 bg-white/10"
+                    : "border-sky-500 bg-slate-100 dark:bg-slate-600"
+                )}
+              >
+                <div className="flex-1 min-w-0">
+                  <div className={cn(
+                    "text-xs font-semibold mb-0.5 truncate",
+                    isOwnMessage ? "text-white/90" : "text-slate-700 dark:text-slate-200"
+                  )}>
+                    {parentMessage.senderName || "Người dùng"}
+                  </div>
+                  <div className={cn(
+                    "text-xs truncate",
+                    isOwnMessage ? "text-white/70" : "text-slate-600 dark:text-slate-300"
+                  )}>
+                    {parentMessage.content}
+                  </div>
+                </div>
+              </button>
             )}
 
             {/* Header with name - inside bubble */}
@@ -352,6 +411,7 @@ export function MessageItem({
                 )}
               </div>
             )}
+            {/* Nội dung tin nhắn */}
             <div className="text-sm leading-relaxed whitespace-pre-wrap break-words">
               {message.content}
             </div>

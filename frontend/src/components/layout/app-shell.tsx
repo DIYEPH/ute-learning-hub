@@ -18,7 +18,7 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const t = useTranslations();
-  const isAuthenticated = useAuthState();
+  const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
 
   // Generate nav items with translations and filter by auth
   const navItems: NavItem[] = MAIN_NAV_CONFIG
@@ -29,21 +29,27 @@ export function AppShell({ children }: AppShellProps) {
     }));
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+    <div className="h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex flex-col">
       {/* Header trên cùng */}
-      <AppHeader navItems={navItems} activePath={pathname} />
+      <div className="flex-shrink-0">
+        <AppHeader navItems={navItems} activePath={pathname} />
+      </div>
 
       {/* Sidebar + nội dung */}
-      <div className="flex-1 flex">
+      <div className="flex-1 min-h-0 flex overflow-hidden">
         <AppSidebar navItems={navItems} activePath={pathname} />
 
-        <main className={`flex-1 ${pathname?.startsWith('/chat') ? '' : 'p-4 md:p-6 bg-background'}`}>
+        <main className={`flex-1 min-h-0 overflow-hidden ${pathname?.startsWith('/chat') ? '' : 'p-4 md:p-6 bg-background overflow-y-auto'}`}>
           {children}
         </main>
       </div>
 
       {/* Footer cuối trang */}
-      <AppFooter className={pathname?.startsWith('/chat') ? 'hidden md:flex' : ''} />
+      {!pathname?.startsWith('/chat') && (
+        <div className="flex-shrink-0">
+          <AppFooter />
+        </div>
+      )}
     </div>
   );
 }

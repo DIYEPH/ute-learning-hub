@@ -7,11 +7,15 @@ import { useAuthState } from './use-auth-state';
 
 export function useUserProfile() {
   const [profile, setProfile] = useState<GetApiAccountProfileResponse | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isAuthenticated = useAuthState();
+  const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
 
   useEffect(() => {
+    if (!authReady) {
+      return;
+    }
+
     if (!isAuthenticated) {
       setProfile(null);
       setLoading(false);
@@ -35,7 +39,7 @@ export function useUserProfile() {
     };
 
     fetchProfile();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, authReady]);
 
   return { profile, loading, error };
 }

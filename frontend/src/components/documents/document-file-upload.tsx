@@ -5,8 +5,9 @@ import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { Loader2, Upload, X } from "lucide-react";
-import { getBearerToken } from "@/src/api/client";
-import axios from "axios";
+import { useFileUpload } from "@/src/hooks/use-file-upload";
+import { postApiDocumentByIdFiles } from "@/src/api/database/sdk.gen";
+import type { AddDocumentFileCommand, DocumentDetailDto } from "@/src/api/database/types.gen";
 
 interface DocumentFileUploadProps {
   documentId: string;
@@ -17,46 +18,51 @@ export function DocumentFileUpload({
   documentId,
   onUploadSuccess,
 }: DocumentFileUploadProps) {
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadCoverFile, setUploadCoverFile] = useState<File | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedCoverFile, setSelectedCoverFile] = useState<File | null>(null);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { uploadFile } = useFileUpload();
 
   const handleUpload = async () => {
-    if (!uploadFile || !documentId) return;
+    if (!selectedFile || !documentId) return;
 
     setUploading(true);
     setError(null);
 
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7080";
-      const token = getBearerToken();
-      
-      const formData = new FormData();
-      formData.append("File", uploadFile);
-      formData.append("DocumentId", documentId);
-      
-      if (uploadTitle) {
-        formData.append("Title", uploadTitle);
-      }
-      
-      if (uploadCoverFile) {
-        formData.append("CoverFile", uploadCoverFile);
-      }
-      const response = await axios.post(
-        `${apiBaseUrl}/api/Document/${documentId}/files`,
-        formData,
-        {
-          headers: {
-            ...(token && { Authorization: token }),
-          },
-        }
-      );
+      // 1. Upload file chính
+      const mainFile = await uploadFile(selectedFile, "DocumentFile");
 
-      if (response.data) {
-        setUploadFile(null);
-        setUploadCoverFile(null);
+      // 2. Upload ảnh bìa (nếu có)
+      let coverFileId: string | undefined;
+      if (selectedCoverFile) {
+        const coverFile = await uploadFile(selectedCoverFile, "DocumentFileCover");
+        coverFileId = coverFile.id;
+      }
+
+      // 3. Gọi API thêm DocumentFile bằng FileId/CoverFileId
+      const body: AddDocumentFileCommand = {
+        documentId,
+        fileId: mainFile.id,
+        coverFileId: coverFileId ?? null,
+        title: uploadTitle || null,
+        isPrimary: false,
+        order: null,
+        totalPages: null,
+      };
+
+      const response = await postApiDocumentByIdFiles({
+        path: { id: documentId },
+        body,
+      });
+
+      const updated = (response.data ?? response) as DocumentDetailDto | undefined;
+
+      if (updated) {
+        setSelectedFile(null);
+        setSelectedCoverFile(null);
         setUploadTitle("");
         onUploadSuccess?.();
       }
@@ -92,7 +98,7 @@ export function DocumentFileUpload({
             accept=".doc,.docx,.pdf,image/*"
             onChange={(e) => {
               const file = e.target.files?.[0] || null;
-              setUploadFile(file);
+              setSelectedFile(file);
               setError(null);
             }}
             className="hidden"
@@ -108,12 +114,12 @@ export function DocumentFileUpload({
             <Upload size={14} />
             <span>{uploadFile ? uploadFile.name : "Chọn file"}</span>
           </label>
-          {uploadFile && (
+          {selectedFile && (
             <div className="mt-1 flex items-center justify-between p-2 bg-slate-100 dark:bg-slate-800 rounded text-xs">
-              <span>{uploadFile.name}</span>
+              <span>{selectedFile.name}</span>
               <button
                 type="button"
-                onClick={() => setUploadFile(null)}
+                onClick={() => setSelectedFile(null)}
                 disabled={uploading}
                 className="text-slate-500 hover:text-slate-700"
               >
@@ -142,7 +148,7 @@ export function DocumentFileUpload({
             accept="image/*"
             onChange={(e) => {
               const file = e.target.files?.[0] || null;
-              setUploadCoverFile(file);
+              setSelectedCoverFile(file);
             }}
             className="hidden"
             id="upload-cover"
@@ -155,14 +161,14 @@ export function DocumentFileUpload({
             }`}
           >
             <Upload size={14} />
-            <span>{uploadCoverFile ? uploadCoverFile.name : "Chọn ảnh bìa"}</span>
+            <span>{selectedCoverFile ? selectedCoverFile.name : "Chọn ảnh bìa"}</span>
           </label>
-          {uploadCoverFile && (
+          {selectedCoverFile && (
             <div className="mt-1 flex items-center justify-between p-2 bg-slate-100 dark:bg-slate-800 rounded text-xs">
-              <span>{uploadCoverFile.name}</span>
+              <span>{selectedCoverFile.name}</span>
               <button
                 type="button"
-                onClick={() => setUploadCoverFile(null)}
+                onClick={() => setSelectedCoverFile(null)}
                 disabled={uploading}
                 className="text-slate-500 hover:text-slate-700"
               >
@@ -174,7 +180,7 @@ export function DocumentFileUpload({
 
         <Button
           onClick={handleUpload}
-          disabled={!uploadFile || uploading}
+          disabled={!selectedFile || uploading}
           size="sm"
           className="w-full"
         >

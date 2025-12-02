@@ -9,7 +9,7 @@ import { LanguageSwitcher } from "./language-switcher";
 import { ThemeSwitcher } from "./theme-switcher";
 import type { NavItem } from "./nav-config";
 import MobileSidebar from "./app-mobile-sidebar";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LoginDialog from "../auth/login-dialog";
 import { Search } from "lucide-react";
 import { useAuthState } from "@/src/hooks/use-auth-state";
@@ -26,7 +26,19 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
   const t = useTranslations('common');
   const tCommon = useTranslations('common');
   const [open, setOpen] = useState(false);
-  const isAuthenticated = useAuthState();
+  const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
+
+  // Nếu trước đó bị 401, interceptor sẽ set flag auth_show_login,
+  // header sẽ tự mở modal login khi load lại trang.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const KEY = 'auth_show_login';
+    if (window.localStorage.getItem(KEY) === '1') {
+      window.localStorage.removeItem(KEY);
+      setOpen(true);
+    }
+  }, []);
 
   return (
     <header className="h-16 border-b bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex items-center px-4 gap-4">
@@ -65,20 +77,6 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
 
       {/* Auth buttons & Language switcher */}
       <div className="flex items-center gap-1">
-        {/* Event/Calendar icon */}
-        {isAuthenticated && (
-          <div className="hidden sm:block">
-            <EventMenu />
-          </div>
-        )}
-
-        {/* Notification icon */}
-        {isAuthenticated && (
-          <div className="hidden sm:block">
-            <NotificationMenu />
-          </div>
-        )}
-
         {/* Theme switcher */}
         <div className="hidden sm:block">
           <ThemeSwitcher />
@@ -89,18 +87,37 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
           <LanguageSwitcher />
         </div>
 
-        {/* Login/User Avatar */}
-        {isAuthenticated ? (
-          <UserMenu />
-        ) : (
+        {/* Auth-dependent actions */}
+        {authReady && (
           <>
-            <Button
-              className="rounded-full bg-green-500 hover:bg-green-600 text-white px-4"
-              onClick={() => setOpen(true)}
-            >
-              {t('login')}
-        </Button>
-            <LoginDialog open={open} onOpenChange={setOpen} />
+            {/* Event/Calendar icon */}
+            {isAuthenticated && (
+              <div className="hidden sm:block">
+                <EventMenu />
+              </div>
+            )}
+
+            {/* Notification icon */}
+            {isAuthenticated && (
+              <div className="hidden sm:block">
+                <NotificationMenu />
+              </div>
+            )}
+
+            {/* Login/User Avatar */}
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <>
+                <Button
+                  className="rounded-full bg-green-500 hover:bg-green-600 text-white px-4"
+                  onClick={() => setOpen(true)}
+                >
+                  {t('login')}
+                </Button>
+                <LoginDialog open={open} onOpenChange={setOpen} />
+              </>
+            )}
           </>
         )}
       </div>

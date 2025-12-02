@@ -24,6 +24,7 @@ import { MessageItem } from "@/src/components/conversations/message-item";
 import { PinnedMessagesSection } from "@/src/components/conversations/pinned-messages-section";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { usePinMessage } from "@/src/hooks/use-pin-message";
+import { useFileUpload } from "@/src/hooks/use-file-upload";
 
 interface ConversationDetailProps {
   conversationId: string;
@@ -41,13 +42,14 @@ export function ConversationDetail({
   const [sending, setSending] = useState(false);
   const [messageContent, setMessageContent] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showEditSidebar, setShowEditSidebar] = useState(false);
   const [showFilesSidebar, setShowFilesSidebar] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const { togglePin } = usePinMessage(conversationId, (updatedMessage) => {
     setMessages((prev) =>
       prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
@@ -129,6 +131,8 @@ export function ConversationDetail({
     setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const { uploadFiles } = useFileUpload();
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!messageContent.trim() && selectedFiles.length === 0) || sending) return;
@@ -136,11 +140,22 @@ export function ConversationDetail({
     setSending(true);
     setError(null);
     try {
+      const fileIds: string[] = [];
+      if (selectedFiles.length > 0) {
+        const uploaded = await uploadFiles(selectedFiles);
+        const ids = uploaded
+          .map((f) => f.id)
+          .filter((id): id is string => typeof id === "string" && id.length > 0);
+        fileIds.push(...ids);
+      }
+
       const response = await postApiConversationsByConversationIdMessages({
         path: { conversationId },
         body: {
-          Content: messageContent.trim() || undefined,
-          Files: selectedFiles.length > 0 ? selectedFiles : undefined,
+          conversationId,
+          parentId: replyTo?.id,
+          content: messageContent.trim() || undefined,
+          fileIds: fileIds.length > 0 ? fileIds : undefined,
         },
       });
 
@@ -149,6 +164,7 @@ export function ConversationDetail({
         setMessages((prev) => [...prev, newMessage]);
         setMessageContent("");
         setSelectedFiles([]);
+        setReplyTo(null);
         void fetchConversation(); // Refresh để cập nhật messageCount
       }
     } catch (err: any) {
@@ -191,9 +207,9 @@ export function ConversationDetail({
   }
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex-shrink-0 border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -247,25 +263,27 @@ export function ConversationDetail({
 
       {/* Pinned Messages Section */}
       {pinnedMessages.length > 0 && (
-        <PinnedMessagesSection
-          pinnedMessages={pinnedMessages}
-          conversationId={conversationId}
-          onMessageClick={(messageId) => {
-            // Scroll to message
-            const element = document.querySelector(`[data-message-id="${messageId}"]`);
-            if (element) {
-              element.scrollIntoView({ behavior: "smooth", block: "center" });
-            }
-          }}
-          onUnpin={(message) => {
-            void togglePin(message);
-          }}
-        />
+        <div className="flex-shrink-0">
+          <PinnedMessagesSection
+            pinnedMessages={pinnedMessages}
+            conversationId={conversationId}
+            onMessageClick={(messageId) => {
+              // Scroll to message
+              const element = document.querySelector(`[data-message-id="${messageId}"]`);
+              if (element) {
+                element.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }}
+            onUnpin={(message) => {
+              void togglePin(message);
+            }}
+          />
+        </div>
       )}
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-2 md:p-4" ref={scrollAreaRef}>
-        <div className="space-y-4">
+      <ScrollArea className="flex-1 min-h-0 p-2 md:p-1" ref={scrollAreaRef}>
+        <div className="flex flex-col gap-4">
           {error && (
             <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded">
               {error}
@@ -302,6 +320,14 @@ export function ConversationDetail({
                     conversationId={conversationId}
                     currentUserId={profile?.id}
                     showDate={showDate}
+                    allMessages={messages}
+                    onReply={(m) => setReplyTo(m)}
+                    onScrollToMessage={(messageId) => {
+                      const element = document.querySelector(`[data-message-id="${messageId}"]`);
+                      if (element) {
+                        element.scrollIntoView({ behavior: "smooth", block: "center" });
+                      }
+                    }}
                     onUpdate={(updatedMessage) => {
                       setMessages((prev) =>
                         prev.map((m) =>
@@ -322,7 +348,29 @@ export function ConversationDetail({
       </ScrollArea>
 
       {/* Message Input */}
-      <div className="border-t border-slate-200 bg-white p-2 md:p-4 dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex-shrink-0 border-t border-slate-200 bg-white p-2 md:p-4 dark:border-slate-700 dark:bg-slate-900">
+        {/* Reply preview */}
+        {replyTo && (
+          <div className="mb-2 flex items-start justify-between rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+            <div className="mr-2 min-w-0">
+              <div className="font-semibold truncate">
+                Trả lời {replyTo.senderName || "người dùng"}
+              </div>
+              <div className="truncate text-[11px] opacity-80">
+                {replyTo.content}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setReplyTo(null)}
+              className="ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-100"
+              title="Hủy trả lời"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+
         {/* Preview selected files */}
         {selectedFiles.length > 0 && (
           <div className="mb-2 space-y-2">

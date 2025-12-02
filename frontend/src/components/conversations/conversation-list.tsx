@@ -34,8 +34,8 @@ export function ConversationList({
             <div className="flex items-start gap-3">
               <Avatar className="h-12 w-12 flex-shrink-0">
                 <AvatarImage
-                  src={conversation.creatorAvatarUrl || undefined}
-                  alt={conversation.creatorName || "Avatar"}
+                  src={conversation.avatarUrl || undefined}
+                  alt={conversation.conversationName || "Avatar"}
                 />
                 <AvatarFallback>
                   <MessageCircle className="h-6 w-6" />

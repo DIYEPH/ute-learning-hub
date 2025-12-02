@@ -13,7 +13,7 @@ type AdminLayoutProps = {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { isAdmin, isLoading } = useAdmin();
-  const isAuthenticated = useAuthState();
+  const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
   const router = useRouter();
   const t = useTranslations('common');
   const [isChecking, setIsChecking] = useState(true);
@@ -27,16 +27,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   }, []);
 
   useEffect(() => {
-    if (isChecking) return;
+    if (isChecking || !authReady) return;
 
-    if (!isAuthenticated || !isLoading && !isAdmin) {
+    if (!isAuthenticated || (!isLoading && !isAdmin)) {
       router.push('/');
       return;
     }
     
-  }, [isAuthenticated, isAdmin, isLoading, router, isChecking]);
+  }, [isAuthenticated, isAdmin, isLoading, router, isChecking, authReady]);
 
-  if (isChecking || isLoading) {
+  if (isChecking || !authReady || isLoading) {
     return (
       <AdminShell>
         <div className="flex items-center justify-center min-h-screen">

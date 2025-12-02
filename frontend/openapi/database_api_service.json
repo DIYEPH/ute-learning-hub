@@ -126,50 +126,6 @@
         }
       }
     },
-    "/api/Account/avatar": {
-      "post": {
-        "tags": [
-          "Account"
-        ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "file": {
-                    "$ref": "#/components/schemas/IFormFile"
-                  }
-                }
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "type": "string"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "type": "string"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/Auth/login": {
       "post": {
         "tags": [
@@ -1448,53 +1404,19 @@
         ],
         "requestBody": {
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "CoverFile": {
-                    "$ref": "#/components/schemas/IFormFile"
-                  },
-                  "DocumentName": {
-                    "type": "string"
-                  },
-                  "Description": {
-                    "type": "string"
-                  },
-                  "SubjectId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "TypeId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "TagIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "uuid"
-                    }
-                  },
-                  "TagNames": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "AuthorNames": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    }
-                  },
-                  "IsDownload": {
-                    "type": "boolean"
-                  },
-                  "Visibility": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/CreateDocumentCommand"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDocumentCommand"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDocumentCommand"
               }
             }
           },
@@ -1709,52 +1631,19 @@
         ],
         "requestBody": {
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "CoverFile": {
-                    "$ref": "#/components/schemas/IFormFile"
-                  },
-                  "Id": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "DocumentName": {
-                    "type": "string"
-                  },
-                  "Description": {
-                    "type": "string"
-                  },
-                  "SubjectId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "TypeId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "TagIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "uuid"
-                    }
-                  },
-                  "IsDownload": {
-                    "type": "boolean"
-                  },
-                  "Visibility": {
-                    "type": "string"
-                  },
-                  "FileIdsToRemove": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "uuid"
-                    }
-                  }
-                }
+                "$ref": "#/components/schemas/UpdateDocumentCommand"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDocumentCommand"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDocumentCommand"
               }
             }
           },
@@ -1840,35 +1729,19 @@
         ],
         "requestBody": {
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "File": {
-                    "$ref": "#/components/schemas/IFormFile"
-                  },
-                  "CoverFile": {
-                    "$ref": "#/components/schemas/IFormFile"
-                  },
-                  "DocumentId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "Title": {
-                    "type": "string"
-                  },
-                  "Order": {
-                    "type": "integer",
-                    "format": "int32"
-                  },
-                  "IsPrimary": {
-                    "type": "boolean"
-                  },
-                  "TotalPages": {
-                    "type": "integer",
-                    "format": "int32"
-                  }
-                }
+                "$ref": "#/components/schemas/AddDocumentFileCommand"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDocumentFileCommand"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddDocumentFileCommand"
               }
             }
           },
@@ -2404,10 +2277,19 @@
         }
       }
     },
-    "/api/Faculty/upload-logo": {
+    "/api/File": {
       "post": {
         "tags": [
-          "Faculty"
+          "File"
+        ],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
         ],
         "requestBody": {
           "content": {
@@ -2416,7 +2298,8 @@
                 "type": "object",
                 "properties": {
                   "file": {
-                    "$ref": "#/components/schemas/IFormFile"
+                    "type": "string",
+                    "format": "binary"
                   }
                 }
               }
@@ -2430,17 +2313,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/FileDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/FileDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "type": "string"
+                  "$ref": "#/components/schemas/FileDto"
                 }
               }
             }
@@ -2796,35 +2679,19 @@
         ],
         "requestBody": {
           "content": {
-            "multipart/form-data": {
+            "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "Files": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/IFormFile"
-                    }
-                  },
-                  "ConversationId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "ParentId": {
-                    "type": "string",
-                    "format": "uuid"
-                  },
-                  "Content": {
-                    "type": "string"
-                  },
-                  "FileIds": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "uuid"
-                    }
-                  }
-                }
+                "$ref": "#/components/schemas/CreateMessageCommand"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMessageCommand"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMessageCommand"
               }
             }
           },
@@ -4523,6 +4390,41 @@
   },
   "components": {
     "schemas": {
+      "AddDocumentFileCommand": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "isPrimary": {
+            "type": "boolean"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "fileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "coverFileId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          }
+        }
+      },
       "AuthorDto": {
         "type": "object",
         "properties": {
@@ -4670,10 +4572,7 @@
           "subject": {
             "$ref": "#/components/schemas/SubjectDto"
           },
-          "creatorName": {
-            "type": "string"
-          },
-          "creatorAvatarUrl": {
+          "avatarUrl": {
             "type": "string",
             "nullable": true
           },
@@ -4738,10 +4637,7 @@
           "subject": {
             "$ref": "#/components/schemas/SubjectDto"
           },
-          "creatorName": {
-            "type": "string"
-          },
-          "creatorAvatarUrl": {
+          "avatarUrl": {
             "type": "string",
             "nullable": true
           },
@@ -4917,6 +4813,10 @@
           },
           "isAllowMemberPin": {
             "type": "boolean"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -4929,6 +4829,59 @@
           },
           "content": {
             "type": "string"
+          }
+        }
+      },
+      "CreateDocumentCommand": {
+        "type": "object",
+        "properties": {
+          "documentName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "subjectId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "typeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "tagNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "authorNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "nullable": true
+          },
+          "isDownload": {
+            "type": "boolean"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/VisibilityStatus"
+          },
+          "coverFileId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
           }
         }
       },
@@ -5010,6 +4963,31 @@
           },
           "majorCode": {
             "type": "string"
+          }
+        }
+      },
+      "CreateMessageCommand": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "content": {
+            "type": "string"
+          },
+          "fileIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
           }
         }
       },
@@ -5436,6 +5414,34 @@
           }
         }
       },
+      "FileDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileUrl": {
+            "type": "string"
+          },
+          "fileSize": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "mimeType": {
+            "type": "string"
+          },
+          "isTemporary": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Gender": {
+        "type": "integer"
+      },
       "GetOnlineMembersResponse": {
         "type": "object",
         "properties": {
@@ -5451,10 +5457,6 @@
             }
           }
         }
-      },
-      "IFormFile": {
-        "type": "string",
-        "format": "binary"
       },
       "LoginCommand": {
         "type": "object",
@@ -5759,6 +5761,10 @@
         "nullable": true
       },
       "NullableOfMessageType": {
+        "type": "integer",
+        "nullable": true
+      },
+      "NullableOfVisibilityStatus": {
         "type": "integer",
         "nullable": true
       },
@@ -6243,7 +6249,7 @@
             "type": "string"
           },
           "gender": {
-            "type": "string"
+            "$ref": "#/components/schemas/Gender"
           },
           "roles": {
             "type": "array",
@@ -6545,6 +6551,65 @@
           "isAllowMemberPin": {
             "type": "boolean",
             "nullable": true
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateDocumentCommand": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentName": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "subjectId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "typeId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "tagIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "isDownload": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/NullableOfVisibilityStatus"
+          },
+          "fileIdsToRemove": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "coverFileId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
           }
         }
       },
@@ -6816,7 +6881,7 @@
             "type": "string"
           },
           "gender": {
-            "type": "string"
+            "$ref": "#/components/schemas/Gender"
           },
           "isSuggest": {
             "type": "boolean"
@@ -6931,6 +6996,9 @@
     },
     {
       "name": "Faculty"
+    },
+    {
+      "name": "File"
     },
     {
       "name": "Major"

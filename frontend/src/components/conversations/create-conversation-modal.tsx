@@ -5,10 +5,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, Image as ImageIcon } from "lucide-react";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { postApiConversation, getApiTag } from "@/src/api/database/sdk.gen";
 import type { CreateConversationCommand, SubjectDto2, TagDto } from "@/src/api/database/types.gen";
+import { useFileUpload } from "@/src/hooks/use-file-upload";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 
 interface CreateConversationModalProps {
   open: boolean;
@@ -22,6 +24,7 @@ export function CreateConversationModal({
   onSuccess,
 }: CreateConversationModalProps) {
   const { fetchSubjects, loading: loadingSubjects } = useSubjects();
+  const { uploadFile, uploading: uploadingAvatar } = useFileUpload();
 
   const [formData, setFormData] = useState<CreateConversationCommand>({
     conversationName: "",
@@ -39,6 +42,7 @@ export function CreateConversationModal({
   const [newTagInput, setNewTagInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [avatarFileInput, setAvatarFileInput] = useState<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -143,23 +147,74 @@ export function CreateConversationModal({
             </div>
           )}
 
-          <div>
-            <Label htmlFor="conversationName">
-              Tên cuộc trò chuyện <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="conversationName"
-              value={formData.conversationName || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  conversationName: e.target.value,
-                }))
-              }
-              required
-              disabled={loading}
-              className="mt-1"
-            />
+          <div className="flex items-start gap-3">
+            {/* Avatar nhóm */}
+            <div className="flex flex-col items-center gap-2">
+              <Avatar className="h-12 w-12">
+                <AvatarImage src={formData.avatarUrl || undefined} alt={formData.conversationName || "Avatar nhóm"} />
+                <AvatarFallback>
+                  <ImageIcon className="h-5 w-5" />
+                </AvatarFallback>
+              </Avatar>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={loading || uploadingAvatar}
+                onClick={() => avatarFileInput?.click()}
+                className="h-6 px-2 text-[10px]"
+              >
+                {uploadingAvatar ? (
+                  <>
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                    Đang tải...
+                  </>
+                ) : (
+                  "Chọn ảnh"
+                )}
+              </Button>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                ref={(el) => setAvatarFileInput(el)}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  try {
+                    const uploaded = await uploadFile(file, "AvatarConversation");
+                    if (uploaded.fileUrl) {
+                      setFormData((prev) => ({
+                        ...prev,
+                        avatarUrl: uploaded.fileUrl,
+                      }));
+                    }
+                  } finally {
+                    e.target.value = "";
+                  }
+                }}
+              />
+            </div>
+
+            {/* Tên cuộc trò chuyện */}
+            <div className="flex-1">
+              <Label htmlFor="conversationName">
+                Tên cuộc trò chuyện <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="conversationName"
+                value={formData.conversationName || ""}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    conversationName: e.target.value,
+                  }))
+                }
+                required
+                disabled={loading}
+                className="mt-1"
+              />
+            </div>
           </div>
 
           <div>
@@ -211,6 +266,23 @@ export function CreateConversationModal({
                 disabled={loading}
                 className="flex-1"
               />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={loading || !newTagInput.trim()}
+                onClick={() => {
+                  const value = newTagInput.trim();
+                  if (!value) return;
+                  setFormData((prev) => ({
+                    ...prev,
+                    tagNames: [...(prev.tagNames || []), value],
+                  }));
+                  setNewTagInput("");
+                }}
+              >
+                Thêm tag
+              </Button>
             </div>
 
             {/* Hiển thị tags đã chọn */}

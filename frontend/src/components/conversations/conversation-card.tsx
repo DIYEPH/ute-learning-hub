@@ -8,6 +8,7 @@ import type { ConversationDto } from "@/src/api/database/types.gen";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 import { Button } from "@/src/components/ui/button";
 import { postApiConversationJoinRequest, postApiConversationByIdJoin } from "@/src/api/database/sdk.gen";
+import { useNotification } from "@/src/components/ui/notification-center";
 
 interface ConversationCardProps {
   conversation: ConversationDto;
@@ -21,6 +22,7 @@ export function ConversationCard({
   const router = useRouter();
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { error: notifyError, success: notifySuccess } = useNotification();
 
   // ConversitionType enum: 0 = Private, 1 = Group (Public), 2 = AI
   const isPrivate = conversation.conversationType === 0; // 0 = Private
@@ -38,20 +40,24 @@ export function ConversationCard({
     try {
       if (isPrivate) {
         // Private: use join request
-        await postApiConversationJoinRequest({
+        await postApiConversationJoinRequest<true>({
           body: {
             conversationId: conversation.id,
             content: "",
           },
+          throwOnError: true,
         });
+        notifySuccess("Đã gửi yêu cầu tham gia nhóm");
         onJoinSuccess?.();
       } else {
         // Public: join directly
-        await postApiConversationByIdJoin({
+        await postApiConversationByIdJoin<true>({
           path: {
             id: conversation.id,
           },
+          throwOnError: true,
         });
+        notifySuccess("Tham gia nhóm thành công");
         onJoinSuccess?.();
         router.push(`/chat?id=${conversation.id}`);
       }
@@ -61,6 +67,7 @@ export function ConversationCard({
         err?.message ||
         (isPrivate ? "Không thể gửi yêu cầu tham gia" : "Không thể tham gia nhóm");
       setError(message);
+      notifyError(message);
     } finally {
       setJoining(false);
     }
@@ -84,8 +91,8 @@ export function ConversationCard({
       <div className="flex items-start gap-3">
         <Avatar className="h-12 w-12 flex-shrink-0">
           <AvatarImage
-          src={(conversation as any).avatarUrl || conversation.creatorAvatarUrl || undefined}
-          alt={conversation.conversationName || conversation.creatorName || "Avatar"}
+            src={conversation.avatarUrl || undefined}
+            alt={conversation.conversationName || "Avatar"}
           />
           <AvatarFallback>
             <MessageCircle className="h-6 w-6" />

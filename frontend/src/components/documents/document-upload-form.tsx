@@ -13,19 +13,19 @@ import type {
   SubjectDto2,
   TypeDto,
   TagDto,
-  PostApiDocumentData,
+  CreateDocumentCommand,
 } from "@/src/api/database/types.gen";
 
-type ApiDocumentBody = PostApiDocumentData["body"];
+type ApiDocumentBody = CreateDocumentCommand;
 export type DocumentUploadFormData = {
-  documentName?: ApiDocumentBody["DocumentName"] | null;
-  description?: ApiDocumentBody["Description"] | null;
-  authorNames?: ApiDocumentBody["AuthorNames"];
-  subjectId?: ApiDocumentBody["SubjectId"] | null;
-  typeId?: ApiDocumentBody["TypeId"] | null;
-  tagIds?: ApiDocumentBody["TagIds"];
-  tagNames?: ApiDocumentBody["TagNames"];
-  isDownload?: ApiDocumentBody["IsDownload"];
+  documentName?: ApiDocumentBody["documentName"] | null;
+  description?: ApiDocumentBody["description"] | null;
+  authorNames?: ApiDocumentBody["authorNames"];
+  subjectId?: ApiDocumentBody["subjectId"] | null;
+  typeId?: ApiDocumentBody["typeId"] | null;
+  tagIds?: ApiDocumentBody["tagIds"];
+  tagNames?: ApiDocumentBody["tagNames"];
+  isDownload?: ApiDocumentBody["isDownload"];
   visibility?: number;
   // File không bắt buộc - nếu không có file thì không tạo document
   file?: File | null;

@@ -61,7 +61,6 @@ export type ConversationDetailDto = {
     isAllowMemberPin?: boolean;
     subject?: SubjectDto;
     avatarUrl?: string | null;
-    creatorName?: string;
     members?: Array<ConversationMemberDto>;
     messageCount?: number;
     lastMessageId?: string | null;
@@ -80,7 +79,6 @@ export type ConversationDto = {
     isAllowMemberPin?: boolean;
     subject?: SubjectDto;
     avatarUrl?: string | null;
-    creatorName?: string;
     memberCount?: number;
     messageCount?: number;
     lastMessageId?: string | null;
@@ -183,6 +181,13 @@ export type CreateMajorCommand = {
     facultyId?: string;
     majorName?: string;
     majorCode?: string;
+};
+
+export type CreateMessageCommand = {
+    conversationId?: string;
+    parentId?: string | null;
+    content?: string;
+    fileIds?: Array<string> | null;
 };
 
 export type CreateNotificationCommand = {
@@ -327,6 +332,8 @@ export type FileDto = {
     mimeType?: string;
     isTemporary?: boolean;
 };
+
+export type Gender = number;
 
 export type GetOnlineMembersResponse = {
     conversationId?: string;
@@ -591,7 +598,7 @@ export type ProfileDto = {
     introduction?: string | null;
     trustScore?: number;
     trustLevel?: string;
-    gender?: string;
+    gender?: Gender;
     roles?: Array<string>;
     major?: MajorDto;
     createdAt?: string;
@@ -806,7 +813,7 @@ export type UserDto = {
     introduction?: string | null;
     trustScore?: number;
     trustLevel?: string;
-    gender?: string;
+    gender?: Gender;
     isSuggest?: boolean;
     roles?: Array<string>;
     major?: MajorDto;
@@ -1755,12 +1762,7 @@ export type GetApiConversationsByConversationIdMessagesResponses = {
 export type GetApiConversationsByConversationIdMessagesResponse = GetApiConversationsByConversationIdMessagesResponses[keyof GetApiConversationsByConversationIdMessagesResponses];
 
 export type PostApiConversationsByConversationIdMessagesData = {
-    body: {
-        ConversationId?: string;
-        ParentId?: string;
-        Content?: string;
-        FileIds?: Array<string>;
-    };
+    body: CreateMessageCommand;
     path: {
         conversationId: string;
     };

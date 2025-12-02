@@ -1,32 +1,35 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { isAuthenticated } from '@/src/api/client';
+import { authEvents, isAuthenticated } from '@/src/api/client';
 
 export function useAuthState() {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [state, setState] = useState<{ ready: boolean; authenticated: boolean }>({
+    ready: false,
+    authenticated: false,
+  });
 
   useEffect(() => {
-    setMounted(true);
-    setAuthenticated(isAuthenticated());
-
     const checkAuth = () => {
-      setAuthenticated(isAuthenticated());
+      setState({
+        ready: true,
+        authenticated: isAuthenticated(),
+      });
     };
 
+    // Kiểm tra ngay khi mount trên client
+    checkAuth();
+
+    // Lắng nghe thay đổi token từ các tab khác (storage)
     window.addEventListener('storage', checkAuth);
-    const interval = setInterval(checkAuth, 1000);
-    
+    // Và từ chính app (auth-changed)
+    window.addEventListener(authEvents.AUTH_CHANGED_EVENT, checkAuth);
+
     return () => {
       window.removeEventListener('storage', checkAuth);
-      clearInterval(interval);
+      window.removeEventListener(authEvents.AUTH_CHANGED_EVENT, checkAuth);
     };
   }, []);
 
-  if (!mounted) {
-    return false;
-  }
-
-  return authenticated;
+  return state;
 }
