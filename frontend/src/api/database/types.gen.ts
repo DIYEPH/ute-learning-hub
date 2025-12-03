@@ -275,6 +275,9 @@ export type DocumentFileDto = {
     isPrimary?: boolean;
     totalPages?: number | null;
     coverUrl?: string | null;
+    commentCount?: number;
+    usefulCount?: number;
+    notUsefulCount?: number;
 };
 
 export type DocumentReviewDto = {

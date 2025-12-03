@@ -5273,6 +5273,18 @@
           "coverUrl": {
             "type": "string",
             "nullable": true
+          },
+          "commentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usefulCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notUsefulCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

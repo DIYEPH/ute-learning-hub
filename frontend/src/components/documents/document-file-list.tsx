@@ -1,8 +1,9 @@
 "use client";
 
-import { Download, Eye, FileText } from "lucide-react";
-import { Button } from "@/src/components/ui/button";
+import Link from "next/link";
+import { FileText } from "lucide-react";
 import type { DocumentFileDto, DocumentDetailDto } from "@/src/api/database/types.gen";
+import { DocumentFileItem } from "@/src/components/documents/document-file-item";
 
 interface DocumentFileListProps {
   files: DocumentFileDto[];
@@ -19,74 +20,38 @@ export function DocumentFileList({ files, document: doc }: DocumentFileListProps
     );
   }
 
+  const canDownload = doc.isDownload !== false;
+  const documentId = doc.id;
+
   return (
-    <div className="space-y-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
       {files.map((file, index) => {
-        const fileUrl = file.fileUrl ?? "";
-        const fileSize = file.fileSize ? `${(file.fileSize / 1024 / 1024).toFixed(2)} MB` : "";
-        
-        return (
-          <div
+        const detailHref =
+          documentId && file.id
+            ? `/documents/${documentId}/files/${file.id}`
+            : undefined;
+
+        const content = (
+          <DocumentFileItem
             key={file.id}
-            className="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
-          >
-            <div className="flex items-start gap-3">
-              {file.coverUrl && (
-                <img
-                  src={file.coverUrl}
-                  alt={file.title || "Cover"}
-                  className="w-16 h-20 object-cover rounded flex-shrink-0"
-                />
-              )}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm text-foreground truncate">
-                      {file.title || file.fileName || `Chương ${index + 1}`}
-                    </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      {file.fileName}
-                      {fileSize && ` • ${fileSize}`}
-                      {file.totalPages && ` • ${file.totalPages} trang`}
-                    </p>
-                  </div>
-                  <div className="flex gap-1 flex-shrink-0">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => window.open(fileUrl, "_blank")}
-                      disabled={!fileUrl}
-                      className="h-7 px-2"
-                    >
-                      <Eye className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        const link = window.document.createElement("a");
-                        link.href = fileUrl;
-                        link.target = "_blank";
-                        link.download = file.fileName || "file";
-                        window.document.body.appendChild(link);
-                        link.click();
-                        window.document.body.removeChild(link);
-                      }}
-                      disabled={!fileUrl || doc.isDownload === false}
-                      className="h-7 px-2"
-                    >
-                      <Download className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+            file={file}
+            index={index}
+            canDownload={canDownload}
+          />
+        );
+
+        if (!detailHref) {
+          return content;
+        }
+
+        return (
+          <Link key={file.id} href={detailHref} className="block h-full">
+            {content}
+          </Link>
         );
       })}
     </div>
   );
 }
+
 
