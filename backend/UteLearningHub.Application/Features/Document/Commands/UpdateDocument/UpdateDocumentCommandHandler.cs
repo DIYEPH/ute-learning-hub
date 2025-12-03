@@ -23,6 +23,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IDocumentReviewRepository _documentReviewRepository;
 
     public UpdateDocumentCommandHandler(
         IDocumentRepository documentRepository,
@@ -32,7 +33,8 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         ITagRepository tagRepository,
         ICurrentUserService currentUserService,
         IUserService userService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IDocumentReviewRepository documentReviewRepository)
     {
         _documentRepository = documentRepository;
         _fileUsageService = fileUsageService;
@@ -42,6 +44,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         _currentUserService = currentUserService;
         _userService = userService;
         _dateTimeProvider = dateTimeProvider;
+        _documentReviewRepository = documentReviewRepository;
     }
 
     public async Task<DocumentDetailDto> Handle(UpdateDocumentCommand request, CancellationToken cancellationToken)
@@ -174,6 +177,54 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
             .Select(d => d.DocumentFiles.SelectMany(df => df.Comments).Count())
             .FirstOrDefaultAsync(cancellationToken);
 
+        // Thống kê review tổng cho document
+        var reviewStats = await _documentReviewRepository.GetQueryableSet()
+            .Where(dr => dr.DocumentId == request.Id && !dr.IsDeleted)
+            .GroupBy(dr => dr.DocumentReviewType)
+            .Select(g => new
+            {
+                DocumentReviewType = g.Key,
+                Count = g.Count()
+            })
+            .ToListAsync(cancellationToken);
+
+        var usefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.Useful)?.Count ?? 0;
+        var notUsefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.NotUseful)?.Count ?? 0;
+        var totalCount = reviewStats.Sum(r => r.Count);
+
+        // Thống kê review theo từng DocumentFile
+        var perFileReviewStats = await _documentReviewRepository.GetQueryableSet()
+            .Where(dr => dr.DocumentId == request.Id && !dr.IsDeleted && dr.DocumentFileId != Guid.Empty)
+            .GroupBy(dr => dr.DocumentFileId)
+            .Select(g => new
+            {
+                DocumentFileId = g.Key,
+                Useful = g.Count(r => r.DocumentReviewType == DocumentReviewType.Useful),
+                NotUseful = g.Count(r => r.DocumentReviewType == DocumentReviewType.NotUseful)
+            })
+            .ToListAsync(cancellationToken);
+
+        var perFileReviewDict = perFileReviewStats.ToDictionary(
+            x => x.DocumentFileId,
+            x => (x.Useful, x.NotUseful)
+        );
+
+        // Thống kê comment theo từng DocumentFile
+        var perFileCommentStats = await _documentRepository.GetQueryableSet()
+            .Where(d => d.Id == request.Id)
+            .SelectMany(d => d.DocumentFiles)
+            .Select(df => new
+            {
+                DocumentFileId = df.Id,
+                CommentCount = df.Comments.Count(c => !c.IsDeleted)
+            })
+            .ToListAsync(cancellationToken);
+
+        var perFileCommentDict = perFileCommentStats.ToDictionary(
+            x => x.DocumentFileId,
+            x => x.CommentCount
+        );
+
         return new DocumentDetailDto
         {
             Id = document.Id,
@@ -209,21 +260,36 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
             Files = document.DocumentFiles
                 .OrderBy(df => df.Order)
                 .ThenBy(df => df.CreatedAt)
-                .Select(df => new DocumentFileDto
+                .Select(df =>
                 {
-                    Id = df.Id,
-                    FileName = df.File.FileName,
-                    FileUrl = df.File.FileUrl,
-                    FileSize = df.File.FileSize,
-                    MimeType = df.File.MimeType,
-                    Title = df.Title,
-                    Order = df.Order,
-                    IsPrimary = df.IsPrimary,
-                    TotalPages = df.TotalPages,
-                    CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null
+                    perFileReviewDict.TryGetValue(df.Id, out var reviewForFile);
+                    perFileCommentDict.TryGetValue(df.Id, out var commentCountForFile);
+
+                    var usefulForFile = reviewForFile.Useful;
+                    var notUsefulForFile = reviewForFile.NotUseful;
+
+                    return new DocumentFileDto
+                    {
+                        Id = df.Id,
+                        FileName = df.File.FileName,
+                        FileUrl = df.File.FileUrl,
+                        FileSize = df.File.FileSize,
+                        MimeType = df.File.MimeType,
+                        Title = df.Title,
+                        Order = df.Order,
+                        IsPrimary = df.IsPrimary,
+                        TotalPages = df.TotalPages,
+                        CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null,
+                        CommentCount = commentCountForFile,
+                        UsefulCount = usefulForFile,
+                        NotUsefulCount = notUsefulForFile
+                    };
                 })
                 .ToList(),
             CommentCount = commentCount,
+            UsefulCount = usefulCount,
+            NotUsefulCount = notUsefulCount,
+            TotalCount = totalCount,
             CreatedById = document.CreatedById,
             CreatedAt = document.CreatedAt,
             UpdatedAt = document.UpdatedAt

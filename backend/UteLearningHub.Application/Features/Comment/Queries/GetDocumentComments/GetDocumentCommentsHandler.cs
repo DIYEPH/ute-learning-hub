@@ -42,8 +42,10 @@ public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQue
         if (!isAdmin)
             query = query.Where(c => c.ReviewStatus == ReviewStatus.Approved);
 
-        // Order by newest first
-        query = query.OrderByDescending(c => c.CreatedAt);
+        if (request.ParentId.HasValue)
+            query = query.OrderByDescending(c => c.CreatedAt);
+        else
+            query = query.OrderBy(c => c.CreatedAt);
 
         var totalCount = await query.CountAsync(cancellationToken);
 

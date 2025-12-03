@@ -313,7 +313,10 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                     Order = df.Order,
                     IsPrimary = df.IsPrimary,
                     TotalPages = df.TotalPages,
-                    CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null
+                    CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null,
+                    CommentCount = 0,
+                    UsefulCount = 0,
+                    NotUsefulCount = 0
                 })
                 .ToList(),
             CommentCount = commentCount,
