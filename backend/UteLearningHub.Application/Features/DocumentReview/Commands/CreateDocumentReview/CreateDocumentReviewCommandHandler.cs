@@ -34,23 +34,36 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Validate document file exists and belongs to a non-deleted document
         var documentId = await _documentRepository.GetDocumentIdByDocumentFileIdAsync(request.DocumentFileId, cancellationToken);
         if (!documentId.HasValue)
             throw new NotFoundException($"Document file with id {request.DocumentFileId} not found");
 
-        // Check if user already reviewed this document file
         var existingReview = await _documentReviewRepository.GetByDocumentFileIdAndUserIdAsync(
-            request.DocumentFileId, 
-            userId, 
-            disableTracking: false, 
+            request.DocumentFileId,
+            userId,
+            disableTracking: false,
             cancellationToken);
+        if (existingReview != null && existingReview.DocumentReviewType == request.DocumentReviewType)
+        {
+            await _documentReviewRepository.DeleteAsync(existingReview, cancellationToken);
+            await _documentReviewRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+            return new DocumentReviewDto
+            {
+                Id = existingReview.Id,
+                DocumentId = existingReview.DocumentId,
+                DocumentFileId = existingReview.DocumentFileId,
+                DocumentReviewType = existingReview.DocumentReviewType,
+                CreatedById = existingReview.CreatedById,
+                CreatedAt = existingReview.CreatedAt,
+                UpdatedAt = _dateTimeProvider.OffsetNow
+            };
+        }
 
         DocumentReviewEntity review;
 
         if (existingReview != null)
         {
-            // Update existing review
             existingReview.DocumentReviewType = request.DocumentReviewType;
             existingReview.UpdatedById = userId;
             existingReview.UpdatedAt = _dateTimeProvider.OffsetNow;
@@ -59,30 +72,29 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
         }
         else
         {
-                // Create new review cho DocumentFile cụ thể
-                review = new DocumentReviewEntity
-                {
-                    Id = Guid.NewGuid(),
-                    DocumentId = documentId.Value,
-                    DocumentFileId = request.DocumentFileId,
-                    DocumentReviewType = request.DocumentReviewType,
-                    CreatedById = userId,
-                    CreatedAt = _dateTimeProvider.OffsetNow
-                };
+            review = new DocumentReviewEntity
+            {
+                Id = Guid.NewGuid(),
+                DocumentId = documentId.Value,
+                DocumentFileId = request.DocumentFileId,
+                DocumentReviewType = request.DocumentReviewType,
+                CreatedById = userId,
+                CreatedAt = _dateTimeProvider.OffsetNow
+            };
             await _documentReviewRepository.AddAsync(review, cancellationToken);
         }
 
         await _documentReviewRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return new DocumentReviewDto
-            {
-                Id = review.Id,
-                DocumentId = review.DocumentId,
-                DocumentFileId = review.DocumentFileId,
-                DocumentReviewType = review.DocumentReviewType,
-                CreatedById = review.CreatedById,
-                CreatedAt = review.CreatedAt,
-                UpdatedAt = review.UpdatedAt
-            };
+        return new DocumentReviewDto
+        {
+            Id = review.Id,
+            DocumentId = review.DocumentId,
+            DocumentFileId = review.DocumentFileId,
+            DocumentReviewType = review.DocumentReviewType,
+            CreatedById = review.CreatedById,
+            CreatedAt = review.CreatedAt,
+            UpdatedAt = review.UpdatedAt
+        };
     }
 }

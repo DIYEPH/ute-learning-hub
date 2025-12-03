@@ -37,5 +37,10 @@ public record DocumentFileDto
     public bool IsPrimary { get; init; }
     public int? TotalPages { get; init; }
     public string? CoverUrl { get; init; }
+
+    // Thống kê theo từng DocumentFile
+    public int CommentCount { get; init; }
+    public int UsefulCount { get; init; }
+    public int NotUsefulCount { get; init; }
 }
 

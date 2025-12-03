@@ -37,7 +37,8 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        var document = await _documentRepository.GetByIdWithDetailsAsync(request.DocumentId, disableTracking: false, cancellationToken);
+        // Load document với NoTracking để chỉ đọc thông tin, không track
+        var document = await _documentRepository.GetByIdWithDetailsAsync(request.DocumentId, disableTracking: true, cancellationToken);
 
         if (document == null || document.IsDeleted)
             throw new NotFoundException($"Document with id {request.DocumentId} not found");
@@ -56,46 +57,61 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
         if (request.FileId == Guid.Empty)
             throw new BadRequestException("FileId is required");
 
-        var filesToPromote = new List<DomainFile>();
+        // CHỈ LƯU ID, KHÔNG LƯU ENTITY
+        var fileIdsToPromote = new List<Guid>();
 
-        var chapterFile = await _fileUsageService.EnsureFileAsync(request.FileId, cancellationToken);
-        filesToPromote.Add(chapterFile);
+        // 1. Validate file chính tồn tại
+        await _fileUsageService.EnsureFileAsync(request.FileId, cancellationToken);
+        fileIdsToPromote.Add(request.FileId);
 
-        var chapter = new DocumentFile
-        {
-            Id = Guid.NewGuid(),
-            DocumentId = document.Id,
-            FileId = chapterFile.Id,
-            Title = request.Title,
-            TotalPages = request.TotalPages,
-            IsPrimary = request.IsPrimary,
-            Order = request.Order ?? (document.DocumentFiles.Any()
-                ? document.DocumentFiles.Max(df => df.Order) + 1
-                : 1),
-            CreatedById = userId,
-            UpdatedById = null
-        };
-
+        Guid? coverFileId = null;
         if (request.CoverFileId.HasValue)
         {
             if (request.CoverFileId.Value == Guid.Empty)
                 throw new BadRequestException("CoverFileId is invalid");
 
-            var coverFile = await _fileUsageService.EnsureFileAsync(request.CoverFileId.Value, cancellationToken);
-            chapter.CoverFileId = coverFile.Id;
-            filesToPromote.Add(coverFile);
+            await _fileUsageService.EnsureFileAsync(request.CoverFileId.Value, cancellationToken);
+            coverFileId = request.CoverFileId.Value;
+            fileIdsToPromote.Add(coverFileId.Value);
         }
 
-        document.DocumentFiles.Add(chapter);
+        // 2. Tính Order từ document đã load (NoTracking)
+        var nextOrder = document.DocumentFiles.Any()
+            ? document.DocumentFiles.Max(df => df.Order) + 1
+            : 1;
 
-        await _documentRepository.UpdateAsync(document, cancellationToken);
+        // 3. Tạo DocumentFile mới và add trực tiếp vào DbContext
+        var chapter = new DocumentFile
+        {
+            Id = Guid.NewGuid(),
+            DocumentId = document.Id,
+            FileId = request.FileId,
+            Title = request.Title,
+            TotalPages = request.TotalPages,
+            IsPrimary = request.IsPrimary,
+            Order = request.Order ?? nextOrder,
+            CreatedById = userId,
+            UpdatedById = null,
+            CoverFileId = coverFileId
+        };
+
+        // Add trực tiếp vào DbSet, không qua collection của document để tránh EF Core cố update Document
+        var dbContext = _documentRepository.UnitOfWork as DbContext;
+        if (dbContext == null)
+            throw new InvalidOperationException("UnitOfWork is not DbContext");
+
+        await dbContext.Set<DocumentFile>().AddAsync(chapter, cancellationToken);
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        if (filesToPromote.Any())
-            await _fileUsageService.MarkFilesAsPermanentAsync(filesToPromote, cancellationToken);
+        // 3. Đánh dấu file là permanent giống CreateDocument
+        if (fileIdsToPromote.Any())
+        {
+            await _fileUsageService.MarkFilesAsPermanentAsync(fileIdsToPromote, cancellationToken);
+        }
 
-        // Reload with details to return updated document
-        var updated = await _documentRepository.GetByIdWithDetailsAsync(request.DocumentId, disableTracking: true, cancellationToken);
+        // 4. Reload và map DTO (giữ nguyên phần dưới)
+        var updated = await _documentRepository.GetByIdWithDetailsAsync(
+            request.DocumentId, disableTracking: true, cancellationToken);
 
         if (updated == null)
             throw new NotFoundException($"Document with id {request.DocumentId} not found after update");
@@ -159,7 +175,7 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
                 .ThenBy(df => df.CreatedAt)
                 .Select(df => new DocumentFileDto
                 {
-                    Id = df.File.Id,
+                    Id = df.Id,
                     FileName = df.File.FileName,
                     FileUrl = df.File.FileUrl,
                     FileSize = df.File.FileSize,

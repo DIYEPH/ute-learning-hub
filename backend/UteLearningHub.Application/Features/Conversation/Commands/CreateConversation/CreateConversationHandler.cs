@@ -184,7 +184,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
         {
             var avatarFile = await _fileUsageService.TryGetByUrlAsync(request.AvatarUrl, cancellationToken);
             if (avatarFile != null)
-                await _fileUsageService.MarkFilesAsPermanentAsync(new[] { avatarFile }, cancellationToken);
+                await _fileUsageService.MarkFilesAsPermanentAsync(new[] { avatarFile.Id }, cancellationToken);
         }
 
         var memberUserIds = createdConversation.Members

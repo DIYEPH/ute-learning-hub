@@ -169,7 +169,7 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         {
             var newAvatar = await _fileUsageService.TryGetByUrlAsync(request.AvatarUrl, cancellationToken);
             if (newAvatar != null)
-                await _fileUsageService.MarkFilesAsPermanentAsync(new[] { newAvatar }, cancellationToken);
+                await _fileUsageService.MarkFilesAsPermanentAsync(new[] { newAvatar.Id }, cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(previousAvatarUrl))
             {

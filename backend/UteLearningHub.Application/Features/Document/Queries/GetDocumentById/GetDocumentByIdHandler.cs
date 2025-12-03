@@ -42,12 +42,13 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
         if (!isAuthenticated && document.Visibility != VisibilityStatus.Public)
             throw new NotFoundException($"Document with id {request.Id} not found");
 
+        // Tổng số comment của toàn bộ document (tất cả DocumentFile)
         var commentCount = await _documentRepository.GetQueryableSet()
             .Where(d => d.Id == request.Id)
             .Select(d => d.DocumentFiles.SelectMany(df => df.Comments).Count())
             .FirstOrDefaultAsync(cancellationToken);
 
-        // Get review stats
+        // Thống kê review cho toàn bộ document
         var reviewStats = await _documentReviewRepository.GetQueryableSet()
             .Where(dr => dr.DocumentId == request.Id && !dr.IsDeleted)
             .GroupBy(dr => dr.DocumentReviewType)
@@ -61,6 +62,39 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
         var usefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.Useful)?.Count ?? 0;
         var notUsefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.NotUseful)?.Count ?? 0;
         var totalCount = reviewStats.Sum(r => r.Count);
+
+        // Thống kê review theo từng DocumentFile
+        var perFileReviewStats = await _documentReviewRepository.GetQueryableSet()
+            .Where(dr => dr.DocumentId == request.Id && !dr.IsDeleted && dr.DocumentFileId != Guid.Empty)
+            .GroupBy(dr => dr.DocumentFileId)
+            .Select(g => new
+            {
+                DocumentFileId = g.Key,
+                Useful = g.Count(r => r.DocumentReviewType == DocumentReviewType.Useful),
+                NotUseful = g.Count(r => r.DocumentReviewType == DocumentReviewType.NotUseful)
+            })
+            .ToListAsync(cancellationToken);
+
+        var perFileReviewDict = perFileReviewStats.ToDictionary(
+            x => x.DocumentFileId,
+            x => (x.Useful, x.NotUseful)
+        );
+
+        // Thống kê comment theo từng DocumentFile
+        var perFileCommentStats = await _documentRepository.GetQueryableSet()
+            .Where(d => d.Id == request.Id)
+            .SelectMany(d => d.DocumentFiles)
+            .Select(df => new
+            {
+                DocumentFileId = df.Id,
+                CommentCount = df.Comments.Count(c => !c.IsDeleted)
+            })
+            .ToListAsync(cancellationToken);
+
+        var perFileCommentDict = perFileCommentStats.ToDictionary(
+            x => x.DocumentFileId,
+            x => x.CommentCount
+        );
 
         return new DocumentDetailDto
         {
@@ -112,18 +146,30 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
             Files = document.DocumentFiles
                 .OrderBy(df => df.Order)
                 .ThenBy(df => df.CreatedAt)
-                .Select(df => new DocumentFileDto
+                .Select(df =>
                 {
-                    Id = df.File.Id,
-                    FileName = df.File.FileName,
-                    FileUrl = df.File.FileUrl,
-                    FileSize = df.File.FileSize,
-                    MimeType = df.File.MimeType,
-                    Title = df.Title,
-                    Order = df.Order,
-                    IsPrimary = df.IsPrimary,
-                    TotalPages = df.TotalPages,
-                    CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null
+                    perFileReviewDict.TryGetValue(df.Id, out var reviewForFile);
+                    perFileCommentDict.TryGetValue(df.Id, out var commentCountForFile);
+
+                    var usefulForFile = reviewForFile.Useful;
+                    var notUsefulForFile = reviewForFile.NotUseful;
+
+                    return new DocumentFileDto
+                    {
+                        Id = df.Id,
+                        FileName = df.File.FileName,
+                        FileUrl = df.File.FileUrl,
+                        FileSize = df.File.FileSize,
+                        MimeType = df.File.MimeType,
+                        Title = df.Title,
+                        Order = df.Order,
+                        IsPrimary = df.IsPrimary,
+                        TotalPages = df.TotalPages,
+                        CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null,
+                        CommentCount = commentCountForFile,
+                        UsefulCount = usefulForFile,
+                        NotUsefulCount = notUsefulForFile
+                    };
                 })
                 .ToList(),
             CommentCount = commentCount,

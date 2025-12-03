@@ -119,7 +119,10 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
         await _messageRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         if (filesToPromote.Any())
-            await _fileUsageService.MarkFilesAsPermanentAsync(filesToPromote, cancellationToken);
+        {
+            var fileIds = filesToPromote.Select(f => f.Id).ToList();
+            await _fileUsageService.MarkFilesAsPermanentAsync(fileIds, cancellationToken);
+        }
 
         // Reload message with details
         var createdMessage = await _messageRepository.GetByIdWithDetailsAsync(

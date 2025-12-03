@@ -156,7 +156,10 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         if (filesToPromote.Any())
-            await _fileUsageService.MarkFilesAsPermanentAsync(filesToPromote, cancellationToken);
+        {
+            var fileIds = filesToPromote.Select(f => f.Id).ToList();
+            await _fileUsageService.MarkFilesAsPermanentAsync(fileIds, cancellationToken);
+        }
 
         if (fileToDelete != null)
             await _fileUsageService.DeleteFileAsync(fileToDelete, cancellationToken);
@@ -208,7 +211,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
                 .ThenBy(df => df.CreatedAt)
                 .Select(df => new DocumentFileDto
                 {
-                    Id = df.File.Id,
+                    Id = df.Id,
                     FileName = df.File.FileName,
                     FileUrl = df.File.FileUrl,
                     FileSize = df.File.FileSize,

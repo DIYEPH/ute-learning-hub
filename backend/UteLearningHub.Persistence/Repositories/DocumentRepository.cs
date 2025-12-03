@@ -59,9 +59,12 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
 
     public async Task<Guid?> GetDocumentIdByDocumentFileIdAsync(Guid documentFileId, CancellationToken cancellationToken = default)
     {
-        return await GetQueryableSet()
+        // Trả về Guid? để phân biệt rõ trường hợp không tìm thấy
+        var result = await GetQueryableSet()
             .Where(d => !d.IsDeleted && d.DocumentFiles.Any(df => df.Id == documentFileId))
-            .Select(d => d.Id)
+            .Select(d => (Guid?)d.Id)
             .FirstOrDefaultAsync(cancellationToken);
+
+        return result;
     }
 }
