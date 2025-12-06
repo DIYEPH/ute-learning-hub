@@ -52,7 +52,7 @@ public class GetMessagesHandler : IRequestHandler<GetMessagesQuery, PagedRespons
                     m.UserId == userId && !m.IsDeleted);
                 
                 if (!isMember)
-                    throw new ForbidenException("You are not a member of this conversation");
+                    throw new ForbiddenException("You are not a member of this conversation");
             }
         }
 
@@ -104,8 +104,6 @@ public class GetMessagesHandler : IRequestHandler<GetMessagesQuery, PagedRespons
             Files = m.MessageFiles.Select(mf => new MessageFileDto
             {
                 FileId = mf.File.Id,
-                FileName = mf.File.FileName,
-                FileUrl = mf.File.FileUrl,
                 FileSize = mf.File.FileSize,
                 MimeType = mf.File.MimeType
             }).ToList(),

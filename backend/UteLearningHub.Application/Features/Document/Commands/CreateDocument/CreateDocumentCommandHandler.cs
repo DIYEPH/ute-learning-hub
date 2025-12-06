@@ -12,6 +12,8 @@ using UteLearningHub.Domain.Repositories;
 using DomainDocument = UteLearningHub.Domain.Entities.Document;
 using DomainTag = UteLearningHub.Domain.Entities.Tag;
 using DomainFile = UteLearningHub.Domain.Entities.File;
+using DomainAuthor = UteLearningHub.Domain.Entities.Author;
+
 
 namespace UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 
@@ -133,14 +135,27 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
         if (!tagIdsToAdd.Any())
             throw new BadRequestException("Document must have at least one tag");
 
-        // Xử lý danh sách tác giả (đa tác giả)
-        if (request.AuthorNames != null && request.AuthorNames.Any())
+        // Xử lý AuthorIds - chọn authors có sẵn (giống TagIds)
+        if (request.AuthorIds != null && request.AuthorIds.Any())
         {
-            foreach (var authorName in request.AuthorNames)
-            {
-                if (string.IsNullOrWhiteSpace(authorName)) continue;
+            var existingAuthors = await _authorRepository.GetQueryableSet()
+                .Where(a => request.AuthorIds.Contains(a.Id) && !a.IsDeleted)
+                .ToListAsync(cancellationToken);
 
-                var normalizedName = authorName.Trim();
+            if (existingAuthors.Count != request.AuthorIds.Count)
+                throw new NotFoundException("One or more authors not found");
+
+            authorIdsToAdd.AddRange(existingAuthors.Select(a => a.Id));
+        }
+
+        // Xử lý Authors - thêm authors mới (giống TagNames)
+        if (request.Authors != null && request.Authors.Any())
+        {
+            foreach (var authorInput in request.Authors)
+            {
+                if (string.IsNullOrWhiteSpace(authorInput.FullName)) continue;
+
+                var normalizedName = authorInput.FullName.Trim();
                 var normalizedNameLower = normalizedName.ToLowerInvariant();
 
                 var existingAuthor = await _authorRepository.GetQueryableSet()
@@ -156,11 +171,11 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                 }
                 else
                 {
-                    var newAuthor = new Author
+                    var newAuthor = new DomainAuthor
                     {
                         Id = Guid.NewGuid(),
                         FullName = normalizedName,
-                        Description = string.Empty,
+                        Description = authorInput.Description ?? string.Empty,
                         ReviewStatus = ReviewStatus.Approved,
                         CreatedById = userId,
                         CreatedAt = _dateTimeProvider.OffsetNow
@@ -192,20 +207,14 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        if (tagIdsToAdd.Any())
+        // Add DocumentTags directly using tagIdsToAdd (no need to query DB again)
+        foreach (var tagId in tagIdsToAdd)
         {
-            var tags = await _tagRepository.GetQueryableSet()
-                .Where(t => tagIdsToAdd.Contains(t.Id) && !t.IsDeleted)
-                .ToListAsync(cancellationToken);
-
-            foreach (var tag in tags)
+            document.DocumentTags.Add(new DocumentTag
             {
-                document.DocumentTags.Add(new DocumentTag
-                {
-                    DocumentId = document.Id,
-                    TagId = tag.Id
-                });
-            }
+                DocumentId = document.Id,
+                TagId = tagId
+            });
         }
 
         if (authorIdsToAdd.Any())
@@ -220,8 +229,6 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             }
         }
 
-        var filesToPromote = new List<DomainFile>();
-
         if (request.CoverFileId.HasValue)
         {
             if (request.CoverFileId.Value == Guid.Empty)
@@ -229,17 +236,10 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
 
             var coverFile = await _fileUsageService.EnsureFileAsync(request.CoverFileId.Value, cancellationToken);
             document.CoverFileId = coverFile.Id;
-            filesToPromote.Add(coverFile);
         }
 
         await _documentRepository.AddAsync(document, cancellationToken);
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
-
-        if (filesToPromote.Any())
-        {
-            var fileIds = filesToPromote.Select(f => f.Id).ToList();
-            await _fileUsageService.MarkFilesAsPermanentAsync(fileIds, cancellationToken);
-        }
 
         document = await _documentRepository.GetByIdWithDetailsAsync(document.Id, disableTracking: true, cancellationToken);
 
@@ -305,15 +305,14 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                 .Select(df => new DocumentFileDto
                 {
                     Id = df.Id,
-                    FileName = df.File.FileName,
-                    FileUrl = df.File.FileUrl,
+                    FileId = df.FileId,
                     FileSize = df.File.FileSize,
                     MimeType = df.File.MimeType,
                     Title = df.Title,
                     Order = df.Order,
                     IsPrimary = df.IsPrimary,
                     TotalPages = df.TotalPages,
-                    CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null,
+                    CoverFileId = df.CoverFileId,
                     CommentCount = 0,
                     UsefulCount = 0,
                     NotUsefulCount = 0

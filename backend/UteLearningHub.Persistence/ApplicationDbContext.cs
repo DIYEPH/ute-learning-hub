@@ -66,6 +66,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-
+        //  chưa có !delete(làm sau)
     }
 }

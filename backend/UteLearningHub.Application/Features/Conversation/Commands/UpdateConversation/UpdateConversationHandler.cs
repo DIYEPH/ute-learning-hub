@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
@@ -20,6 +21,7 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
     private readonly IFileUsageService _fileUsageService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IVectorMaintenanceService _vectorMaintenanceService;
 
     public UpdateConversationHandler(
         IConversationRepository conversationRepository,
@@ -27,7 +29,8 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         IIdentityService identityService,
         IFileUsageService fileUsageService,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IVectorMaintenanceService vectorMaintenanceService)
     {
         _conversationRepository = conversationRepository;
         _tagRepository = tagRepository;
@@ -35,6 +38,7 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         _fileUsageService = fileUsageService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _vectorMaintenanceService = vectorMaintenanceService;
     }
 
     public async Task<ConversationDetailDto> Handle(UpdateConversationCommand request, CancellationToken cancellationToken)
@@ -74,6 +78,9 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
 
         if (request.ConversationStatus.HasValue)
             conversation.ConversationStatus = request.ConversationStatus.Value;
+
+        var subjectChanged = request.SubjectId.HasValue && conversation.SubjectId != request.SubjectId;
+        var tagsChanged = request.TagIds != null || request.TagNames != null;
 
         if (request.SubjectId.HasValue)
             conversation.SubjectId = request.SubjectId;
@@ -164,13 +171,25 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         await _conversationRepository.UpdateAsync(conversation, cancellationToken);
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
+        // Cập nhật conversation vector nếu SubjectId hoặc Tags thay đổi (async, không block response)
+        if (subjectChanged || tagsChanged)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _vectorMaintenanceService.UpdateConversationVectorAsync(conversation.Id, cancellationToken);
+                }
+                catch (Exception)
+                {
+                    // Log error nhưng không throw
+                }
+            }, cancellationToken);
+        }
+
         if (!string.IsNullOrWhiteSpace(request.AvatarUrl) &&
             !string.Equals(previousAvatarUrl, request.AvatarUrl, StringComparison.OrdinalIgnoreCase))
         {
-            var newAvatar = await _fileUsageService.TryGetByUrlAsync(request.AvatarUrl, cancellationToken);
-            if (newAvatar != null)
-                await _fileUsageService.MarkFilesAsPermanentAsync(new[] { newAvatar.Id }, cancellationToken);
-
             if (!string.IsNullOrWhiteSpace(previousAvatarUrl))
             {
                 var oldAvatar = await _fileUsageService.TryGetByUrlAsync(previousAvatarUrl, cancellationToken);

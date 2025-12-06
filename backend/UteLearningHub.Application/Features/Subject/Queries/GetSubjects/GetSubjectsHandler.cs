@@ -26,6 +26,12 @@ public class GetSubjectsHandler : IRequestHandler<GetSubjectsQuery, PagedRespons
                 .ThenInclude(m => m.Faculty)
             .AsNoTracking();
 
+        // Filter by IsDeleted status (default: only active items)
+        if (request.IsDeleted.HasValue)
+            query = query.Where(s => s.IsDeleted == request.IsDeleted.Value);
+        else
+            query = query.Where(s => !s.IsDeleted);
+
         // Filter by MajorIds
         if (request.MajorIds?.Any() == true)
         {

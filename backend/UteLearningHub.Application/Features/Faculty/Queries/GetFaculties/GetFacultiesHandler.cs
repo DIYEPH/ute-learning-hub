@@ -19,6 +19,12 @@ public class GetFacultiesHandler : IRequestHandler<GetFacultiesQuery, PagedRespo
         var query = _facultyRepository.GetQueryableSet()
             .AsNoTracking();
 
+        // Filter by IsDeleted status (default: only active items)
+        if (request.IsDeleted.HasValue)
+            query = query.Where(f => f.IsDeleted == request.IsDeleted.Value);
+        else
+            query = query.Where(f => !f.IsDeleted);
+
         // Search by name or code
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {

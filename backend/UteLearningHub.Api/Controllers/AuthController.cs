@@ -5,7 +5,10 @@ using UteLearningHub.Application.Features.Auth.Commands.Login;
 using UteLearningHub.Application.Features.Auth.Commands.LoginWithMicrosoft;
 using UteLearningHub.Application.Features.Auth.Commands.RefreshToken;
 using UteLearningHub.Application.Features.Auth.Commands.Logout;
-using UteLearningHub.Application.Features.Auth.Commands.CompleteAccountSetup;
+using UteLearningHub.Application.Features.Auth.Commands.ForgotPassword;
+using UteLearningHub.Application.Features.Auth.Commands.ResetPassword;
+using UteLearningHub.Application.Features.Auth.Commands.ChangePassword;
+using UteLearningHub.Application.Features.Auth.Commands.ChangeUsername;
 
 namespace UteLearningHub.Api.Controllers;
 
@@ -49,14 +52,34 @@ public class AuthController : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("setup")]
-    [Authorize]
-    public async Task<ActionResult<CompleteAccountSetupResponse>> CompleteSetup(
-        [FromBody] CompleteAccountSetupCommand command)
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
     {
-        var result = await _mediator.Send(command);
-        if (!result.Success)
-            return BadRequest(result);
-        return Ok(result);
+        // Luôn trả về success để không leak thông tin về user tồn tại hay không
+        await _mediator.Send(command);
+        return Ok(new { message = "Nếu email tồn tại, bạn sẽ nhận được email hướng dẫn đặt lại mật khẩu." });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordCommand command)
+    {
+        await _mediator.Send(command);
+        return Ok(new { message = "Mật khẩu đã được đặt lại thành công." });
+    }
+
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
+    {
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    [HttpPost("change-username")]
+    [Authorize]
+    public async Task<IActionResult> ChangeUsername([FromBody] ChangeUsernameCommand command)
+    {
+        await _mediator.Send(command);
+        return NoContent();
     }
 }

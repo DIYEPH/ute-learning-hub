@@ -108,36 +108,6 @@ public class IdentityService : IIdentityService
         await _userManager.UpdateAsync(user);
     }
 
-    public async Task<UserSetupStatusDto> GetUserSetupStatusAsync(Guid userId)
-    {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
-            throw new Exception("User not found");
-
-        var hasPassword = await _userManager.HasPasswordAsync(user);
-        var logins = await _userManager.GetLoginsAsync(user);
-        var hasMicrosoftLogin = logins.Any(l => l.LoginProvider == "Microsoft");
-
-        // Username được coi là "cần setup" nếu:
-        // 1. Username null/empty HOẶC
-        // 2. Username giống email (username ngẫu nhiên được tạo từ email)
-        var requiresUsernameSetup = false;
-        if (hasMicrosoftLogin)
-        {
-            requiresUsernameSetup = string.IsNullOrWhiteSpace(user.UserName)
-                || user.UserName == user.Email
-                || (user.UserName?.Contains("@") ?? false)
-                || Guid.TryParse(user.UserName, out _); // Username là GUID
-        }
-
-        return new UserSetupStatusDto
-        {
-            RequiresUsernameSetup = requiresUsernameSetup,
-            RequiresPasswordSetup = !hasPassword && hasMicrosoftLogin,
-            CurrentUsername = user.UserName
-        };
-    }
-
     public async Task<(bool Succeeded, IEnumerable<string> Errors)> UpdateUsernameAsync(Guid userId, string newUsername)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -158,50 +128,45 @@ public class IdentityService : IIdentityService
         return (false, result.Errors.Select(e => e.Description));
     }
 
-    public async Task<(bool Succeeded, IEnumerable<string> Errors)> SetPasswordAsync(Guid userId, string password)
+    public async Task<(bool Succeeded, IEnumerable<string> Errors)> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null)
+        if (user == null || user.IsDeleted)
             return (false, new[] { "User not found" });
 
-        // Check xem user đã có password chưa
-        var hasPassword = await _userManager.HasPasswordAsync(user);
-
-        IdentityResult result;
-        if (hasPassword)
-        {
-            // User đã có password, reset password
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-            result = await _userManager.ResetPasswordAsync(user, token, password);
-        }
-        else
-        {
-            // User chưa có password, add password mới
-            result = await _userManager.AddPasswordAsync(user, password);
-        }
-
+        var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        
         if (result.Succeeded)
             return (true, Enumerable.Empty<string>());
 
         return (false, result.Errors.Select(e => e.Description));
     }
 
-    public async Task<bool> HasPasswordAsync(Guid userId)
+    public async Task<(bool Succeeded, IEnumerable<string> Errors)> ResetPasswordAsync(string email, string token, string newPassword)
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null) return false;
-        return await _userManager.HasPasswordAsync(user);
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null || user.IsDeleted)
+            return (false, new[] { "User not found" });
+
+        // Decode token từ URL
+        var decodedToken = Uri.UnescapeDataString(token);
+
+        var result = await _userManager.ResetPasswordAsync(user, decodedToken, newPassword);
+        
+        if (result.Succeeded)
+            return (true, Enumerable.Empty<string>());
+
+        return (false, result.Errors.Select(e => e.Description));
     }
 
-    public async Task<bool> HasExternalLoginAsync(Guid userId, string loginProvider)
+    public async Task<string> GeneratePasswordResetTokenAsync(Guid userId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        if (user == null) return false;
+        if (user == null)
+            throw new Exception("User not found");
 
-        var logins = await _userManager.GetLoginsAsync(user);
-        return logins.Any(l => l.LoginProvider == loginProvider);
+        return await _userManager.GeneratePasswordResetTokenAsync(user);
     }
-
     private static AppUserDto MapToDto(AppUser user) => new(
         user.Id,
         user.Email!,

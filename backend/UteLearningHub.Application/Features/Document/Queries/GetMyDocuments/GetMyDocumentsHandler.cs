@@ -156,7 +156,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                     .Distinct()
                     .ToList(),
                 FileCount = d.DocumentFiles.Count,
-                ThumbnailUrl = d.CoverFile != null ? d.CoverFile.FileUrl : null,
+                ThumbnailFileId = d.CoverFileId,
                 CommentCount = d.DocumentFiles.SelectMany(df => df.Comments).Count(),
                 CreatedById = d.CreatedById,
                 CreatedAt = d.CreatedAt
@@ -176,7 +176,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
             Tags = d.Tags,
             Authors = d.Authors,
             FileCount = d.FileCount,
-            ThumbnailUrl = d.ThumbnailUrl,
+            ThumbnailFileId = d.ThumbnailFileId,
             CommentCount = d.CommentCount,
             UsefulCount = reviewStatsDict.TryGetValue(d.Id, out var stats) ? stats.UsefulCount : 0,
             NotUsefulCount = reviewStatsDict.TryGetValue(d.Id, out var stats2) ? stats2.NotUsefulCount : 0,

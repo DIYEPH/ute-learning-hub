@@ -2,6 +2,7 @@ using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Comment;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
@@ -17,19 +18,22 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
     private readonly ICurrentUserService _currentUserService;
     private readonly ICommentService _commentService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IVectorMaintenanceService? _vectorMaintenanceService;
 
     public CreateCommentCommandHandler(
         ICommentRepository commentRepository,
         IDocumentRepository documentRepository,
         ICurrentUserService currentUserService,
         ICommentService commentService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IVectorMaintenanceService? vectorMaintenanceService = null)
     {
         _commentRepository = commentRepository;
         _documentRepository = documentRepository;
         _currentUserService = currentUserService;
         _commentService = commentService;
         _dateTimeProvider = dateTimeProvider;
+        _vectorMaintenanceService = vectorMaintenanceService;
     }
 
     public async Task<CommentDto> Handle(CreateCommentCommand request, CancellationToken cancellationToken)

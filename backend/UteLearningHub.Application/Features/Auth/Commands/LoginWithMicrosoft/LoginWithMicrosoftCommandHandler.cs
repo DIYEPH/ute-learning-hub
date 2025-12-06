@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using UteLearningHub.Application.Services.Authentication;
+using UteLearningHub.Application.Services.Email;
 using UteLearningHub.Application.Services.Identity;
 
 namespace UteLearningHub.Application.Features.Auth.Commands.LoginWithMicrosoft;
@@ -10,12 +11,20 @@ public class LoginWithMicrosoftCommandHandler : IRequestHandler<LoginWithMicroso
     private readonly IMicrosoftTokenValidator _microsoftTokenValidator;
     private readonly IRefreshTokenService _refreshTokenService;
     private readonly IIdentityService _identityService;
-    public LoginWithMicrosoftCommandHandler(IJwtTokenService jwtTokenService, IRefreshTokenService refreshTokenService, IIdentityService identityService, IMicrosoftTokenValidator microsoftTokenValidator)
+    private readonly IEmailService _emailService;
+
+    public LoginWithMicrosoftCommandHandler(
+        IJwtTokenService jwtTokenService, 
+        IRefreshTokenService refreshTokenService, 
+        IIdentityService identityService, 
+        IMicrosoftTokenValidator microsoftTokenValidator,
+        IEmailService emailService)
     {
         _jwtTokenService = jwtTokenService;
         _refreshTokenService = refreshTokenService;
         _identityService = identityService;
         _microsoftTokenValidator = microsoftTokenValidator;
+        _emailService = emailService;
     }
 
     public async Task<LoginWithMicrosoftResponse> Handle(LoginWithMicrosoftCommand request, CancellationToken cancellationToken)
@@ -79,14 +88,26 @@ public class LoginWithMicrosoftCommandHandler : IRequestHandler<LoginWithMicroso
                 );
                 await _identityService.AddToRoleAsync(userId, "Student");
                 user = await _identityService.FindByIdAsync(userId);
+
+                // Gửi welcome email cho user mới (async, không block response)
+                if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _emailService.SendWelcomeEmailAsync(user.Email, user.FullName ?? user.UserName ?? "User", cancellationToken);
+                        }
+                        catch
+                        {
+                            // Log error nhưng không throw để không ảnh hưởng đến response
+                        }
+                    }, cancellationToken);
+                }
             }
         }
         if (user == null)
             throw new Exception("User not found after creation");
-
-        // 5. Check setup status
-        var setupStatus = await _identityService.GetUserSetupStatusAsync(user.Id);
-        var requiresSetup = setupStatus.RequiresUsernameSetup || setupStatus.RequiresPasswordSetup;
 
         // 6. Generate tokens
         var roles = await _identityService.GetRolesAsync(user.Id);
@@ -104,8 +125,7 @@ public class LoginWithMicrosoftCommandHandler : IRequestHandler<LoginWithMicroso
             Username = user.UserName,
             AvatarUrl = user.AvatarUrl,
             AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            RequiresSetup = requiresSetup
+            RefreshToken = refreshToken
         };
     }
 }

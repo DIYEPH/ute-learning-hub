@@ -1,6 +1,7 @@
 using MediatR;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
+using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
@@ -13,17 +14,20 @@ public class LeaveConversationHandler : IRequestHandler<LeaveConversationCommand
     private readonly ICurrentUserService _currentUserService;
     private readonly IIdentityService _identityService;
     private readonly IConversationSystemMessageService _systemMessageService;
+    private readonly IVectorMaintenanceService _vectorMaintenanceService;
 
     public LeaveConversationHandler(
         IConversationRepository conversationRepository,
         ICurrentUserService currentUserService,
         IIdentityService identityService,
-        IConversationSystemMessageService systemMessageService)
+        IConversationSystemMessageService systemMessageService,
+        IVectorMaintenanceService vectorMaintenanceService)
     {
         _conversationRepository = conversationRepository;
         _currentUserService = currentUserService;
         _identityService = identityService;
         _systemMessageService = systemMessageService;
+        _vectorMaintenanceService = vectorMaintenanceService;
     }
 
     public async Task Handle(LeaveConversationCommand request, CancellationToken cancellationToken)
@@ -61,6 +65,19 @@ public class LeaveConversationHandler : IRequestHandler<LeaveConversationCommand
             MessageType.MemberLeft,
             null,
             cancellationToken);
+
+        // Cập nhật user vector (async, không block response)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _vectorMaintenanceService.UpdateUserVectorAsync(userId, cancellationToken);
+            }
+            catch
+            {
+                // Log error nhưng không throw - vector sẽ được update bởi background job
+            }
+        }, cancellationToken);
     }
 }
 

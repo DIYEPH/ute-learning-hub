@@ -56,11 +56,7 @@ public class DeleteDocumentsCommandHandler : IRequestHandler<DeleteDocumentsComm
             throw new UnauthorizedException("You don't have permission to delete this document");
 
         // Soft delete
-        document.IsDeleted = true;
-        document.DeletedAt = _dateTimeProvider.OffsetNow;
-        document.DeletedById = userId;
-
-        await _documentRepository.UpdateAsync(document, cancellationToken);
+        await _documentRepository.DeleteAsync(document, userId, cancellationToken);
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;

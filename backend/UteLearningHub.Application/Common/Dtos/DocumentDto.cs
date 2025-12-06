@@ -14,7 +14,7 @@ namespace UteLearningHub.Application.Common.Dtos
         public TypeDto Type { get; init; } = default!;
         public IList<TagDto> Tags { get; init; } = [];
         public IList<AuthorDto> Authors { get; init; } = [];
-        public string? ThumbnailUrl { get; init; }
+        public Guid? ThumbnailFileId { get; init; }
         public int FileCount { get; init; }
         public int CommentCount { get; init; }
         public int UsefulCount { get; init; }

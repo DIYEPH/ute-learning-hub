@@ -44,6 +44,13 @@ public class GlobalExceptionMiddleware
                 response.Type = appException.Type;
                 break;
 
+            case Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException:
+                response.StatusCode = (int)HttpStatusCode.Conflict;
+                response.Title = "Conflict";
+                response.Message = "The resource has been modified by another user. Please reload and try again.";
+                response.Type = "https://datatracker.ietf.org/doc/html/rfc7231#section-6.5.8";
+                break;
+
             case ArgumentException:
                 response.StatusCode = (int)HttpStatusCode.BadRequest;
                 response.Title = "Bad Request";

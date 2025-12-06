@@ -14,7 +14,7 @@ public interface IRepository<TEntity, in TKey> : IConcurrencyHandler<TEntity>
     Task AddOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
     Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
     Task UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
-    Task DeleteAsync(TEntity entity, CancellationToken cancellationToken = default);
+    Task DeleteAsync(TEntity entity, Guid? deletedById = null, CancellationToken cancellationToken = default);
     Task BulkInsertAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
     Task BulkUpdateAsync(List<TEntity> entities, CancellationToken cancellationToken = default);
     Task BulkDeleteAsync(List<TEntity> entities, CancellationToken cancellationToken = default);

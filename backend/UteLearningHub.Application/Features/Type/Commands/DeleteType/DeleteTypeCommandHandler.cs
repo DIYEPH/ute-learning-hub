@@ -45,7 +45,7 @@ public class DeleteTypeCommandHandler : IRequestHandler<DeleteTypeCommand, Unit>
             throw new BadRequestException($"Cannot delete type. It is being used by {documentCount} document(s)");
 
         // Soft delete
-        await _typeRepository.DeleteAsync(type, cancellationToken);
+        await _typeRepository.DeleteAsync(type, userId, cancellationToken);
         await _typeRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;

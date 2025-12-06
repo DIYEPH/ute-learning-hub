@@ -14,7 +14,7 @@ public record DocumentDetailDto
     public TypeDto Type { get; init; } = default!;
     public IList<TagDto> Tags { get; init; } = [];
     public IList<AuthorDto> Authors { get; init; } = [];
-    public string? CoverUrl { get; init; }
+    public Guid? CoverFileId { get; init; }
     public IList<DocumentFileDto> Files { get; init; } = [];
     public int CommentCount { get; init; }
     public int UsefulCount { get; init; }
@@ -28,19 +28,21 @@ public record DocumentDetailDto
 public record DocumentFileDto
 {
     public Guid Id { get; init; }
-    public string FileName { get; init; } = default!;
-    public string FileUrl { get; init; } = default!;
+    public Guid FileId { get; init; }
     public long FileSize { get; init; }
     public string MimeType { get; init; } = default!;
     public string? Title { get; init; }
     public int? Order { get; init; }
     public bool IsPrimary { get; init; }
     public int? TotalPages { get; init; }
-    public string? CoverUrl { get; init; }
+    public Guid? CoverFileId { get; init; }
 
     // Thống kê theo từng DocumentFile
     public int CommentCount { get; init; }
     public int UsefulCount { get; init; }
     public int NotUsefulCount { get; init; }
+
+    // Progress tracking
+    public DocumentProgressDto? Progress { get; init; }
 }
 

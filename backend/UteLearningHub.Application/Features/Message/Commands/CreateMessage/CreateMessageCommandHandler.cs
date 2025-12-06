@@ -64,7 +64,7 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
             m.UserId == userId && !m.IsDeleted);
         
         if (!isMember)
-            throw new ForbidenException("You are not a member of this conversation");
+            throw new ForbiddenException("You are not a member of this conversation");
 
         // Validate parent message if provided
         if (request.ParentId.HasValue)
@@ -92,12 +92,9 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        var filesToPromote = new List<DomainFile>();
-
         if (request.FileIds != null && request.FileIds.Any())
         {
             var files = await _fileUsageService.EnsureFilesAsync(request.FileIds, cancellationToken);
-            filesToPromote.AddRange(files);
 
             foreach (var file in files)
             {
@@ -117,12 +114,6 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
         await _conversationRepository.UpdateAsync(conversation, cancellationToken);
 
         await _messageRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
-
-        if (filesToPromote.Any())
-        {
-            var fileIds = filesToPromote.Select(f => f.Id).ToList();
-            await _fileUsageService.MarkFilesAsPermanentAsync(fileIds, cancellationToken);
-        }
 
         // Reload message with details
         var createdMessage = await _messageRepository.GetByIdWithDetailsAsync(
@@ -153,8 +144,6 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
             Files = createdMessage.MessageFiles.Select(mf => new MessageFileDto
             {
                 FileId = mf.File.Id,
-                FileName = mf.File.FileName,
-                FileUrl = mf.File.FileUrl,
                 FileSize = mf.File.FileSize,
                 MimeType = mf.File.MimeType
             }).ToList(),

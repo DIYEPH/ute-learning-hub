@@ -1,9 +1,11 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.Email;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
+using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 using NotificationEntity = UteLearningHub.Domain.Entities.Notification;
@@ -16,17 +18,23 @@ public class CreateNotificationCommandHandler : IRequestHandler<CreateNotificati
     private readonly IUserService _userService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IEmailService _emailService;
+    private readonly IIdentityService _identityService;
 
     public CreateNotificationCommandHandler(
         INotificationRepository notificationRepository,
         IUserService userService,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IEmailService emailService,
+        IIdentityService identityService)
     {
         _notificationRepository = notificationRepository;
         _userService = userService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _emailService = emailService;
+        _identityService = identityService;
     }
 
     public async Task<NotificationDto> Handle(CreateNotificationCommand request, CancellationToken cancellationToken)
@@ -87,6 +95,59 @@ public class CreateNotificationCommandHandler : IRequestHandler<CreateNotificati
             cancellationToken);
 
         await _notificationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Gửi email notification cho recipients (async, không block response)
+        // Chỉ gửi cho notification quan trọng hoặc khi có link
+        if (request.NotificationPriorityType == NotificationPriorityType.Hight || 
+            !string.IsNullOrWhiteSpace(request.Link))
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    // Lấy emails của recipients (giới hạn để tránh spam)
+                    var recipientEmails = new List<string>();
+                    var maxEmails = 100; // Giới hạn số lượng email để tránh spam
+                    var count = 0;
+                    
+                    foreach (var recipientId in recipientIds)
+                    {
+                        if (count >= maxEmails) break;
+                        
+                        var user = await _identityService.FindByIdAsync(recipientId);
+                        if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+                        {
+                            recipientEmails.Add(user.Email);
+                            count++;
+                        }
+                    }
+
+                    // Gửi email cho recipients
+                    if (recipientEmails.Any())
+                    {
+                        var notificationLink = !string.IsNullOrWhiteSpace(request.Link) 
+                            ? request.Link.StartsWith("http") 
+                                ? request.Link 
+                                : $"http://localhost:3000{request.Link}"
+                            : null;
+
+                        await _emailService.SendEmailAsync(
+                            recipientEmails,
+                            $"Thông báo: {request.Title}",
+                            $"<h2>{request.Title}</h2><p>{request.Content}</p>" + 
+                            (!string.IsNullOrWhiteSpace(notificationLink) 
+                                ? $"<p><a href='{notificationLink}'>Xem chi tiết</a></p>" 
+                                : ""),
+                            isHtml: true,
+                            cancellationToken);
+                    }
+                }
+                catch
+                {
+                    // Log error nhưng không throw để không ảnh hưởng đến response
+                }
+            }, cancellationToken);
+        }
 
         return new NotificationDto
         {

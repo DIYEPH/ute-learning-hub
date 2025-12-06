@@ -1,5 +1,6 @@
 using MediatR;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Message;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
@@ -15,19 +16,22 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IMessageQueueProducer _messageQueueProducer;
 
     public DeleteMessageCommandHandler(
         IMessageRepository messageRepository,
         IConversationRepository conversationRepository,
         ICurrentUserService currentUserService,
         IUserService userService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IMessageQueueProducer messageQueueProducer)
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
         _currentUserService = currentUserService;
         _userService = userService;
         _dateTimeProvider = dateTimeProvider;
+        _messageQueueProducer = messageQueueProducer;
     }
 
     public async Task<Unit> Handle(DeleteMessageCommand request, CancellationToken cancellationToken)
@@ -74,12 +78,26 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
         if (!canDelete)
             throw new UnauthorizedException("You don't have permission to delete this message");
 
-        message.IsDeleted = true;
-        message.DeletedAt = _dateTimeProvider.OffsetNow;
-        message.DeletedById = userId;
+        var messageId = message.Id;
+        var conversationId = message.ConversationId;
 
-        await _messageRepository.UpdateAsync(message, cancellationToken);
+        // Soft delete using repository method
+        await _messageRepository.DeleteAsync(message, userId, cancellationToken);
         await _messageRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Publish message deleted event (async, không block response)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _messageQueueProducer.PublishMessageDeletedAsync(messageId, conversationId, cancellationToken);
+            }
+            catch
+            {
+                // Log error nhưng không throw để không ảnh hưởng đến response
+                // Logger có thể được inject nếu cần
+            }
+        }, cancellationToken);
 
         return Unit.Value;
     }

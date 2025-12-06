@@ -1081,12 +1081,6 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("CoDaXoa");
 
-                    b.Property<bool>("IsTemporary")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false)
-                        .HasColumnName("LaTam");
-
                     b.Property<string>("MimeType")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")

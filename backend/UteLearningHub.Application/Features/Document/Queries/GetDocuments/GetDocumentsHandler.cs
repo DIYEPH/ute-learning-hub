@@ -28,6 +28,12 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
         var query = _documentRepository.GetQueryableWithIncludes()
             .AsNoTracking();
 
+        // Filter by IsDeleted status (default: only active items)
+        if (request.IsDeleted.HasValue)
+            query = query.Where(d => d.IsDeleted == request.IsDeleted.Value);
+        else
+            query = query.Where(d => !d.IsDeleted);
+
         if (request.SubjectId.HasValue)
             query = query.Where(d => d.SubjectId == request.SubjectId.Value);
 
@@ -182,7 +188,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                     .Distinct()
                     .ToList(),
                 FileCount = d.DocumentFiles.Count,
-                ThumbnailUrl = d.CoverFile != null ? d.CoverFile.FileUrl : null,
+                ThumbnailFileId = d.CoverFileId,
                 CommentCount = d.DocumentFiles.SelectMany(df => df.Comments).Count(),
                 CreatedById = d.CreatedById,
                 CreatedAt = d.CreatedAt
@@ -202,7 +208,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             Tags = d.Tags,
             Authors = d.Authors,
             FileCount = d.FileCount,
-            ThumbnailUrl = d.ThumbnailUrl,
+            ThumbnailFileId = d.ThumbnailFileId,
             CommentCount = d.CommentCount,
             UsefulCount = reviewStatsDict.TryGetValue(d.Id, out var stats) ? stats.UsefulCount : 0,
             NotUsefulCount = reviewStatsDict.TryGetValue(d.Id, out var stats2) ? stats2.NotUsefulCount : 0,

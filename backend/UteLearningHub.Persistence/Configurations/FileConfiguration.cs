@@ -19,7 +19,6 @@ public class FileConfiguration : IEntityTypeConfiguration<DomainFile>
         builder.Property(u => u.FileSize).HasColumnName("KichThuoc");
         builder.Property(u => u.MimeType).HasColumnName("LoaiFile");
         builder.Property(u => u.FileUrl).HasColumnName("LinkTruyCap");
-        builder.Property(u => u.IsTemporary).HasColumnName("LaTam").HasDefaultValue(false);
 
         builder.ApplySoftDelete<DomainFile>()
             .ApplyTrack<DomainFile>()

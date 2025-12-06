@@ -1,14 +1,11 @@
-using UteLearningHub.Domain.Entities;
+using DomainFile = UteLearningHub.Domain.Entities.File;
 
 namespace UteLearningHub.Application.Services.File;
 
 public interface IFileUsageService
 {
-    Task<Domain.Entities.File> EnsureFileAsync(Guid fileId, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<Domain.Entities.File>> EnsureFilesAsync(IEnumerable<Guid> fileIds, CancellationToken cancellationToken = default);
-    Task<Domain.Entities.File?> TryGetByUrlAsync(string fileUrl, CancellationToken cancellationToken = default);
-    Task MarkFilesAsPermanentAsync(IEnumerable<Guid> fileIds, CancellationToken cancellationToken = default);
-    Task DeleteFileAsync(Domain.Entities.File file, CancellationToken cancellationToken = default);
+    Task<DomainFile> EnsureFileAsync(Guid fileId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<DomainFile>> EnsureFilesAsync(IEnumerable<Guid> fileIds, CancellationToken cancellationToken = default);
+    Task<DomainFile?> TryGetByUrlAsync(string fileUrl, CancellationToken cancellationToken = default);
+    Task DeleteFileAsync(DomainFile file, CancellationToken cancellationToken = default);
 }
-
-

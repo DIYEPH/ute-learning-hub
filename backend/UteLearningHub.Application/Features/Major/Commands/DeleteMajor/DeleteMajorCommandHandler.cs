@@ -45,7 +45,7 @@ public class DeleteMajorCommandHandler : IRequestHandler<DeleteMajorCommand, Uni
             throw new BadRequestException($"Cannot delete major. It is being used by {subjectCount} subject(s)");
 
         // Hard delete
-        await _majorRepository.DeleteAsync(major, cancellationToken);
+        await _majorRepository.DeleteAsync(major, userId, cancellationToken);
         await _majorRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;

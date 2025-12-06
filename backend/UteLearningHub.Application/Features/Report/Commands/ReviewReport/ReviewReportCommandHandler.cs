@@ -1,6 +1,7 @@
 using MediatR;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
+using UteLearningHub.Application.Services.TrustScore;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
@@ -13,17 +14,20 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
     private readonly IReportRepository _reportRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
+    private readonly ITrustScoreService _trustScoreService;
     private readonly IDateTimeProvider _dateTimeProvider;
 
     public ReviewReportCommandHandler(
         IReportRepository reportRepository,
         ICurrentUserService currentUserService,
         IUserService userService,
+        ITrustScoreService trustScoreService,
         IDateTimeProvider dateTimeProvider)
     {
         _reportRepository = reportRepository;
         _currentUserService = currentUserService;
         _userService = userService;
+        _trustScoreService = trustScoreService;
         _dateTimeProvider = dateTimeProvider;
     }
 
@@ -50,6 +54,7 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
             throw new NotFoundException($"Report with id {request.ReportId} not found");
 
         // Update review information
+        var oldStatus = report.ReviewStatus;
         report.ReviewStatus = request.ReviewStatus;
         report.ReviewedById = userId;
         report.ReviewedAt = _dateTimeProvider.OffsetNow;
@@ -57,6 +62,27 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
 
         await _reportRepository.UpdateAsync(report, cancellationToken);
         await _reportRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Cộng điểm cho người báo cáo nếu report được approve (async)
+        if (request.ReviewStatus == ReviewStatus.Approved && oldStatus != ReviewStatus.Approved)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var points = TrustScoreConstants.GetActionPoints("ReportApproved");
+                    await _trustScoreService.AddTrustScoreAsync(
+                        report.CreatedById,
+                        points,
+                        "Báo cáo được duyệt",
+                        cancellationToken);
+                }
+                catch
+                {
+                    // Log error nhưng không throw
+                }
+            }, cancellationToken);
+        }
 
         return Unit.Value;
     }

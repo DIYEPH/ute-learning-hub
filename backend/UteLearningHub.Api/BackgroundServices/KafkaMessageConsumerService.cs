@@ -61,8 +61,32 @@ public class KafkaMessageConsumerService : BackgroundService
                         switch (envelope.EventType)
                         {
                             case MessageQueueEventTypes.MessageCreated:
-                                _logger.LogInformation("Da nhan duoc message: {Payload}", envelope.Payload);
+                                _logger.LogInformation("Received MessageCreated event: MessageId={MessageId}", envelope.Payload.Id);
                                 await _messageHubService.BroadcastMessageCreatedAsync(envelope.Payload, stoppingToken);
+                                break;
+
+                            case MessageQueueEventTypes.MessageUpdated:
+                                _logger.LogInformation("Received MessageUpdated event: MessageId={MessageId}", envelope.Payload.Id);
+                                await _messageHubService.BroadcastMessageUpdatedAsync(envelope.Payload, stoppingToken);
+                                break;
+
+                            case MessageQueueEventTypes.MessageDeleted:
+                                _logger.LogInformation("Received MessageDeleted event: MessageId={MessageId}, ConversationId={ConversationId}", 
+                                    envelope.Payload.Id, envelope.Payload.ConversationId);
+                                await _messageHubService.BroadcastMessageDeletedAsync(
+                                    envelope.Payload.Id, 
+                                    envelope.Payload.ConversationId, 
+                                    stoppingToken);
+                                break;
+
+                            case MessageQueueEventTypes.MessagePinned:
+                                _logger.LogInformation("Received MessagePinned event: MessageId={MessageId}", envelope.Payload.Id);
+                                await _messageHubService.BroadcastMessagePinnedAsync(envelope.Payload, stoppingToken);
+                                break;
+
+                            case MessageQueueEventTypes.MessageUnpinned:
+                                _logger.LogInformation("Received MessageUnpinned event: MessageId={MessageId}", envelope.Payload.Id);
+                                await _messageHubService.BroadcastMessageUnpinnedAsync(envelope.Payload, stoppingToken);
                                 break;
 
                             default:

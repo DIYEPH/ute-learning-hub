@@ -49,7 +49,7 @@ public class UpdateMemberRoleHandler : IRequestHandler<UpdateMemberRoleCommand>
             m.UserId == userId && !m.IsDeleted);
 
         if (currentUserMember == null)
-            throw new ForbidenException("You are not a member of this conversation");
+            throw new ForbiddenException("You are not a member of this conversation");
 
         if (currentUserMember.ConversationMemberRoleType != ConversationMemberRoleType.Owner)
             throw new UnauthorizedException("Only owners can update member roles");

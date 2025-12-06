@@ -25,56 +25,45 @@ public class GetNotificationsHandler : IRequestHandler<GetNotificationsQuery, Pa
         if (!_currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to view notifications");
 
-        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+        var isAdmin = _currentUserService.IsInRole("Admin");
 
-        // Query notifications for current user from NotificationRecipient with Notification included
-        var query = _notificationRepository.GetNotificationRecipientsWithNotificationQueryable()
-            .Where(nr => nr.RecipientId == userId 
-                && !nr.IsDeleted 
-                && !nr.Notification.IsDeleted
-                && nr.Notification.ExpiredAt > DateTimeOffset.UtcNow)
-            .Select(nr => new NotificationDto
-            {
-                Id = nr.Notification.Id,
-                ObjectId = nr.Notification.ObjectId,
-                Title = nr.Notification.Title,
-                Content = nr.Notification.Content,
-                Link = nr.Notification.Link,
-                IsGlobal = nr.Notification.IsGlobal,
-                ExpiredAt = nr.Notification.ExpiredAt,
-                NotificationType = nr.Notification.NotificationType,
-                NotificationPriorityType = nr.Notification.NotificationPriorityType,
-                IsRead = nr.IsRead,
-                ReadAt = nr.ReadAt,
-                CreatedAt = nr.Notification.CreatedAt,
-                ReceivedAt = nr.ReceivedAt
-            })
-            .AsNoTracking();
+        IQueryable<NotificationDto> projectedQuery;
 
-        // Filters
+        if (isAdmin)
+        {
+            // Admin: query directly from Notification table
+            projectedQuery = GetAdminNotificationsQuery(request);
+        }
+        else
+        {
+            // Regular user: query via NotificationRecipient
+            projectedQuery = GetUserNotificationsQuery(request);
+        }
+
+        // Apply common filters
         if (request.IsRead.HasValue)
         {
-            query = query.Where(n => n.IsRead == request.IsRead.Value);
+            projectedQuery = projectedQuery.Where(n => n.IsRead == request.IsRead.Value);
         }
 
         if (request.NotificationType.HasValue)
         {
-            query = query.Where(n => n.NotificationType == request.NotificationType.Value);
+            projectedQuery = projectedQuery.Where(n => n.NotificationType == request.NotificationType.Value);
         }
 
         if (request.NotificationPriorityType.HasValue)
         {
-            query = query.Where(n => n.NotificationPriorityType == request.NotificationPriorityType.Value);
+            projectedQuery = projectedQuery.Where(n => n.NotificationPriorityType == request.NotificationPriorityType.Value);
         }
 
         // Order by priority and created date
-        query = query.OrderByDescending(n => n.NotificationPriorityType)
+        projectedQuery = projectedQuery.OrderByDescending(n => n.NotificationPriorityType)
             .ThenByDescending(n => n.CreatedAt);
 
-        var totalCount = await query.CountAsync(cancellationToken);
+        var totalCount = await projectedQuery.CountAsync(cancellationToken);
 
         // Apply pagination
-        var notifications = await query
+        var notifications = await projectedQuery
             .Skip(request.Skip)
             .Take(request.Take)
             .ToListAsync(cancellationToken);
@@ -86,5 +75,63 @@ public class GetNotificationsHandler : IRequestHandler<GetNotificationsQuery, Pa
             Page = request.Page,
             PageSize = request.PageSize
         };
+    }
+
+    private IQueryable<NotificationDto> GetAdminNotificationsQuery(GetNotificationsQuery request)
+    {
+        var query = _notificationRepository.GetQueryableSet().AsNoTracking();
+
+        // IsDeleted filter for admin
+        if (request.IsDeleted.HasValue)
+        {
+            query = query.Where(n => n.IsDeleted == request.IsDeleted.Value);
+        }
+        // If IsDeleted is null, show ALL items (both deleted and active) for admin
+
+        return query.Select(n => new NotificationDto
+        {
+            Id = n.Id,
+            ObjectId = n.ObjectId,
+            Title = n.Title,
+            Content = n.Content,
+            Link = n.Link,
+            IsGlobal = n.IsGlobal,
+            ExpiredAt = n.ExpiredAt,
+            NotificationType = n.NotificationType,
+            NotificationPriorityType = n.NotificationPriorityType,
+            IsRead = false,
+            ReadAt = null,
+            CreatedAt = n.CreatedAt,
+            ReceivedAt = n.CreatedAt
+        });
+    }
+
+    private IQueryable<NotificationDto> GetUserNotificationsQuery(GetNotificationsQuery request)
+    {
+        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+
+        var query = _notificationRepository.GetNotificationRecipientsWithNotificationQueryable()
+            .Where(nr => nr.RecipientId == userId 
+                && nr.Notification.ExpiredAt > DateTimeOffset.UtcNow
+                && !nr.IsDeleted 
+                && !nr.Notification.IsDeleted)
+            .AsNoTracking();
+
+        return query.Select(nr => new NotificationDto
+        {
+            Id = nr.Notification.Id,
+            ObjectId = nr.Notification.ObjectId,
+            Title = nr.Notification.Title,
+            Content = nr.Notification.Content,
+            Link = nr.Notification.Link,
+            IsGlobal = nr.Notification.IsGlobal,
+            ExpiredAt = nr.Notification.ExpiredAt,
+            NotificationType = nr.Notification.NotificationType,
+            NotificationPriorityType = nr.Notification.NotificationPriorityType,
+            IsRead = nr.IsRead,
+            ReadAt = nr.ReadAt,
+            CreatedAt = nr.Notification.CreatedAt,
+            ReceivedAt = nr.ReceivedAt
+        });
     }
 }

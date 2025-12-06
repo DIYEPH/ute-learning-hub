@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Services.Authentication;
 using UteLearningHub.Domain.Exceptions;
+using UteLearningHub.Persistence;
 using UteLearningHub.Persistence.Identity;
 
 namespace UteLearningHub.Infrastructure.Services.Authentication;
@@ -9,15 +11,20 @@ public class RefreshTokenService : IRefreshTokenService
 {
     private readonly UserManager<AppUser> _userManager;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ApplicationDbContext _dbContext;
     private const string RefreshTokenProvider = "RefreshTokenProvider";
     private const string RefreshTokenPurpose = "RefreshToken";
+
     public RefreshTokenService(
         UserManager<AppUser> userManager,
-        IJwtTokenService jwtTokenService)
+        IJwtTokenService jwtTokenService,
+        ApplicationDbContext dbContext)
     {
         _userManager = userManager;
         _jwtTokenService = jwtTokenService;
+        _dbContext = dbContext;
     }
+
     public async Task<string> GenerateAndSaveRefreshTokenAsync(Guid userId, string sessionId)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString()) ?? throw new NotFoundException();
@@ -32,9 +39,22 @@ public class RefreshTokenService : IRefreshTokenService
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null)
             return;
+
         if (string.IsNullOrEmpty(sessionId))
-            //await RevokeAllSessionsAsync(user);
-            throw new Exception("DeleteAll");
+        {
+            // Revoke all sessions: Delete all refresh tokens for this user from database
+            var tokensToDelete = await _dbContext.UserTokens
+                .Where(t => t.UserId == userId && 
+                           t.LoginProvider == RefreshTokenProvider && 
+                           t.Name.StartsWith(RefreshTokenPurpose))
+                .ToListAsync(cancellationToken);
+
+            if (tokensToDelete.Any())
+            {
+                _dbContext.UserTokens.RemoveRange(tokensToDelete);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+            }
+        }
         else
         {
             var tokenKey = $"{RefreshTokenPurpose}_{sessionId}";
@@ -55,13 +75,5 @@ public class RefreshTokenService : IRefreshTokenService
             tokenKey
         );
         return storedToken == refreshToken;
-
     }
-    //private async Task RevokeAllSessionsAsync(AppUser user)
-    //{
-    //    try
-    //    {
-    //        var userTokens = await 
-    //    }
-    //}
 }

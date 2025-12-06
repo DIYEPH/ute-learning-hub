@@ -2,6 +2,7 @@ using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Comment;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.TrustScore;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
@@ -17,6 +18,7 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
     private readonly ICommentRepository _commentRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly ICommentService _commentService;
+    private readonly ITrustScoreService _trustScoreService;
     private readonly IDateTimeProvider _dateTimeProvider;
 
     public CreateReportCommandHandler(
@@ -25,6 +27,7 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
         ICommentRepository commentRepository,
         ICurrentUserService currentUserService,
         ICommentService commentService,
+        ITrustScoreService trustScoreService,
         IDateTimeProvider dateTimeProvider)
     {
         _reportRepository = reportRepository;
@@ -32,6 +35,7 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
         _commentRepository = commentRepository;
         _currentUserService = currentUserService;
         _commentService = commentService;
+        _trustScoreService = trustScoreService;
         _dateTimeProvider = dateTimeProvider;
     }
 
@@ -41,6 +45,20 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
             throw new UnauthorizedException("You must be authenticated to create reports");
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+
+        // Kiểm tra trust score trước khi cho phép báo cáo
+        var canCreateReport = await _trustScoreService.CanPerformActionAsync(
+            userId,
+            TrustScoreAction.CreateReport,
+            cancellationToken);
+
+        if (!canCreateReport)
+        {
+            var currentScore = await _trustScoreService.GetTrustScoreAsync(userId, cancellationToken);
+            throw new UnauthorizedException(
+                $"Bạn cần có trust score tối thiểu {TrustScoreConstants.MinimumScores[TrustScoreAction.CreateReport]} để báo cáo. " +
+                $"Trust score hiện tại của bạn: {currentScore}");
+        }
 
         // Validate: must have either DocumentId or CommentId, but not both
         if (!request.DocumentId.HasValue && !request.CommentId.HasValue)

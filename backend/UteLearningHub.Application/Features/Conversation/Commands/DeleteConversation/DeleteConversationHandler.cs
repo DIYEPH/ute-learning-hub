@@ -48,7 +48,7 @@ public class DeleteConversationHandler : IRequestHandler<DeleteConversationComma
         if (!isAdmin && !isOwner)
             throw new UnauthorizedException("Only administrators or conversation owners can delete conversations");
 
-        await _conversationRepository.DeleteAsync(conversation, cancellationToken);
+        await _conversationRepository.DeleteAsync(conversation, userId, cancellationToken);
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;

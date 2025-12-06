@@ -22,8 +22,6 @@ public record MessageDto
 public record MessageFileDto
 {
     public Guid FileId { get; init; }
-    public string FileName { get; init; } = default!;
-    public string FileUrl { get; init; } = default!;
     public long FileSize { get; init; }
     public string MimeType { get; init; } = default!;
 }

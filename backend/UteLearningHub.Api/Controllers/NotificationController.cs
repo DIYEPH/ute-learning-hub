@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Notification.Commands.CreateNotification;
+using UteLearningHub.Application.Features.Notification.Commands.DeleteNotification;
 using UteLearningHub.Application.Features.Notification.Commands.MarkAllAsRead;
 using UteLearningHub.Application.Features.Notification.Commands.MarkAsRead;
+using UteLearningHub.Application.Features.Notification.Commands.UpdateNotification;
 using UteLearningHub.Application.Features.Notification.Queries.GetNotifications;
 using UteLearningHub.Application.Features.Notification.Queries.GetUnreadCount;
 
@@ -62,5 +64,32 @@ public class NotificationController : ControllerBase
     {
         var result = await _mediator.Send(command);
         return Ok(result);
+    }
+
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<ActionResult<NotificationDto>> UpdateNotification(Guid id, [FromBody] UpdateNotificationRequest request)
+    {
+        var command = new UpdateNotificationCommand
+        {
+            Id = id,
+            Title = request.Title,
+            Content = request.Content,
+            Link = request.Link,
+            ExpiredAt = request.ExpiredAt,
+            NotificationType = request.NotificationType,
+            NotificationPriorityType = request.NotificationPriorityType
+        };
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    [Authorize]
+    public async Task<IActionResult> DeleteNotification(Guid id)
+    {
+        var command = new DeleteNotificationCommand { Id = id };
+        await _mediator.Send(command);
+        return NoContent();
     }
 }

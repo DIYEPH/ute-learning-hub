@@ -31,8 +31,13 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
             .Include(c => c.ConversationJoinRequests)
             .Include(c => c.ConversationTags)
                 .ThenInclude(ct => ct.Tag)
-            .AsNoTracking()
-            .Where(c => !c.IsDeleted);
+            .AsNoTracking();
+
+        // Filter by IsDeleted status (default: only active items)
+        if (request.IsDeleted.HasValue)
+            query = query.Where(c => c.IsDeleted == request.IsDeleted.Value);
+        else
+            query = query.Where(c => !c.IsDeleted);
 
         // Filters
         if (request.SubjectId.HasValue)

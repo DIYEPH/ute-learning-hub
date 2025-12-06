@@ -55,9 +55,13 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
         DbSet.Update(entity);
         return Task.CompletedTask;
     }
-    public Task DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
+    public Task DeleteAsync(TEntity entity, Guid? deletedById = null, CancellationToken cancellationToken = default)
     {
-        DbSet.Remove(entity);
+        entity.IsDeleted = true;
+        entity.DeletedAt = _dateTimeProvider.OffsetNow;
+        entity.DeletedById = deletedById;
+        entity.UpdatedAt = _dateTimeProvider.OffsetNow;
+        DbSet.Update(entity);
         return Task.CompletedTask;
     }
     public async Task AddOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default)

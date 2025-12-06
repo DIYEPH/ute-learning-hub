@@ -1,4 +1,5 @@
 using MediatR;
+using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -16,6 +17,7 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IIdentityService _identityService;
     private readonly IConversationSystemMessageService _systemMessageService;
+    private readonly IMessageQueueProducer _messageQueueProducer;
 
     public PinMessageCommandHandler(
         IMessageRepository messageRepository,
@@ -23,7 +25,8 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider,
         IIdentityService identityService,
-        IConversationSystemMessageService systemMessageService)
+        IConversationSystemMessageService systemMessageService,
+        IMessageQueueProducer messageQueueProducer)
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
@@ -31,6 +34,7 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
         _dateTimeProvider = dateTimeProvider;
         _identityService = identityService;
         _systemMessageService = systemMessageService;
+        _messageQueueProducer = messageQueueProducer;
     }
 
     public async Task<Unit> Handle(PinMessageCommand request, CancellationToken cancellationToken)
@@ -66,7 +70,7 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
             m.UserId == userId && !m.IsDeleted);
 
         if (member == null)
-            throw new ForbidenException("You are not a member of this conversation");
+            throw new ForbiddenException("You are not a member of this conversation");
 
         var isOwnerOrDeputy = member.ConversationMemberRoleType == ConversationMemberRoleType.Owner ||
                               member.ConversationMemberRoleType == ConversationMemberRoleType.Deputy;
@@ -88,6 +92,60 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
             request.IsPined ? MessageType.MessagePinned : MessageType.MessageUnpinned,
             message.Id,
             cancellationToken);
+
+        // Reload message with details để tạo MessageDto
+        var updatedMessage = await _messageRepository.GetByIdWithDetailsAsync(
+            message.Id,
+            disableTracking: true,
+            cancellationToken);
+
+        if (updatedMessage != null)
+        {
+            // Get sender information
+            var sender = await _identityService.FindByIdAsync(updatedMessage.CreatedById);
+            var messageDto = new MessageDto
+            {
+                Id = updatedMessage.Id,
+                ConversationId = updatedMessage.ConversationId,
+                ParentId = updatedMessage.ParentId,
+                Content = updatedMessage.Content,
+                IsEdit = updatedMessage.IsEdit,
+                IsPined = updatedMessage.IsPined,
+                Type = updatedMessage.Type,
+                CreatedById = updatedMessage.CreatedById,
+                SenderName = sender?.FullName ?? string.Empty,
+                SenderAvatarUrl = sender?.AvatarUrl,
+                Files = updatedMessage.MessageFiles.Select(mf => new MessageFileDto
+                {
+                    FileId = mf.File.Id,
+                    FileSize = mf.File.FileSize,
+                    MimeType = mf.File.MimeType
+                }).ToList(),
+                CreatedAt = updatedMessage.CreatedAt,
+                UpdatedAt = updatedMessage.UpdatedAt
+            };
+
+            // Publish message pinned/unpinned event (async, không block response)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    if (request.IsPined)
+                    {
+                        await _messageQueueProducer.PublishMessagePinnedAsync(messageDto, cancellationToken);
+                    }
+                    else
+                    {
+                        await _messageQueueProducer.PublishMessageUnpinnedAsync(messageDto, cancellationToken);
+                    }
+                }
+                catch
+                {
+                    // Log error nhưng không throw để không ảnh hưởng đến response
+                    // Logger có thể được inject nếu cần
+                }
+            }, cancellationToken);
+        }
 
         return Unit.Value;
     }

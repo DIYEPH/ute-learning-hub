@@ -1,6 +1,7 @@
 using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Message;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
@@ -14,19 +15,22 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
     private readonly IIdentityService _identityService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IMessageQueueProducer _messageQueueProducer;
 
     public UpdateMessageCommandHandler(
         IMessageRepository messageRepository,
         IConversationRepository conversationRepository,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IMessageQueueProducer messageQueueProducer)
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
         _identityService = identityService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _messageQueueProducer = messageQueueProducer;
     }
 
     public async Task<MessageDto> Handle(UpdateMessageCommand request, CancellationToken cancellationToken)
@@ -87,7 +91,7 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
         if (sender == null)
             throw new UnauthorizedException();
 
-        return new MessageDto
+        var messageDto = new MessageDto
         {
             Id = updatedMessage.Id,
             ConversationId = updatedMessage.ConversationId,
@@ -102,13 +106,27 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
             Files = updatedMessage.MessageFiles.Select(mf => new MessageFileDto
             {
                 FileId = mf.File.Id,
-                FileName = mf.File.FileName,
-                FileUrl = mf.File.FileUrl,
                 FileSize = mf.File.FileSize,
                 MimeType = mf.File.MimeType
             }).ToList(),
             CreatedAt = updatedMessage.CreatedAt,
             UpdatedAt = updatedMessage.UpdatedAt
         };
+
+        // Publish message updated event (async, không block response)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _messageQueueProducer.PublishMessageUpdatedAsync(messageDto, cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                // Log error nhưng không throw để không ảnh hưởng đến response
+                // Logger có thể được inject nếu cần
+            }
+        }, cancellationToken);
+
+        return messageDto;
     }
 }

@@ -61,7 +61,7 @@ public class MarkMessageAsReadCommandHandler : IRequestHandler<MarkMessageAsRead
             m.UserId == userId && !m.IsDeleted);
 
         if (member == null)
-            throw new ForbidenException("You are not a member of this conversation");
+            throw new ForbiddenException("You are not a member of this conversation");
 
         // Update LastReadMessageId (only if the new message is newer than current)
         // This ensures we don't go backwards in read status

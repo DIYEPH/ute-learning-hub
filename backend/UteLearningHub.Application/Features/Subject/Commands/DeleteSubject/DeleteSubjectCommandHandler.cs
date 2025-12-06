@@ -45,7 +45,7 @@ public class DeleteSubjectCommandHandler : IRequestHandler<DeleteSubjectCommand,
             throw new BadRequestException($"Cannot delete subject. It is being used by {documentCount} document(s)");
 
         // Hard delete
-        await _subjectRepository.DeleteAsync(subject, cancellationToken);
+        await _subjectRepository.DeleteAsync(subject, userId, cancellationToken);
         await _subjectRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;

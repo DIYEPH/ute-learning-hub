@@ -6,6 +6,7 @@ using UteLearningHub.Application.Features.User.Commands.UpdateUser;
 using UteLearningHub.Application.Features.User.Queries.GetUsers;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
+using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
@@ -21,17 +22,20 @@ public class UserService : IUserService
     private readonly IIdentityService _identityService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly UserManager<AppUser> _userManager;
+    private readonly IVectorMaintenanceService? _vectorMaintenanceService;
 
     public UserService(
         ApplicationDbContext dbContext, 
         IIdentityService identityService,
         IDateTimeProvider dateTimeProvider,
-        UserManager<AppUser> userManager)
+        UserManager<AppUser> userManager,
+        IVectorMaintenanceService? vectorMaintenanceService = null)
     {
         _dbContext = dbContext;
         _identityService = identityService;
         _dateTimeProvider = dateTimeProvider;
         _userManager = userManager;
+        _vectorMaintenanceService = vectorMaintenanceService;
     }
 
     public async Task<ProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -110,7 +114,6 @@ public class UserService : IUserService
         if (appUser == null)
             throw new NotFoundException("User not found");
 
-        // Update properties if provided
         if (!string.IsNullOrWhiteSpace(request.FullName))
             appUser.FullName = request.FullName;
 
@@ -135,7 +138,7 @@ public class UserService : IUserService
             appUser.Gender = request.Gender.Value;
 
         appUser.UpdatedAt = _dateTimeProvider.OffsetNow;
-
+        
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // Return updated profile

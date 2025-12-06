@@ -11,6 +11,7 @@ using UteLearningHub.Application.Features.Conversation.Commands.UpdateMemberRole
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversationById;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversations;
 using UteLearningHub.Application.Features.Conversation.Queries.GetOnlineMembers;
+using UteLearningHub.Application.Features.Conversation.Queries.GetConversationRecommendations;
 
 namespace UteLearningHub.Api.Controllers;
 
@@ -102,5 +103,20 @@ public class ConversationController : ControllerBase
         command = command with { ConversationId = id, MemberId = memberId };
         await _mediator.Send(command);
         return NoContent();
+    }
+
+    [HttpGet("recommendations")]
+    [Authorize]
+    public async Task<ActionResult<GetConversationRecommendationsResponse>> GetRecommendations(
+        [FromQuery] int? topK,
+        [FromQuery] float? minSimilarity)
+    {
+        var query = new GetConversationRecommendationsQuery
+        {
+            TopK = topK,
+            MinSimilarity = minSimilarity
+        };
+        var result = await _mediator.Send(query);
+        return Ok(result);
     }
 }

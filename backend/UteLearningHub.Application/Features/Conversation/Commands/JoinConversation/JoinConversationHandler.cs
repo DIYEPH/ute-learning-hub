@@ -2,6 +2,7 @@ using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
+using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
@@ -17,19 +18,22 @@ public class JoinConversationHandler : IRequestHandler<JoinConversationCommand, 
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IConversationSystemMessageService _systemMessageService;
+    private readonly IVectorMaintenanceService _vectorMaintenanceService;
 
     public JoinConversationHandler(
         IConversationRepository conversationRepository,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider,
-        IConversationSystemMessageService systemMessageService)
+        IConversationSystemMessageService systemMessageService,
+        IVectorMaintenanceService vectorMaintenanceService)
     {
         _conversationRepository = conversationRepository;
         _identityService = identityService;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
         _systemMessageService = systemMessageService;
+        _vectorMaintenanceService = vectorMaintenanceService;
     }
 
     public async Task<ConversationDetailDto> Handle(JoinConversationCommand request, CancellationToken cancellationToken)
@@ -87,6 +91,20 @@ public class JoinConversationHandler : IRequestHandler<JoinConversationCommand, 
             MessageType.MemberJoined,
             null,
             cancellationToken);
+
+        // Cập nhật user vector (async, không block response)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _vectorMaintenanceService.UpdateUserVectorAsync(userId, cancellationToken);
+            }
+            catch
+            {
+                // Log error nhưng không throw - vector sẽ được update bởi background job
+            }
+        }, cancellationToken);
+
         var updatedConversation = await _conversationRepository.GetByIdWithDetailsAsync(
             conversation.Id,
             disableTracking: true,

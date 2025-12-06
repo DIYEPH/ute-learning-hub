@@ -23,6 +23,12 @@ public class GetTagsHandler : IRequestHandler<GetTagsQuery, PagedResponse<TagDto
         var query = _tagRepository.GetQueryableSet()
             .AsNoTracking();
 
+        // Filter by IsDeleted status (default: only active items)
+        if (request.IsDeleted.HasValue)
+            query = query.Where(t => t.IsDeleted == request.IsDeleted.Value);
+        else
+            query = query.Where(t => !t.IsDeleted);
+
         // Search by name
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {

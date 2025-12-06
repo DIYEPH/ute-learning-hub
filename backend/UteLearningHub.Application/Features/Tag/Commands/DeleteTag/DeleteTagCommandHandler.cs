@@ -52,7 +52,7 @@ public class DeleteTagCommandHandler : IRequestHandler<DeleteTagCommand, Unit>
             throw new BadRequestException($"Cannot delete tag. It is being used by {documentCount} document(s)");
 
         // Soft delete
-        await _tagRepository.DeleteAsync(tag, cancellationToken);
+        await _tagRepository.DeleteAsync(tag, userId, cancellationToken);
         await _tagRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;

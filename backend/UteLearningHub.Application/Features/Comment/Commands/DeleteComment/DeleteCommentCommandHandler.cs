@@ -52,11 +52,7 @@ public class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentCommand,
             throw new UnauthorizedException("You don't have permission to delete this comment");
 
         // Soft delete
-        comment.IsDeleted = true;
-        comment.DeletedAt = _dateTimeProvider.OffsetNow;
-        comment.DeletedById = userId;
-
-        await _commentRepository.UpdateAsync(comment, cancellationToken);
+        await _commentRepository.DeleteAsync(comment, userId, cancellationToken);
         await _commentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;

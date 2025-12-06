@@ -45,7 +45,7 @@ public class DeleteFacultyCommandHandler : IRequestHandler<DeleteFacultyCommand,
             throw new BadRequestException($"Cannot delete faculty. It is being used by {majorCount} major(s)");
 
         // Hard delete
-        await _facultyRepository.DeleteAsync(faculty, cancellationToken);
+        await _facultyRepository.DeleteAsync(faculty, userId, cancellationToken);
         await _facultyRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;

@@ -6,6 +6,7 @@ public class KafkaOptions
 
     public string BootstrapServers { get; set; } = string.Empty;
     public string MessageTopic { get; set; } = "ute-learninghub-messages";
+    public string RecommendationTopic { get; set; } = "ute-learninghub-user-interactions";
     public string ConsumerGroupId { get; set; } = "ute-learninghub-chat-consumers";
 }
 

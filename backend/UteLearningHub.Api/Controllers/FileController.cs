@@ -1,11 +1,14 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
+using UteLearningHub.Application.Features.File.Queries.GetFile;
 using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
+using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Api.Controllers;
@@ -16,7 +19,7 @@ namespace UteLearningHub.Api.Controllers;
 public class FileController : ControllerBase
 {
     private static readonly string[] ImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
-    private static readonly string[] DocumentExtensions = [".pdf", ".doc", ".docx"];
+    private static readonly string[] DocumentExtensions = [".pdf"];
     private const long MaxFileSizeBytes = 100 * 1024 * 1024;
 
     private readonly IFileStorageService _fileStorageService;
@@ -24,19 +27,22 @@ public class FileController : ControllerBase
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IUserService _userService;
+    private readonly IMediator _mediator;
 
     public FileController(
         IFileStorageService fileStorageService,
         IFileRepository fileRepository,
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider,
-        IUserService userService)
+        IUserService userService,
+        IMediator mediator)
     {
         _fileStorageService = fileStorageService;
         _fileRepository = fileRepository;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
         _userService = userService;
+        _mediator = mediator;
     }
 
     [HttpPost]
@@ -70,7 +76,7 @@ public class FileController : ControllerBase
         {
             var message = isImageOnlyCategory
                 ? "Invalid file type. Only image files are allowed."
-                : "Invalid file type. Allowed types: jpg, jpeg, png, gif, webp, pdf, doc, docx.";
+                : "Invalid file type. Allowed types: jpg, jpeg, png, gif, webp, pdf.";
             return BadRequest(message);
         }
 
@@ -86,9 +92,6 @@ public class FileController : ControllerBase
             file.ContentType,
             cancellationToken);
 
-        var isAvatarUserUpload = !string.IsNullOrWhiteSpace(normalizedCategory) &&
-                                 normalizedCategory.Equals("AvatarUser", StringComparison.OrdinalIgnoreCase);
-
         var entity = new UteLearningHub.Domain.Entities.File
         {
             Id = Guid.NewGuid(),
@@ -96,7 +99,6 @@ public class FileController : ControllerBase
             FileUrl = url,
             FileSize = file.Length,
             MimeType = file.ContentType,
-            IsTemporary = !isAvatarUserUpload,
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
@@ -104,31 +106,42 @@ public class FileController : ControllerBase
         await _fileRepository.AddAsync(entity, cancellationToken);
         await _fileRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Nếu upload avatar user, tự động cập nhật AvatarUrl cho user hiện tại
-        if (isAvatarUserUpload && _currentUserService.UserId.HasValue)
-        {
-            var updateRequest = new UpdateProfileRequest
-            {
-                AvatarUrl = entity.FileUrl
-            };
-
-            await _userService.UpdateProfileAsync(
-                _currentUserService.UserId.Value,
-                updateRequest,
-                cancellationToken);
-        }
-
         var dto = new FileDto
         {
             Id = entity.Id,
-            FileName = entity.FileName,
-            FileUrl = entity.FileUrl,
             FileSize = entity.FileSize,
-            MimeType = entity.MimeType,
-            IsTemporary = entity.IsTemporary
+            MimeType = entity.MimeType
         };
 
         return Ok(dto);
+    }
+
+    [HttpGet("{id}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetFile(Guid id, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var query = new GetFileQuery { FileId = id };
+            var response = await _mediator.Send(query, cancellationToken);
+
+            // Set Content-Disposition to inline to display in browser
+            Response.Headers.Append("Content-Disposition", "inline");
+            
+            return File(response.FileStream, response.MimeType);
+        }
+        catch (NotFoundException)
+        {
+            return NotFound("File not found");
+        }
+        catch (ForbiddenException ex)
+        {
+            return StatusCode(403, ex.Message);
+        }
+        catch (UnauthorizedException ex)
+        {
+            return Unauthorized(ex.Message);
+        }
     }
 }
 

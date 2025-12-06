@@ -20,6 +20,12 @@ public class GetMajorsHandler : IRequestHandler<GetMajorsQuery, PagedResponse<Ma
             .Include(m => m.Faculty)
             .AsNoTracking();
 
+        // Filter by IsDeleted status (default: only active items)
+        if (request.IsDeleted.HasValue)
+            query = query.Where(m => m.IsDeleted == request.IsDeleted.Value);
+        else
+            query = query.Where(m => !m.IsDeleted);
+
         // Filter by FacultyId
         if (request.FacultyId.HasValue)
         {

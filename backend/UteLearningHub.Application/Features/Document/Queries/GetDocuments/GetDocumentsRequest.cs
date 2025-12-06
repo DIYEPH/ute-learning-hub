@@ -16,4 +16,5 @@ public record GetDocumentsRequest : PagedRequest
     public bool? IsDownload { get; init; }
     public string? SortBy { get; init; } // "name", "createdAt", "authorName"
     public bool SortDescending { get; init; } = true;
+    public bool? IsDeleted { get; init; }
 }

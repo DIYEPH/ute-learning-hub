@@ -4,6 +4,7 @@ using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
+using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
@@ -23,6 +24,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IConversationSystemMessageService _systemMessageService;
+    private readonly IVectorMaintenanceService _vectorMaintenanceService;
 
     public CreateConversationHandler(
         IConversationRepository conversationRepository,
@@ -31,7 +33,8 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
         IIdentityService identityService,
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider,
-        IConversationSystemMessageService systemMessageService)
+        IConversationSystemMessageService systemMessageService,
+        IVectorMaintenanceService vectorMaintenanceService)
     {
         _conversationRepository = conversationRepository;
         _tagRepository = tagRepository;
@@ -40,6 +43,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
         _systemMessageService = systemMessageService;
+        _vectorMaintenanceService = vectorMaintenanceService;
     }
 
     public async Task<ConversationDetailDto> Handle(CreateConversationCommand request, CancellationToken cancellationToken)
@@ -180,12 +184,20 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
         if (createdConversation == null)
             throw new NotFoundException("Failed to create conversation");
 
-        if (!string.IsNullOrWhiteSpace(request.AvatarUrl))
+
+
+        // Cập nhật conversation vector (async, không block response)
+        _ = Task.Run(async () =>
         {
-            var avatarFile = await _fileUsageService.TryGetByUrlAsync(request.AvatarUrl, cancellationToken);
-            if (avatarFile != null)
-                await _fileUsageService.MarkFilesAsPermanentAsync(new[] { avatarFile.Id }, cancellationToken);
-        }
+            try
+            {
+                await _vectorMaintenanceService.UpdateConversationVectorAsync(conversation.Id, cancellationToken);
+            }
+            catch (Exception)
+            {
+                // Log error nhưng không throw
+            }
+        }, cancellationToken);
 
         var memberUserIds = createdConversation.Members
             .Where(m => !m.IsDeleted)

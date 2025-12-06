@@ -2,12 +2,15 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.File;
+using UteLearningHub.Application.Services.FileStorage;
+using UteLearningHub.Application.Services.Document;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Application.Services.Recommendation;
 using DomainFile = UteLearningHub.Domain.Entities.File;
 
 namespace UteLearningHub.Application.Features.Document.Commands.AddDocumentFile;
@@ -16,22 +19,34 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
 {
     private readonly IDocumentRepository _documentRepository;
     private readonly IFileUsageService _fileUsageService;
+    private readonly IFileRepository _fileRepository;
+    private readonly IFileStorageService _fileStorageService;
+    private readonly IDocumentPageCountService _documentPageCountService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly IDocumentReviewRepository _documentReviewRepository;
+    private readonly IVectorMaintenanceService _vectorUpdateService;
 
     public AddDocumentFileCommandHandler(
         IDocumentRepository documentRepository,
         IFileUsageService fileUsageService,
+        IFileRepository fileRepository,
+        IFileStorageService fileStorageService,
+        IDocumentPageCountService documentPageCountService,
         ICurrentUserService currentUserService,
         IUserService userService,
-        IDocumentReviewRepository documentReviewRepository)
+        IDocumentReviewRepository documentReviewRepository,
+        IVectorMaintenanceService vectorUpdateService)
     {
         _documentRepository = documentRepository;
         _fileUsageService = fileUsageService;
+        _fileRepository = fileRepository;
+        _fileStorageService = fileStorageService;
+        _documentPageCountService = documentPageCountService;
         _currentUserService = currentUserService;
         _userService = userService;
         _documentReviewRepository = documentReviewRepository;
+        _vectorUpdateService = vectorUpdateService;
     }
 
     public async Task<DocumentDetailDto> Handle(AddDocumentFileCommand request, CancellationToken cancellationToken)
@@ -41,7 +56,6 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Load document với NoTracking để chỉ đọc thông tin, không track
         var document = await _documentRepository.GetByIdWithDetailsAsync(request.DocumentId, disableTracking: true, cancellationToken);
 
         if (document == null || document.IsDeleted)
@@ -61,12 +75,8 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
         if (request.FileId == Guid.Empty)
             throw new BadRequestException("FileId is required");
 
-        // CHỈ LƯU ID, KHÔNG LƯU ENTITY
-        var fileIdsToPromote = new List<Guid>();
-
         // 1. Validate file chính tồn tại
         await _fileUsageService.EnsureFileAsync(request.FileId, cancellationToken);
-        fileIdsToPromote.Add(request.FileId);
 
         Guid? coverFileId = null;
         if (request.CoverFileId.HasValue)
@@ -76,7 +86,6 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
 
             await _fileUsageService.EnsureFileAsync(request.CoverFileId.Value, cancellationToken);
             coverFileId = request.CoverFileId.Value;
-            fileIdsToPromote.Add(coverFileId.Value);
         }
 
         // 2. Tính Order từ document đã load (NoTracking)
@@ -84,14 +93,42 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
             ? document.DocumentFiles.Max(df => df.Order) + 1
             : 1;
 
-        // 3. Tạo DocumentFile mới và add trực tiếp vào DbContext
+        // 3. Tự động detect TotalPages nếu chưa có
+        int? totalPages = request.TotalPages;
+        
+        if (!totalPages.HasValue)
+        {
+            // Lấy file entity để biết MimeType và FileUrl
+            var file = await _fileRepository.GetByIdAsync(request.FileId, disableTracking: true, cancellationToken);
+            if (file != null)
+            {
+                try
+                {
+                    var fileStream = await _fileStorageService.GetFileAsync(file.FileUrl, cancellationToken);
+                    if (fileStream != null)
+                    {
+                        totalPages = await _documentPageCountService.GetPageCountAsync(
+                            fileStream, 
+                            file.MimeType ?? "", 
+                            cancellationToken);
+                    }
+                }
+                catch
+                {
+                    // Nếu không đọc được, để null
+                    totalPages = null;
+                }
+            }
+        }
+
+        // 4. Tạo DocumentFile mới và add qua repository
         var chapter = new DocumentFile
         {
             Id = Guid.NewGuid(),
             DocumentId = document.Id,
             FileId = request.FileId,
             Title = request.Title,
-            TotalPages = request.TotalPages,
+            TotalPages = totalPages,
             IsPrimary = request.IsPrimary,
             Order = request.Order ?? nextOrder,
             CreatedById = userId,
@@ -99,21 +136,11 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
             CoverFileId = coverFileId
         };
 
-        // Add trực tiếp vào DbSet, không qua collection của document để tránh EF Core cố update Document
-        var dbContext = _documentRepository.UnitOfWork as DbContext;
-        if (dbContext == null)
-            throw new InvalidOperationException("UnitOfWork is not DbContext");
-
-        await dbContext.Set<DocumentFile>().AddAsync(chapter, cancellationToken);
+        // Add qua repository method
+        await _documentRepository.AddDocumentFileAsync(chapter, cancellationToken);
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // 3. Đánh dấu file là permanent giống CreateDocument
-        if (fileIdsToPromote.Any())
-        {
-            await _fileUsageService.MarkFilesAsPermanentAsync(fileIdsToPromote, cancellationToken);
-        }
-
-        // 4. Reload và map DTO (giữ nguyên phần dưới)
+        // 6. Reload và map DTO (giữ nguyên phần dưới)
         var updated = await _documentRepository.GetByIdWithDetailsAsync(
             request.DocumentId, disableTracking: true, cancellationToken);
 
@@ -122,7 +149,7 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
 
         var commentCount = await _documentRepository.GetQueryableSet()
             .Where(d => d.Id == request.DocumentId)
-            .Select(d => d.DocumentFiles.SelectMany(df => df.Comments).Count())
+            .Select(d => d.DocumentFiles.Where(df => !df.IsDeleted).SelectMany(df => df.Comments).Count())
             .FirstOrDefaultAsync(cancellationToken);
 
         // Thống kê review tổng cho document
@@ -160,7 +187,7 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
         // Thống kê comment theo từng DocumentFile
         var perFileCommentStats = await _documentRepository.GetQueryableSet()
             .Where(d => d.Id == request.DocumentId)
-            .SelectMany(d => d.DocumentFiles)
+            .SelectMany(d => d.DocumentFiles.Where(df => !df.IsDeleted))
             .Select(df => new
             {
                 DocumentFileId = df.Id,
@@ -172,6 +199,9 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
             x => x.DocumentFileId,
             x => x.CommentCount
         );
+
+        // Update user vector after adding document file (for behavior-based recommendations)
+        await _vectorUpdateService.UpdateUserVectorAsync(userId, cancellationToken);
 
         return new DocumentDetailDto
         {
@@ -219,6 +249,7 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
                 .Distinct()
                 .ToList(),
             Files = updated.DocumentFiles
+                .Where(df => !df.IsDeleted)
                 .OrderBy(df => df.Order)
                 .ThenBy(df => df.CreatedAt)
                 .Select(df =>
@@ -232,15 +263,14 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
                     return new DocumentFileDto
                     {
                         Id = df.Id,
-                        FileName = df.File.FileName,
-                        FileUrl = df.File.FileUrl,
+                        FileId = df.FileId,
                         FileSize = df.File.FileSize,
                         MimeType = df.File.MimeType,
                         Title = df.Title,
                         Order = df.Order,
                         IsPrimary = df.IsPrimary,
                         TotalPages = df.TotalPages,
-                        CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null,
+                        CoverFileId = df.CoverFileId,
                         CommentCount = commentCountForFile,
                         UsefulCount = usefulForFile,
                         NotUsefulCount = notUsefulForFile
@@ -257,5 +287,3 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
         };
     }
 }
-
-

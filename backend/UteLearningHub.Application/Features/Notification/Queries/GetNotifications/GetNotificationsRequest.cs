@@ -8,4 +8,5 @@ public record GetNotificationsRequest : PagedRequest
     public bool? IsRead { get; init; }
     public NotificationType? NotificationType { get; init; }
     public NotificationPriorityType? NotificationPriorityType { get; init; }
+    public bool? IsDeleted { get; init; }
 }

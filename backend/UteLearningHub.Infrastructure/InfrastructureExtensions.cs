@@ -9,6 +9,10 @@ using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
 using UteLearningHub.Application.Services.User;
+using UteLearningHub.Application.Services.Recommendation;
+using UteLearningHub.Application.Services.Cache;
+using UteLearningHub.Application.Services.TrustScore;
+using UteLearningHub.Application.Services.Document;
 using UteLearningHub.Infrastructure.ConfigurationOptions;
 using UteLearningHub.Infrastructure.Services.Authentication;
 using UteLearningHub.Infrastructure.Services.Comment;
@@ -17,8 +21,16 @@ using UteLearningHub.Infrastructure.Services.Message;
 using UteLearningHub.Infrastructure.Services.User;
 using UteLearningHub.Infrastructure.Services.File;
 using UteLearningHub.Infrastructure.Services.FileStorage;
-using Amazon.S3;
+using UteLearningHub.Infrastructure.Services.Recommendation;
+using UteLearningHub.Infrastructure.Services.Cache;
+using UteLearningHub.Infrastructure.Services.TrustScore;
+using UteLearningHub.Infrastructure.Services.Document;
+using UteLearningHub.Application.Services.Email;
+using UteLearningHub.Infrastructure.Services.Email;
+using StackExchange.Redis;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
+using Amazon.S3;
 
 namespace UteLearningHub.Infrastructure;
 
@@ -47,20 +59,15 @@ public static class InfrastructureExtensions
                 ClockSkew = TimeSpan.Zero
             };
 
-            // Đọc token từ cookie nếu không có trong Authorization header
-            // Middleware sẽ xử lý việc này, nhưng đây là fallback
+            // Đọc token từ query string nếu không có trong Authorization header
+            // Query string được dùng cho iframe/img tags (không thể gửi header)
             options.Events = new JwtBearerEvents
             {
                 OnMessageReceived = context =>
                 {
-                    // Chỉ đọc từ cookie nếu chưa có token trong header
                     if (string.IsNullOrEmpty(context.Token))
                     {
-                        var token = context.Request.Cookies["access_token"] 
-                                 ?? context.Request.Cookies["jwt_token"] 
-                                 ?? context.Request.Cookies["token"]
-                                 ?? context.Request.Cookies["auth_token"];
-                        context.Token = token;
+                        context.Token = context.Request.Query["access_token"].FirstOrDefault();
                     }
                     return Task.CompletedTask;
                 }
@@ -71,6 +78,7 @@ public static class InfrastructureExtensions
         services.AddScoped<IMicrosoftTokenValidator, MicrosoftTokenValidator>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IIdentityService, IdentityService>();
+        services.AddScoped<IPasswordResetLinkBuilder, PasswordResetLinkBuilder>();
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICommentService, CommentService>();
@@ -83,6 +91,51 @@ public static class InfrastructureExtensions
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IFileUsageService, FileUsageService>();
+
+        // Recommendation services
+        services.AddScoped<IVectorCalculationService, VectorCalculationService>();
+        services.AddScoped<IUserDataRepository, UserDataRepository>();
+        services.AddScoped<IVectorMaintenanceService, VectorMaintenanceService>();
+        services.AddHttpClient<IRecommendationService, RecommendationService>();
+
+        // Trust Score service
+        services.AddScoped<ITrustScoreService, TrustScoreService>();
+
+        // Document services
+        services.AddScoped<IPdfPageCountService, PdfPageCountService>();
+        services.AddScoped<DocxPageCountService>();
+        services.AddScoped<IDocumentPageCountService, DocumentPageCountService>();
+
+        // Email service
+        services.AddScoped<IEmailService, EmailService>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddCacheService(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var redisOptions = configuration.GetSection(RedisOptions.SectionName).Get<RedisOptions>();
+        var useRedis = redisOptions != null && !string.IsNullOrEmpty(redisOptions.ConnectionString);
+
+        if (useRedis)
+        {
+            // Register Redis
+            services.AddSingleton<IConnectionMultiplexer>(sp =>
+            {
+                var options = sp.GetRequiredService<IOptions<RedisOptions>>().Value;
+                return ConnectionMultiplexer.Connect(options.ConnectionString);
+            });
+
+            services.AddScoped<ICacheService, RedisCacheService>();
+        }
+        else
+        {
+            // Fallback to MemoryCache
+            services.AddMemoryCache();
+            services.AddScoped<ICacheService, MemoryCacheService>();
+        }
 
         return services;
     }

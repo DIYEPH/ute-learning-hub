@@ -125,7 +125,6 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
             }
         }
 
-        var filesToPromote = new List<DomainFile>();
         DomainFile? fileToDelete = null;
 
         if (request.CoverFileId.HasValue && request.CoverFileId.Value == Guid.Empty)
@@ -143,7 +142,6 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
                 }
 
                 document.CoverFileId = newCoverFile.Id;
-                filesToPromote.Add(newCoverFile);
             }
         }
         else if (document.CoverFileId.HasValue)
@@ -158,12 +156,6 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         await _documentRepository.UpdateAsync(document, cancellationToken);
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        if (filesToPromote.Any())
-        {
-            var fileIds = filesToPromote.Select(f => f.Id).ToList();
-            await _fileUsageService.MarkFilesAsPermanentAsync(fileIds, cancellationToken);
-        }
-
         if (fileToDelete != null)
             await _fileUsageService.DeleteFileAsync(fileToDelete, cancellationToken);
 
@@ -174,7 +166,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
 
         var commentCount = await _documentRepository.GetQueryableSet()
             .Where(d => d.Id == request.Id)
-            .Select(d => d.DocumentFiles.SelectMany(df => df.Comments).Count())
+            .Select(d => d.DocumentFiles.Where(df => !df.IsDeleted).SelectMany(df => df.Comments).Count())
             .FirstOrDefaultAsync(cancellationToken);
 
         // Thống kê review tổng cho document
@@ -212,7 +204,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         // Thống kê comment theo từng DocumentFile
         var perFileCommentStats = await _documentRepository.GetQueryableSet()
             .Where(d => d.Id == request.Id)
-            .SelectMany(d => d.DocumentFiles)
+            .SelectMany(d => d.DocumentFiles.Where(df => !df.IsDeleted))
             .Select(df => new
             {
                 DocumentFileId = df.Id,
@@ -258,6 +250,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
                 .Distinct()
                 .ToList(),
             Files = document.DocumentFiles
+                .Where(df => !df.IsDeleted)
                 .OrderBy(df => df.Order)
                 .ThenBy(df => df.CreatedAt)
                 .Select(df =>
@@ -271,15 +264,14 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
                     return new DocumentFileDto
                     {
                         Id = df.Id,
-                        FileName = df.File.FileName,
-                        FileUrl = df.File.FileUrl,
+                        FileId = df.FileId,
                         FileSize = df.File.FileSize,
                         MimeType = df.File.MimeType,
                         Title = df.Title,
                         Order = df.Order,
                         IsPrimary = df.IsPrimary,
                         TotalPages = df.TotalPages,
-                        CoverUrl = df.CoverFile != null ? df.CoverFile.FileUrl : null,
+                        CoverFileId = df.CoverFileId,
                         CommentCount = commentCountForFile,
                         UsefulCount = usefulForFile,
                         NotUsefulCount = notUsefulForFile

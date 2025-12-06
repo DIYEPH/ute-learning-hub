@@ -10,6 +10,10 @@ using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
 using UteLearningHub.Application.Features.Document.Commands.ReviewDocument;
 using UteLearningHub.Application.Features.Document.Queries.GetMyDocuments;
 using UteLearningHub.Application.Features.Document.Commands.AddDocumentFile;
+using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentProgress;
+using UteLearningHub.Application.Features.Document.Queries.GetDocumentProgress;
+using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentFile;
+using UteLearningHub.Application.Features.Document.Commands.DeleteDocumentFile;
 
 namespace UteLearningHub.Api.Controllers
 {
@@ -71,6 +75,29 @@ namespace UteLearningHub.Api.Controllers
             return Ok(result);
         }
 
+        [HttpPut("{documentId}/files/{fileId}")]
+        [Authorize]
+        public async Task<ActionResult<DocumentDetailDto>> UpdateDocumentFile(Guid documentId, Guid fileId, [FromBody] UpdateDocumentFileCommand command)
+        {
+            command = command with { DocumentId = documentId, DocumentFileId = fileId };
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpDelete("{documentId}/files/{fileId}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteDocumentFile(Guid documentId, Guid fileId)
+        {
+            var command = new DeleteDocumentFileCommand
+            {
+                DocumentId = documentId,
+                DocumentFileId = fileId
+            };
+
+            await _mediator.Send(command);
+            return NoContent();
+        }
+
         [Authorize]
         [HttpDelete("{id}")]
         public async Task<ActionResult<Unit>> DeleteSoftDocumentById(Guid id)
@@ -85,6 +112,24 @@ namespace UteLearningHub.Api.Controllers
         public async Task<IActionResult> ReviewDocument(Guid id, [FromBody] ReviewDocumentCommand command)
         {
             command = command with { DocumentId = id };
+            await _mediator.Send(command);
+            return NoContent();
+        }
+
+        [HttpGet("files/{fileId}/progress")]
+        [Authorize]
+        public async Task<ActionResult<DocumentProgressDto>> GetDocumentProgress(Guid fileId)
+        {
+            var query = new GetDocumentProgressQuery { DocumentFileId = fileId };
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpPut("files/{fileId}/progress")]
+        [Authorize]
+        public async Task<IActionResult> UpdateDocumentProgress(Guid fileId, [FromBody] UpdateDocumentProgressCommand command)
+        {
+            command = command with { DocumentFileId = fileId };
             await _mediator.Send(command);
             return NoContent();
         }

@@ -29,11 +29,17 @@ services.Configure<MicrosoftAuthOptions>(configurations.GetSection(MicrosoftAuth
 services.Configure<AmazonS3Options>(configurations.GetSection(AmazonS3Options.SectionName));
 services.Configure<FileStorageOptions>(configurations.GetSection(FileStorageOptions.SectionName));
 services.Configure<KafkaOptions>(configurations.GetSection(KafkaOptions.SectionName));
-services.Configure<TemporaryFileCleanupOptions>(configurations.GetSection(TemporaryFileCleanupOptions.SectionName));
+services.Configure<UteLearningHub.Infrastructure.ConfigurationOptions.RecommendationOptions>(
+    configurations.GetSection(UteLearningHub.Infrastructure.ConfigurationOptions.RecommendationOptions.SectionName));
+services.Configure<UteLearningHub.Infrastructure.ConfigurationOptions.RedisOptions>(
+    configurations.GetSection(UteLearningHub.Infrastructure.ConfigurationOptions.RedisOptions.SectionName));
+services.Configure<UteLearningHub.Infrastructure.ConfigurationOptions.EmailOptions>(
+    configurations.GetSection(UteLearningHub.Infrastructure.ConfigurationOptions.EmailOptions.SectionName));
 
 services.AddApplication()
     .AddPersistence(appSettings.ConnectionStrings.DefaultConnection)
-    .AddInfrastructure(appSettings.Jwt);
+    .AddInfrastructure(appSettings.Jwt)
+    .AddCacheService(configurations);
 
 services.AddDateTimeProvider();
 
@@ -79,7 +85,7 @@ services.AddSignalR();
 
 services.AddSingleton<IMessageHubService, SignalRMessageHubService>();
 services.AddHostedService<KafkaMessageConsumerService>();
-services.AddHostedService<TemporaryFileCleanupService>();
+services.AddHostedService<VectorUpdateService>();
 
 var app = builder.Build();
 

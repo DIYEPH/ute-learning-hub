@@ -2,7 +2,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class UserDocumentProgress : BaseEntity<Guid>
+public class UserDocumentProgress : BaseEntity<Guid>, IAggregateRoot
 {
     public Guid UserId { get; set; }
     public Guid DocumentId { get; set; }

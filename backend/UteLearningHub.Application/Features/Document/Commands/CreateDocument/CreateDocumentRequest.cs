@@ -2,6 +2,12 @@ using UteLearningHub.Domain.Constaints.Enums;
 
 namespace UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 
+public record AuthorInput
+{
+    public string FullName { get; init; } = default!;
+    public string? Description { get; init; }
+}
+
 public record CreateDocumentRequest
 {
     public string DocumentName { get; init; } = default!;
@@ -10,7 +16,8 @@ public record CreateDocumentRequest
     public Guid TypeId { get; init; }
     public IList<Guid>? TagIds { get; init; }
     public IList<string>? TagNames { get; init; } 
-    public IList<string>? AuthorNames { get; init; }
+    public IList<Guid>? AuthorIds { get; init; }  
+    public IList<AuthorInput>? Authors { get; init; }  
     public bool IsDownload { get; init; } = true;
     public VisibilityStatus Visibility { get; init; } = VisibilityStatus.Internal;
     public Guid? CoverFileId { get; init; }

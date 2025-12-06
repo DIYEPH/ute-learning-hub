@@ -6,4 +6,5 @@ public record GetMajorsRequest : PagedRequest
 {
     public Guid? FacultyId { get; init; }
     public string? SearchTerm { get; init; }
+    public bool? IsDeleted { get; init; }
 }
