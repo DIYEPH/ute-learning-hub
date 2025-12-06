@@ -109,7 +109,7 @@ export function DocumentFileUpload({
           </Label>
           <input
             type="file"
-            accept=".doc,.docx,.pdf,image/*"
+            accept=".pdf,image/*"
             onChange={(e) => {
               const file = e.target.files?.[0] || null;
               setSelectedFile(file);

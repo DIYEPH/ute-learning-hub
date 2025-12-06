@@ -3,6 +3,7 @@
 import { Download, Eye, ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import type { DocumentFileDto } from "@/src/api/database/types.gen";
+import { getFileUrlById } from "@/src/lib/file-url";
 
 interface DocumentFileItemProps {
   file: DocumentFileDto;
@@ -11,9 +12,10 @@ interface DocumentFileItemProps {
 }
 
 export function DocumentFileItem({ file, index, canDownload }: DocumentFileItemProps) {
-  const fileUrl = file.fileUrl ?? "";
+  const fileUrl = getFileUrlById(file.fileId);
+  const coverUrl = getFileUrlById(file.coverFileId);
   const fileSize = file.fileSize ? `${(file.fileSize / 1024 / 1024).toFixed(2)} MB` : "";
-  const title = file.title || file.fileName || `Chương ${index + 1}`;
+  const title = file.title || `Chương ${index + 1}`;
   const useful = file.usefulCount ?? 0;
   const notUseful = file.notUsefulCount ?? 0;
   const commentCount = file.commentCount ?? 0;
@@ -23,7 +25,7 @@ export function DocumentFileItem({ file, index, canDownload }: DocumentFileItemP
     const link = window.document.createElement("a");
     link.href = fileUrl;
     link.target = "_blank";
-    link.download = file.fileName || "file";
+    link.download = file.title || "file";
     window.document.body.appendChild(link);
     link.click();
     window.document.body.removeChild(link);
@@ -31,24 +33,20 @@ export function DocumentFileItem({ file, index, canDownload }: DocumentFileItemP
 
   return (
     <div className="flex h-full flex-col rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800 overflow-hidden">
-      {file.coverUrl && (
+      {coverUrl && (
         <img
-          src={file.coverUrl}
+          src={coverUrl}
           alt={title}
           className="w-full aspect-[4/3] object-cover"
         />
       )}
       <div className="flex flex-1 flex-col gap-2 p-3">
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-0.5">
-            Chương {index + 1}
-          </p>
           <h4 className="font-medium text-sm text-foreground line-clamp-2">
             {title}
           </h4>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
-            {file.fileName}
-            {fileSize && ` • ${fileSize}`}
+            {fileSize}
             {file.totalPages && ` • ${file.totalPages} trang`}
           </p>
         </div>

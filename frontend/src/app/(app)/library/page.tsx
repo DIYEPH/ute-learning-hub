@@ -161,7 +161,7 @@ export default function LibraryPage() {
               title={doc.documentName ?? "Tài liệu"}
               subjectName={doc.subject?.subjectName}
               tags={doc.tags?.map((tag) => tag.tagName ?? "").filter(Boolean)}
-              thumbnailUrl={doc.thumbnailUrl}
+              thumbnailFileId={doc.thumbnailFileId}
               fileCount={doc.fileCount}
               commentCount={doc.commentCount}
               usefulCount={doc.usefulCount}

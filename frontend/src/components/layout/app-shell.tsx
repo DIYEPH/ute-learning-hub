@@ -28,6 +28,11 @@ export function AppShell({ children }: AppShellProps) {
       label: t(item.labelKey as any)
     }));
 
+  // Check if current page is document file viewer (fullscreen mode)
+  const isDocumentFileViewer = pathname?.match(/^\/documents\/[^/]+\/files\/[^/]+$/);
+  const isChatPage = pathname?.startsWith('/chat');
+  const isFullscreenPage = isDocumentFileViewer || isChatPage;
+
   return (
     <div className="h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex flex-col">
       {/* Header trên cùng */}
@@ -39,13 +44,13 @@ export function AppShell({ children }: AppShellProps) {
       <div className="flex-1 min-h-0 flex overflow-hidden">
         <AppSidebar navItems={navItems} activePath={pathname} />
 
-        <main className={`flex-1 min-h-0 overflow-hidden ${pathname?.startsWith('/chat') ? '' : 'p-4 md:p-6 bg-background overflow-y-auto'}`}>
+        <main className={`flex-1 min-h-0 overflow-hidden ${isFullscreenPage ? '' : 'p-4 md:p-6 bg-background overflow-y-auto'}`}>
           {children}
         </main>
       </div>
 
       {/* Footer cuối trang */}
-      {!pathname?.startsWith('/chat') && (
+      {!isFullscreenPage && (
         <div className="flex-shrink-0">
           <AppFooter />
         </div>
@@ -53,3 +58,4 @@ export function AppShell({ children }: AppShellProps) {
     </div>
   );
 }
+

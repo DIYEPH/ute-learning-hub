@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import {
   getApiFaculty,
   getApiFacultyById,
@@ -11,127 +11,85 @@ import {
 import type {
   GetApiFacultyData,
   GetApiFacultyResponse,
-  GetApiFacultyByIdResponse,
-  PostApiFacultyResponse,
-  PutApiFacultyByIdResponse,
   CreateFacultyCommand,
   UpdateFacultyCommand,
+  FacultyDto2,
 } from "@/src/api/database/types.gen";
+import { useCrud } from "./use-crud";
 import { useUploadLogo } from "./use-upload-logo";
 
 export function useFaculties() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { uploadLogo, uploading: uploadingLogo, error: uploadError } = useUploadLogo();
 
-  const fetchFaculties = useCallback(
-    async (params?: GetApiFacultyData["query"]): Promise<GetApiFacultyResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getApiFaculty({ query: params });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tải danh sách khoa";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+  const crud = useCrud<FacultyDto2, CreateFacultyCommand, UpdateFacultyCommand, GetApiFacultyData["query"]>({
+    fetchAll: async (params) => {
+      const response = await getApiFaculty({ query: params });
+      return (response as unknown as { data: GetApiFacultyResponse })?.data || response as GetApiFacultyResponse;
     },
-    []
-  );
-
-  const fetchFacultyById = useCallback(
-    async (id: string): Promise<GetApiFacultyByIdResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getApiFacultyById({ path: { id } });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tải thông tin khoa";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    fetchById: async (id) => {
+      const response = await getApiFacultyById({ path: { id } });
+      return (response as unknown as { data: FacultyDto2 })?.data || response as FacultyDto2;
     },
-    []
-  );
-
-  const createFaculty = useCallback(
-    async (data: CreateFacultyCommand): Promise<PostApiFacultyResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await postApiFaculty({ body: data });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tạo khoa";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    create: async (data) => {
+      const response = await postApiFaculty({ body: data });
+      return (response as unknown as { data: FacultyDto2 })?.data || response as FacultyDto2;
     },
-    []
-  );
-
-  const updateFaculty = useCallback(
-    async (id: string, data: UpdateFacultyCommand): Promise<PutApiFacultyByIdResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await putApiFacultyById({
-          path: { id },
-          body: data,
-        });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể cập nhật khoa";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    update: async (id, data) => {
+      const response = await putApiFacultyById({ path: { id }, body: data });
+      return (response as unknown as { data: FacultyDto2 })?.data || response as FacultyDto2;
     },
-    []
-  );
+    delete: async (id) => {
+      await deleteApiFacultyById({ path: { id } });
+    },
+    errorMessages: {
+      fetch: "Không thể tải danh sách khoa",
+      fetchById: "Không thể tải thông tin khoa",
+      create: "Không thể tạo khoa",
+      update: "Không thể cập nhật khoa",
+      delete: "Không thể xóa khoa",
+    },
+  });
 
-  const deleteFaculty = useCallback(
-    async (id: string): Promise<void> => {
-      setLoading(true);
-      setError(null);
+  // Check if faculty name exists (for duplicate check)
+  const checkNameExists = useCallback(
+    async (name: string, excludeId?: string): Promise<boolean> => {
       try {
-        await deleteApiFacultyById({ path: { id } });
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể xóa khoa";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
+        const response = await getApiFaculty({ query: { SearchTerm: name, Page: 1, PageSize: 10 } });
+        const data = (response as unknown as { data: GetApiFacultyResponse })?.data || response as GetApiFacultyResponse;
+        const items = data?.items || [];
+
+        return items.some(
+          (item) =>
+            item.facultyName?.toLowerCase() === name.toLowerCase() &&
+            item.id !== excludeId
+        );
+      } catch {
+        return false;
       }
     },
     []
   );
 
   return {
-    fetchFaculties,
-    fetchFacultyById,
-    createFaculty,
-    updateFaculty,
-    deleteFaculty,
+    // CRUD operations (renamed for backward compatibility)
+    fetchFaculties: crud.fetchItems,
+    fetchFacultyById: crud.fetchItemById,
+    createFaculty: crud.createItem,
+    updateFaculty: crud.updateItem,
+    deleteFaculty: crud.deleteItem,
+
+    // State
+    items: crud.items,
+    totalCount: crud.totalCount,
+    loading: crud.loading,
+    error: crud.error,
+
+    // Upload
     uploadLogo,
-    loading,
-    error,
     uploadingLogo,
     uploadError,
+
+    // Duplicate check
+    checkNameExists,
   };
 }
-

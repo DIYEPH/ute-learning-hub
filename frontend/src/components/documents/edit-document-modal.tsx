@@ -34,7 +34,6 @@ export function EditDocumentModal({
   const [formData, setFormData] = useState<{
     documentName?: string;
     description?: string;
-    authorNames?: string[];
     subjectId?: string | null;
     typeId?: string | null;
     tagIds?: string[];
@@ -45,7 +44,6 @@ export function EditDocumentModal({
   }>({
     documentName: document.documentName || "",
     description: document.description || "",
-    authorNames: document.authors?.map((a) => a.fullName || "") || [],
     subjectId: document.subject?.id || null,
     typeId: document.type?.id || null,
     tagIds: document.tags?.map((t) => t.id || "").filter(Boolean) || [],
@@ -58,7 +56,6 @@ export function EditDocumentModal({
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
   const [types, setTypes] = useState<TypeDto[]>([]);
   const [tags, setTags] = useState<TagDto[]>([]);
-  const [authorNameInput, setAuthorNameInput] = useState("");
   const [newTagInput, setNewTagInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +65,6 @@ export function EditDocumentModal({
       setFormData({
         documentName: document.documentName || "",
         description: document.description || "",
-        authorNames: document.authors?.map((a) => a.fullName || "") || [],
         subjectId: document.subject?.id || null,
         typeId: document.type?.id || null,
         tagIds: document.tags?.map((t) => t.id || "").filter(Boolean) || [],
@@ -184,24 +180,6 @@ export function EditDocumentModal({
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAddAuthor = () => {
-    const authorName = authorNameInput.trim();
-    if (authorName && !formData.authorNames?.includes(authorName)) {
-      setFormData((prev) => ({
-        ...prev,
-        authorNames: [...(prev.authorNames || []), authorName],
-      }));
-      setAuthorNameInput("");
-    }
-  };
-
-  const handleRemoveAuthor = (authorName: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      authorNames: prev.authorNames?.filter((n) => n !== authorName) || [],
-    }));
   };
 
   const handleAddTag = () => {
@@ -367,9 +345,8 @@ export function EditDocumentModal({
               />
               <label
                 htmlFor="edit-coverFile"
-                className={`mt-1 flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-md cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                  loading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className={`mt-1 flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-md cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ${loading ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
               >
                 <Upload size={16} />
                 <span className="text-sm">
@@ -379,53 +356,26 @@ export function EditDocumentModal({
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="edit-authorNames">Tác giả (Tùy chọn)</Label>
-            <div className="mt-1 flex gap-2">
-              <Input
-                type="text"
-                placeholder="Nhập tên tác giả"
-                value={authorNameInput}
-                onChange={(e) => setAuthorNameInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddAuthor();
-                  }
-                }}
-                disabled={loading}
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                onClick={handleAddAuthor}
-                disabled={loading || !authorNameInput.trim()}
-                size="sm"
-              >
-                Thêm
-              </Button>
-            </div>
-            {formData.authorNames && formData.authorNames.length > 0 && (
+          {/* Hiển thị tác giả (chỉ đọc) */}
+          {document.authors && document.authors.length > 0 && (
+            <div>
+              <Label>Tác giả</Label>
               <div className="mt-2 flex flex-wrap gap-2">
-                {formData.authorNames.map((authorName) => (
+                {document.authors.map((author) => (
                   <div
-                    key={authorName}
-                    className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
+                    key={author.id}
+                    className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-sm"
                   >
-                    <span>{authorName}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveAuthor(authorName)}
-                      disabled={loading}
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800"
-                    >
-                      <X size={14} />
-                    </button>
+                    {author.fullName}
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Để thay đổi tác giả, vui lòng tạo tài liệu mới
+              </p>
+            </div>
+          )}
+
 
           <div>
             <Label htmlFor="edit-tagIds">
@@ -483,46 +433,46 @@ export function EditDocumentModal({
 
             {((formData.tagIds?.length || 0) > 0 ||
               (formData.tagNames?.length || 0) > 0) && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {formData.tagIds?.map((tagId) => {
-                  const tag = tags.find((t) => t.id === tagId);
-                  if (!tag) return null;
-                  return (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {formData.tagIds?.map((tagId) => {
+                    const tag = tags.find((t) => t.id === tagId);
+                    if (!tag) return null;
+                    return (
+                      <div
+                        key={tagId}
+                        className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
+                      >
+                        <span>{tag.tagName}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveTag(tagId, false)}
+                          disabled={loading}
+                          className="text-blue-600 dark:text-blue-400"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                  {formData.tagNames?.map((tagName) => (
                     <div
-                      key={tagId}
-                      className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
+                      key={tagName}
+                      className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
                     >
-                      <span>{tag.tagName}</span>
+                      <span>{tagName}</span>
+                      <span className="text-xs text-green-600">(mới)</span>
                       <button
                         type="button"
-                        onClick={() => handleRemoveTag(tagId, false)}
+                        onClick={() => handleRemoveTag(tagName, true)}
                         disabled={loading}
-                        className="text-blue-600 dark:text-blue-400"
+                        className="text-green-600 dark:text-green-400"
                       >
                         <X size={14} />
                       </button>
                     </div>
-                  );
-                })}
-                {formData.tagNames?.map((tagName) => (
-                  <div
-                    key={tagName}
-                    className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
-                  >
-                    <span>{tagName}</span>
-                    <span className="text-xs text-green-600">(mới)</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tagName, true)}
-                      disabled={loading}
-                      className="text-green-600 dark:text-green-400"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

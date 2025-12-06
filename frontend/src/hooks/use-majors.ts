@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import {
   getApiMajor,
   getApiMajorById,
@@ -11,122 +11,77 @@ import {
 import type {
   GetApiMajorData,
   GetApiMajorResponse,
-  GetApiMajorByIdResponse,
-  PostApiMajorResponse,
-  PutApiMajorByIdResponse,
   CreateMajorCommand,
   UpdateMajorCommand,
+  MajorDto2,
 } from "@/src/api/database/types.gen";
+import { useCrud } from "./use-crud";
 
 export function useMajors() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchMajors = useCallback(
-    async (params?: GetApiMajorData["query"]): Promise<GetApiMajorResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getApiMajor({ query: params });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tải danh sách ngành";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+  const crud = useCrud<MajorDto2, CreateMajorCommand, UpdateMajorCommand, GetApiMajorData["query"]>({
+    fetchAll: async (params) => {
+      const response = await getApiMajor({ query: params });
+      return (response as unknown as { data: GetApiMajorResponse })?.data || response as GetApiMajorResponse;
     },
-    []
-  );
-
-  const fetchMajorById = useCallback(
-    async (id: string): Promise<GetApiMajorByIdResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getApiMajorById({ path: { id } });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tải thông tin ngành";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    fetchById: async (id) => {
+      const response = await getApiMajorById({ path: { id } });
+      return (response as unknown as { data: MajorDto2 })?.data || response as MajorDto2;
     },
-    []
-  );
-
-  const createMajor = useCallback(
-    async (data: CreateMajorCommand): Promise<PostApiMajorResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await postApiMajor({ body: data });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tạo ngành";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    create: async (data) => {
+      const response = await postApiMajor({ body: data });
+      return (response as unknown as { data: MajorDto2 })?.data || response as MajorDto2;
     },
-    []
-  );
-
-  const updateMajor = useCallback(
-    async (id: string, data: UpdateMajorCommand): Promise<PutApiMajorByIdResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await putApiMajorById({
-          path: { id },
-          body: data,
-        });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể cập nhật ngành";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    update: async (id, data) => {
+      const response = await putApiMajorById({ path: { id }, body: data });
+      return (response as unknown as { data: MajorDto2 })?.data || response as MajorDto2;
     },
-    []
-  );
+    delete: async (id) => {
+      await deleteApiMajorById({ path: { id } });
+    },
+    errorMessages: {
+      fetch: "Không thể tải danh sách ngành",
+      fetchById: "Không thể tải thông tin ngành",
+      create: "Không thể tạo ngành",
+      update: "Không thể cập nhật ngành",
+      delete: "Không thể xóa ngành",
+    },
+  });
 
-  const deleteMajor = useCallback(
-    async (id: string): Promise<void> => {
-      setLoading(true);
-      setError(null);
+  // Check if major name exists (for duplicate check)
+  const checkNameExists = useCallback(
+    async (name: string, excludeId?: string): Promise<boolean> => {
       try {
-        await deleteApiMajorById({ path: { id } });
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể xóa ngành";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
+        const response = await getApiMajor({ query: { SearchTerm: name, Page: 1, PageSize: 10 } });
+        const data = (response as unknown as { data: GetApiMajorResponse })?.data || response as GetApiMajorResponse;
+        const items = data?.items || [];
+
+        return items.some(
+          (item) =>
+            item.majorName?.toLowerCase() === name.toLowerCase() &&
+            item.id !== excludeId
+        );
+      } catch {
+        return false;
       }
     },
     []
   );
 
   return {
-    fetchMajors,
-    fetchMajorById,
-    createMajor,
-    updateMajor,
-    deleteMajor,
-    loading,
-    error,
+    // CRUD operations (renamed for backward compatibility)
+    fetchMajors: crud.fetchItems,
+    fetchMajorById: crud.fetchItemById,
+    createMajor: crud.createItem,
+    updateMajor: crud.updateItem,
+    deleteMajor: crud.deleteItem,
+
+    // State
+    items: crud.items,
+    totalCount: crud.totalCount,
+    loading: crud.loading,
+    error: crud.error,
+
+    // Duplicate check
+    checkNameExists,
   };
 }
-

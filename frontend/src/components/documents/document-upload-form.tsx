@@ -4,23 +4,26 @@ import { useState, useEffect } from "react";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
-import { Upload, X, FileText } from "lucide-react";
+import { Upload, X, Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useTypes } from "@/src/hooks/use-types";
-import { getApiTag } from "@/src/api/database/sdk.gen";
+import { getApiTag, getApiAuthor } from "@/src/api/database/sdk.gen";
 import type {
   SubjectDto2,
   TypeDto,
   TagDto,
   CreateDocumentCommand,
+  AuthorListDto,
+  AuthorInput,
 } from "@/src/api/database/types.gen";
 
 type ApiDocumentBody = CreateDocumentCommand;
 export type DocumentUploadFormData = {
   documentName?: ApiDocumentBody["documentName"] | null;
   description?: ApiDocumentBody["description"] | null;
-  authorNames?: ApiDocumentBody["authorNames"];
+  authorIds?: ApiDocumentBody["authorIds"];
+  authors?: ApiDocumentBody["authors"];
   subjectId?: ApiDocumentBody["subjectId"] | null;
   typeId?: ApiDocumentBody["typeId"] | null;
   tagIds?: ApiDocumentBody["tagIds"];
@@ -50,7 +53,8 @@ export function DocumentUploadForm({
   const [formData, setFormData] = useState<DocumentUploadFormData>({
     documentName: null,
     description: null,
-    authorNames: [],
+    authorIds: [],
+    authors: [],
     subjectId: null,
     typeId: null,
     tagIds: [],
@@ -64,9 +68,14 @@ export function DocumentUploadForm({
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
   const [types, setTypes] = useState<TypeDto[]>([]);
   const [tags, setTags] = useState<TagDto[]>([]);
+  const [authors, setAuthors] = useState<AuthorListDto[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
   const [newTagInput, setNewTagInput] = useState("");
-  const [authorNameInput, setAuthorNameInput] = useState("");
+
+  // State cho thêm author mới
+  const [showNewAuthorForm, setShowNewAuthorForm] = useState(false);
+  const [newAuthorName, setNewAuthorName] = useState("");
+  const [newAuthorDescription, setNewAuthorDescription] = useState("");
 
   useEffect(() => {
     if (initialData) {
@@ -77,10 +86,13 @@ export function DocumentUploadForm({
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [subjectsRes, typesRes, tagsRes] = await Promise.all([
+        const [subjectsRes, typesRes, tagsRes, authorsRes] = await Promise.all([
           fetchSubjects({ Page: 1, PageSize: 1000 }),
           fetchTypes({ Page: 1, PageSize: 1000 }),
           getApiTag({ query: { Page: 1, PageSize: 1000 } }).then(
+            (res: any) => res?.data || res
+          ),
+          getApiAuthor({ query: { Page: 1, PageSize: 1000 } }).then(
             (res: any) => res?.data || res
           ),
         ]);
@@ -88,6 +100,7 @@ export function DocumentUploadForm({
         if (subjectsRes?.items) setSubjects(subjectsRes.items);
         if (typesRes?.items) setTypes(typesRes.items);
         if (tagsRes?.items) setTags(tagsRes.items);
+        if (authorsRes?.items) setAuthors(authorsRes.items);
       } catch (err) {
         console.error("Error loading data:", err);
       }
@@ -237,72 +250,172 @@ export function DocumentUploadForm({
           />
         </div>
         <div>
-          <Label htmlFor="authorNames">{t("author")} (Tùy chọn)</Label>
-          <div className="mt-1 flex gap-2">
-            <Input
-              id="authorNames"
-              type="text"
-              placeholder="Nhập tên tác giả và nhấn Enter"
-              value={authorNameInput}
-              onChange={(e) => setAuthorNameInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  const authorName = authorNameInput.trim();
-                  if (authorName && !formData.authorNames?.includes(authorName)) {
-                    setFormData((prev) => ({
-                      ...prev,
-                      authorNames: [...(prev.authorNames || []), authorName],
-                    }));
-                    setAuthorNameInput("");
-                  }
-                }
-              }}
-              disabled={isDisabled}
-            />
+          <Label htmlFor="authors">{t("author")} (Tùy chọn)</Label>
+
+          {/* Multi-select cho authors có sẵn */}
+          <select
+            id="authors"
+            multiple
+            value={formData.authorIds || []}
+            onChange={(e) => {
+              const selectedOptions = Array.from(e.target.selectedOptions);
+              const selectedIds = selectedOptions.map((option) => option.value);
+              setFormData((prev) => ({ ...prev, authorIds: selectedIds }));
+            }}
+            disabled={isDisabled}
+            size={4}
+            className={selectClassName}
+          >
+            {authors
+              .filter((a): a is AuthorListDto & { id: string } => !!a?.id)
+              .map((author) => (
+                <option key={author.id} value={author.id}>
+                  {author.fullName}
+                </option>
+              ))}
+          </select>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Giữ Ctrl/Cmd để chọn nhiều tác giả
+          </p>
+
+          {/* Nút thêm tác giả mới */}
+          {!showNewAuthorForm && (
             <Button
               type="button"
-              onClick={() => {
-                const authorName = authorNameInput.trim();
-                if (authorName && !formData.authorNames?.includes(authorName)) {
-                  setFormData((prev) => ({
-                    ...prev,
-                    authorNames: [...(prev.authorNames || []), authorName],
-                  }));
-                  setAuthorNameInput("");
-                }
-              }}
-              disabled={isDisabled || !authorNameInput.trim()}
+              variant="outline"
               size="sm"
+              onClick={() => setShowNewAuthorForm(true)}
+              disabled={isDisabled}
+              className="mt-2"
             >
-              Thêm
+              <Plus size={16} className="mr-1" /> Thêm tác giả mới
             </Button>
-          </div>
-          {formData.authorNames && formData.authorNames.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {formData.authorNames.map((authorName) => (
-                <div
-                  key={authorName}
-                  className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
-                >
-                  <span>{authorName}</span>
-                  <button
+          )}
+
+          {/* Form thêm tác giả mới */}
+          {showNewAuthorForm && (
+            <div className="mt-2 p-3 border rounded-md bg-slate-50 dark:bg-slate-800">
+              <div className="space-y-2">
+                <div>
+                  <Label htmlFor="newAuthorName" className="text-sm">Tên tác giả *</Label>
+                  <Input
+                    id="newAuthorName"
+                    value={newAuthorName}
+                    onChange={(e) => setNewAuthorName(e.target.value)}
+                    placeholder="Nhập tên tác giả"
+                    disabled={isDisabled}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="newAuthorDescription" className="text-sm">Mô tả</Label>
+                  <Input
+                    id="newAuthorDescription"
+                    value={newAuthorDescription}
+                    onChange={(e) => setNewAuthorDescription(e.target.value)}
+                    placeholder="VD: Giảng viên CNTT, Tiến sĩ..."
+                    disabled={isDisabled}
+                    className="mt-1"
+                  />
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <Button
                     type="button"
+                    size="sm"
                     onClick={() => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorNames: prev.authorNames?.filter((n) => n !== authorName) || [],
-                      }));
+                      if (newAuthorName.trim()) {
+                        const newAuthor: AuthorInput = {
+                          fullName: newAuthorName.trim(),
+                          description: newAuthorDescription.trim() || undefined,
+                        };
+                        setFormData((prev) => ({
+                          ...prev,
+                          authors: [...(prev.authors || []), newAuthor],
+                        }));
+                        setNewAuthorName("");
+                        setNewAuthorDescription("");
+                        setShowNewAuthorForm(false);
+                      }
+                    }}
+                    disabled={isDisabled || !newAuthorName.trim()}
+                  >
+                    Thêm
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setShowNewAuthorForm(false);
+                      setNewAuthorName("");
+                      setNewAuthorDescription("");
                     }}
                     disabled={isDisabled}
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
                   >
-                    <X size={14} />
-                  </button>
+                    Hủy
+                  </Button>
                 </div>
-              ))}
+              </div>
             </div>
           )}
+
+          {/* Hiển thị authors đã chọn */}
+          {((formData.authorIds?.length || 0) > 0 ||
+            (formData.authors?.length || 0) > 0) && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                {/* Authors từ authorIds (có sẵn) */}
+                {formData.authorIds?.map((authorId) => {
+                  const author = authors.find((a) => a.id === authorId);
+                  if (!author) return null;
+                  return (
+                    <div
+                      key={authorId}
+                      className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
+                    >
+                      <span>{author.fullName}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorIds: (prev.authorIds || []).filter((id) => id !== authorId),
+                          }));
+                        }}
+                        disabled={isDisabled}
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+                {/* Authors từ authors (mới thêm) */}
+                {formData.authors?.map((author, index) => (
+                  <div
+                    key={`new-author-${index}`}
+                    className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
+                  >
+                    <span>{author.fullName}</span>
+                    <span className="text-xs text-green-600 dark:text-green-400">
+                      (mới)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData((prev) => ({
+                          ...prev,
+                          authors: (prev.authors || []).filter((_, i) => i !== index),
+                        }));
+                      }}
+                      disabled={isDisabled}
+                      className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
         </div>
       </div>
 
@@ -410,50 +523,50 @@ export function DocumentUploadForm({
         {/* Hiển thị tags đã chọn */}
         {((formData.tagIds?.length || 0) > 0 ||
           (formData.tagNames?.length || 0) > 0) && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {/* Tags từ tagIds (tag có sẵn) */}
-            {formData.tagIds?.map((tagId) => {
-              const tag = tags.find((t) => t.id === tagId);
-              if (!tag) return null;
-              return (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {/* Tags từ tagIds (tag có sẵn) */}
+              {formData.tagIds?.map((tagId) => {
+                const tag = tags.find((t) => t.id === tagId);
+                if (!tag) return null;
+                return (
+                  <div
+                    key={tagId}
+                    className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
+                  >
+                    <span>{tag.tagName}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tagId, false)}
+                      disabled={isDisabled}
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                );
+              })}
+              {/* Tags từ tagNames (tag mới) */}
+              {formData.tagNames?.map((tagName) => (
                 <div
-                  key={tagId}
-                  className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
+                  key={tagName}
+                  className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
                 >
-                  <span>{tag.tagName}</span>
+                  <span>{tagName}</span>
+                  <span className="text-xs text-green-600 dark:text-green-400">
+                    (mới)
+                  </span>
                   <button
                     type="button"
-                    onClick={() => handleRemoveTag(tagId, false)}
+                    onClick={() => handleRemoveTag(tagName, true)}
                     disabled={isDisabled}
-                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                    className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
                   >
                     <X size={14} />
                   </button>
                 </div>
-              );
-            })}
-            {/* Tags từ tagNames (tag mới) */}
-            {formData.tagNames?.map((tagName) => (
-              <div
-                key={tagName}
-                className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
-              >
-                <span>{tagName}</span>
-                <span className="text-xs text-green-600 dark:text-green-400">
-                  (mới)
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveTag(tagName, true)}
-                  disabled={isDisabled}
-                  className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
       </div>
 
       <div>
@@ -471,11 +584,10 @@ export function DocumentUploadForm({
         />
         <label
           htmlFor="coverFile"
-          className={`mt-1 flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-md transition-colors ${
-            isDisabled
-              ? "border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed"
-              : "border-slate-300 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
-          }`}
+          className={`mt-1 flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-md transition-colors ${isDisabled
+            ? "border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed"
+            : "border-slate-300 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
+            }`}
         >
           <Upload size={20} />
           <span className="text-sm">
@@ -499,24 +611,24 @@ export function DocumentUploadForm({
       </div>
 
 
-        <div>
-          <Label htmlFor="visibility">{t("visibility")}</Label>
-          <select
-            id="visibility"
-            value={formData.visibility ?? 0}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                visibility: parseInt(e.target.value, 10),
-              }))
-            }
-            disabled={isDisabled}
-            className={selectClassName}
-          >
-            <option value={0}>Công khai</option>
-            <option value={1}>Riêng tư</option>
+      <div>
+        <Label htmlFor="visibility">{t("visibility")}</Label>
+        <select
+          id="visibility"
+          value={formData.visibility ?? 0}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              visibility: parseInt(e.target.value, 10),
+            }))
+          }
+          disabled={isDisabled}
+          className={selectClassName}
+        >
+          <option value={0}>Công khai</option>
+          <option value={1}>Riêng tư</option>
           <option value={2}>Nội bộ</option>
-          </select>
+        </select>
       </div>
     </form>
   );

@@ -82,16 +82,7 @@ export function DeleteModal({
       size="sm"
       footer={footer}
     >
-      <div className="flex items-center gap-4 py-4">
-        <div className="flex-shrink-0">
-          <AlertTriangle className="h-12 w-12 text-destructive" />
-        </div>
-        <div className="flex-1">
-          <p className="text-sm text-slate-600 dark:text-slate-400">
-            {defaultDescription}
-          </p>
-        </div>
-      </div>
+      {null}
     </BaseModal>
   );
 }

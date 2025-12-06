@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, MessageSquare, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 import { getApiDocumentById } from "@/src/api/database/sdk.gen";
 import type { DocumentDetailDto, DocumentFileDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
-import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { DocumentFileCommentsPanel } from "@/src/components/documents/document-file-comments-panel";
+import { getFileUrlById } from "@/src/lib/file-url";
+import { cn } from "@/lib/utils";
 
 export default function DocumentFileDetailPage() {
   const params = useParams<{ id: string; fileId: string }>();
@@ -21,6 +22,7 @@ export default function DocumentFileDetailPage() {
   const [file, setFile] = useState<DocumentFileDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showComments, setShowComments] = useState(true);
 
   useEffect(() => {
     if (!documentId || !documentFileId) return;
@@ -113,90 +115,117 @@ export default function DocumentFileDetailPage() {
     router.push(`/documents/${documentId}`);
   };
 
-  const fileUrl = file.fileUrl ?? "";
+  const fileUrl = getFileUrlById(file.fileId);
   const fileSize = file.fileSize ? `${(file.fileSize / 1024 / 1024).toFixed(2)} MB` : "";
 
   return (
-    <div className="flex h-full flex-col gap-2 lg:gap-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
+    <div className="flex h-full flex-col bg-slate-900">
+      {/* Compact Header */}
+      <div className="flex items-center justify-between gap-2 px-2 py-1.5 border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shrink-0">
+        <div className="flex items-center gap-2 min-w-0">
           <Button
             variant="ghost"
-            size="sm"
+            size="icon"
             onClick={() => router.back()}
-            className="inline-flex items-center gap-2"
+            className="h-8 w-8 shrink-0"
           >
             <ArrowLeft className="h-4 w-4" />
-            Quay lại
           </Button>
+          <div className="min-w-0 hidden sm:block">
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
+              {doc.documentName ?? "Tài liệu"}
+            </p>
+            <h1 className="text-xs font-medium text-foreground truncate max-w-[300px]">
+              {file.title || "Chương / file"}
+            </h1>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {file.isPrimary && (
+            <Badge variant="outline" className="border-amber-300 text-amber-700 text-[10px] py-0 h-5">
+              Chính
+            </Badge>
+          )}
+          {doc.subject?.subjectName && (
+            <Badge variant="outline" className="border-emerald-200 text-emerald-700 text-[10px] py-0 h-5 hidden md:inline-flex">
+              {doc.subject.subjectName}
+            </Badge>
+          )}
+          <span className="text-[10px] text-slate-500 hidden lg:inline">
+            {fileSize}{file.totalPages && ` • ${file.totalPages} trang`}
+          </span>
+          <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
           <Button
             variant="ghost"
             size="sm"
             onClick={handleBackToDocument}
-            className="hidden sm:inline-flex text-xs"
+            className="text-[11px] h-7 px-2"
           >
-            Xem trang tài liệu
+            Xem tài liệu
+          </Button>
+          <Button
+            variant={showComments ? "secondary" : "ghost"}
+            size="icon"
+            onClick={() => setShowComments(!showComments)}
+            className="h-8 w-8"
+            title={showComments ? "Ẩn bình luận" : "Hiện bình luận"}
+          >
+            <MessageSquare className="h-4 w-4" />
           </Button>
         </div>
       </div>
 
-      <div className="grid gap-3 lg:gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,340px)] items-stretch h-[calc(100vh-130px)]">
-        {/* Trái: viewer nội dung file */}
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 flex flex-col overflow-hidden">
-          <div className="border-b border-slate-200 px-4 py-2 dark:border-slate-700 flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                {doc.documentName ?? "Tài liệu"}
-              </p>
-              <h1 className="text-sm font-semibold text-foreground truncate">
-                {file.title || file.fileName || "Chương / file"}
-              </h1>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
-                {file.fileName}
-                {fileSize && ` • ${fileSize}`}
-                {file.totalPages && ` • ${file.totalPages} trang`}
-              </p>
+      {/* Main Content Area */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* PDF/File Viewer - Takes maximum space */}
+        <div className={cn(
+          "flex-1 bg-slate-100 dark:bg-slate-950 transition-all duration-300",
+          showComments ? "lg:mr-0" : ""
+        )}>
+          {fileUrl ? (
+            <iframe
+              src={fileUrl}
+              title={file.title || "Document file"}
+              className="h-full w-full border-0"
+            />
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+              <FileText className="h-10 w-10 opacity-40" />
+              <p>Không có URL để xem file.</p>
+              <p className="text-xs">Vui lòng tải lại trang hoặc liên hệ quản trị.</p>
             </div>
-            <div className="hidden sm:flex flex-col items-end gap-1 text-[11px] text-slate-500 dark:text-slate-400">
-              <div className="flex flex-wrap justify-end gap-1">
-                {file.isPrimary && (
-                  <Badge variant="outline" className="border-amber-300 text-amber-700">
-                    Chính
-                  </Badge>
-                )}
-                {doc.subject?.subjectName && (
-                  <Badge variant="outline" className="border-emerald-200 text-emerald-700">
-                    {doc.subject.subjectName}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex-1 bg-slate-50 dark:bg-slate-950">
-            {fileUrl ? (
-              <iframe
-                src={fileUrl}
-                title={file.fileName || "Document file"}
-                className="h-full w-full border-0"
-              />
-            ) : (
-              <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                <FileText className="h-6 w-6 opacity-60" />
-                <p>Không có URL để xem file. Vui lòng tải lại trang hoặc liên hệ quản trị.</p>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* Phải: bình luận + useful / unuseful */}
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 flex flex-col">
-          <DocumentFileCommentsPanel
-            documentId={documentId}
-            documentFileId={documentFileId}
-            initialUsefulCount={file.usefulCount ?? 0}
-            initialNotUsefulCount={file.notUsefulCount ?? 0}
-          />
+        {/* Comments Panel - Collapsible Sidebar */}
+        <div className={cn(
+          "border-l border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col transition-all duration-300 ease-in-out overflow-hidden",
+          showComments ? "w-[280px] lg:w-[300px]" : "w-0"
+        )}>
+          {showComments && (
+            <div className="flex flex-col h-full min-w-[280px] lg:min-w-[300px]">
+              <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200 dark:border-slate-700 shrink-0">
+                <h2 className="text-sm font-semibold text-foreground">Bình luận</h2>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowComments(false)}
+                  className="h-7 w-7"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <DocumentFileCommentsPanel
+                  documentId={documentId}
+                  documentFileId={documentFileId}
+                  initialUsefulCount={file.usefulCount ?? 0}
+                  initialNotUsefulCount={file.notUsefulCount ?? 0}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

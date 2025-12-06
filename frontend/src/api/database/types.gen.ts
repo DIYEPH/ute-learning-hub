@@ -14,14 +14,42 @@ export type AddDocumentFileCommand = {
     coverFileId?: string | null;
 };
 
+export type AuthorDetailDto = {
+    id?: string;
+    fullName?: string;
+    description?: string;
+    documentCount?: number;
+};
+
 export type AuthorDto = {
     id?: string;
     fullName?: string;
 };
 
+export type AuthorInput = {
+    fullName?: string;
+    description?: string | null;
+};
+
+export type AuthorListDto = {
+    id?: string;
+    fullName?: string;
+    description?: string;
+};
+
 export type BanUserCommand = {
     userId?: string;
     banUntil?: string | null;
+};
+
+export type ChangePasswordCommand = {
+    currentPassword?: string;
+    newPassword?: string;
+};
+
+export type ChangeUsernameCommand = {
+    newUsername?: string;
+    currentPassword?: string;
 };
 
 export type CommentDto = {
@@ -37,18 +65,6 @@ export type CommentDto = {
     replyCount?: number;
     createdAt?: string;
     updatedAt?: string | null;
-};
-
-export type CompleteAccountSetupCommand = {
-    username: string | null;
-    password: string | null;
-};
-
-export type CompleteAccountSetupResponse = {
-    success?: boolean;
-    errors?: Array<string>;
-    username?: string | null;
-    passwordSet?: boolean;
 };
 
 export type ConversationDetailDto = {
@@ -115,9 +131,26 @@ export type ConversationMemberDto = {
 
 export type ConversationMemberRoleType = number;
 
+export type ConversationRecommendationDto = {
+    conversationId?: string;
+    conversationName?: string;
+    similarity?: number;
+    rank?: number;
+    subject?: SubjectDto;
+    tags?: Array<TagDto>;
+    avatarUrl?: string | null;
+    memberCount?: number;
+    isCurrentUserMember?: boolean | null;
+};
+
 export type ConversationStatus = number;
 
 export type ConversitionType = number;
+
+export type CreateAuthorCommand = {
+    fullName?: string;
+    description?: string | null;
+};
 
 export type CreateCommentCommand = {
     documentFileId?: string;
@@ -148,7 +181,8 @@ export type CreateDocumentCommand = {
     typeId?: string;
     tagIds?: Array<string> | null;
     tagNames?: Array<string> | null;
-    authorNames?: Array<string> | null;
+    authorIds?: Array<string> | null;
+    authors?: Array<AuthorInput> | null;
     isDownload?: boolean;
     visibility?: VisibilityStatus;
     coverFileId?: string | null;
@@ -233,7 +267,7 @@ export type DocumentDetailDto = {
     type?: TypeDto;
     tags?: Array<TagDto>;
     authors?: Array<AuthorDto>;
-    coverUrl?: string | null;
+    coverFileId?: string | null;
     files?: Array<DocumentFileDto>;
     commentCount?: number;
     usefulCount?: number;
@@ -255,7 +289,7 @@ export type DocumentDto = {
     type?: TypeDto;
     tags?: Array<TagDto>;
     authors?: Array<AuthorDto>;
-    thumbnailUrl?: string | null;
+    thumbnailFileId?: string | null;
     fileCount?: number;
     commentCount?: number;
     usefulCount?: number;
@@ -266,18 +300,32 @@ export type DocumentDto = {
 
 export type DocumentFileDto = {
     id?: string;
-    fileName?: string;
-    fileUrl?: string;
+    fileId?: string;
     fileSize?: number;
     mimeType?: string;
     title?: string | null;
     order?: number | null;
     isPrimary?: boolean;
     totalPages?: number | null;
-    coverUrl?: string | null;
+    coverFileId?: string | null;
     commentCount?: number;
     usefulCount?: number;
     notUsefulCount?: number;
+    progress?: DocumentProgressDto;
+};
+
+export type DocumentProgressDto = {
+    documentFileId?: string;
+    lastPage?: number;
+    totalPages?: number | null;
+    lastAccessedAt?: string | null;
+} | null;
+
+export type DocumentProgressDto2 = {
+    documentFileId?: string;
+    lastPage?: number;
+    totalPages?: number | null;
+    lastAccessedAt?: string | null;
 };
 
 export type DocumentReviewDto = {
@@ -329,14 +377,21 @@ export type FacultyDto2 = {
 
 export type FileDto = {
     id?: string;
-    fileName?: string;
-    fileUrl?: string;
     fileSize?: number;
     mimeType?: string;
-    isTemporary?: boolean;
+};
+
+export type ForgotPasswordCommand = {
+    email?: string;
 };
 
 export type Gender = number;
+
+export type GetConversationRecommendationsResponse = {
+    recommendations?: Array<ConversationRecommendationDto>;
+    totalProcessed?: number;
+    processingTimeMs?: number;
+};
 
 export type GetOnlineMembersResponse = {
     conversationId?: string;
@@ -370,14 +425,13 @@ export type LoginWithMicrosoftResponse = {
     avatarUrl?: string | null;
     accessToken?: string;
     refreshToken?: string;
-    requiresSetup?: boolean;
 };
 
 export type MajorDetailDto = {
     id?: string;
     majorName?: string;
     majorCode?: string;
-    faculty?: FacultyDto2;
+    faculty?: FacultyDto;
     subjectCount?: number;
 };
 
@@ -419,8 +473,6 @@ export type MessageDto = {
 
 export type MessageFileDto = {
     fileId?: string;
-    fileName?: string;
-    fileUrl?: string;
     fileSize?: number;
     mimeType?: string;
 };
@@ -454,6 +506,16 @@ export type NullableOfGender = number | null;
 export type NullableOfMessageType = number | null;
 
 export type NullableOfVisibilityStatus = number | null;
+
+export type PagedResponseOfAuthorListDto = {
+    items?: Array<AuthorListDto>;
+    totalCount?: number;
+    page?: number;
+    pageSize?: number;
+    totalPages?: number;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
+};
 
 export type PagedResponseOfCommentDto = {
     items?: Array<CommentDto>;
@@ -627,6 +689,12 @@ export type ReportDto = {
     createdAt?: string;
 };
 
+export type ResetPasswordCommand = {
+    email?: string;
+    token?: string;
+    newPassword?: string;
+};
+
 export type ReviewConversationJoinRequestCommand = {
     joinRequestId?: string;
     reviewStatus?: ReviewStatus;
@@ -699,6 +767,12 @@ export type UnreadCountDto = {
     unreadCount?: number;
 };
 
+export type UpdateAuthorCommand = {
+    id?: string;
+    fullName?: string | null;
+    description?: string | null;
+};
+
 export type UpdateCommentCommand = {
     id?: string;
     content?: string;
@@ -727,6 +801,20 @@ export type UpdateDocumentCommand = {
     visibility?: NullableOfVisibilityStatus;
     fileIdsToRemove?: Array<string> | null;
     coverFileId?: string | null;
+};
+
+export type UpdateDocumentFileCommand = {
+    documentId?: string;
+    documentFileId?: string;
+    title?: string | null;
+    order?: number | null;
+    isPrimary?: boolean | null;
+    coverFileId?: string | null;
+};
+
+export type UpdateDocumentProgressCommand = {
+    documentFileId?: string;
+    lastPage?: number;
 };
 
 export type UpdateEventCommand = {
@@ -766,6 +854,15 @@ export type UpdateMessageCommand = {
     id?: string;
     conversationId?: string;
     content?: string;
+};
+
+export type UpdateNotificationRequest = {
+    title?: string;
+    content?: string;
+    link?: string | null;
+    expiredAt?: string;
+    notificationType?: NotificationType;
+    notificationPriorityType?: NotificationPriorityType;
 };
 
 export type UpdateProfileCommand = {
@@ -952,21 +1049,152 @@ export type PostApiAuthLogoutResponses = {
     200: unknown;
 };
 
-export type PostApiAuthSetupData = {
-    body: CompleteAccountSetupCommand;
+export type PostApiAuthForgotPasswordData = {
+    body: ForgotPasswordCommand;
     path?: never;
     query?: never;
-    url: '/api/Auth/setup';
+    url: '/api/Auth/forgot-password';
 };
 
-export type PostApiAuthSetupResponses = {
+export type PostApiAuthForgotPasswordResponses = {
     /**
      * OK
      */
-    200: CompleteAccountSetupResponse;
+    200: unknown;
 };
 
-export type PostApiAuthSetupResponse = PostApiAuthSetupResponses[keyof PostApiAuthSetupResponses];
+export type PostApiAuthResetPasswordData = {
+    body: ResetPasswordCommand;
+    path?: never;
+    query?: never;
+    url: '/api/Auth/reset-password';
+};
+
+export type PostApiAuthResetPasswordResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiAuthChangePasswordData = {
+    body: ChangePasswordCommand;
+    path?: never;
+    query?: never;
+    url: '/api/Auth/change-password';
+};
+
+export type PostApiAuthChangePasswordResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiAuthChangeUsernameData = {
+    body: ChangeUsernameCommand;
+    path?: never;
+    query?: never;
+    url: '/api/Auth/change-username';
+};
+
+export type PostApiAuthChangeUsernameResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiAuthorData = {
+    body?: never;
+    path?: never;
+    query?: {
+        SearchTerm?: string;
+        IsDeleted?: boolean;
+        Page?: number;
+        PageSize?: number;
+        Skip?: number;
+        Take?: number;
+    };
+    url: '/api/Author';
+};
+
+export type GetApiAuthorResponses = {
+    /**
+     * OK
+     */
+    200: PagedResponseOfAuthorListDto;
+};
+
+export type GetApiAuthorResponse = GetApiAuthorResponses[keyof GetApiAuthorResponses];
+
+export type PostApiAuthorData = {
+    body: CreateAuthorCommand;
+    path?: never;
+    query?: never;
+    url: '/api/Author';
+};
+
+export type PostApiAuthorResponses = {
+    /**
+     * OK
+     */
+    200: AuthorDetailDto;
+};
+
+export type PostApiAuthorResponse = PostApiAuthorResponses[keyof PostApiAuthorResponses];
+
+export type DeleteApiAuthorByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/Author/{id}';
+};
+
+export type DeleteApiAuthorByIdResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiAuthorByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/Author/{id}';
+};
+
+export type GetApiAuthorByIdResponses = {
+    /**
+     * OK
+     */
+    200: AuthorDetailDto;
+};
+
+export type GetApiAuthorByIdResponse = GetApiAuthorByIdResponses[keyof GetApiAuthorByIdResponses];
+
+export type PutApiAuthorByIdData = {
+    body: UpdateAuthorCommand;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/Author/{id}';
+};
+
+export type PutApiAuthorByIdResponses = {
+    /**
+     * OK
+     */
+    200: AuthorDetailDto;
+};
+
+export type PutApiAuthorByIdResponse = PutApiAuthorByIdResponses[keyof PutApiAuthorByIdResponses];
 
 export type GetApiCommentData = {
     body?: never;
@@ -1077,6 +1305,7 @@ export type GetApiConversationData = {
         SearchTerm?: string;
         SortBy?: string;
         SortDescending?: boolean;
+        IsDeleted?: boolean;
         Page?: number;
         PageSize?: number;
         Skip?: number;
@@ -1231,6 +1460,25 @@ export type PutApiConversationByIdMembersByMemberIdRoleResponses = {
     200: unknown;
 };
 
+export type GetApiConversationRecommendationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        topK?: number;
+        minSimilarity?: number;
+    };
+    url: '/api/Conversation/recommendations';
+};
+
+export type GetApiConversationRecommendationsResponses = {
+    /**
+     * OK
+     */
+    200: GetConversationRecommendationsResponse;
+};
+
+export type GetApiConversationRecommendationsResponse = GetApiConversationRecommendationsResponses[keyof GetApiConversationRecommendationsResponses];
+
 export type GetApiConversationJoinRequestData = {
     body?: never;
     path?: never;
@@ -1303,6 +1551,7 @@ export type GetApiDocumentData = {
         IsDownload?: boolean;
         SortBy?: string;
         SortDescending?: boolean;
+        IsDeleted?: boolean;
         Page?: number;
         PageSize?: number;
         Skip?: number;
@@ -1438,6 +1687,42 @@ export type PostApiDocumentByIdFilesResponses = {
 
 export type PostApiDocumentByIdFilesResponse = PostApiDocumentByIdFilesResponses[keyof PostApiDocumentByIdFilesResponses];
 
+export type DeleteApiDocumentByDocumentIdFilesByFileIdData = {
+    body?: never;
+    path: {
+        documentId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/Document/{documentId}/files/{fileId}';
+};
+
+export type DeleteApiDocumentByDocumentIdFilesByFileIdResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PutApiDocumentByDocumentIdFilesByFileIdData = {
+    body: UpdateDocumentFileCommand;
+    path: {
+        documentId: string;
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/Document/{documentId}/files/{fileId}';
+};
+
+export type PutApiDocumentByDocumentIdFilesByFileIdResponses = {
+    /**
+     * OK
+     */
+    200: DocumentDetailDto;
+};
+
+export type PutApiDocumentByDocumentIdFilesByFileIdResponse = PutApiDocumentByDocumentIdFilesByFileIdResponses[keyof PutApiDocumentByDocumentIdFilesByFileIdResponses];
+
 export type PostApiDocumentByIdReviewData = {
     body: ReviewDocumentCommand;
     path: {
@@ -1448,6 +1733,40 @@ export type PostApiDocumentByIdReviewData = {
 };
 
 export type PostApiDocumentByIdReviewResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type GetApiDocumentFilesByFileIdProgressData = {
+    body?: never;
+    path: {
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/Document/files/{fileId}/progress';
+};
+
+export type GetApiDocumentFilesByFileIdProgressResponses = {
+    /**
+     * OK
+     */
+    200: DocumentProgressDto2;
+};
+
+export type GetApiDocumentFilesByFileIdProgressResponse = GetApiDocumentFilesByFileIdProgressResponses[keyof GetApiDocumentFilesByFileIdProgressResponses];
+
+export type PutApiDocumentFilesByFileIdProgressData = {
+    body: UpdateDocumentProgressCommand;
+    path: {
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/Document/files/{fileId}/progress';
+};
+
+export type PutApiDocumentFilesByFileIdProgressResponses = {
     /**
      * OK
      */
@@ -1543,6 +1862,7 @@ export type GetApiFacultyData = {
     path?: never;
     query?: {
         SearchTerm?: string;
+        IsDeleted?: boolean;
         Page?: number;
         PageSize?: number;
         Skip?: number;
@@ -1648,12 +1968,29 @@ export type PostApiFileResponses = {
 
 export type PostApiFileResponse = PostApiFileResponses[keyof PostApiFileResponses];
 
+export type GetApiFileByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/File/{id}';
+};
+
+export type GetApiFileByIdResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type GetApiMajorData = {
     body?: never;
     path?: never;
     query?: {
         FacultyId?: string;
         SearchTerm?: string;
+        IsDeleted?: boolean;
         Page?: number;
         PageSize?: number;
         Skip?: number;
@@ -1859,6 +2196,7 @@ export type GetApiNotificationData = {
         IsRead?: boolean;
         NotificationType?: string;
         NotificationPriorityType?: string;
+        IsDeleted?: boolean;
         Page?: number;
         PageSize?: number;
         Skip?: number;
@@ -1938,6 +2276,40 @@ export type PostApiNotificationMarkAllAsReadResponses = {
     200: unknown;
 };
 
+export type DeleteApiNotificationByIdData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/Notification/{id}';
+};
+
+export type DeleteApiNotificationByIdResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PutApiNotificationByIdData = {
+    body: UpdateNotificationRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/Notification/{id}';
+};
+
+export type PutApiNotificationByIdResponses = {
+    /**
+     * OK
+     */
+    200: NotificationDto;
+};
+
+export type PutApiNotificationByIdResponse = PutApiNotificationByIdResponses[keyof PutApiNotificationByIdResponses];
+
 export type GetApiReportData = {
     body?: never;
     path?: never;
@@ -2001,6 +2373,7 @@ export type GetApiSubjectData = {
     query?: {
         MajorIds?: Array<string>;
         SearchTerm?: string;
+        IsDeleted?: boolean;
         Page?: number;
         PageSize?: number;
         Skip?: number;
@@ -2091,6 +2464,7 @@ export type GetApiTagData = {
     path?: never;
     query?: {
         SearchTerm?: string;
+        IsDeleted?: boolean;
         Page?: number;
         PageSize?: number;
         Skip?: number;
@@ -2181,6 +2555,7 @@ export type GetApiTypeData = {
     path?: never;
     query?: {
         SearchTerm?: string;
+        IsDeleted?: boolean;
         Page?: number;
         PageSize?: number;
         Skip?: number;

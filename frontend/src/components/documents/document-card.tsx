@@ -2,12 +2,13 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { DocumentMenu } from "@/src/components/documents/document-menu";
 import { FileText, MessageSquare, ThumbsUp, ThumbsDown } from "lucide-react";
+import { getFileUrlById } from "@/src/lib/file-url";
 
 export interface DocumentCardProps {
   id?: string;
   title: string;
   subjectName?: string;
-  thumbnailUrl?: string | null;
+  thumbnailFileId?: string | null;
   fileMimeType?: string;
   tags?: string[];
   href?: string;
@@ -25,7 +26,7 @@ export function DocumentCard({
   id,
   title,
   subjectName,
-  thumbnailUrl,
+  thumbnailFileId,
   fileMimeType,
   tags,
   href,
@@ -45,6 +46,7 @@ export function DocumentCard({
   const visibleTags = tags?.filter(Boolean) ?? [];
   const mainTags = visibleTags.slice(0, 2);
   const extraTagCount = visibleTags.length > 2 ? visibleTags.length - 2 : 0;
+  const thumbnailUrl = getFileUrlById(thumbnailFileId);
 
   const content = (
     <div
@@ -111,13 +113,13 @@ export function DocumentCard({
           )}
         >
           {mainTags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-              >
-                {tag}
-              </span>
-            ))}
+            <span
+              key={tag}
+              className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+            >
+              {tag}
+            </span>
+          ))}
           {extraTagCount > 0 && (
             <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
               +{extraTagCount} …

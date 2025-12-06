@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useFaculties } from "@/src/hooks/use-faculties";
-import type { UpdateMajorCommand, CreateMajorCommand, FacultyDto2 } from "@/src/api/database/types.gen";
+import { useDebounce } from "@/src/hooks/use-debounce";
+import { getApiMajor } from "@/src/api/database/sdk.gen";
+import type { UpdateMajorCommand, CreateMajorCommand, FacultyDto2, MajorDto2 } from "@/src/api/database/types.gen";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 export interface MajorFormData {
+  id?: string;
   majorName?: string | null;
   majorCode?: string | null;
   facultyId?: string | null;
@@ -33,6 +37,13 @@ export function MajorForm({
   });
   const [faculties, setFaculties] = useState<FacultyDto2[]>([]);
 
+  // Debounce search state
+  const [searching, setSearching] = useState(false);
+  const [matchingMajors, setMatchingMajors] = useState<MajorDto2[]>([]);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+
+  const debouncedName = useDebounce(formData.majorName || "", 400);
+
   useEffect(() => {
     if (initialData) {
       setFormData(initialData);
@@ -53,8 +64,48 @@ export function MajorForm({
     loadFaculties();
   }, [fetchFaculties]);
 
+  // Search for matching majors when name changes
+  const searchMajors = useCallback(async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      setMatchingMajors([]);
+      setIsDuplicate(false);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const response = await getApiMajor({ query: { SearchTerm: searchTerm, Page: 1, PageSize: 5 } });
+      const data = (response as unknown as { data: { items?: MajorDto2[] } })?.data || response as { items?: MajorDto2[] };
+      const items = data?.items || [];
+
+      // Filter out current item if editing
+      const filtered = initialData?.id
+        ? items.filter(item => item.id !== initialData.id)
+        : items;
+
+      setMatchingMajors(filtered);
+
+      // Check for exact duplicate
+      const exactMatch = filtered.some(
+        item => item.majorName?.toLowerCase() === searchTerm.toLowerCase()
+      );
+      setIsDuplicate(exactMatch);
+    } catch (error) {
+      console.error("Error searching majors:", error);
+      setMatchingMajors([]);
+      setIsDuplicate(false);
+    } finally {
+      setSearching(false);
+    }
+  }, [initialData?.id]);
+
+  useEffect(() => {
+    searchMajors(debouncedName);
+  }, [debouncedName, searchMajors]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isDuplicate) return;
     const command: CreateMajorCommand | UpdateMajorCommand = {
       majorName: formData.majorName || undefined,
       majorCode: formData.majorCode || undefined,
@@ -92,16 +143,48 @@ export function MajorForm({
         </div>
         <div>
           <Label htmlFor="majorName">{t("form.majorName")} *</Label>
-          <Input
-            id="majorName"
-            value={formData.majorName || ""}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, majorName: e.target.value }))
-            }
-            required
-            disabled={isDisabled}
-            className="mt-1"
-          />
+          <div className="relative">
+            <Input
+              id="majorName"
+              value={formData.majorName || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, majorName: e.target.value }))
+              }
+              required
+              disabled={isDisabled}
+              className={`mt-1 ${isDuplicate ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+              placeholder={t("form.majorNamePlaceholder")}
+            />
+            {searching && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
+                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+              </div>
+            )}
+          </div>
+
+          {/* Duplicate warning */}
+          {isDuplicate && (
+            <div className="mt-2 flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
+              <AlertCircle className="h-4 w-4" />
+              <span>{t("form.duplicateWarning")}</span>
+            </div>
+          )}
+
+          {/* Matching majors list */}
+          {matchingMajors.length > 0 && !isDuplicate && (
+            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                {t("form.similarMajors")}:
+              </p>
+              <ul className="space-y-0.5">
+                {matchingMajors.map((major) => (
+                  <li key={major.id} className="text-sm text-slate-700 dark:text-slate-300">
+                    • {major.majorName} ({major.majorCode})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
         <div>
           <Label htmlFor="majorCode">{t("form.majorCode")} *</Label>
@@ -120,4 +203,3 @@ export function MajorForm({
     </form>
   );
 }
-

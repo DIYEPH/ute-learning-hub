@@ -5,7 +5,7 @@ import { postApiFile } from "@/src/api/database/sdk.gen";
 import type { FileDto } from "@/src/api/database/types.gen";
 import { useNotification } from "@/src/components/ui/notification-center";
 
-export interface UploadedFile extends FileDto {}
+export interface UploadedFile extends FileDto { }
 
 interface UseFileUploadReturn {
   uploadFile: (file: File, category?: string) => Promise<UploadedFile>;
@@ -33,7 +33,7 @@ export function useFileUpload(): UseFileUploadReturn {
         });
 
         const data = (response.data ?? response) as FileDto | undefined;
-        if (!data?.id || !data.fileUrl) {
+        if (!data?.id) {
           throw new Error("Phản hồi upload file không hợp lệ");
         }
 

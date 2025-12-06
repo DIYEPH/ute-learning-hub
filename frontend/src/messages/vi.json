@@ -131,6 +131,7 @@
       "faculties": "Quản lý Khoa",
       "majors": "Quản lý Ngành",
       "types": "Quản lý Loại tài liệu",
+      "tags": "Quản lý Thẻ",
       "notifications": "Quản lý thông báo",
       "conversations": "Quản lý cuộc trò chuyện",
       "statistics": "Thống kê",
@@ -227,9 +228,12 @@
       "searchPlaceholder": "Tìm kiếm theo tên môn học, mã môn học...",
       "form": {
         "subjectName": "Tên môn học",
+        "subjectNamePlaceholder": "Nhập tên môn học...",
         "subjectCode": "Mã môn học",
         "majors": "Ngành học",
-        "selectMultipleHint": "Giữ Ctrl/Cmd để chọn nhiều ngành"
+        "selectMultipleHint": "Giữ Ctrl/Cmd để chọn nhiều ngành",
+        "duplicateWarning": "Tên môn học này đã tồn tại!",
+        "similarSubjects": "Môn học tương tự"
       },
       "table": {
         "loading": "Đang tải...",
@@ -247,7 +251,21 @@
       "importTitle": "Import môn học từ file",
       "importDescription": "Chọn file Excel hoặc CSV để import danh sách môn học",
       "deleteAll": "Xóa tất cả",
-      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} môn học không?"
+      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} môn học không?",
+      "notifications": {
+        "createSuccess": "Đã thêm môn học thành công!",
+        "createError": "Không thể thêm môn học",
+        "updateSuccess": "Đã cập nhật môn học thành công!",
+        "updateError": "Không thể cập nhật môn học",
+        "deleteSuccess": "Đã xóa môn học thành công!",
+        "deleteError": "Không thể xóa môn học",
+        "bulkDeleteSuccess": "Đã xóa {count} môn học thành công!"
+      },
+      "filter": {
+        "deleted": "Trạng thái",
+        "activeItems": "Đang hoạt động",
+        "deletedItems": "Đã xóa"
+      }
     },
     "majors": {
       "title": "Quản lý ngành học",
@@ -260,7 +278,10 @@
         "faculty": "Khoa",
         "selectFaculty": "Chọn khoa",
         "majorName": "Tên ngành",
-        "majorCode": "Mã ngành"
+        "majorNamePlaceholder": "Nhập tên ngành...",
+        "majorCode": "Mã ngành",
+        "duplicateWarning": "Tên ngành này đã tồn tại!",
+        "similarMajors": "Ngành tương tự"
       },
       "table": {
         "loading": "Đang tải...",
@@ -278,7 +299,21 @@
       "importTitle": "Import ngành từ file",
       "importDescription": "Chọn file Excel hoặc CSV để import danh sách ngành",
       "deleteAll": "Xóa tất cả",
-      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} ngành không?"
+      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} ngành không?",
+      "notifications": {
+        "createSuccess": "Đã thêm ngành thành công!",
+        "createError": "Không thể thêm ngành",
+        "updateSuccess": "Đã cập nhật ngành thành công!",
+        "updateError": "Không thể cập nhật ngành",
+        "deleteSuccess": "Đã xóa ngành thành công!",
+        "deleteError": "Không thể xóa ngành",
+        "bulkDeleteSuccess": "Đã xóa {count} ngành thành công!"
+      },
+      "filter": {
+        "deleted": "Trạng thái",
+        "activeItems": "Đang hoạt động",
+        "deletedItems": "Đã xóa"
+      }
     },
     "types": {
       "title": "Quản lý loại tài liệu",
@@ -293,7 +328,10 @@
       "importDescription": "Chọn file Excel hoặc CSV để import danh sách loại tài liệu",
       "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} loại tài liệu không?",
       "form": {
-        "typeName": "Tên loại tài liệu"
+        "typeName": "Tên loại tài liệu",
+        "typeNamePlaceholder": "Nhập tên loại tài liệu...",
+        "duplicateWarning": "Tên loại tài liệu này đã tồn tại!",
+        "similarTypes": "Loại tài liệu tương tự"
       },
       "table": {
         "typeName": "Tên loại tài liệu",
@@ -303,6 +341,20 @@
         "noData": "Không có dữ liệu",
         "selectedCount": "Đã chọn {count}",
         "deleteSelected": "Xóa đã chọn"
+      },
+      "notifications": {
+        "createSuccess": "Đã thêm loại tài liệu thành công!",
+        "createError": "Không thể thêm loại tài liệu",
+        "updateSuccess": "Đã cập nhật loại tài liệu thành công!",
+        "updateError": "Không thể cập nhật loại tài liệu",
+        "deleteSuccess": "Đã xóa loại tài liệu thành công!",
+        "deleteError": "Không thể xóa loại tài liệu",
+        "bulkDeleteSuccess": "Đã xóa {count} loại tài liệu thành công!"
+      },
+      "filter": {
+        "deleted": "Trạng thái",
+        "activeItems": "Đang hoạt động",
+        "deletedItems": "Đã xóa"
       }
     },
     "faculties": {
@@ -313,6 +365,7 @@
       "searchPlaceholder": "Tìm kiếm theo tên khoa, mã khoa...",
       "form": {
         "facultyName": "Tên khoa",
+        "facultyNamePlaceholder": "Nhập tên khoa...",
         "facultyCode": "Mã khoa",
         "logo": "Logo",
         "logoUrl": "URL",
@@ -320,7 +373,9 @@
         "logoUrlPlaceholder": "https://...",
         "uploading": "Đang upload...",
         "logoPreview": "Xem trước logo",
-        "removeLogo": "Xóa logo"
+        "removeLogo": "Xóa logo",
+        "duplicateWarning": "Tên khoa này đã tồn tại!",
+        "similarFaculties": "Khoa tương tự"
       },
       "table": {
         "loading": "Đang tải...",
@@ -338,7 +393,181 @@
       "importTitle": "Import khoa từ file",
       "importDescription": "Chọn file Excel hoặc CSV để import danh sách khoa",
       "deleteAll": "Xóa tất cả",
-      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} khoa không?"
+      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} khoa không?",
+      "notifications": {
+        "createSuccess": "Đã thêm khoa thành công!",
+        "createError": "Không thể thêm khoa",
+        "updateSuccess": "Đã cập nhật khoa thành công!",
+        "updateError": "Không thể cập nhật khoa",
+        "deleteSuccess": "Đã xóa khoa thành công!",
+        "deleteError": "Không thể xóa khoa",
+        "bulkDeleteSuccess": "Đã xóa {count} khoa thành công!"
+      },
+      "filter": {
+        "deleted": "Trạng thái",
+        "activeItems": "Đang hoạt động",
+        "deletedItems": "Đã xóa"
+      }
+    },
+    "notifications": {
+      "title": "Quản lý thông báo",
+      "description": "Tạo và quản lý các thông báo hệ thống",
+      "addNew": "Thêm thông báo",
+      "searchPlaceholder": "Tìm kiếm thông báo...",
+      "items": "thông báo",
+      "table": {
+        "title": "Tiêu đề",
+        "type": "Loại",
+        "priority": "Độ ưu tiên",
+        "isGlobal": "Toàn hệ thống",
+        "createdAt": "Ngày tạo",
+        "expiredAt": "Ngày hết hạn",
+        "yes": "Có",
+        "no": "Không",
+        "edit": "Sửa",
+        "delete": "Xóa",
+        "loading": "Đang tải...",
+        "noData": "Không có thông báo nào",
+        "selectedCount": "Đã chọn {count} thông báo",
+        "deleteSelected": "Xóa đã chọn"
+      },
+      "form": {
+        "title": "Tiêu đề",
+        "titlePlaceholder": "Nhập tiêu đề thông báo...",
+        "content": "Nội dung",
+        "contentPlaceholder": "Nhập nội dung thông báo...",
+        "link": "Đường dẫn",
+        "linkPlaceholder": "Nhập đường dẫn (tùy chọn)...",
+        "type": "Loại thông báo",
+        "priority": "Độ ưu tiên",
+        "isGlobal": "Gửi cho tất cả người dùng",
+        "expiredAt": "Ngày hết hạn",
+        "recipients": "Người nhận",
+        "loadingUsers": "Đang tải danh sách người dùng...",
+        "recipientsRequired": "Vui lòng chọn ít nhất một người nhận",
+        "duplicateWarning": "Thông báo với tiêu đề này đã tồn tại",
+        "similarNotifications": "Thông báo tương tự"
+      },
+      "createModal": {
+        "title": "Thêm thông báo mới",
+        "description": "Điền thông tin để tạo thông báo mới"
+      },
+      "editModal": {
+        "title": "Chỉnh sửa thông báo",
+        "description": "Cập nhật thông tin thông báo"
+      },
+      "deleteModal": {
+        "title": "Xóa thông báo",
+        "description": "Bạn có chắc chắn muốn xóa thông báo này không?"
+      },
+      "bulkDeleteModal": {
+        "title": "Xóa nhiều thông báo",
+        "description": "Bạn có chắc chắn muốn xóa {count} thông báo không?"
+      },
+      "notifications": {
+        "createSuccess": "Đã thêm thông báo thành công!",
+        "createError": "Không thể thêm thông báo",
+        "updateSuccess": "Đã cập nhật thông báo thành công!",
+        "updateError": "Không thể cập nhật thông báo",
+        "deleteSuccess": "Đã xóa thông báo thành công!",
+        "deleteError": "Không thể xóa thông báo",
+        "bulkDeleteSuccess": "Đã xóa {count} thông báo thành công!"
+      },
+      "filter": {
+        "type": "Loại thông báo",
+        "priority": "Độ ưu tiên",
+        "low": "Thấp",
+        "normal": "Bình thường",
+        "high": "Cao",
+        "deleted": "Trạng thái",
+        "activeItems": "Đang hoạt động",
+        "deletedItems": "Đã xóa"
+      },
+      "deleteAll": "Xóa tất cả",
+      "deleteAllModal": {
+        "title": "Xóa tất cả thông báo",
+        "description": "Bạn có chắc chắn muốn xóa tất cả {count} thông báo không?"
+      }
+    },
+    "conversations": {
+      "title": "Quản lý cuộc trò chuyện",
+      "searchPlaceholder": "Tìm kiếm cuộc trò chuyện...",
+      "items": "cuộc trò chuyện",
+      "foundCount": "Tìm thấy {count} cuộc trò chuyện",
+      "table": {
+        "name": "Tên cuộc trò chuyện",
+        "type": "Loại",
+        "status": "Trạng thái",
+        "subject": "Môn học",
+        "members": "Thành viên",
+        "createdAt": "Ngày tạo",
+        "delete": "Xóa",
+        "loading": "Đang tải...",
+        "noData": "Không có cuộc trò chuyện nào",
+        "deleteSelected": "Xóa đã chọn"
+      },
+      "filter": {
+        "type": "Loại cuộc trò chuyện",
+        "status": "Trạng thái",
+        "deleted": "Trạng thái xóa",
+        "active": "Đang hoạt động",
+        "inactive": "Không hoạt động",
+        "archived": "Đã lưu trữ",
+        "activeItems": "Đang hoạt động",
+        "deletedItems": "Đã xóa"
+      },
+      "deleteAll": "Xóa tất cả",
+      "deleteModal": {
+        "title": "Xóa cuộc trò chuyện",
+        "description": "Bạn có chắc chắn muốn xóa cuộc trò chuyện này không?"
+      },
+      "deleteAllModal": {
+        "title": "Xóa tất cả cuộc trò chuyện",
+        "description": "Bạn có chắc chắn muốn xóa tất cả {count} cuộc trò chuyện không?"
+      },
+      "notifications": {
+        "deleteSuccess": "Đã xóa cuộc trò chuyện thành công!",
+        "deleteError": "Không thể xóa cuộc trò chuyện",
+        "bulkDeleteSuccess": "Đã xóa {count} cuộc trò chuyện thành công!"
+      }
+    },
+    "tags": {
+      "title": "Quản lý Thẻ",
+      "createTitle": "Thêm thẻ",
+      "editTitle": "Sửa thẻ",
+      "foundCount": "Tìm thấy {count} thẻ",
+      "searchPlaceholder": "Tìm kiếm theo tên thẻ...",
+      "form": {
+        "tagName": "Tên thẻ",
+        "tagNamePlaceholder": "Nhập tên thẻ...",
+        "duplicateWarning": "Tên thẻ này đã tồn tại!",
+        "similarTags": "Thẻ tương tự"
+      },
+      "table": {
+        "loading": "Đang tải...",
+        "noData": "Không có dữ liệu",
+        "tagName": "Tên thẻ",
+        "edit": "Sửa",
+        "delete": "Xóa",
+        "selectedCount": "{count} mục đã chọn",
+        "deleteSelected": "Xóa đã chọn"
+      },
+      "deleteAll": "Xóa tất cả",
+      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} thẻ không?",
+      "notifications": {
+        "createSuccess": "Đã thêm thẻ thành công!",
+        "createError": "Không thể thêm thẻ",
+        "updateSuccess": "Đã cập nhật thẻ thành công!",
+        "updateError": "Không thể cập nhật thẻ",
+        "deleteSuccess": "Đã xóa thẻ thành công!",
+        "deleteError": "Không thể xóa thẻ",
+        "bulkDeleteSuccess": "Đã xóa {count} thẻ thành công!"
+      },
+      "filter": {
+        "deleted": "Trạng thái",
+        "activeItems": "Đang hoạt động",
+        "deletedItems": "Đã xóa"
+      }
     },
     "events": {
       "title": "Quản lý sự kiện",

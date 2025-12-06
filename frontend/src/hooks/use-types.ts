@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import {
   getApiType,
   getApiTypeById,
@@ -11,122 +11,77 @@ import {
 import type {
   GetApiTypeData,
   GetApiTypeResponse,
-  GetApiTypeByIdResponse,
-  PostApiTypeResponse,
-  PutApiTypeByIdResponse,
   CreateTypeCommand,
   UpdateTypeCommand,
+  TypeDto,
 } from "@/src/api/database/types.gen";
+import { useCrud } from "./use-crud";
 
 export function useTypes() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchTypes = useCallback(
-    async (params?: GetApiTypeData["query"]): Promise<GetApiTypeResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getApiType({ query: params });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tải danh sách loại tài liệu";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+  const crud = useCrud<TypeDto, CreateTypeCommand, UpdateTypeCommand, GetApiTypeData["query"]>({
+    fetchAll: async (params) => {
+      const response = await getApiType({ query: params });
+      return (response as unknown as { data: GetApiTypeResponse })?.data || response as GetApiTypeResponse;
     },
-    []
-  );
-
-  const fetchTypeById = useCallback(
-    async (id: string): Promise<GetApiTypeByIdResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getApiTypeById({ path: { id } });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tải thông tin loại tài liệu";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    fetchById: async (id) => {
+      const response = await getApiTypeById({ path: { id } });
+      return (response as unknown as { data: TypeDto })?.data || response as TypeDto;
     },
-    []
-  );
-
-  const createType = useCallback(
-    async (data: CreateTypeCommand): Promise<PostApiTypeResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await postApiType({ body: data });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tạo loại tài liệu";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    create: async (data) => {
+      const response = await postApiType({ body: data });
+      return (response as unknown as { data: TypeDto })?.data || response as TypeDto;
     },
-    []
-  );
-
-  const updateType = useCallback(
-    async (id: string, data: UpdateTypeCommand): Promise<PutApiTypeByIdResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await putApiTypeById({
-          path: { id },
-          body: data,
-        });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể cập nhật loại tài liệu";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    update: async (id, data) => {
+      const response = await putApiTypeById({ path: { id }, body: data });
+      return (response as unknown as { data: TypeDto })?.data || response as TypeDto;
     },
-    []
-  );
+    delete: async (id) => {
+      await deleteApiTypeById({ path: { id } });
+    },
+    errorMessages: {
+      fetch: "Không thể tải danh sách loại",
+      fetchById: "Không thể tải thông tin loại",
+      create: "Không thể tạo loại",
+      update: "Không thể cập nhật loại",
+      delete: "Không thể xóa loại",
+    },
+  });
 
-  const deleteType = useCallback(
-    async (id: string): Promise<void> => {
-      setLoading(true);
-      setError(null);
+  // Check if type name exists (for duplicate check)
+  const checkNameExists = useCallback(
+    async (name: string, excludeId?: string): Promise<boolean> => {
       try {
-        await deleteApiTypeById({ path: { id } });
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể xóa loại tài liệu";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
+        const response = await getApiType({ query: { SearchTerm: name, Page: 1, PageSize: 10 } });
+        const data = (response as unknown as { data: GetApiTypeResponse })?.data || response as GetApiTypeResponse;
+        const items = data?.items || [];
+
+        return items.some(
+          (item) =>
+            item.typeName?.toLowerCase() === name.toLowerCase() &&
+            item.id !== excludeId
+        );
+      } catch {
+        return false;
       }
     },
     []
   );
 
   return {
-    fetchTypes,
-    fetchTypeById,
-    createType,
-    updateType,
-    deleteType,
-    loading,
-    error,
+    // CRUD operations
+    fetchTypes: crud.fetchItems,
+    fetchTypeById: crud.fetchItemById,
+    createType: crud.createItem,
+    updateType: crud.updateItem,
+    deleteType: crud.deleteItem,
+
+    // State
+    items: crud.items,
+    totalCount: crud.totalCount,
+    loading: crud.loading,
+    error: crud.error,
+
+    // Duplicate check
+    checkNameExists,
   };
 }
-

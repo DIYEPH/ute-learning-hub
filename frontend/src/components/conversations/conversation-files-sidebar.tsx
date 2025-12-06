@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import type { MessageDto, MessageFileDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
+import { getFileUrlById } from "@/src/lib/file-url";
 
 interface ConversationFilesSidebarProps {
   open: boolean;
@@ -123,23 +124,26 @@ export function ConversationFilesSidebar({
                     </h4>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    {images.map((image, idx) => (
-                      <a
-                        key={image.fileId || idx}
-                        href={image.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-sky-500 transition-colors"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={image.fileUrl}
-                          alt={image.fileName || "Image"}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
-                      </a>
-                    ))}
+                    {images.map((image, idx) => {
+                      const imageUrl = getFileUrlById(image.fileId);
+                      return (
+                        <a
+                          key={image.fileId || idx}
+                          href={imageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-sky-500 transition-colors"
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={imageUrl}
+                            alt="Image"
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -154,46 +158,49 @@ export function ConversationFilesSidebar({
                     </h4>
                   </div>
                   <div className="space-y-2">
-                    {otherFiles.map((file, idx) => (
-                      <a
-                        key={file.fileId || idx}
-                        href={file.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
-                      >
-                        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                          <File className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-foreground truncate">
-                            {file.fileName || "Tệp không tên"}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs text-slate-500 dark:text-slate-400">
-                              {formatFileSize(file.fileSize)}
-                            </span>
-                            {file.senderName && (
-                              <>
-                                <span className="text-xs text-slate-400">•</span>
-                                <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
-                                  {file.senderName}
-                                </span>
-                              </>
-                            )}
-                            {file.messageDate && (
-                              <>
-                                <span className="text-xs text-slate-400">•</span>
-                                <span className="text-xs text-slate-500 dark:text-slate-400">
-                                  {formatDate(file.messageDate)}
-                                </span>
-                              </>
-                            )}
+                    {otherFiles.map((file, idx) => {
+                      const fileUrl = getFileUrlById(file.fileId);
+                      return (
+                        <a
+                          key={file.fileId || idx}
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
+                        >
+                          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                            <File className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                           </div>
-                        </div>
-                        <Download className="h-4 w-4 text-slate-400 group-hover:text-sky-500 transition-colors flex-shrink-0" />
-                      </a>
-                    ))}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground truncate">
+                              Tệp đính kèm
+                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                                {formatFileSize(file.fileSize)}
+                              </span>
+                              {file.senderName && (
+                                <>
+                                  <span className="text-xs text-slate-400">•</span>
+                                  <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                    {file.senderName}
+                                  </span>
+                                </>
+                              )}
+                              {file.messageDate && (
+                                <>
+                                  <span className="text-xs text-slate-400">•</span>
+                                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                                    {formatDate(file.messageDate)}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <Download className="h-4 w-4 text-slate-400 group-hover:text-sky-500 transition-colors flex-shrink-0" />
+                        </a>
+                      );
+                    })}
                   </div>
                 </div>
               )}

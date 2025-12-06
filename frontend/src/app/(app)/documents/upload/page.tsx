@@ -34,9 +34,13 @@ export default function UploadDocumentPage() {
         description: data.description || "",
         subjectId: data.subjectId || null,
         typeId: data.typeId!,
-        authorNames:
-          data.authorNames && data.authorNames.length > 0
-            ? data.authorNames
+        authorIds:
+          data.authorIds && data.authorIds.length > 0
+            ? data.authorIds
+            : null,
+        authors:
+          data.authors && data.authors.length > 0
+            ? data.authors
             : null,
         tagIds:
           data.tagIds && data.tagIds.length > 0 ? data.tagIds : null,

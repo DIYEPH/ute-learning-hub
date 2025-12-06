@@ -1,13 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useMajors } from "@/src/hooks/use-majors";
-import type { UpdateSubjectCommand, CreateSubjectCommand, MajorDto2 } from "@/src/api/database/types.gen";
+import { useDebounce } from "@/src/hooks/use-debounce";
+import { getApiSubject } from "@/src/api/database/sdk.gen";
+import type { UpdateSubjectCommand, CreateSubjectCommand, MajorDto2, SubjectDto2 } from "@/src/api/database/types.gen";
+import { AlertCircle, Loader2 } from "lucide-react";
 
 export interface SubjectFormData {
+  id?: string;
   subjectName?: string | null;
   subjectCode?: string | null;
   majorIds?: string[];
@@ -33,9 +37,17 @@ export function SubjectForm({
   });
   const [majors, setMajors] = useState<MajorDto2[]>([]);
 
+  // Debounce search state
+  const [searching, setSearching] = useState(false);
+  const [matchingSubjects, setMatchingSubjects] = useState<SubjectDto2[]>([]);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+
+  const debouncedName = useDebounce(formData.subjectName || "", 400);
+
   useEffect(() => {
     if (initialData) {
       setFormData({
+        id: initialData.id,
         subjectName: initialData.subjectName || null,
         subjectCode: initialData.subjectCode || null,
         majorIds: initialData.majorIds || [],
@@ -57,8 +69,48 @@ export function SubjectForm({
     loadMajors();
   }, [fetchMajors]);
 
+  // Search for matching subjects when name changes
+  const searchSubjects = useCallback(async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      setMatchingSubjects([]);
+      setIsDuplicate(false);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const response = await getApiSubject({ query: { SearchTerm: searchTerm, Page: 1, PageSize: 5 } });
+      const data = (response as unknown as { data: { items?: SubjectDto2[] } })?.data || response as { items?: SubjectDto2[] };
+      const items = data?.items || [];
+
+      // Filter out current item if editing
+      const filtered = initialData?.id
+        ? items.filter(item => item.id !== initialData.id)
+        : items;
+
+      setMatchingSubjects(filtered);
+
+      // Check for exact duplicate
+      const exactMatch = filtered.some(
+        item => item.subjectName?.toLowerCase() === searchTerm.toLowerCase()
+      );
+      setIsDuplicate(exactMatch);
+    } catch (error) {
+      console.error("Error searching subjects:", error);
+      setMatchingSubjects([]);
+      setIsDuplicate(false);
+    } finally {
+      setSearching(false);
+    }
+  }, [initialData?.id]);
+
+  useEffect(() => {
+    searchSubjects(debouncedName);
+  }, [debouncedName, searchSubjects]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isDuplicate) return;
     const command: CreateSubjectCommand | UpdateSubjectCommand = {
       subjectName: formData.subjectName || undefined,
       subjectCode: formData.subjectCode || undefined,
@@ -80,16 +132,48 @@ export function SubjectForm({
       <div className="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="subjectName">{t("form.subjectName")} *</Label>
-          <Input
-            id="subjectName"
-            value={formData.subjectName || ""}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, subjectName: e.target.value }))
-            }
-            required
-            disabled={isDisabled}
-            className="mt-1"
-          />
+          <div className="relative">
+            <Input
+              id="subjectName"
+              value={formData.subjectName || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, subjectName: e.target.value }))
+              }
+              required
+              disabled={isDisabled}
+              className={`mt-1 ${isDuplicate ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+              placeholder={t("form.subjectNamePlaceholder")}
+            />
+            {searching && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
+                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+              </div>
+            )}
+          </div>
+
+          {/* Duplicate warning */}
+          {isDuplicate && (
+            <div className="mt-2 flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
+              <AlertCircle className="h-4 w-4" />
+              <span>{t("form.duplicateWarning")}</span>
+            </div>
+          )}
+
+          {/* Matching subjects list */}
+          {matchingSubjects.length > 0 && !isDuplicate && (
+            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                {t("form.similarSubjects")}:
+              </p>
+              <ul className="space-y-0.5">
+                {matchingSubjects.map((subject) => (
+                  <li key={subject.id} className="text-sm text-slate-700 dark:text-slate-300">
+                    • {subject.subjectName} ({subject.subjectCode})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
         <div>
           <Label htmlFor="subjectCode">{t("form.subjectCode")} *</Label>
@@ -132,4 +216,3 @@ export function SubjectForm({
     </form>
   );
 }
-

@@ -131,6 +131,7 @@
       "faculties": "Faculty Management",
       "majors": "Major Management",
       "types": "Document Types",
+      "tags": "Tags Management",
       "notifications": "Notification Management",
       "conversations": "Conversation Management",
       "statistics": "Statistics",
@@ -247,7 +248,21 @@
       "importTitle": "Import Subjects from File",
       "importDescription": "Select an Excel or CSV file to import subject list",
       "deleteAll": "Delete All",
-      "deleteAllConfirm": "Are you sure you want to delete {count} subjects?"
+      "deleteAllConfirm": "Are you sure you want to delete {count} subjects?",
+      "notifications": {
+        "createSuccess": "Subject added successfully!",
+        "createError": "Failed to add subject",
+        "updateSuccess": "Subject updated successfully!",
+        "updateError": "Failed to update subject",
+        "deleteSuccess": "Subject deleted successfully!",
+        "deleteError": "Failed to delete subject",
+        "bulkDeleteSuccess": "Deleted {count} subjects successfully!"
+      },
+      "filter": {
+        "deleted": "Status",
+        "activeItems": "Active",
+        "deletedItems": "Deleted"
+      }
     },
     "majors": {
       "title": "Major Management",
@@ -278,7 +293,21 @@
       "importTitle": "Import Majors from File",
       "importDescription": "Select an Excel or CSV file to import major list",
       "deleteAll": "Delete All",
-      "deleteAllConfirm": "Are you sure you want to delete {count} majors?"
+      "deleteAllConfirm": "Are you sure you want to delete {count} majors?",
+      "notifications": {
+        "createSuccess": "Major added successfully!",
+        "createError": "Failed to add major",
+        "updateSuccess": "Major updated successfully!",
+        "updateError": "Failed to update major",
+        "deleteSuccess": "Major deleted successfully!",
+        "deleteError": "Failed to delete major",
+        "bulkDeleteSuccess": "Deleted {count} majors successfully!"
+      },
+      "filter": {
+        "deleted": "Status",
+        "activeItems": "Active",
+        "deletedItems": "Deleted"
+      }
     },
     "types": {
       "title": "Document Types Management",
@@ -293,7 +322,10 @@
       "importDescription": "Select an Excel or CSV file to import document types list",
       "deleteAllConfirm": "Are you sure you want to delete {count} document types?",
       "form": {
-        "typeName": "Type Name"
+        "typeName": "Type Name",
+        "typeNamePlaceholder": "Enter type name...",
+        "duplicateWarning": "This type name already exists!",
+        "similarTypes": "Similar types"
       },
       "table": {
         "typeName": "Type Name",
@@ -303,6 +335,20 @@
         "noData": "No data",
         "selectedCount": "Selected {count}",
         "deleteSelected": "Delete Selected"
+      },
+      "notifications": {
+        "createSuccess": "Document type added successfully!",
+        "createError": "Failed to add document type",
+        "updateSuccess": "Document type updated successfully!",
+        "updateError": "Failed to update document type",
+        "deleteSuccess": "Document type deleted successfully!",
+        "deleteError": "Failed to delete document type",
+        "bulkDeleteSuccess": "Deleted {count} document types successfully!"
+      },
+      "filter": {
+        "deleted": "Status",
+        "activeItems": "Active",
+        "deletedItems": "Deleted"
       }
     },
     "faculties": {
@@ -338,7 +384,181 @@
       "importTitle": "Import Faculties from File",
       "importDescription": "Select an Excel or CSV file to import faculty list",
       "deleteAll": "Delete All",
-      "deleteAllConfirm": "Are you sure you want to delete {count} faculties?"
+      "deleteAllConfirm": "Are you sure you want to delete {count} faculties?",
+      "notifications": {
+        "createSuccess": "Faculty added successfully!",
+        "createError": "Failed to add faculty",
+        "updateSuccess": "Faculty updated successfully!",
+        "updateError": "Failed to update faculty",
+        "deleteSuccess": "Faculty deleted successfully!",
+        "deleteError": "Failed to delete faculty",
+        "bulkDeleteSuccess": "Deleted {count} faculties successfully!"
+      },
+      "filter": {
+        "deleted": "Status",
+        "activeItems": "Active",
+        "deletedItems": "Deleted"
+      }
+    },
+    "notifications": {
+      "title": "Notification Management",
+      "description": "Create and manage system notifications",
+      "addNew": "Add Notification",
+      "searchPlaceholder": "Search notifications...",
+      "items": "notifications",
+      "table": {
+        "title": "Title",
+        "type": "Type",
+        "priority": "Priority",
+        "isGlobal": "Global",
+        "createdAt": "Created At",
+        "expiredAt": "Expires At",
+        "yes": "Yes",
+        "no": "No",
+        "edit": "Edit",
+        "delete": "Delete",
+        "loading": "Loading...",
+        "noData": "No notifications found",
+        "selectedCount": "{count} notifications selected",
+        "deleteSelected": "Delete Selected"
+      },
+      "form": {
+        "title": "Title",
+        "titlePlaceholder": "Enter notification title...",
+        "content": "Content",
+        "contentPlaceholder": "Enter notification content...",
+        "link": "Link",
+        "linkPlaceholder": "Enter link (optional)...",
+        "type": "Notification Type",
+        "priority": "Priority",
+        "isGlobal": "Send to all users",
+        "expiredAt": "Expires At",
+        "recipients": "Recipients",
+        "loadingUsers": "Loading users...",
+        "recipientsRequired": "Please select at least one recipient",
+        "duplicateWarning": "A notification with this title already exists",
+        "similarNotifications": "Similar notifications"
+      },
+      "createModal": {
+        "title": "Add New Notification",
+        "description": "Fill in the information to create a new notification"
+      },
+      "editModal": {
+        "title": "Edit Notification",
+        "description": "Update the notification information"
+      },
+      "deleteModal": {
+        "title": "Delete Notification",
+        "description": "Are you sure you want to delete this notification?"
+      },
+      "bulkDeleteModal": {
+        "title": "Delete Multiple Notifications",
+        "description": "Are you sure you want to delete {count} notifications?"
+      },
+      "notifications": {
+        "createSuccess": "Notification added successfully!",
+        "createError": "Could not add notification",
+        "updateSuccess": "Notification updated successfully!",
+        "updateError": "Could not update notification",
+        "deleteSuccess": "Notification deleted successfully!",
+        "deleteError": "Could not delete notification",
+        "bulkDeleteSuccess": "Successfully deleted {count} notifications!"
+      },
+      "filter": {
+        "type": "Notification Type",
+        "priority": "Priority",
+        "low": "Low",
+        "normal": "Normal",
+        "high": "High",
+        "deleted": "Status",
+        "activeItems": "Active",
+        "deletedItems": "Deleted"
+      },
+      "deleteAll": "Delete All",
+      "deleteAllModal": {
+        "title": "Delete All Notifications",
+        "description": "Are you sure you want to delete all {count} notifications?"
+      }
+    },
+    "conversations": {
+      "title": "Conversation Management",
+      "searchPlaceholder": "Search conversations...",
+      "items": "conversations",
+      "foundCount": "Found {count} conversations",
+      "table": {
+        "name": "Conversation Name",
+        "type": "Type",
+        "status": "Status",
+        "subject": "Subject",
+        "members": "Members",
+        "createdAt": "Created At",
+        "delete": "Delete",
+        "loading": "Loading...",
+        "noData": "No conversations found",
+        "deleteSelected": "Delete Selected"
+      },
+      "filter": {
+        "type": "Conversation Type",
+        "status": "Status",
+        "deleted": "Delete Status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "archived": "Archived",
+        "activeItems": "Active Items",
+        "deletedItems": "Deleted Items"
+      },
+      "deleteAll": "Delete All",
+      "deleteModal": {
+        "title": "Delete Conversation",
+        "description": "Are you sure you want to delete this conversation?"
+      },
+      "deleteAllModal": {
+        "title": "Delete All Conversations",
+        "description": "Are you sure you want to delete all {count} conversations?"
+      },
+      "notifications": {
+        "deleteSuccess": "Conversation deleted successfully!",
+        "deleteError": "Could not delete conversation",
+        "bulkDeleteSuccess": "Successfully deleted {count} conversations!"
+      }
+    },
+    "tags": {
+      "title": "Tags Management",
+      "createTitle": "Create Tag",
+      "editTitle": "Edit Tag",
+      "foundCount": "Found {count} tags",
+      "searchPlaceholder": "Search by tag name...",
+      "form": {
+        "tagName": "Tag Name",
+        "tagNamePlaceholder": "Enter tag name...",
+        "duplicateWarning": "This tag name already exists!",
+        "similarTags": "Similar tags"
+      },
+      "table": {
+        "loading": "Loading...",
+        "noData": "No data",
+        "tagName": "Tag Name",
+        "edit": "Edit",
+        "delete": "Delete",
+        "selectedCount": "{count} items selected",
+        "deleteSelected": "Delete Selected"
+      },
+      "deleteAll": "Delete All",
+      "deleteAllConfirm": "Are you sure you want to delete {count} tags?",
+      "notifications": {
+        "createSuccess": "Tag added successfully!",
+        "createError": "Could not add tag",
+        "updateSuccess": "Tag updated successfully!",
+        "updateError": "Could not update tag",
+        "deleteSuccess": "Tag deleted successfully!",
+        "deleteError": "Could not delete tag",
+        "bulkDeleteSuccess": "Successfully deleted {count} tags!"
+      },
+      "filter": {
+        "deleted": "Status",
+        "activeItems": "Active",
+        "deletedItems": "Deleted"
+      }
     },
     "events": {
       "title": "Event Management",

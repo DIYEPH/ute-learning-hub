@@ -8,7 +8,7 @@ export function getAccessToken(): string | undefined {
   return localStorage.getItem(ACCESS_TOKEN_KEY) || undefined;
 }
 
-export function setAccessToken(token?: string) {
+export function setAccessToken(token?: string): void {
   if (typeof window === 'undefined') return;
 
   if (token) {
@@ -17,8 +17,11 @@ export function setAccessToken(token?: string) {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
   }
 
-  // Phát sự kiện auth-changed để các hook (useAuthState, useUserProfile, ...) cập nhật
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+}
+
+export function isAuthenticated(): boolean {
+  return !!getAccessToken();
 }
 
 export function getBearerToken(): string | undefined {
@@ -26,59 +29,43 @@ export function getBearerToken(): string | undefined {
   return token ? `Bearer ${token}` : undefined;
 }
 
+export const authEvents = {
+  AUTH_CHANGED_EVENT,
+};
+
+// ============ Axios Configuration ============
 client.setConfig({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7080',
 });
 
 if (typeof window !== 'undefined') {
+  // Request interceptor: Add Authorization header
   client.instance.interceptors.request.use(
     (config) => {
       if (!config.headers.Authorization) {
-        const token = getBearerToken();
+        const token = getAccessToken();
         if (token) {
-          config.headers.Authorization = token;
+          config.headers.Authorization = `Bearer ${token}`;
         }
       }
       return config;
     },
-    (error) => {
-      return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
   );
 
+  // Response interceptor: Handle 401
   client.instance.interceptors.response.use(
     (response) => response,
     (error) => {
-      const status = error?.response?.status;
-
-      // Nếu server trả 401 thì xóa token, bắn sự kiện auth-changed và chuyển về trang chủ
-      if (status === 401) {
+      if (error?.response?.status === 401) {
         setAccessToken(undefined);
 
-        try {
-          if (typeof window !== 'undefined') {
-            // Đánh dấu để mở modal login sau khi reload
-            window.localStorage.setItem('auth_show_login', '1');
-
-            // Nếu không ở trang chủ thì điều hướng về "/"
-            if (window.location.pathname !== '/') {
-              window.location.href = '/';
-            }
-          }
-        } catch {
-          // ignore
+        // Redirect to home if not already there
+        if (window.location.pathname !== '/') {
+          window.location.href = '/';
         }
       }
-
       return Promise.reject(error);
     }
   );
 }
-
-export function isAuthenticated(): boolean {
-  return !!getAccessToken();
-}
-
-export const authEvents = {
-  AUTH_CHANGED_EVENT,
-};

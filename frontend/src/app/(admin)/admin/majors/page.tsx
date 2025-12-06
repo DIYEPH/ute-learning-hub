@@ -7,6 +7,7 @@ import { Plus, Upload, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMajors } from "@/src/hooks/use-majors";
 import { useFaculties } from "@/src/hooks/use-faculties";
+import { useNotification } from "@/src/components/ui/notification-center";
 import { MajorTable } from "@/src/components/admin/majors/major-table";
 import { MajorForm } from "@/src/components/admin/majors/major-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
@@ -24,6 +25,7 @@ import type {
 export default function MajorsManagementPage() {
   const t = useTranslations("admin.majors");
   const tCommon = useTranslations("common");
+  const notification = useNotification();
   const {
     fetchMajors,
     createMajor,
@@ -39,9 +41,10 @@ export default function MajorsManagementPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Filter states
   const [facultyId, setFacultyId] = useState<string | null>(null);
+  const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
   const [faculties, setFaculties] = useState<FacultyDto2[]>([]);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
@@ -58,6 +61,7 @@ export default function MajorsManagementPage() {
       const response = await fetchMajors({
         SearchTerm: searchTerm || undefined,
         FacultyId: facultyId || undefined,
+        IsDeleted: deletedFilter === "true" ? true : deletedFilter === "false" ? false : undefined,
         Page: page,
         PageSize: pageSize,
       });
@@ -69,7 +73,7 @@ export default function MajorsManagementPage() {
     } catch (err) {
       console.error("Error loading majors:", err);
     }
-  }, [fetchMajors, searchTerm, facultyId, page, pageSize]);
+  }, [fetchMajors, searchTerm, facultyId, deletedFilter, page, pageSize]);
 
   useEffect(() => {
     const loadFacultiesForFilter = async () => {
@@ -102,8 +106,10 @@ export default function MajorsManagementPage() {
       await createMajor(command as CreateMajorCommand);
       await loadMajors();
       setCreateModalOpen(false);
+      notification.success(t("notifications.createSuccess"));
     } catch (err) {
       console.error("Error creating major:", err);
+      notification.error(t("notifications.createError"));
     } finally {
       setFormLoading(false);
     }
@@ -117,8 +123,10 @@ export default function MajorsManagementPage() {
       await loadMajors();
       setEditModalOpen(false);
       setSelectedMajor(null);
+      notification.success(t("notifications.updateSuccess"));
     } catch (err) {
       console.error("Error updating major:", err);
+      notification.error(t("notifications.updateError"));
     } finally {
       setFormLoading(false);
     }
@@ -132,8 +140,10 @@ export default function MajorsManagementPage() {
       await loadMajors();
       setDeleteModalOpen(false);
       setSelectedMajor(null);
+      notification.success(t("notifications.deleteSuccess"));
     } catch (err) {
       console.error("Error deleting major:", err);
+      notification.error(t("notifications.deleteError"));
     } finally {
       setFormLoading(false);
     }
@@ -154,7 +164,7 @@ export default function MajorsManagementPage() {
   const handleDeleteAll = async () => {
     if (majors.length === 0) return;
     if (!confirm(t("deleteAllConfirm", { count: majors.length }))) return;
-    
+
     setFormLoading(true);
     try {
       const ids = majors.map((m) => m.id).filter((id): id is string => !!id);
@@ -189,6 +199,8 @@ export default function MajorsManagementPage() {
   const handleFilterChange = (key: string, value: any) => {
     if (key === "facultyId") {
       setFacultyId(value);
+    } else if (key === "deleted") {
+      setDeletedFilter(value);
     }
     setPage(1);
   };
@@ -196,6 +208,7 @@ export default function MajorsManagementPage() {
   const handleReset = () => {
     setSearchTerm("");
     setFacultyId(null);
+    setDeletedFilter(null);
     setSortKey(null);
     setSortDirection(null);
     setPage(1);
@@ -215,9 +228,19 @@ export default function MajorsManagementPage() {
         .filter((f): f is FacultyDto2 & { id: string } => !!f?.id)
         .map((faculty) => ({
           value: faculty.id,
-          label: `${faculty.facultyName || ""} (${faculty.facultyCode || ""})`,
+          label: `${faculty.facultyName || ""} (${faculty.facultyCode || ""})`
         })),
       value: facultyId,
+    },
+    {
+      key: "deleted",
+      label: t("filter.deleted"),
+      type: "select",
+      options: [
+        { value: "false", label: t("filter.activeItems") },
+        { value: "true", label: t("filter.deletedItems") },
+      ],
+      value: deletedFilter,
     },
   ];
 
@@ -233,10 +256,10 @@ export default function MajorsManagementPage() {
             {t("import")}
           </Button>
           {majors.length > 0 && (
-            <Button 
-              onClick={handleDeleteAll} 
-              variant="destructive" 
-              size="sm" 
+            <Button
+              onClick={handleDeleteAll}
+              variant="destructive"
+              size="sm"
               className="text-xs sm:text-sm"
               disabled={formLoading}
             >

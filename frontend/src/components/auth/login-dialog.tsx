@@ -21,26 +21,26 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [emailOrUsername, setEmailOrUsername] = useState('');
     const [password, setPassword] = useState('');
-    const { handleMicrosoftLogin, handleEmailPasswordLogin, loading, error } = useAuth();
+    const { handleMicrosoftLogin, handleLogin, loading, error } = useAuth();
     const router = useRouter();
 
     const handleEmailPasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!emailOrUsername.trim() || !password.trim()) {
             return;
         }
 
         try {
-            const result = await handleEmailPasswordLogin(emailOrUsername.trim(), password);
+            const result = await handleLogin(emailOrUsername.trim(), password);
             if (result) {
                 // Đóng dialog sau khi login thành công
                 onOpenChange(false);
-                
+
                 // Reset form
                 setEmailOrUsername('');
                 setPassword('');
-                
+
                 // Reload page để update auth state
                 router.refresh();
             }
@@ -56,14 +56,11 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             if (result) {
                 // Đóng dialog sau khi login thành công
                 onOpenChange(false);
-                
+
                 // Reload page để update auth state
                 router.refresh();
-                
-                // Redirect nếu cần setup
-                if (result.requiresSetup) {
-                    router.push('/profile');
-                }
+
+
             }
         } catch (error) {
             // Error đã được handle trong hook
@@ -79,7 +76,7 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         {error}
                     </div>
                 )}
-                
+
                 <div className="space-y-1">
                     <Label>{t('emailOrUsername')}</Label>
                     <InputWithIcon
@@ -108,7 +105,7 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         {t('forgotPassword')}
                     </div>
                 </div>
-                <Button 
+                <Button
                     type="submit"
                     className="w-full h-11 rounded-full text-base"
                     disabled={loading || !emailOrUsername.trim() || !password.trim()}
@@ -125,7 +122,7 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         </span>
                     </div>
                 </div>
-                <Button 
+                <Button
                     type="button"
                     className="w-full h-11 rounded-full text-base"
                     onClick={handleMicrosoftLoginClick}

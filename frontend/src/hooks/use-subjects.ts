@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
 import {
   getApiSubject,
   getApiSubjectById,
@@ -11,122 +11,77 @@ import {
 import type {
   GetApiSubjectData,
   GetApiSubjectResponse,
-  GetApiSubjectByIdResponse,
-  PostApiSubjectResponse,
-  PutApiSubjectByIdResponse,
   CreateSubjectCommand,
   UpdateSubjectCommand,
+  SubjectDto2,
 } from "@/src/api/database/types.gen";
+import { useCrud } from "./use-crud";
 
 export function useSubjects() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchSubjects = useCallback(
-    async (params?: GetApiSubjectData["query"]): Promise<GetApiSubjectResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getApiSubject({ query: params });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tải danh sách môn học";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+  const crud = useCrud<SubjectDto2, CreateSubjectCommand, UpdateSubjectCommand, GetApiSubjectData["query"]>({
+    fetchAll: async (params) => {
+      const response = await getApiSubject({ query: params });
+      return (response as unknown as { data: GetApiSubjectResponse })?.data || response as GetApiSubjectResponse;
     },
-    []
-  );
-
-  const fetchSubjectById = useCallback(
-    async (id: string): Promise<GetApiSubjectByIdResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getApiSubjectById({ path: { id } });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tải thông tin môn học";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    fetchById: async (id) => {
+      const response = await getApiSubjectById({ path: { id } });
+      return (response as unknown as { data: SubjectDto2 })?.data || response as SubjectDto2;
     },
-    []
-  );
-
-  const createSubject = useCallback(
-    async (data: CreateSubjectCommand): Promise<PostApiSubjectResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await postApiSubject({ body: data });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể tạo môn học";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    create: async (data) => {
+      const response = await postApiSubject({ body: data });
+      return (response as unknown as { data: SubjectDto2 })?.data || response as SubjectDto2;
     },
-    []
-  );
-
-  const updateSubject = useCallback(
-    async (id: string, data: UpdateSubjectCommand): Promise<PutApiSubjectByIdResponse | null> => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await putApiSubjectById({
-          path: { id },
-          body: data,
-        });
-        return (response as any)?.data || response;
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể cập nhật môn học";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
+    update: async (id, data) => {
+      const response = await putApiSubjectById({ path: { id }, body: data });
+      return (response as unknown as { data: SubjectDto2 })?.data || response as SubjectDto2;
     },
-    []
-  );
+    delete: async (id) => {
+      await deleteApiSubjectById({ path: { id } });
+    },
+    errorMessages: {
+      fetch: "Không thể tải danh sách môn học",
+      fetchById: "Không thể tải thông tin môn học",
+      create: "Không thể tạo môn học",
+      update: "Không thể cập nhật môn học",
+      delete: "Không thể xóa môn học",
+    },
+  });
 
-  const deleteSubject = useCallback(
-    async (id: string): Promise<void> => {
-      setLoading(true);
-      setError(null);
+  // Check if subject name exists (for duplicate check)
+  const checkNameExists = useCallback(
+    async (name: string, excludeId?: string): Promise<boolean> => {
       try {
-        await deleteApiSubjectById({ path: { id } });
-      } catch (err: any) {
-        const errorMessage =
-          err?.response?.data?.message || err?.message || "Không thể xóa môn học";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setLoading(false);
+        const response = await getApiSubject({ query: { SearchTerm: name, Page: 1, PageSize: 10 } });
+        const data = (response as unknown as { data: GetApiSubjectResponse })?.data || response as GetApiSubjectResponse;
+        const items = data?.items || [];
+
+        return items.some(
+          (item) =>
+            item.subjectName?.toLowerCase() === name.toLowerCase() &&
+            item.id !== excludeId
+        );
+      } catch {
+        return false;
       }
     },
     []
   );
 
   return {
-    fetchSubjects,
-    fetchSubjectById,
-    createSubject,
-    updateSubject,
-    deleteSubject,
-    loading,
-    error,
+    // CRUD operations
+    fetchSubjects: crud.fetchItems,
+    fetchSubjectById: crud.fetchItemById,
+    createSubject: crud.createItem,
+    updateSubject: crud.updateItem,
+    deleteSubject: crud.deleteItem,
+
+    // State
+    items: crud.items,
+    totalCount: crud.totalCount,
+    loading: crud.loading,
+    error: crud.error,
+
+    // Duplicate check
+    checkNameExists,
   };
 }
-

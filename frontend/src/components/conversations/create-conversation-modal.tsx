@@ -11,6 +11,7 @@ import { postApiConversation, getApiTag } from "@/src/api/database/sdk.gen";
 import type { CreateConversationCommand, SubjectDto2, TagDto } from "@/src/api/database/types.gen";
 import { useFileUpload } from "@/src/hooks/use-file-upload";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
+import { getFileUrlById } from "@/src/lib/file-url";
 
 interface CreateConversationModalProps {
   open: boolean;
@@ -43,6 +44,8 @@ export function CreateConversationModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [avatarFileInput, setAvatarFileInput] = useState<HTMLInputElement | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
@@ -58,6 +61,8 @@ export function CreateConversationModal({
       setSelectedTagIds([]);
       setNewTagInput("");
       setError(null);
+      setAvatarFile(null);
+      setAvatarPreview(null);
     }
   }, [open]);
 
@@ -107,10 +112,18 @@ export function CreateConversationModal({
         tagNamesToSubmit.push(newTagInput.trim());
       }
 
+      // Upload avatar nếu có
+      let avatarUrl: string | undefined;
+      if (avatarFile) {
+        const uploaded = await uploadFile(avatarFile, "AvatarConversation");
+        avatarUrl = uploaded.id ? getFileUrlById(uploaded.id) : undefined;
+      }
+
       const submitData: CreateConversationCommand = {
         ...formData,
         tagIds: selectedTagIds.length > 0 ? selectedTagIds : undefined,
         tagNames: tagNamesToSubmit.length > 0 ? tagNamesToSubmit : undefined,
+        avatarUrl: avatarUrl,
       };
 
       const response = await postApiConversation({
@@ -151,7 +164,7 @@ export function CreateConversationModal({
             {/* Avatar nhóm */}
             <div className="flex flex-col items-center gap-2">
               <Avatar className="h-12 w-12">
-                <AvatarImage src={formData.avatarUrl || undefined} alt={formData.conversationName || "Avatar nhóm"} />
+                <AvatarImage src={avatarPreview || undefined} alt={formData.conversationName || "Avatar nhóm"} />
                 <AvatarFallback>
                   <ImageIcon className="h-5 w-5" />
                 </AvatarFallback>
@@ -178,20 +191,14 @@ export function CreateConversationModal({
                 accept="image/*"
                 className="hidden"
                 ref={(el) => setAvatarFileInput(el)}
-                onChange={async (e) => {
+                onChange={(e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
-                  try {
-                    const uploaded = await uploadFile(file, "AvatarConversation");
-                    if (uploaded.fileUrl) {
-                      setFormData((prev) => ({
-                        ...prev,
-                        avatarUrl: uploaded.fileUrl,
-                      }));
-                    }
-                  } finally {
-                    e.target.value = "";
-                  }
+                  setAvatarFile(file);
+                  // Tạo preview URL
+                  const previewUrl = URL.createObjectURL(file);
+                  setAvatarPreview(previewUrl);
+                  e.target.value = "";
                 }}
               />
             </div>

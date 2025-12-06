@@ -6,6 +6,7 @@ import { Pagination } from "@/src/components/ui/pagination";
 import { Plus, Upload, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTypes } from "@/src/hooks/use-types";
+import { useNotification } from "@/src/components/ui/notification-center";
 import { TypeTable } from "@/src/components/admin/types/type-table";
 import { TypeForm } from "@/src/components/admin/types/type-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
@@ -22,6 +23,7 @@ import type {
 export default function TypesManagementPage() {
   const t = useTranslations("admin.types");
   const tCommon = useTranslations("common");
+  const notification = useNotification();
   const {
     fetchTypes,
     createType,
@@ -36,6 +38,7 @@ export default function TypesManagementPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -50,6 +53,7 @@ export default function TypesManagementPage() {
     try {
       const response = await fetchTypes({
         SearchTerm: searchTerm || undefined,
+        IsDeleted: deletedFilter === "true" ? true : deletedFilter === "false" ? false : undefined,
         Page: page,
         PageSize: pageSize,
       });
@@ -61,7 +65,7 @@ export default function TypesManagementPage() {
     } catch (err) {
       console.error("Error loading types:", err);
     }
-  }, [fetchTypes, searchTerm, page, pageSize]);
+  }, [fetchTypes, searchTerm, deletedFilter, page, pageSize]);
 
   useEffect(() => {
     loadTypes();
@@ -73,8 +77,10 @@ export default function TypesManagementPage() {
       await createType(command as CreateTypeCommand);
       await loadTypes();
       setCreateModalOpen(false);
+      notification.success(t("notifications.createSuccess"));
     } catch (err) {
       console.error("Error creating type:", err);
+      notification.error(t("notifications.createError"));
     } finally {
       setFormLoading(false);
     }
@@ -88,8 +94,10 @@ export default function TypesManagementPage() {
       await loadTypes();
       setEditModalOpen(false);
       setSelectedType(null);
+      notification.success(t("notifications.updateSuccess"));
     } catch (err) {
       console.error("Error updating type:", err);
+      notification.error(t("notifications.updateError"));
     } finally {
       setFormLoading(false);
     }
@@ -103,8 +111,10 @@ export default function TypesManagementPage() {
       await loadTypes();
       setDeleteModalOpen(false);
       setSelectedType(null);
+      notification.success(t("notifications.deleteSuccess"));
     } catch (err) {
       console.error("Error deleting type:", err);
+      notification.error(t("notifications.deleteError"));
     } finally {
       setFormLoading(false);
     }
@@ -115,8 +125,10 @@ export default function TypesManagementPage() {
     try {
       await Promise.all(ids.map((id) => deleteType(id)));
       await loadTypes();
+      notification.success(t("notifications.bulkDeleteSuccess", { count: ids.length }));
     } catch (err) {
       console.error("Error bulk deleting types:", err);
+      notification.error(t("notifications.deleteError"));
     } finally {
       setFormLoading(false);
     }
@@ -139,7 +151,7 @@ export default function TypesManagementPage() {
   const handleDeleteAll = async () => {
     if (types.length === 0) return;
     if (!confirm(t("deleteAllConfirm", { count: types.length }))) return;
-    
+
     setFormLoading(true);
     try {
       const ids = types.map((t) => t.id).filter((id): id is string => !!id);
@@ -159,8 +171,16 @@ export default function TypesManagementPage() {
 
   const handleReset = () => {
     setSearchTerm("");
+    setDeletedFilter(null);
     setSortKey(null);
     setSortDirection(null);
+    setPage(1);
+  };
+
+  const handleFilterChange = (key: string, value: string | null) => {
+    if (key === "deleted") {
+      setDeletedFilter(value);
+    }
     setPage(1);
   };
 
@@ -181,10 +201,10 @@ export default function TypesManagementPage() {
             {t("import")}
           </Button>
           {types.length > 0 && (
-            <Button 
-              onClick={handleDeleteAll} 
-              variant="destructive" 
-              size="sm" 
+            <Button
+              onClick={handleDeleteAll}
+              variant="destructive"
+              size="sm"
               className="text-xs sm:text-sm"
               disabled={formLoading}
             >
@@ -204,7 +224,19 @@ export default function TypesManagementPage() {
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           onSearchSubmit={handleSearch}
-          filters={[]}
+          filters={[
+            {
+              key: "deleted",
+              label: t("filter.deleted"),
+              type: "select",
+              value: deletedFilter,
+              options: [
+                { value: "false", label: t("filter.activeItems") },
+                { value: "true", label: t("filter.deletedItems") },
+              ],
+            },
+          ]}
+          onFilterChange={handleFilterChange}
           onReset={handleReset}
           placeholder={t("searchPlaceholder")}
         />

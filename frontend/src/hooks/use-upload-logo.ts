@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useFileUpload } from "@/src/hooks/use-file-upload";
+import { getFileUrlById } from "@/src/lib/file-url";
 
 interface UseUploadLogoReturn {
   uploadLogo: (file: File) => Promise<string | null>;
@@ -19,7 +20,7 @@ export function useUploadLogo(): UseUploadLogoReturn {
       try {
         // Không truyền category để FileController dùng rule ảnh mặc định
         const uploaded = await uploadFile(file);
-        return uploaded.fileUrl || null;
+        return uploaded.id ? getFileUrlById(uploaded.id) : null;
       } catch (err: any) {
         const message =
           err?.response?.data?.message ||

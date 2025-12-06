@@ -7,6 +7,7 @@ import { Plus, Upload, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useMajors } from "@/src/hooks/use-majors";
+import { useNotification } from "@/src/components/ui/notification-center";
 import { SubjectTable } from "@/src/components/admin/subjects/subject-table";
 import { SubjectForm } from "@/src/components/admin/subjects/subject-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
@@ -24,6 +25,7 @@ import type {
 export default function SubjectsManagementPage() {
   const t = useTranslations("admin.subjects");
   const tCommon = useTranslations("common");
+  const notification = useNotification();
   const {
     fetchSubjects,
     createSubject,
@@ -39,9 +41,10 @@ export default function SubjectsManagementPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Filter states
   const [majorIds, setMajorIds] = useState<string[]>([]);
+  const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
   const [majors, setMajors] = useState<MajorDto2[]>([]);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
@@ -58,6 +61,7 @@ export default function SubjectsManagementPage() {
       const response = await fetchSubjects({
         SearchTerm: searchTerm || undefined,
         MajorIds: majorIds.length > 0 ? majorIds : undefined,
+        IsDeleted: deletedFilter === "true" ? true : deletedFilter === "false" ? false : undefined,
         Page: page,
         PageSize: pageSize,
       });
@@ -69,7 +73,7 @@ export default function SubjectsManagementPage() {
     } catch (err) {
       console.error("Error loading subjects:", err);
     }
-  }, [fetchSubjects, searchTerm, majorIds, page, pageSize]);
+  }, [fetchSubjects, searchTerm, majorIds, deletedFilter, page, pageSize]);
 
   useEffect(() => {
     const loadMajorsForFilter = async () => {
@@ -95,8 +99,10 @@ export default function SubjectsManagementPage() {
       await createSubject(command as CreateSubjectCommand);
       await loadSubjects();
       setCreateModalOpen(false);
+      notification.success(t("notifications.createSuccess"));
     } catch (err) {
       console.error("Error creating subject:", err);
+      notification.error(t("notifications.createError"));
     } finally {
       setFormLoading(false);
     }
@@ -110,8 +116,10 @@ export default function SubjectsManagementPage() {
       await loadSubjects();
       setEditModalOpen(false);
       setSelectedSubject(null);
+      notification.success(t("notifications.updateSuccess"));
     } catch (err) {
       console.error("Error updating subject:", err);
+      notification.error(t("notifications.updateError"));
     } finally {
       setFormLoading(false);
     }
@@ -125,8 +133,10 @@ export default function SubjectsManagementPage() {
       await loadSubjects();
       setDeleteModalOpen(false);
       setSelectedSubject(null);
+      notification.success(t("notifications.deleteSuccess"));
     } catch (err) {
       console.error("Error deleting subject:", err);
+      notification.error(t("notifications.deleteError"));
     } finally {
       setFormLoading(false);
     }
@@ -147,7 +157,7 @@ export default function SubjectsManagementPage() {
   const handleDeleteAll = async () => {
     if (subjects.length === 0) return;
     if (!confirm(t("deleteAllConfirm", { count: subjects.length }))) return;
-    
+
     setFormLoading(true);
     try {
       const ids = subjects.map((s) => s.id).filter((id): id is string => !!id);
@@ -189,6 +199,8 @@ export default function SubjectsManagementPage() {
       } else {
         setMajorIds([]);
       }
+    } else if (key === "deleted") {
+      setDeletedFilter(value);
     }
     setPage(1);
   };
@@ -196,6 +208,7 @@ export default function SubjectsManagementPage() {
   const handleReset = () => {
     setSearchTerm("");
     setMajorIds([]);
+    setDeletedFilter(null);
     setSortKey(null);
     setSortDirection(null);
     setPage(1);
@@ -219,6 +232,16 @@ export default function SubjectsManagementPage() {
         })),
       value: majorIds,
     },
+    {
+      key: "deleted",
+      label: t("filter.deleted"),
+      type: "select",
+      options: [
+        { value: "false", label: t("filter.activeItems") },
+        { value: "true", label: t("filter.deletedItems") },
+      ],
+      value: deletedFilter,
+    },
   ];
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -233,10 +256,10 @@ export default function SubjectsManagementPage() {
             {t("import")}
           </Button>
           {subjects.length > 0 && (
-            <Button 
-              onClick={handleDeleteAll} 
-              variant="destructive" 
-              size="sm" 
+            <Button
+              onClick={handleDeleteAll}
+              variant="destructive"
+              size="sm"
               className="text-xs sm:text-sm"
               disabled={formLoading}
             >

@@ -1,11 +1,12 @@
+'use client';
+
 import { useState } from 'react';
-import { loginWithMicrosoft, logoutMicrosoft } from '@/src/services/auth/microsoft-auth.service';
-import { postApiAuthLogin } from '@/src/api/database/sdk.gen';
-import type { LoginWithMicrosoftResponse, LoginResponse } from '@/src/api/database/types.gen';
+import { login, loginWithMicrosoft, logout } from '@/src/services/auth/auth.service';
+import type { LoginResponse, LoginWithMicrosoftResponse } from '@/src/api/database/types.gen';
 
 interface UseAuthReturn {
-  handleMicrosoftLogin: () => Promise<LoginWithMicrosoftResponse | null>;
-  handleEmailPasswordLogin: (emailOrUsername: string, password: string) => Promise<LoginResponse | null>;
+  handleLogin: (emailOrUsername: string, password: string) => Promise<LoginResponse>;
+  handleMicrosoftLogin: () => Promise<LoginWithMicrosoftResponse>;
   handleLogout: () => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -15,54 +16,28 @@ export function useAuth(): UseAuthReturn {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleMicrosoftLogin = async (): Promise<LoginWithMicrosoftResponse | null> => {
+  const handleLogin = async (emailOrUsername: string, password: string): Promise<LoginResponse> => {
     setLoading(true);
     setError(null);
-    
     try {
-      const result = await loginWithMicrosoft();
-      return result;
+      return await login(emailOrUsername, password);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Đăng nhập thất bại';
-      setError(errorMessage);
+      const message = err instanceof Error ? err.message : 'Login failed';
+      setError(message);
       throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEmailPasswordLogin = async (
-    emailOrUsername: string,
-    password: string
-  ): Promise<LoginResponse | null> => {
+  const handleMicrosoftLogin = async (): Promise<LoginWithMicrosoftResponse> => {
     setLoading(true);
     setError(null);
-    
     try {
-      const response = await postApiAuthLogin({
-        body: {
-          emailOrUsername,
-          password,
-        },
-      });
-
-      if (response.data) {
-        // Lưu tokens vào localStorage
-        if (response.data.accessToken) {
-          localStorage.setItem('access_token', response.data.accessToken);
-        }
-        
-        if (response.data.refreshToken) {
-          localStorage.setItem('refresh_token', response.data.refreshToken);
-        }
-
-        return response.data;
-      }
-
-      return null;
+      return await loginWithMicrosoft();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Đăng nhập thất bại';
-      setError(errorMessage);
+      const message = err instanceof Error ? err.message : 'Microsoft login failed';
+      setError(message);
       throw err;
     } finally {
       setLoading(false);
@@ -72,12 +47,11 @@ export function useAuth(): UseAuthReturn {
   const handleLogout = async (): Promise<void> => {
     setLoading(true);
     setError(null);
-    
     try {
-      await logoutMicrosoft();
+      await logout();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Đăng xuất thất bại';
-      setError(errorMessage);
+      const message = err instanceof Error ? err.message : 'Logout failed';
+      setError(message);
       throw err;
     } finally {
       setLoading(false);
@@ -85,11 +59,10 @@ export function useAuth(): UseAuthReturn {
   };
 
   return {
+    handleLogin,
     handleMicrosoftLogin,
-    handleEmailPasswordLogin,
     handleLogout,
     loading,
     error,
   };
 }
-

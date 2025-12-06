@@ -36,7 +36,7 @@ export default function UsersManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [sortDescending, setSortDescending] = useState(true);
-  
+
   // Filter states
   const [facultyId, setFacultyId] = useState<string | null>(null);
   const [majorId, setMajorId] = useState<string | null>(null);
@@ -94,8 +94,8 @@ export default function UsersManagementPage() {
   useEffect(() => {
     const loadMajorsForFilter = async () => {
       try {
-        const response = await fetchMajors({ 
-          Page: 1, 
+        const response = await fetchMajors({
+          Page: 1,
           PageSize: 1000,
           FacultyId: facultyId || undefined,
         });
@@ -226,7 +226,7 @@ export default function UsersManagementPage() {
   const handleDeleteAll = async () => {
     if (users.length === 0) return;
     if (!confirm(t("deleteAllConfirm", { count: users.length }))) return;
-    
+
     setFormLoading(true);
     try {
       const ids = users.map((u) => u.id).filter((id): id is string => !!id);
@@ -360,10 +360,10 @@ export default function UsersManagementPage() {
             {t("import")}
           </Button>
           {users.length > 0 && (
-            <Button 
-              onClick={handleDeleteAll} 
-              variant="destructive" 
-              size="sm" 
+            <Button
+              onClick={handleDeleteAll}
+              variant="destructive"
+              size="sm"
               className="text-xs sm:text-sm"
               disabled={formLoading}
             >
@@ -387,7 +387,7 @@ export default function UsersManagementPage() {
           onFilterChange={handleFilterChange}
           onReset={handleReset}
           placeholder={t("searchPlaceholder")}
-          />
+        />
       </div>
 
       {error && (
@@ -401,7 +401,7 @@ export default function UsersManagementPage() {
           {t("foundCount", { count: totalCount })}
         </div>
       )}
-      
+
       <UserTable
         users={users}
         onEdit={(user) => {
@@ -462,7 +462,7 @@ export default function UsersManagementPage() {
         size="lg"
       >
         <UserForm
-          initialData={selectedUser || undefined}
+          initialData={selectedUser as import("@/src/components/admin/users/user-form").UserFormData || undefined}
           onSubmit={handleEdit}
           loading={formLoading}
         />

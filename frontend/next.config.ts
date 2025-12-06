@@ -2,11 +2,16 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from 'next-intl/plugin';
 
-const API_URL = process.env.API_URL ?? "http://localhost:7080"; 
+const API_URL = process.env.API_URL ?? "http://localhost:7080";
+const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:7080";
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
   async rewrites() {
+    if (NEXT_PUBLIC_API_URL.startsWith('/')) {
+      return [];
+    }
+    
     return [
       {
         source: "/api/:path*",
@@ -19,23 +24,20 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    // Cho phép load ảnh từ cùng domain (qua rewrite /images)
-    // Next.js sẽ tự động xử lý ảnh từ rewrite
+    // Cho phép load ảnh từ cùng domain (qua Nginx hoặc rewrite)
     remotePatterns: [
       {
         protocol: 'http',
         hostname: 'localhost',
-        port: '7080',
         pathname: '/images/**',
       },
       {
         protocol: 'https',
         hostname: 'localhost',
-        port: '7080',
         pathname: '/images/**',
       },
     ],
-    // Cho phép load ảnh từ relative paths (qua rewrite)
+    // Cho phép load ảnh từ relative paths
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",

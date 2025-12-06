@@ -6,6 +6,7 @@ import { Pagination } from "@/src/components/ui/pagination";
 import { Plus, Upload, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useFaculties } from "@/src/hooks/use-faculties";
+import { useNotification } from "@/src/components/ui/notification-center";
 import { FacultyTable } from "@/src/components/admin/faculties/faculty-table";
 import { FacultyForm } from "@/src/components/admin/faculties/faculty-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
@@ -22,6 +23,7 @@ import type {
 export default function FacultiesManagementPage() {
   const t = useTranslations("admin.faculties");
   const tCommon = useTranslations("common");
+  const notification = useNotification();
   const {
     fetchFaculties,
     createFaculty,
@@ -39,6 +41,7 @@ export default function FacultiesManagementPage() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -53,6 +56,7 @@ export default function FacultiesManagementPage() {
     try {
       const response = await fetchFaculties({
         SearchTerm: searchTerm || undefined,
+        IsDeleted: deletedFilter === "true" ? true : deletedFilter === "false" ? false : undefined,
         Page: page,
         PageSize: pageSize,
       });
@@ -64,7 +68,7 @@ export default function FacultiesManagementPage() {
     } catch (err) {
       console.error("Error loading faculties:", err);
     }
-  }, [fetchFaculties, searchTerm, page, pageSize]);
+  }, [fetchFaculties, searchTerm, deletedFilter, page, pageSize]);
 
   useEffect(() => {
     loadFaculties();
@@ -76,8 +80,10 @@ export default function FacultiesManagementPage() {
       await createFaculty(command as CreateFacultyCommand);
       await loadFaculties();
       setCreateModalOpen(false);
+      notification.success(t("notifications.createSuccess"));
     } catch (err) {
       console.error("Error creating faculty:", err);
+      notification.error(t("notifications.createError"));
     } finally {
       setFormLoading(false);
     }
@@ -91,8 +97,10 @@ export default function FacultiesManagementPage() {
       await loadFaculties();
       setEditModalOpen(false);
       setSelectedFaculty(null);
+      notification.success(t("notifications.updateSuccess"));
     } catch (err) {
       console.error("Error updating faculty:", err);
+      notification.error(t("notifications.updateError"));
     } finally {
       setFormLoading(false);
     }
@@ -106,8 +114,10 @@ export default function FacultiesManagementPage() {
       await loadFaculties();
       setDeleteModalOpen(false);
       setSelectedFaculty(null);
+      notification.success(t("notifications.deleteSuccess"));
     } catch (err) {
       console.error("Error deleting faculty:", err);
+      notification.error(t("notifications.deleteError"));
     } finally {
       setFormLoading(false);
     }
@@ -143,7 +153,7 @@ export default function FacultiesManagementPage() {
   const handleDeleteAll = async () => {
     if (faculties.length === 0) return;
     if (!confirm(t("deleteAllConfirm", { count: faculties.length }))) return;
-    
+
     setFormLoading(true);
     try {
       const ids = faculties.map((f) => f.id).filter((id): id is string => !!id);
@@ -163,8 +173,16 @@ export default function FacultiesManagementPage() {
 
   const handleReset = () => {
     setSearchTerm("");
+    setDeletedFilter(null);
     setSortKey(null);
     setSortDirection(null);
+    setPage(1);
+  };
+
+  const handleFilterChange = (key: string, value: string | null) => {
+    if (key === "deleted") {
+      setDeletedFilter(value);
+    }
     setPage(1);
   };
 
@@ -185,10 +203,10 @@ export default function FacultiesManagementPage() {
             {t("import")}
           </Button>
           {faculties.length > 0 && (
-            <Button 
-              onClick={handleDeleteAll} 
-              variant="destructive" 
-              size="sm" 
+            <Button
+              onClick={handleDeleteAll}
+              variant="destructive"
+              size="sm"
               className="text-xs sm:text-sm"
               disabled={formLoading}
             >
@@ -208,7 +226,19 @@ export default function FacultiesManagementPage() {
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           onSearchSubmit={handleSearch}
-          filters={[]}
+          filters={[
+            {
+              key: "deleted",
+              label: t("filter.deleted"),
+              type: "select",
+              value: deletedFilter,
+              options: [
+                { value: "false", label: t("filter.activeItems") },
+                { value: "true", label: t("filter.deletedItems") },
+              ],
+            },
+          ]}
+          onFilterChange={handleFilterChange}
           onReset={handleReset}
           placeholder={t("searchPlaceholder")}
         />

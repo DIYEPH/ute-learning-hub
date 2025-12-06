@@ -2,7 +2,7 @@
 
 import { type Client, formDataBodySerializer, type Options as Options2, type TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteApiCommentByIdData, DeleteApiCommentByIdResponses, DeleteApiConversationByIdData, DeleteApiConversationByIdResponses, DeleteApiConversationsByConversationIdMessagesByIdData, DeleteApiConversationsByConversationIdMessagesByIdResponses, DeleteApiDocumentByIdData, DeleteApiDocumentByIdResponses, DeleteApiEventByIdData, DeleteApiEventByIdResponses, DeleteApiFacultyByIdData, DeleteApiFacultyByIdResponses, DeleteApiMajorByIdData, DeleteApiMajorByIdResponses, DeleteApiSubjectByIdData, DeleteApiSubjectByIdResponses, DeleteApiTagByIdData, DeleteApiTagByIdResponses, DeleteApiTypeByIdData, DeleteApiTypeByIdResponses, GetApiAccountProfileByUserIdData, GetApiAccountProfileByUserIdResponses, GetApiAccountProfileData, GetApiAccountProfileResponses, GetApiCommentData, GetApiCommentDocumentData, GetApiCommentDocumentResponses, GetApiCommentResponses, GetApiConversationByConversationIdOnlineMembersData, GetApiConversationByConversationIdOnlineMembersResponses, GetApiConversationByIdData, GetApiConversationByIdResponses, GetApiConversationData, GetApiConversationJoinRequestData, GetApiConversationJoinRequestResponses, GetApiConversationResponses, GetApiConversationsByConversationIdMessagesData, GetApiConversationsByConversationIdMessagesResponses, GetApiDocumentByIdData, GetApiDocumentByIdResponses, GetApiDocumentData, GetApiDocumentMyData, GetApiDocumentMyResponses, GetApiDocumentResponses, GetApiEventActiveData, GetApiEventActiveResponses, GetApiFacultyByIdData, GetApiFacultyByIdResponses, GetApiFacultyData, GetApiFacultyResponses, GetApiMajorByIdData, GetApiMajorByIdResponses, GetApiMajorData, GetApiMajorResponses, GetApiNotificationData, GetApiNotificationResponses, GetApiNotificationUnreadCountData, GetApiNotificationUnreadCountResponses, GetApiReportData, GetApiReportResponses, GetApiSubjectByIdData, GetApiSubjectByIdResponses, GetApiSubjectData, GetApiSubjectResponses, GetApiTagByIdData, GetApiTagByIdResponses, GetApiTagData, GetApiTagResponses, GetApiTypeByIdData, GetApiTypeByIdResponses, GetApiTypeData, GetApiTypeResponses, GetApiUserByIdData, GetApiUserByIdResponses, GetApiUserByIdTrustHistoryData, GetApiUserByIdTrustHistoryResponses, GetApiUserData, GetApiUserResponses, PostApiAuthLoginData, PostApiAuthLoginMicrosoftData, PostApiAuthLoginMicrosoftResponses, PostApiAuthLoginResponses, PostApiAuthLogoutData, PostApiAuthLogoutResponses, PostApiAuthRefreshTokenData, PostApiAuthRefreshTokenResponses, PostApiAuthSetupData, PostApiAuthSetupResponses, PostApiCommentData, PostApiCommentResponses, PostApiConversationByIdJoinData, PostApiConversationByIdJoinResponses, PostApiConversationByIdLeaveData, PostApiConversationByIdLeaveResponses, PostApiConversationData, PostApiConversationJoinRequestByIdReviewData, PostApiConversationJoinRequestByIdReviewResponses, PostApiConversationJoinRequestData, PostApiConversationJoinRequestResponses, PostApiConversationResponses, PostApiConversationsByConversationIdMessagesByIdMarkAsReadData, PostApiConversationsByConversationIdMessagesByIdMarkAsReadResponses, PostApiConversationsByConversationIdMessagesByIdPinData, PostApiConversationsByConversationIdMessagesByIdPinResponses, PostApiConversationsByConversationIdMessagesData, PostApiConversationsByConversationIdMessagesResponses, PostApiDocumentByIdFilesData, PostApiDocumentByIdFilesResponses, PostApiDocumentByIdReviewData, PostApiDocumentByIdReviewResponses, PostApiDocumentData, PostApiDocumentResponses, PostApiDocumentReviewData, PostApiDocumentReviewResponses, PostApiEventData, PostApiEventResponses, PostApiFacultyData, PostApiFacultyResponses, PostApiFileData, PostApiFileResponses, PostApiMajorData, PostApiMajorResponses, PostApiNotificationByIdMarkAsReadData, PostApiNotificationByIdMarkAsReadResponses, PostApiNotificationData, PostApiNotificationMarkAllAsReadData, PostApiNotificationMarkAllAsReadResponses, PostApiNotificationResponses, PostApiReportByIdReviewData, PostApiReportByIdReviewResponses, PostApiReportData, PostApiReportResponses, PostApiSubjectData, PostApiSubjectResponses, PostApiTagData, PostApiTagResponses, PostApiTypeData, PostApiTypeResponses, PostApiUserByIdBanData, PostApiUserByIdBanResponses, PostApiUserByIdUnbanData, PostApiUserByIdUnbanResponses, PutApiAccountProfileData, PutApiAccountProfileResponses, PutApiCommentByIdData, PutApiCommentByIdResponses, PutApiConversationByIdData, PutApiConversationByIdMembersByMemberIdRoleData, PutApiConversationByIdMembersByMemberIdRoleResponses, PutApiConversationByIdResponses, PutApiConversationsByConversationIdMessagesByIdData, PutApiConversationsByConversationIdMessagesByIdResponses, PutApiDocumentByIdData, PutApiDocumentByIdResponses, PutApiEventByIdData, PutApiEventByIdResponses, PutApiFacultyByIdData, PutApiFacultyByIdResponses, PutApiMajorByIdData, PutApiMajorByIdResponses, PutApiSubjectByIdData, PutApiSubjectByIdResponses, PutApiTagByIdData, PutApiTagByIdResponses, PutApiTypeByIdData, PutApiTypeByIdResponses, PutApiUserByIdData, PutApiUserByIdResponses, PutApiUserByIdTrustScoreData, PutApiUserByIdTrustScoreResponses } from './types.gen';
+import type { DeleteApiAuthorByIdData, DeleteApiAuthorByIdResponses, DeleteApiCommentByIdData, DeleteApiCommentByIdResponses, DeleteApiConversationByIdData, DeleteApiConversationByIdResponses, DeleteApiConversationsByConversationIdMessagesByIdData, DeleteApiConversationsByConversationIdMessagesByIdResponses, DeleteApiDocumentByDocumentIdFilesByFileIdData, DeleteApiDocumentByDocumentIdFilesByFileIdResponses, DeleteApiDocumentByIdData, DeleteApiDocumentByIdResponses, DeleteApiEventByIdData, DeleteApiEventByIdResponses, DeleteApiFacultyByIdData, DeleteApiFacultyByIdResponses, DeleteApiMajorByIdData, DeleteApiMajorByIdResponses, DeleteApiNotificationByIdData, DeleteApiNotificationByIdResponses, DeleteApiSubjectByIdData, DeleteApiSubjectByIdResponses, DeleteApiTagByIdData, DeleteApiTagByIdResponses, DeleteApiTypeByIdData, DeleteApiTypeByIdResponses, GetApiAccountProfileByUserIdData, GetApiAccountProfileByUserIdResponses, GetApiAccountProfileData, GetApiAccountProfileResponses, GetApiAuthorByIdData, GetApiAuthorByIdResponses, GetApiAuthorData, GetApiAuthorResponses, GetApiCommentData, GetApiCommentDocumentData, GetApiCommentDocumentResponses, GetApiCommentResponses, GetApiConversationByConversationIdOnlineMembersData, GetApiConversationByConversationIdOnlineMembersResponses, GetApiConversationByIdData, GetApiConversationByIdResponses, GetApiConversationData, GetApiConversationJoinRequestData, GetApiConversationJoinRequestResponses, GetApiConversationRecommendationsData, GetApiConversationRecommendationsResponses, GetApiConversationResponses, GetApiConversationsByConversationIdMessagesData, GetApiConversationsByConversationIdMessagesResponses, GetApiDocumentByIdData, GetApiDocumentByIdResponses, GetApiDocumentData, GetApiDocumentFilesByFileIdProgressData, GetApiDocumentFilesByFileIdProgressResponses, GetApiDocumentMyData, GetApiDocumentMyResponses, GetApiDocumentResponses, GetApiEventActiveData, GetApiEventActiveResponses, GetApiFacultyByIdData, GetApiFacultyByIdResponses, GetApiFacultyData, GetApiFacultyResponses, GetApiFileByIdData, GetApiFileByIdResponses, GetApiMajorByIdData, GetApiMajorByIdResponses, GetApiMajorData, GetApiMajorResponses, GetApiNotificationData, GetApiNotificationResponses, GetApiNotificationUnreadCountData, GetApiNotificationUnreadCountResponses, GetApiReportData, GetApiReportResponses, GetApiSubjectByIdData, GetApiSubjectByIdResponses, GetApiSubjectData, GetApiSubjectResponses, GetApiTagByIdData, GetApiTagByIdResponses, GetApiTagData, GetApiTagResponses, GetApiTypeByIdData, GetApiTypeByIdResponses, GetApiTypeData, GetApiTypeResponses, GetApiUserByIdData, GetApiUserByIdResponses, GetApiUserByIdTrustHistoryData, GetApiUserByIdTrustHistoryResponses, GetApiUserData, GetApiUserResponses, PostApiAuthChangePasswordData, PostApiAuthChangePasswordResponses, PostApiAuthChangeUsernameData, PostApiAuthChangeUsernameResponses, PostApiAuthForgotPasswordData, PostApiAuthForgotPasswordResponses, PostApiAuthLoginData, PostApiAuthLoginMicrosoftData, PostApiAuthLoginMicrosoftResponses, PostApiAuthLoginResponses, PostApiAuthLogoutData, PostApiAuthLogoutResponses, PostApiAuthorData, PostApiAuthorResponses, PostApiAuthRefreshTokenData, PostApiAuthRefreshTokenResponses, PostApiAuthResetPasswordData, PostApiAuthResetPasswordResponses, PostApiCommentData, PostApiCommentResponses, PostApiConversationByIdJoinData, PostApiConversationByIdJoinResponses, PostApiConversationByIdLeaveData, PostApiConversationByIdLeaveResponses, PostApiConversationData, PostApiConversationJoinRequestByIdReviewData, PostApiConversationJoinRequestByIdReviewResponses, PostApiConversationJoinRequestData, PostApiConversationJoinRequestResponses, PostApiConversationResponses, PostApiConversationsByConversationIdMessagesByIdMarkAsReadData, PostApiConversationsByConversationIdMessagesByIdMarkAsReadResponses, PostApiConversationsByConversationIdMessagesByIdPinData, PostApiConversationsByConversationIdMessagesByIdPinResponses, PostApiConversationsByConversationIdMessagesData, PostApiConversationsByConversationIdMessagesResponses, PostApiDocumentByIdFilesData, PostApiDocumentByIdFilesResponses, PostApiDocumentByIdReviewData, PostApiDocumentByIdReviewResponses, PostApiDocumentData, PostApiDocumentResponses, PostApiDocumentReviewData, PostApiDocumentReviewResponses, PostApiEventData, PostApiEventResponses, PostApiFacultyData, PostApiFacultyResponses, PostApiFileData, PostApiFileResponses, PostApiMajorData, PostApiMajorResponses, PostApiNotificationByIdMarkAsReadData, PostApiNotificationByIdMarkAsReadResponses, PostApiNotificationData, PostApiNotificationMarkAllAsReadData, PostApiNotificationMarkAllAsReadResponses, PostApiNotificationResponses, PostApiReportByIdReviewData, PostApiReportByIdReviewResponses, PostApiReportData, PostApiReportResponses, PostApiSubjectData, PostApiSubjectResponses, PostApiTagData, PostApiTagResponses, PostApiTypeData, PostApiTypeResponses, PostApiUserByIdBanData, PostApiUserByIdBanResponses, PostApiUserByIdUnbanData, PostApiUserByIdUnbanResponses, PutApiAccountProfileData, PutApiAccountProfileResponses, PutApiAuthorByIdData, PutApiAuthorByIdResponses, PutApiCommentByIdData, PutApiCommentByIdResponses, PutApiConversationByIdData, PutApiConversationByIdMembersByMemberIdRoleData, PutApiConversationByIdMembersByMemberIdRoleResponses, PutApiConversationByIdResponses, PutApiConversationsByConversationIdMessagesByIdData, PutApiConversationsByConversationIdMessagesByIdResponses, PutApiDocumentByDocumentIdFilesByFileIdData, PutApiDocumentByDocumentIdFilesByFileIdResponses, PutApiDocumentByIdData, PutApiDocumentByIdResponses, PutApiDocumentFilesByFileIdProgressData, PutApiDocumentFilesByFileIdProgressResponses, PutApiEventByIdData, PutApiEventByIdResponses, PutApiFacultyByIdData, PutApiFacultyByIdResponses, PutApiMajorByIdData, PutApiMajorByIdResponses, PutApiNotificationByIdData, PutApiNotificationByIdResponses, PutApiSubjectByIdData, PutApiSubjectByIdResponses, PutApiTagByIdData, PutApiTagByIdResponses, PutApiTypeByIdData, PutApiTypeByIdResponses, PutApiUserByIdData, PutApiUserByIdResponses, PutApiUserByIdTrustScoreData, PutApiUserByIdTrustScoreResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -72,9 +72,69 @@ export const postApiAuthRefreshToken = <ThrowOnError extends boolean = false>(op
 
 export const postApiAuthLogout = <ThrowOnError extends boolean = false>(options?: Options<PostApiAuthLogoutData, ThrowOnError>) => (options?.client ?? client).post<PostApiAuthLogoutResponses, unknown, ThrowOnError>({ url: '/api/Auth/logout', ...options });
 
-export const postApiAuthSetup = <ThrowOnError extends boolean = false>(options: Options<PostApiAuthSetupData, ThrowOnError>) => (options.client ?? client).post<PostApiAuthSetupResponses, unknown, ThrowOnError>({
+export const postApiAuthForgotPassword = <ThrowOnError extends boolean = false>(options: Options<PostApiAuthForgotPasswordData, ThrowOnError>) => (options.client ?? client).post<PostApiAuthForgotPasswordResponses, unknown, ThrowOnError>({
+    url: '/api/Auth/forgot-password',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const postApiAuthResetPassword = <ThrowOnError extends boolean = false>(options: Options<PostApiAuthResetPasswordData, ThrowOnError>) => (options.client ?? client).post<PostApiAuthResetPasswordResponses, unknown, ThrowOnError>({
+    url: '/api/Auth/reset-password',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const postApiAuthChangePassword = <ThrowOnError extends boolean = false>(options: Options<PostApiAuthChangePasswordData, ThrowOnError>) => (options.client ?? client).post<PostApiAuthChangePasswordResponses, unknown, ThrowOnError>({
+    url: '/api/Auth/change-password',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const postApiAuthChangeUsername = <ThrowOnError extends boolean = false>(options: Options<PostApiAuthChangeUsernameData, ThrowOnError>) => (options.client ?? client).post<PostApiAuthChangeUsernameResponses, unknown, ThrowOnError>({
+    url: '/api/Auth/change-username',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const getApiAuthor = <ThrowOnError extends boolean = false>(options?: Options<GetApiAuthorData, ThrowOnError>) => (options?.client ?? client).get<GetApiAuthorResponses, unknown, ThrowOnError>({
     responseType: 'json',
-    url: '/api/Auth/setup',
+    url: '/api/Author',
+    ...options
+});
+
+export const postApiAuthor = <ThrowOnError extends boolean = false>(options: Options<PostApiAuthorData, ThrowOnError>) => (options.client ?? client).post<PostApiAuthorResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/Author',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const deleteApiAuthorById = <ThrowOnError extends boolean = false>(options: Options<DeleteApiAuthorByIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiAuthorByIdResponses, unknown, ThrowOnError>({ url: '/api/Author/{id}', ...options });
+
+export const getApiAuthorById = <ThrowOnError extends boolean = false>(options: Options<GetApiAuthorByIdData, ThrowOnError>) => (options.client ?? client).get<GetApiAuthorByIdResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/Author/{id}',
+    ...options
+});
+
+export const putApiAuthorById = <ThrowOnError extends boolean = false>(options: Options<PutApiAuthorByIdData, ThrowOnError>) => (options.client ?? client).put<PutApiAuthorByIdResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/Author/{id}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -173,6 +233,12 @@ export const putApiConversationByIdMembersByMemberIdRole = <ThrowOnError extends
     }
 });
 
+export const getApiConversationRecommendations = <ThrowOnError extends boolean = false>(options?: Options<GetApiConversationRecommendationsData, ThrowOnError>) => (options?.client ?? client).get<GetApiConversationRecommendationsResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/Conversation/recommendations',
+    ...options
+});
+
 export const getApiConversationJoinRequest = <ThrowOnError extends boolean = false>(options?: Options<GetApiConversationJoinRequestData, ThrowOnError>) => (options?.client ?? client).get<GetApiConversationJoinRequestResponses, unknown, ThrowOnError>({
     responseType: 'json',
     url: '/api/ConversationJoinRequest',
@@ -252,8 +318,35 @@ export const postApiDocumentByIdFiles = <ThrowOnError extends boolean = false>(o
     }
 });
 
+export const deleteApiDocumentByDocumentIdFilesByFileId = <ThrowOnError extends boolean = false>(options: Options<DeleteApiDocumentByDocumentIdFilesByFileIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiDocumentByDocumentIdFilesByFileIdResponses, unknown, ThrowOnError>({ url: '/api/Document/{documentId}/files/{fileId}', ...options });
+
+export const putApiDocumentByDocumentIdFilesByFileId = <ThrowOnError extends boolean = false>(options: Options<PutApiDocumentByDocumentIdFilesByFileIdData, ThrowOnError>) => (options.client ?? client).put<PutApiDocumentByDocumentIdFilesByFileIdResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/Document/{documentId}/files/{fileId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
 export const postApiDocumentByIdReview = <ThrowOnError extends boolean = false>(options: Options<PostApiDocumentByIdReviewData, ThrowOnError>) => (options.client ?? client).post<PostApiDocumentByIdReviewResponses, unknown, ThrowOnError>({
     url: '/api/Document/{id}/review',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+export const getApiDocumentFilesByFileIdProgress = <ThrowOnError extends boolean = false>(options: Options<GetApiDocumentFilesByFileIdProgressData, ThrowOnError>) => (options.client ?? client).get<GetApiDocumentFilesByFileIdProgressResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/Document/files/{fileId}/progress',
+    ...options
+});
+
+export const putApiDocumentFilesByFileIdProgress = <ThrowOnError extends boolean = false>(options: Options<PutApiDocumentFilesByFileIdProgressData, ThrowOnError>) => (options.client ?? client).put<PutApiDocumentFilesByFileIdProgressResponses, unknown, ThrowOnError>({
+    url: '/api/Document/files/{fileId}/progress',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -343,6 +436,8 @@ export const postApiFile = <ThrowOnError extends boolean = false>(options: Optio
         ...options.headers
     }
 });
+
+export const getApiFileById = <ThrowOnError extends boolean = false>(options: Options<GetApiFileByIdData, ThrowOnError>) => (options.client ?? client).get<GetApiFileByIdResponses, unknown, ThrowOnError>({ url: '/api/File/{id}', ...options });
 
 export const getApiMajor = <ThrowOnError extends boolean = false>(options?: Options<GetApiMajorData, ThrowOnError>) => (options?.client ?? client).get<GetApiMajorResponses, unknown, ThrowOnError>({
     responseType: 'json',
@@ -442,6 +537,18 @@ export const getApiNotificationUnreadCount = <ThrowOnError extends boolean = fal
 export const postApiNotificationByIdMarkAsRead = <ThrowOnError extends boolean = false>(options: Options<PostApiNotificationByIdMarkAsReadData, ThrowOnError>) => (options.client ?? client).post<PostApiNotificationByIdMarkAsReadResponses, unknown, ThrowOnError>({ url: '/api/Notification/{id}/mark-as-read', ...options });
 
 export const postApiNotificationMarkAllAsRead = <ThrowOnError extends boolean = false>(options?: Options<PostApiNotificationMarkAllAsReadData, ThrowOnError>) => (options?.client ?? client).post<PostApiNotificationMarkAllAsReadResponses, unknown, ThrowOnError>({ url: '/api/Notification/mark-all-as-read', ...options });
+
+export const deleteApiNotificationById = <ThrowOnError extends boolean = false>(options: Options<DeleteApiNotificationByIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiNotificationByIdResponses, unknown, ThrowOnError>({ url: '/api/Notification/{id}', ...options });
+
+export const putApiNotificationById = <ThrowOnError extends boolean = false>(options: Options<PutApiNotificationByIdData, ThrowOnError>) => (options.client ?? client).put<PutApiNotificationByIdResponses, unknown, ThrowOnError>({
+    responseType: 'json',
+    url: '/api/Notification/{id}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 export const getApiReport = <ThrowOnError extends boolean = false>(options?: Options<GetApiReportData, ThrowOnError>) => (options?.client ?? client).get<GetApiReportResponses, unknown, ThrowOnError>({
     responseType: 'json',

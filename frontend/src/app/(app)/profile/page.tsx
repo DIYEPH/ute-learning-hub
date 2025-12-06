@@ -15,6 +15,7 @@ import { putApiAccountProfile, getApiUserByIdTrustHistory } from "@/src/api/data
 import type { UpdateProfileCommand, MajorDto2, UserTrustHistoryDto } from "@/src/api/database/types.gen";
 import { Input } from "@/src/components/ui/input";
 import { useNotification } from "@/src/components/ui/notification-center";
+import { getFileUrlById } from "@/src/lib/file-url";
 
 const ProfilePage = () => {
   const router = useRouter();
@@ -120,10 +121,10 @@ const ProfilePage = () => {
 
     try {
       const uploaded = await uploadFile(file, "AvatarUser");
-      if (!uploaded.fileUrl) {
+      if (!uploaded.id) {
         throw new Error("Phản hồi upload avatar không hợp lệ.");
       }
-      handleChange("avatarUrl", uploaded.fileUrl);
+      handleChange("avatarUrl", getFileUrlById(uploaded.id));
     } catch (err: any) {
       setSaveError(
         err?.message || "Không thể tải ảnh đại diện lên. Vui lòng thử lại.",
@@ -242,10 +243,10 @@ const ProfilePage = () => {
               {form.gender === 1
                 ? "Nam"
                 : form.gender === 2
-                ? "Nữ"
-                : form.gender === 0
-                ? "Khác"
-                : "Không xác định"}
+                  ? "Nữ"
+                  : form.gender === 0
+                    ? "Khác"
+                    : "Không xác định"}
             </p>
           </div>
         </div>
@@ -274,156 +275,156 @@ const ProfilePage = () => {
         onSubmit={handleSubmit}
         className="space-y-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900"
       >
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-sm font-semibold text-foreground">
-              Thông tin cá nhân
-            </h2>
-            <Button
-              type="submit"
-              size="sm"
-              className="inline-flex items-center gap-2"
-              disabled={saving}
-            >
-              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              <Edit className="h-4 w-4" />
-              Lưu thay đổi
-            </Button>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-foreground">
+            Thông tin cá nhân
+          </h2>
+          <Button
+            type="submit"
+            size="sm"
+            className="inline-flex items-center gap-2"
+            disabled={saving}
+          >
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            <Edit className="h-4 w-4" />
+            Lưu thay đổi
+          </Button>
+        </div>
+
+        {saveError && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+            {saveError}
           </div>
-
-          {saveError && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
-              {saveError}
-            </div>
-          )}
-          {saveSuccess && (
-            <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2 text-xs text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
-              Đã lưu hồ sơ thành công.
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                Họ tên
-              </label>
-              <Input
-                value={form.fullName ?? ""}
-                onChange={(event) =>
-                  handleChange("fullName", event.target.value)
-                }
-                placeholder="Nhập họ tên"
-                className="mt-1 h-9"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
-                Giới tính
-              </label>
-              <select
-                className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                value={form.gender ?? ""}
-                onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
-                  const raw = event.target.value;
-                  handleChange(
-                    "gender",
-                    raw === "" ? null : Number.parseInt(raw, 10)
-                  );
-                }}
-              >
-                <option value="">Không xác định</option>
-                {/* Backend: Gender { Other = 0, Male = 1, Female = 2 } */}
-                <option value="1">Nam</option>
-                <option value="2">Nữ</option>
-                <option value="0">Khác</option>
-              </select>
-            </div>
+        )}
+        {saveSuccess && (
+          <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2 text-xs text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
+            Đã lưu hồ sơ thành công.
           </div>
+        )}
 
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div>
             <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
-              Giới thiệu
+              Họ tên
             </label>
-            <textarea
-              value={form.introduction ?? ""}
-              onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
-                handleChange("introduction", event.target.value)
+            <Input
+              value={form.fullName ?? ""}
+              onChange={(event) =>
+                handleChange("fullName", event.target.value)
               }
-              placeholder="Giới thiệu ngắn gọn về bản thân bạn..."
-              className="mt-1 min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Nhập họ tên"
+              className="mt-1 h-9"
             />
           </div>
 
           <div>
             <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
-              Ngành học
+              Giới tính
             </label>
             <select
-              className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              value={form.majorId ?? ""}
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+              className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              value={form.gender ?? ""}
+              onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
+                const raw = event.target.value;
                 handleChange(
-                  "majorId",
-                  event.target.value === "" ? null : event.target.value
-                )
-              }
-              disabled={loadingMajors}
+                  "gender",
+                  raw === "" ? null : Number.parseInt(raw, 10)
+                );
+              }}
             >
-              <option value="">
-                {loadingMajors ? "Đang tải danh sách ngành..." : "Chọn ngành học"}
-              </option>
-              {majors.map((major) => (
-                <option key={major.id} value={major.id}>
-                  {major.majorName}
-                </option>
-              ))}
+              <option value="">Không xác định</option>
+              {/* Backend: Gender { Other = 0, Male = 1, Female = 2 } */}
+              <option value="1">Nam</option>
+              <option value="2">Nữ</option>
+              <option value="0">Khác</option>
             </select>
           </div>
-          {/* Lịch sử điểm tin cậy */}
-          <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
-            <h2 className="text-sm font-semibold text-foreground">
-              Lịch sử điểm tin cậy
-            </h2>
-            {loadingTrust ? (
-              <div className="flex items-center gap-2 text-xs">
-                <Loader2 className="h-3 w-3 animate-spin text-sky-500" />
-                <span>Đang tải lịch sử...</span>
-              </div>
-            ) : trustHistory.length === 0 ? (
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Chưa có lịch sử điểm tin cậy.
-              </p>
-            ) : (
-              <ul className="space-y-1 max-h-40 overflow-y-auto pr-1">
-                {trustHistory
-                  .slice()
-                  .sort(
-                    (a, b) =>
-                      new Date(b.createdAt || 0).getTime() -
-                      new Date(a.createdAt || 0).getTime()
-                  )
-                  .map((item) => (
-                    <li key={item.id} className="flex items-start justify-between gap-2">
-                      <div>
-                        <span className="font-semibold text-foreground">
-                          {item.score}
-                        </span>
-                        {item.reason && (
-                          <span className="ml-1 text-slate-500 dark:text-slate-400">
-                            – {item.reason}
-                          </span>
-                        )}
-                      </div>
-                      {item.createdAt && (
-                        <span className="shrink-0 text-[10px] text-slate-400 dark:text-slate-500">
-                          {new Date(item.createdAt).toLocaleString()}
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+            Giới thiệu
+          </label>
+          <textarea
+            value={form.introduction ?? ""}
+            onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
+              handleChange("introduction", event.target.value)
+            }
+            placeholder="Giới thiệu ngắn gọn về bản thân bạn..."
+            className="mt-1 min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          />
+        </div>
+
+        <div>
+          <label className="text-xs font-medium text-slate-600 dark:text-slate-300">
+            Ngành học
+          </label>
+          <select
+            className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            value={form.majorId ?? ""}
+            onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+              handleChange(
+                "majorId",
+                event.target.value === "" ? null : event.target.value
+              )
+            }
+            disabled={loadingMajors}
+          >
+            <option value="">
+              {loadingMajors ? "Đang tải danh sách ngành..." : "Chọn ngành học"}
+            </option>
+            {majors.map((major) => (
+              <option key={major.id} value={major.id}>
+                {major.majorName}
+              </option>
+            ))}
+          </select>
+        </div>
+        {/* Lịch sử điểm tin cậy */}
+        <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+          <h2 className="text-sm font-semibold text-foreground">
+            Lịch sử điểm tin cậy
+          </h2>
+          {loadingTrust ? (
+            <div className="flex items-center gap-2 text-xs">
+              <Loader2 className="h-3 w-3 animate-spin text-sky-500" />
+              <span>Đang tải lịch sử...</span>
+            </div>
+          ) : trustHistory.length === 0 ? (
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Chưa có lịch sử điểm tin cậy.
+            </p>
+          ) : (
+            <ul className="space-y-1 max-h-40 overflow-y-auto pr-1">
+              {trustHistory
+                .slice()
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt || 0).getTime() -
+                    new Date(a.createdAt || 0).getTime()
+                )
+                .map((item) => (
+                  <li key={item.id} className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-semibold text-foreground">
+                        {item.score}
+                      </span>
+                      {item.reason && (
+                        <span className="ml-1 text-slate-500 dark:text-slate-400">
+                          – {item.reason}
                         </span>
                       )}
-                    </li>
-                  ))}
-              </ul>
-            )}
-          </div>
+                    </div>
+                    {item.createdAt && (
+                      <span className="shrink-0 text-[10px] text-slate-400 dark:text-slate-500">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </span>
+                    )}
+                  </li>
+                ))}
+            </ul>
+          )}
+        </div>
       </form>
     </div>
   );
