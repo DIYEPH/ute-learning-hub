@@ -44,8 +44,8 @@ public class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentCommand,
         var isAdmin = _currentUserService.IsInRole("Admin");
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
 
-        var canDelete = isOwner || 
-                       isAdmin || 
+        var canDelete = isOwner ||
+                       isAdmin ||
                        (trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator);
 
         if (!canDelete)

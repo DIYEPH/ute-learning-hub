@@ -40,7 +40,7 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, PagedResponse<
         var isAdmin = _currentUserService.IsInRole("Admin");
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
 
-        var canView = isAdmin || 
+        var canView = isAdmin ||
                      (trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator);
 
         if (!canView)
@@ -85,11 +85,11 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, PagedResponse<
             DocumentId = r.DocumentId,
             CommentId = r.CommentId,
             Content = r.Content,
-            ReporterName = authorInfo.TryGetValue(r.CreatedById, out var reporter) 
-                ? reporter.FullName 
+            ReporterName = authorInfo.TryGetValue(r.CreatedById, out var reporter)
+                ? reporter.FullName
                 : "Unknown",
-            ReporterAvatarUrl = authorInfo.TryGetValue(r.CreatedById, out var reporterInfo) 
-                ? reporterInfo.AvatarUrl 
+            ReporterAvatarUrl = authorInfo.TryGetValue(r.CreatedById, out var reporterInfo)
+                ? reporterInfo.AvatarUrl
                 : null,
             CreatedById = r.CreatedById,
             ReviewStatus = r.ReviewStatus,

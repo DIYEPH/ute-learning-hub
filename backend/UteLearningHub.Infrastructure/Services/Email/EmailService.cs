@@ -30,7 +30,7 @@ public class EmailService : IEmailService
             // Nếu không có cấu hình email, chỉ log và return true (development mode)
             if (string.IsNullOrWhiteSpace(_options.SmtpServer) || string.IsNullOrWhiteSpace(_options.FromEmail))
             {
-                _logger.LogWarning("Email service not configured. Skipping email send to {Recipients}. Subject: {Subject}", 
+                _logger.LogWarning("Email service not configured. Skipping email send to {Recipients}. Subject: {Subject}",
                     string.Join(", ", to), subject);
                 return true;
             }
@@ -64,13 +64,13 @@ public class EmailService : IEmailService
             }
 
             await client.SendMailAsync(message, cancellationToken);
-            _logger.LogInformation("Email sent successfully to {Recipients}. Subject: {Subject}", 
+            _logger.LogInformation("Email sent successfully to {Recipients}. Subject: {Subject}",
                 string.Join(", ", to), subject);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send email to {Recipients}. Subject: {Subject}", 
+            _logger.LogError(ex, "Failed to send email to {Recipients}. Subject: {Subject}",
                 string.Join(", ", to), subject);
             return false;
         }
@@ -166,7 +166,7 @@ public class EmailService : IEmailService
     public async Task<bool> SendNotificationEmailAsync(string to, string title, string content, string? link = null, CancellationToken cancellationToken = default)
     {
         var subject = $"Thông báo: {title}";
-        var linkHtml = !string.IsNullOrWhiteSpace(link) 
+        var linkHtml = !string.IsNullOrWhiteSpace(link)
             ? $@"<p style='text-align: center;'>
                 <a href='{link}' class='button' style='display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0;'>Xem chi tiết</a>
                </p>"

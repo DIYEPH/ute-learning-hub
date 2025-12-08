@@ -1,15 +1,15 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Services.File;
+using UteLearningHub.Application.Services.Conversation;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
 using UteLearningHub.Application.Services.Recommendation;
+using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
+using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
-using UteLearningHub.Domain.Entities;
 using DomainConversation = UteLearningHub.Domain.Entities.Conversation;
 using DomainTag = UteLearningHub.Domain.Entities.Tag;
 
@@ -19,31 +19,34 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
 {
     private readonly IConversationRepository _conversationRepository;
     private readonly ITagRepository _tagRepository;
-    private readonly IFileUsageService _fileUsageService;
     private readonly IIdentityService _identityService;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IConversationSystemMessageService _systemMessageService;
     private readonly IVectorMaintenanceService _vectorMaintenanceService;
+    private readonly IConversationQueryService _conversationQueryService;
 
     public CreateConversationHandler(
         IConversationRepository conversationRepository,
         ITagRepository tagRepository,
-        IFileUsageService fileUsageService,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
+        IUserService userService,
         IDateTimeProvider dateTimeProvider,
         IConversationSystemMessageService systemMessageService,
-        IVectorMaintenanceService vectorMaintenanceService)
+        IVectorMaintenanceService vectorMaintenanceService,
+        IConversationQueryService conversationQueryService)
     {
         _conversationRepository = conversationRepository;
         _tagRepository = tagRepository;
-        _fileUsageService = fileUsageService;
         _identityService = identityService;
         _currentUserService = currentUserService;
+        _userService = userService;
         _dateTimeProvider = dateTimeProvider;
         _systemMessageService = systemMessageService;
         _vectorMaintenanceService = vectorMaintenanceService;
+        _conversationQueryService = conversationQueryService;
     }
 
     public async Task<ConversationDetailDto> Handle(CreateConversationCommand request, CancellationToken cancellationToken)
@@ -53,24 +56,24 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
+        var isAdmin = _currentUserService.IsInRole("Admin");
+        if (!isAdmin)
+        {
+            var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
+            if (!trustLevel.HasValue || trustLevel.Value < TrustLever.Contributor)
+            {
+                throw new ForbiddenException("Bạn cần đạt cấp độ Contributor trở lên để tạo nhóm học tập. Hãy đóng góp thêm tài liệu để tăng điểm uy tín!");
+            }
+        }
+
         var creator = await _identityService.FindByIdAsync(userId)
             ?? throw new UnauthorizedException();
 
-        // Verify subject exists if provided
-        if (request.SubjectId.HasValue)
-        {
-            // You may want to add ISubjectRepository to verify
-            // For now, we'll skip this check or add it later
-        }
-
-        // Xử lý tags tương tự Document
         var tagIdsToAdd = new List<Guid>();
 
         if (request.TagIds != null && request.TagIds.Any())
         {
-            var existingTags = await _tagRepository.GetQueryableSet()
-                .Where(t => request.TagIds.Contains(t.Id) && !t.IsDeleted)
-                .ToListAsync(cancellationToken);
+            var existingTags = await _tagRepository.GetByIdsAsync(request.TagIds, cancellationToken: cancellationToken);
 
             if (existingTags.Count != request.TagIds.Count)
                 throw new NotFoundException("One or more tags not found");
@@ -85,13 +88,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
                 if (string.IsNullOrWhiteSpace(tagName)) continue;
 
                 var normalizedName = tagName.Trim();
-                var normalizedNameLower = normalizedName.ToLowerInvariant();
-
-                var existingTag = await _tagRepository.GetQueryableSet()
-                    .Where(t => !t.IsDeleted && t.TagName != null)
-                    .FirstOrDefaultAsync(
-                        t => t.TagName!.ToLower() == normalizedNameLower,
-                        cancellationToken);
+                var existingTag = await _tagRepository.FindByNameAsync(normalizedName, cancellationToken: cancellationToken);
 
                 if (existingTag != null)
                 {
@@ -137,12 +134,9 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        // Thêm tags vào conversation
         if (tagIdsToAdd.Any())
         {
-            var tags = await _tagRepository.GetQueryableSet()
-                .Where(t => tagIdsToAdd.Contains(t.Id) && !t.IsDeleted)
-                .ToListAsync(cancellationToken);
+            var tags = await _tagRepository.GetByIdsAsync(tagIdsToAdd, cancellationToken: cancellationToken);
 
             foreach (var tag in tags)
             {
@@ -176,89 +170,13 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
             null,
             cancellationToken);
 
-        var createdConversation = await _conversationRepository.GetByIdWithDetailsAsync(
-            conversation.Id,
-            disableTracking: true,
-            cancellationToken);
-
-        if (createdConversation == null)
-            throw new NotFoundException("Failed to create conversation");
-
-
-
-        // Cập nhật conversation vector (async, không block response)
         _ = Task.Run(async () =>
         {
-            try
-            {
-                await _vectorMaintenanceService.UpdateConversationVectorAsync(conversation.Id, cancellationToken);
-            }
-            catch (Exception)
-            {
-                // Log error nhưng không throw
-            }
+            try { await _vectorMaintenanceService.UpdateConversationVectorAsync(conversation.Id, cancellationToken); }
+            catch { }
         }, cancellationToken);
 
-        var memberUserIds = createdConversation.Members
-            .Where(m => !m.IsDeleted)
-            .Select(m => m.UserId)
-            .Distinct()
-            .ToList();
-
-        var memberInfo = new Dictionary<Guid, (string FullName, string? AvatarUrl)>();
-
-        foreach (var memberUserId in memberUserIds)
-        {
-            var user = await _identityService.FindByIdAsync(memberUserId);
-            if (user != null)
-            {
-                memberInfo[memberUserId] = (user.FullName, user.AvatarUrl);
-            }
-        }
-
-        return new ConversationDetailDto
-        {
-            Id = createdConversation.Id,
-            ConversationName = createdConversation.ConversationName,
-            Tags = createdConversation.ConversationTags
-                .Select(ct => new TagDto
-                {
-                    Id = ct.Tag.Id,
-                    TagName = ct.Tag.TagName
-                })
-                .ToList(),
-            ConversationType = createdConversation.ConversationType,
-            ConversationStatus = createdConversation.ConversationStatus,
-            IsSuggestedByAI = createdConversation.IsSuggestedByAI,
-            IsAllowMemberPin = createdConversation.IsAllowMemberPin,
-            Subject = createdConversation.Subject != null ? new SubjectDto
-            {
-                Id = createdConversation.Subject.Id,
-                SubjectName = createdConversation.Subject.SubjectName,
-                SubjectCode = createdConversation.Subject.SubjectCode
-            } : null,
-            AvatarUrl = createdConversation.AvatarUrl,
-            Members = createdConversation.Members
-                .Where(m => !m.IsDeleted)
-                .Select(m => new ConversationMemberDto
-                {
-                    Id = m.Id,
-                    UserId = m.UserId,
-                    UserName = memberInfo.TryGetValue(m.UserId, out var info)
-                        ? info.FullName
-                        : "Unknown",
-                    UserAvatarUrl = memberInfo.TryGetValue(m.UserId, out var member)
-                        ? member.AvatarUrl
-                        : null,
-                    RoleType = m.ConversationMemberRoleType,
-                    IsMuted = m.IsMuted,
-                    JoinedAt = m.CreatedAt
-                }).ToList(),
-            MessageCount = 0,
-            LastMessageId = createdConversation.LastMessage,
-            CreatedById = createdConversation.CreatedById,
-            CreatedAt = createdConversation.CreatedAt,
-            UpdatedAt = createdConversation.UpdatedAt
-        };
+        var result = await _conversationQueryService.GetDetailByIdAsync(conversation.Id, cancellationToken);
+        return result ?? throw new NotFoundException("Failed to create conversation");
     }
 }

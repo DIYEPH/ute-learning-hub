@@ -39,7 +39,7 @@ public class MemoryCacheService : ICacheService
         try
         {
             var options = new MemoryCacheEntryOptions();
-            
+
             if (expiration.HasValue)
             {
                 options.AbsoluteExpirationRelativeToNow = expiration;

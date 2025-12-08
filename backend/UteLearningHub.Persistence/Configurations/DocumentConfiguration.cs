@@ -24,8 +24,7 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
 
         builder.ApplySoftDelete<Document>()
             .ApplyTrack<Document>()
-            .ApplyAudit<Document>()
-            .ApplyReview<Document>();
+            .ApplyAudit<Document>();
 
         builder.HasOne<AppUser>()
             .WithMany(u => u.Documents)

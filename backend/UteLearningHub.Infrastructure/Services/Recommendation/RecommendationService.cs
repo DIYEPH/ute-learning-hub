@@ -47,10 +47,15 @@ public class RecommendationService : IRecommendationService
                 MinSimilarity = minSimilarity
             };
 
+            _logger.LogInformation("Calling AI service at {AiUrl}/recommend with {ConversationCount} conversations, topK={TopK}, minSimilarity={MinSimilarity}",
+                _options.AiServiceBaseUrl, conversationVectors.Count, topK, minSimilarity);
+
             var response = await _httpClient.PostAsJsonAsync(
                 "/recommend",
                 request,
                 cancellationToken);
+
+            _logger.LogInformation("AI service responded with status {StatusCode}", response.StatusCode);
 
             response.EnsureSuccessStatusCode();
 
@@ -79,13 +84,13 @@ public class RecommendationService : IRecommendationService
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Error calling AI recommendation service");
-            throw new InvalidOperationException("Failed to get recommendations from AI service", ex);
+            _logger.LogWarning(ex, "AI recommendation service unavailable, returning empty recommendations");
+            return new RecommendationResponse(Array.Empty<RecommendationItem>(), 0, 0);
         }
         catch (TaskCanceledException ex)
         {
-            _logger.LogError(ex, "Timeout calling AI recommendation service");
-            throw new InvalidOperationException("Request to AI service timed out", ex);
+            _logger.LogWarning(ex, "AI recommendation service timeout, returning empty recommendations");
+            return new RecommendationResponse(Array.Empty<RecommendationItem>(), 0, 0);
         }
     }
 

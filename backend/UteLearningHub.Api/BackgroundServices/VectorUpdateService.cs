@@ -1,7 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence;
@@ -85,8 +82,6 @@ public class VectorUpdateService : BackgroundService
                 {
                     Id = Guid.NewGuid(),
                     UserId = userId,
-                    VectorType = UteLearningHub.Domain.Constaints.Enums.ProfileVectorType.UserSubject,
-                    VectorDimension = 100,
                     EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vector),
                     CalculatedAt = DateTimeOffset.UtcNow,
                     IsActive = true
@@ -141,9 +136,6 @@ public class VectorUpdateService : BackgroundService
                 {
                     Id = Guid.NewGuid(),
                     ConversationId = conversation.Id,
-                    SubjectId = conversation.SubjectId,
-                    VectorType = UteLearningHub.Domain.Constaints.Enums.ProfileVectorType.ConversationTopic,
-                    VectorDimension = 100,
                     EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vector),
                     CalculatedAt = DateTimeOffset.UtcNow,
                     IsActive = true

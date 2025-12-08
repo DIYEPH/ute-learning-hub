@@ -1,5 +1,3 @@
-using UteLearningHub.Application.Common.Dtos;
-
 namespace UteLearningHub.Application.Common.Dtos;
 
 public record SubjectDetailDto

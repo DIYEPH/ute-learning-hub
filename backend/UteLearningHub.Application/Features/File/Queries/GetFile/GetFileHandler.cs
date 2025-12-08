@@ -36,16 +36,19 @@ public class GetFileHandler : IRequestHandler<GetFileQuery, GetFileResponse>
         // Tìm document chứa file này (nếu có)
         var document = await _documentRepository.GetByFileIdAsync(request.FileId, disableTracking: true, cancellationToken);
 
-        // Nếu file thuộc document, cần kiểm tra quyền truy cập document
+        // Nếu file thuộc document, cần kiểm tra quyền truy cập
         if (document != null)
         {
             var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
             var isAuthenticated = _currentUserService.IsAuthenticated;
             var userId = _currentUserService.UserId;
 
-            // Chỉ admin mới xem được tài liệu chưa duyệt
-            if (!isAdmin && document.ReviewStatus != ReviewStatus.Approved)
-                throw new NotFoundException("Document not found");
+            // Lấy DocumentFile để kiểm tra trạng thái review
+            var documentFile = await _documentRepository.GetDocumentFileByIdAsync(request.FileId, disableTracking: true, cancellationToken);
+            
+            // Non-admin users can only access approved files
+            if (!isAdmin && documentFile != null && documentFile.ReviewStatus != ReviewStatus.Approved)
+                throw new NotFoundException("File not found");
 
             // Kiểm tra visibility
             if (document.Visibility == VisibilityStatus.Private)
@@ -65,7 +68,7 @@ public class GetFileHandler : IRequestHandler<GetFileQuery, GetFileResponse>
                     throw new UnauthorizedException("You must be authenticated to access this file");
                 }
             }
-            // Public: ai cũng xem được (nhưng vẫn cần authenticated nếu document chưa approved - đã check ở trên)
+            // Public: ai cũng xem được
         }
         else
         {

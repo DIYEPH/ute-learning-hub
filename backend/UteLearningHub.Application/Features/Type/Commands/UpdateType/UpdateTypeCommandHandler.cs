@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -31,7 +30,6 @@ public class UpdateTypeCommandHandler : IRequestHandler<UpdateTypeCommand, TypeD
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Validate TypeName is not empty
         if (string.IsNullOrWhiteSpace(request.TypeName))
             throw new BadRequestException("TypeName cannot be empty");
 
@@ -40,28 +38,18 @@ public class UpdateTypeCommandHandler : IRequestHandler<UpdateTypeCommand, TypeD
         if (type == null || type.IsDeleted)
             throw new NotFoundException($"Type with id {request.Id} not found");
 
-        // Check if type name already exists (excluding current type)
-        var existingType = await _typeRepository.GetQueryableSet()
-            .Where(t => t.Id != request.Id 
-                && t.TypeName.ToLower() == request.TypeName.ToLower() 
-                && !t.IsDeleted)
-            .FirstOrDefaultAsync(cancellationToken);
+        var existingType = await _typeRepository.FindByNameAsync(request.TypeName, cancellationToken: cancellationToken);
 
-        if (existingType != null)
+        if (existingType != null && existingType.Id != request.Id)
             throw new BadRequestException($"Type with name '{request.TypeName}' already exists");
 
-        // Update type
         type.TypeName = request.TypeName;
         type.UpdatedAt = _dateTimeProvider.OffsetNow;
 
         await _typeRepository.UpdateAsync(type, cancellationToken);
         await _typeRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Get document count
-        var documentCount = await _typeRepository.GetQueryableSet()
-            .Where(t => t.Id == request.Id)
-            .Select(t => t.Documents.Count)
-            .FirstOrDefaultAsync(cancellationToken);
+        var documentCount = await _typeRepository.GetDocumentCountAsync(request.Id, cancellationToken);
 
         return new TypeDetailDto
         {

@@ -1,10 +1,10 @@
 ﻿using MediatR;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
+using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
-using UteLearningHub.Domain.Constaints.Enums;
-using UteLearningHub.Application.Services.User;
 
 namespace UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
 
@@ -47,9 +47,9 @@ public class DeleteDocumentsCommandHandler : IRequestHandler<DeleteDocumentsComm
         var isAdmin = _currentUserService.IsInRole("Admin");
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
 
-        var canDelete = isOwner || 
-                       isAdmin || 
-                       (trustLevel.HasValue && 
+        var canDelete = isOwner ||
+                       isAdmin ||
+                       (trustLevel.HasValue &&
                         (trustLevel.Value >= TrustLever.Moderator));
 
         if (!canDelete)

@@ -59,8 +59,8 @@ public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConver
 
         // Check if user already has a pending request
         var existingRequest = await _conversationRepository.GetJoinRequestsQueryable()
-            .Where(r => r.ConversationId == request.ConversationId 
-                     && r.CreatedById == userId 
+            .Where(r => r.ConversationId == request.ConversationId
+                     && r.CreatedById == userId
                      && r.ReviewStatus == ReviewStatus.PendingReview
                      && !r.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);

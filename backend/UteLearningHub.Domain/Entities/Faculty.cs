@@ -2,7 +2,7 @@
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Faculty : BaseEntity<Guid>, IAggregateRoot, IAuditable
+public class Faculty : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditable
 {
     public string FacultyName { get; set; } = default!;
     public string FacultyCode { get; set; } = default!;

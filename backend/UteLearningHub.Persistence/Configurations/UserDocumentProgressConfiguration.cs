@@ -21,18 +21,17 @@ public class UserDocumentProgressConfiguration : IEntityTypeConfiguration<UserDo
         builder.Property(u => u.TotalPages).HasColumnName("TongSoTrang");
         builder.Property(u => u.LastAccessedAt).HasColumnName("LanTruyCapGanNhat");
 
-        builder.ApplySoftDelete<UserDocumentProgress>()
-            .ApplyTrack<UserDocumentProgress>();
+        builder.ApplyTrack<UserDocumentProgress>();
 
         builder.HasOne(u => u.Document)
             .WithMany(u => u.UserProgresses)
             .HasForeignKey(u => u.DocumentId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(u => u.DocumentFile)
             .WithMany()
             .HasForeignKey(u => u.DocumentFileId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 

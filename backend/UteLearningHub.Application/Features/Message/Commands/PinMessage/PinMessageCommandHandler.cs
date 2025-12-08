@@ -45,8 +45,8 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
         var message = await _messageRepository.GetByIdAsync(
-            request.Id, 
-            disableTracking: false, 
+            request.Id,
+            disableTracking: false,
             cancellationToken);
 
         if (message == null || message.IsDeleted)
@@ -54,10 +54,10 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
 
         if (message.ConversationId != request.ConversationId)
             throw new BadRequestException("Message does not belong to the specified conversation");
-            
+
         var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
-            request.ConversationId, 
-            disableTracking: false, 
+            request.ConversationId,
+            disableTracking: false,
             cancellationToken);
 
         if (conversation == null || conversation.IsDeleted)

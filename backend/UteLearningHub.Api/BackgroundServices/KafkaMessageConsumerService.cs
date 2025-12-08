@@ -71,11 +71,11 @@ public class KafkaMessageConsumerService : BackgroundService
                                 break;
 
                             case MessageQueueEventTypes.MessageDeleted:
-                                _logger.LogInformation("Received MessageDeleted event: MessageId={MessageId}, ConversationId={ConversationId}", 
+                                _logger.LogInformation("Received MessageDeleted event: MessageId={MessageId}, ConversationId={ConversationId}",
                                     envelope.Payload.Id, envelope.Payload.ConversationId);
                                 await _messageHubService.BroadcastMessageDeletedAsync(
-                                    envelope.Payload.Id, 
-                                    envelope.Payload.ConversationId, 
+                                    envelope.Payload.Id,
+                                    envelope.Payload.ConversationId,
                                     stoppingToken);
                                 break;
 

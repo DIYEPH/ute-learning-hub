@@ -3,7 +3,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Document : BaseEntity<Guid>, IAggregateRoot, IAuditable, IReviewable
+public class Document : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditable
 {
     public Guid? SubjectId { get; set; }
     public Guid TypeId { get; set; }
@@ -26,9 +26,5 @@ public class Document : BaseEntity<Guid>, IAggregateRoot, IAuditable, IReviewabl
 
     public Guid CreatedById { get; set; }
     public Guid? UpdatedById { get; set; }
-
-    public Guid? ReviewedById { get; set; }
-    public DateTimeOffset? ReviewedAt { get; set; }
-    public string? ReviewNote { get; set; } = default!;
-    public ReviewStatus ReviewStatus { get; set; } = ReviewStatus.Approved;
 }
+

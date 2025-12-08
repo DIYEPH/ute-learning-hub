@@ -1,10 +1,10 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
-using UteLearningHub.Application.Services.Identity;
 
 namespace UteLearningHub.Application.Features.Subject.Queries.GetSubjectById;
 
@@ -44,13 +44,13 @@ public class GetSubjectByIdHandler : IRequestHandler<GetSubjectByIdQuery, Subjec
             Id = sm.Major.Id,
             MajorName = sm.Major.MajorName,
             MajorCode = sm.Major.MajorCode,
-                    Faculty = sm.Major.Faculty != null ? new FacultyDto
-                    {
-                        Id = sm.Major.Faculty.Id,
-                        FacultyName = sm.Major.Faculty.FacultyName,
-                        FacultyCode = sm.Major.Faculty.FacultyCode,
-                        Logo = sm.Major.Faculty.Logo
-                    } : null
+            Faculty = sm.Major.Faculty != null ? new FacultyDto
+            {
+                Id = sm.Major.Faculty.Id,
+                FacultyName = sm.Major.Faculty.FacultyName,
+                FacultyCode = sm.Major.Faculty.FacultyCode,
+                Logo = sm.Major.Faculty.Logo
+            } : null
         }).ToList();
 
         return new SubjectDetailDto

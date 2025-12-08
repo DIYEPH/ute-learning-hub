@@ -1,6 +1,6 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.Document;
 using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
@@ -23,7 +23,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IDocumentReviewRepository _documentReviewRepository;
+    private readonly IDocumentQueryService _documentQueryService;
 
     public UpdateDocumentCommandHandler(
         IDocumentRepository documentRepository,
@@ -34,7 +34,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         ICurrentUserService currentUserService,
         IUserService userService,
         IDateTimeProvider dateTimeProvider,
-        IDocumentReviewRepository documentReviewRepository)
+        IDocumentQueryService documentQueryService)
     {
         _documentRepository = documentRepository;
         _fileUsageService = fileUsageService;
@@ -44,7 +44,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         _currentUserService = currentUserService;
         _userService = userService;
         _dateTimeProvider = dateTimeProvider;
-        _documentReviewRepository = documentReviewRepository;
+        _documentQueryService = documentQueryService;
     }
 
     public async Task<DocumentDetailDto> Handle(UpdateDocumentCommand request, CancellationToken cancellationToken)
@@ -63,8 +63,8 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         var isAdmin = _currentUserService.IsInRole("Admin");
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
 
-        var canUpdate = isOwner || 
-                       isAdmin || 
+        var canUpdate = isOwner ||
+                       isAdmin ||
                        (trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator);
 
         if (!canUpdate)
@@ -100,16 +100,14 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
 
         if (request.Visibility.HasValue)
             document.Visibility = request.Visibility.Value;
-            
+
         if (request.TagIds != null)
         {
             document.DocumentTags.Clear();
 
             if (request.TagIds.Any())
             {
-                var tags = await _tagRepository.GetQueryableSet()
-                    .Where(t => request.TagIds.Contains(t.Id) && !t.IsDeleted)
-                    .ToListAsync(cancellationToken);
+                var tags = await _tagRepository.GetByIdsAsync(request.TagIds, cancellationToken: cancellationToken);
 
                 if (tags.Count != request.TagIds.Count)
                     throw new NotFoundException("One or more tags not found");
@@ -159,132 +157,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         if (fileToDelete != null)
             await _fileUsageService.DeleteFileAsync(fileToDelete, cancellationToken);
 
-        document = await _documentRepository.GetByIdWithDetailsAsync(request.Id, disableTracking: true, cancellationToken);
-
-        if (document == null)
-            throw new NotFoundException($"Document with id {request.Id} not found");
-
-        var commentCount = await _documentRepository.GetQueryableSet()
-            .Where(d => d.Id == request.Id)
-            .Select(d => d.DocumentFiles.Where(df => !df.IsDeleted).SelectMany(df => df.Comments).Count())
-            .FirstOrDefaultAsync(cancellationToken);
-
-        // Thống kê review tổng cho document
-        var reviewStats = await _documentReviewRepository.GetQueryableSet()
-            .Where(dr => dr.DocumentId == request.Id && !dr.IsDeleted)
-            .GroupBy(dr => dr.DocumentReviewType)
-            .Select(g => new
-            {
-                DocumentReviewType = g.Key,
-                Count = g.Count()
-            })
-            .ToListAsync(cancellationToken);
-
-        var usefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.Useful)?.Count ?? 0;
-        var notUsefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.NotUseful)?.Count ?? 0;
-        var totalCount = reviewStats.Sum(r => r.Count);
-
-        // Thống kê review theo từng DocumentFile
-        var perFileReviewStats = await _documentReviewRepository.GetQueryableSet()
-            .Where(dr => dr.DocumentId == request.Id && !dr.IsDeleted && dr.DocumentFileId != Guid.Empty)
-            .GroupBy(dr => dr.DocumentFileId)
-            .Select(g => new
-            {
-                DocumentFileId = g.Key,
-                Useful = g.Count(r => r.DocumentReviewType == DocumentReviewType.Useful),
-                NotUseful = g.Count(r => r.DocumentReviewType == DocumentReviewType.NotUseful)
-            })
-            .ToListAsync(cancellationToken);
-
-        var perFileReviewDict = perFileReviewStats.ToDictionary(
-            x => x.DocumentFileId,
-            x => (x.Useful, x.NotUseful)
-        );
-
-        // Thống kê comment theo từng DocumentFile
-        var perFileCommentStats = await _documentRepository.GetQueryableSet()
-            .Where(d => d.Id == request.Id)
-            .SelectMany(d => d.DocumentFiles.Where(df => !df.IsDeleted))
-            .Select(df => new
-            {
-                DocumentFileId = df.Id,
-                CommentCount = df.Comments.Count(c => !c.IsDeleted)
-            })
-            .ToListAsync(cancellationToken);
-
-        var perFileCommentDict = perFileCommentStats.ToDictionary(
-            x => x.DocumentFileId,
-            x => x.CommentCount
-        );
-
-        return new DocumentDetailDto
-        {
-            Id = document.Id,
-            DocumentName = document.DocumentName,
-            Description = document.Description,
-            IsDownload = document.IsDownload,
-            Visibility = document.Visibility,
-            ReviewStatus = document.ReviewStatus,
-            Subject = document.Subject != null ? new SubjectDto
-            {
-                Id = document.Subject.Id,
-                SubjectName = document.Subject.SubjectName,
-                SubjectCode = document.Subject.SubjectCode
-            } : null, 
-            Type = new TypeDto
-            {
-                Id = document.Type.Id,
-                TypeName = document.Type.TypeName
-            },
-            Tags = document.DocumentTags.Select(dt => new TagDto
-            {
-                Id = dt.Tag.Id,
-                TagName = dt.Tag.TagName
-            }).ToList(),
-            Authors = document.DocumentAuthors
-                .Select(da => new AuthorDto
-                {
-                    Id = da.Author.Id,
-                    FullName = da.Author.FullName
-                })
-                .Distinct()
-                .ToList(),
-            Files = document.DocumentFiles
-                .Where(df => !df.IsDeleted)
-                .OrderBy(df => df.Order)
-                .ThenBy(df => df.CreatedAt)
-                .Select(df =>
-                {
-                    perFileReviewDict.TryGetValue(df.Id, out var reviewForFile);
-                    perFileCommentDict.TryGetValue(df.Id, out var commentCountForFile);
-
-                    var usefulForFile = reviewForFile.Useful;
-                    var notUsefulForFile = reviewForFile.NotUseful;
-
-                    return new DocumentFileDto
-                    {
-                        Id = df.Id,
-                        FileId = df.FileId,
-                        FileSize = df.File.FileSize,
-                        MimeType = df.File.MimeType,
-                        Title = df.Title,
-                        Order = df.Order,
-                        IsPrimary = df.IsPrimary,
-                        TotalPages = df.TotalPages,
-                        CoverFileId = df.CoverFileId,
-                        CommentCount = commentCountForFile,
-                        UsefulCount = usefulForFile,
-                        NotUsefulCount = notUsefulForFile
-                    };
-                })
-                .ToList(),
-            CommentCount = commentCount,
-            UsefulCount = usefulCount,
-            NotUsefulCount = notUsefulCount,
-            TotalCount = totalCount,
-            CreatedById = document.CreatedById,
-            CreatedAt = document.CreatedAt,
-            UpdatedAt = document.UpdatedAt
-        };
+        var result = await _documentQueryService.GetDetailByIdAsync(request.Id, cancellationToken);
+        return result ?? throw new NotFoundException($"Document with id {request.Id} not found");
     }
 }

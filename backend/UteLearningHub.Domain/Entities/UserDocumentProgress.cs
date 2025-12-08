@@ -14,9 +14,6 @@ public class UserDocumentProgress : BaseEntity<Guid>, IAggregateRoot
 
     public Document Document { get; set; } = default!;
     public DocumentFile? DocumentFile { get; set; }
-
-    public Guid CreatedById { get; set; }
-    public Guid? UpdatedById { get; set; }
 }
 
 

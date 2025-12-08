@@ -1,19 +1,17 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Document;
 using UteLearningHub.Application.Services.File;
+using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
+using DomainAuthor = UteLearningHub.Domain.Entities.Author;
 using DomainDocument = UteLearningHub.Domain.Entities.Document;
 using DomainTag = UteLearningHub.Domain.Entities.Tag;
-using DomainFile = UteLearningHub.Domain.Entities.File;
-using DomainAuthor = UteLearningHub.Domain.Entities.Author;
-
 
 namespace UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 
@@ -28,6 +26,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IDocumentQueryService _documentQueryService;
 
     public CreateDocumentCommandHandler(
         IDocumentRepository documentRepository,
@@ -38,7 +37,8 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
         ITagRepository tagRepository,
         ICurrentUserService currentUserService,
         IUserService userService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IDocumentQueryService documentQueryService)
     {
         _documentRepository = documentRepository;
         _fileUsageService = fileUsageService;
@@ -49,6 +49,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
         _currentUserService = currentUserService;
         _userService = userService;
         _dateTimeProvider = dateTimeProvider;
+        _documentQueryService = documentQueryService;
     }
 
     public async Task<DocumentDetailDto> Handle(CreateDocumentCommand request, CancellationToken cancellationToken)
@@ -80,9 +81,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
 
         if (request.TagIds != null && request.TagIds.Any())
         {
-            var existingTags = await _tagRepository.GetQueryableSet()
-                .Where(t => request.TagIds.Contains(t.Id) && !t.IsDeleted)
-                .ToListAsync(cancellationToken);
+            var existingTags = await _tagRepository.GetByIdsAsync(request.TagIds, cancellationToken: cancellationToken);
 
             if (existingTags.Count != request.TagIds.Count)
                 throw new NotFoundException("One or more tags not found");
@@ -97,13 +96,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                 if (string.IsNullOrWhiteSpace(tagName)) continue;
 
                 var normalizedName = tagName.Trim();
-                var normalizedNameLower = normalizedName.ToLowerInvariant();
-
-                var existingTag = await _tagRepository.GetQueryableSet()
-                    .Where(t => !t.IsDeleted && t.TagName != null)
-                    .FirstOrDefaultAsync(
-                        t => t.TagName!.ToLower() == normalizedNameLower,
-                        cancellationToken);
+                var existingTag = await _tagRepository.FindByNameAsync(normalizedName, cancellationToken: cancellationToken);
 
                 if (existingTag != null)
                 {
@@ -121,7 +114,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                     {
                         Id = Guid.NewGuid(),
                         TagName = titleCaseName,
-                        ReviewStatus = ReviewStatus.Approved, 
+                        ReviewStatus = ReviewStatus.Approved,
                         CreatedById = userId,
                         CreatedAt = _dateTimeProvider.OffsetNow
                     };
@@ -135,12 +128,9 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
         if (!tagIdsToAdd.Any())
             throw new BadRequestException("Document must have at least one tag");
 
-        // Xử lý AuthorIds - chọn authors có sẵn (giống TagIds)
         if (request.AuthorIds != null && request.AuthorIds.Any())
         {
-            var existingAuthors = await _authorRepository.GetQueryableSet()
-                .Where(a => request.AuthorIds.Contains(a.Id) && !a.IsDeleted)
-                .ToListAsync(cancellationToken);
+            var existingAuthors = await _authorRepository.GetByIdsAsync(request.AuthorIds, cancellationToken: cancellationToken);
 
             if (existingAuthors.Count != request.AuthorIds.Count)
                 throw new NotFoundException("One or more authors not found");
@@ -148,7 +138,6 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             authorIdsToAdd.AddRange(existingAuthors.Select(a => a.Id));
         }
 
-        // Xử lý Authors - thêm authors mới (giống TagNames)
         if (request.Authors != null && request.Authors.Any())
         {
             foreach (var authorInput in request.Authors)
@@ -156,13 +145,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                 if (string.IsNullOrWhiteSpace(authorInput.FullName)) continue;
 
                 var normalizedName = authorInput.FullName.Trim();
-                var normalizedNameLower = normalizedName.ToLowerInvariant();
-
-                var existingAuthor = await _authorRepository.GetQueryableSet()
-                    .Where(a => !a.IsDeleted)
-                    .FirstOrDefaultAsync(
-                        a => a.FullName.ToLower() == normalizedNameLower,
-                        cancellationToken);
+                var existingAuthor = await _authorRepository.FindByNameAsync(normalizedName, cancellationToken: cancellationToken);
 
                 if (existingAuthor != null)
                 {
@@ -198,16 +181,14 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             DocumentName = request.DocumentName,
             NormalizedName = request.DocumentName.ToLowerInvariant(),
             Description = request.Description,
-            SubjectId = request.SubjectId,  
+            SubjectId = request.SubjectId,
             TypeId = request.TypeId,
             IsDownload = request.IsDownload,
             Visibility = request.Visibility,
-            ReviewStatus = reviewStatus,
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        // Add DocumentTags directly using tagIdsToAdd (no need to query DB again)
         foreach (var tagId in tagIdsToAdd)
         {
             document.DocumentTags.Add(new DocumentTag
@@ -241,90 +222,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
         await _documentRepository.AddAsync(document, cancellationToken);
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        document = await _documentRepository.GetByIdWithDetailsAsync(document.Id, disableTracking: true, cancellationToken);
-
-        if (document == null)
-            throw new NotFoundException("Failed to create document");
-
-        var commentCount = await _documentRepository.GetQueryableSet()
-            .Where(d => d.Id == document.Id)
-            .Select(d => d.DocumentFiles.SelectMany(df => df.Comments).Count())
-            .FirstOrDefaultAsync(cancellationToken);
-
-        var reviewStats = await _documentRepository.GetQueryableSet()
-            .Where(d => d.Id == document.Id)
-            .SelectMany(d => d.Reviews)
-            .Where(r => !r.IsDeleted)
-            .GroupBy(r => r.DocumentReviewType)
-            .Select(g => new
-            {
-                DocumentReviewType = g.Key,
-                Count = g.Count()
-            })
-            .ToListAsync(cancellationToken);
-
-        var usefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.Useful)?.Count ?? 0;
-        var notUsefulCount = reviewStats.FirstOrDefault(r => r.DocumentReviewType == DocumentReviewType.NotUseful)?.Count ?? 0;
-        var totalCount = reviewStats.Sum(r => r.Count);
-
-        return new DocumentDetailDto
-        {
-            Id = document.Id,
-            DocumentName = document.DocumentName,
-            Description = document.Description,
-            IsDownload = document.IsDownload,
-            Visibility = document.Visibility,
-            ReviewStatus = document.ReviewStatus,
-            Subject = document.Subject != null ? new SubjectDto
-            {
-                Id = document.Subject.Id,
-                SubjectName = document.Subject.SubjectName,
-                SubjectCode = document.Subject.SubjectCode
-            } : null, 
-            Type = new TypeDto
-            {
-                Id = document.Type.Id,
-                TypeName = document.Type.TypeName
-            },
-            Tags = document.DocumentTags.Select(dt => new TagDto
-            {
-                Id = dt.Tag.Id,
-                TagName = dt.Tag.TagName
-            }).ToList(),
-            Authors = document.DocumentAuthors
-                .Select(da => new AuthorDto
-                {
-                    Id = da.Author.Id,
-                    FullName = da.Author.FullName
-                })
-                .Distinct()
-                .ToList(),
-            Files = document.DocumentFiles
-                .OrderBy(df => df.Order)
-                .ThenBy(df => df.CreatedAt)
-                .Select(df => new DocumentFileDto
-                {
-                    Id = df.Id,
-                    FileId = df.FileId,
-                    FileSize = df.File.FileSize,
-                    MimeType = df.File.MimeType,
-                    Title = df.Title,
-                    Order = df.Order,
-                    IsPrimary = df.IsPrimary,
-                    TotalPages = df.TotalPages,
-                    CoverFileId = df.CoverFileId,
-                    CommentCount = 0,
-                    UsefulCount = 0,
-                    NotUsefulCount = 0
-                })
-                .ToList(),
-            CommentCount = commentCount,
-            UsefulCount = usefulCount,
-            NotUsefulCount = notUsefulCount,
-            TotalCount = totalCount,
-            CreatedById = document.CreatedById,
-            CreatedAt = document.CreatedAt,
-            UpdatedAt = document.UpdatedAt
-        };
+        var result = await _documentQueryService.GetDetailByIdAsync(document.Id, cancellationToken);
+        return result ?? throw new NotFoundException("Failed to create document");
     }
 }

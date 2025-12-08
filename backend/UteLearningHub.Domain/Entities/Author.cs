@@ -3,9 +3,9 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Author : BaseEntity<Guid>, IAggregateRoot, IAuditable, IReviewable
+public class Author : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditable, IReviewable
 {
-    public string FullName { get; set; } = default!;  
+    public string FullName { get; set; } = default!;
     public string Description { get; set; } = default!;
 
     public ICollection<DocumentAuthor> DocumentAuthors { get; set; } = [];

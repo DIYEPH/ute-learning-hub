@@ -1,4 +1,3 @@
-using System.IO;
 using Microsoft.Extensions.Options;
 using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Infrastructure.ConfigurationOptions;
@@ -13,11 +12,11 @@ public class FileStorageService : IFileStorageService
     public FileStorageService(IOptions<FileStorageOptions> options)
     {
         var fileStorageOptions = options.Value;
-        _basePath = !string.IsNullOrEmpty(fileStorageOptions.BasePath) 
-            ? fileStorageOptions.BasePath 
+        _basePath = !string.IsNullOrEmpty(fileStorageOptions.BasePath)
+            ? fileStorageOptions.BasePath
             : Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
         _baseUrl = fileStorageOptions.BaseUrl;
-        
+
         if (!Directory.Exists(_basePath))
         {
             Directory.CreateDirectory(_basePath);
@@ -44,13 +43,13 @@ public class FileStorageService : IFileStorageService
         {
             var fileName = Path.GetFileName(fileUrl);
             var filePath = Path.Combine(_basePath, fileName);
-            
+
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
                 return Task.FromResult(true);
             }
-            
+
             return Task.FromResult(false);
         }
         catch
@@ -65,12 +64,12 @@ public class FileStorageService : IFileStorageService
         {
             var fileName = Path.GetFileName(fileUrl);
             var filePath = Path.Combine(_basePath, fileName);
-            
+
             if (System.IO.File.Exists(filePath))
             {
                 return Task.FromResult<Stream?>(new FileStream(filePath, FileMode.Open, FileAccess.Read));
             }
-            
+
             return Task.FromResult<Stream?>(null);
         }
         catch

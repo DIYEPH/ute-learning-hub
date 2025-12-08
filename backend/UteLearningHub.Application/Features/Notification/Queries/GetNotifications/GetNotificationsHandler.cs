@@ -111,9 +111,9 @@ public class GetNotificationsHandler : IRequestHandler<GetNotificationsQuery, Pa
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
         var query = _notificationRepository.GetNotificationRecipientsWithNotificationQueryable()
-            .Where(nr => nr.RecipientId == userId 
+            .Where(nr => nr.RecipientId == userId
                 && nr.Notification.ExpiredAt > DateTimeOffset.UtcNow
-                && !nr.IsDeleted 
+                && !nr.IsDeleted
                 && !nr.Notification.IsDeleted)
             .AsNoTracking();
 

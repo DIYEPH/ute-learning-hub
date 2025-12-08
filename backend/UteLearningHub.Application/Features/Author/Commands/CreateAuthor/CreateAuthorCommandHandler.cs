@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Features.Author.Queries.GetAuthorById;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -36,10 +35,7 @@ public class CreateAuthorCommandHandler : IRequestHandler<CreateAuthorCommand, A
         if (string.IsNullOrWhiteSpace(request.FullName))
             throw new BadRequestException("FullName cannot be empty");
 
-        // Check if author name already exists
-        var existingAuthor = await _authorRepository.GetQueryableSet()
-            .Where(a => a.FullName.ToLower() == request.FullName.ToLower() && !a.IsDeleted)
-            .FirstOrDefaultAsync(cancellationToken);
+        var existingAuthor = await _authorRepository.FindByNameAsync(request.FullName, cancellationToken: cancellationToken);
 
         if (existingAuthor != null)
             throw new BadRequestException($"Author with name '{request.FullName}' already exists");

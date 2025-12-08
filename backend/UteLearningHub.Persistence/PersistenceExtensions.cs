@@ -12,12 +12,13 @@ public static class PersistenceExtensions
 {
     public static IServiceCollection AddPersistence(this IServiceCollection services, string connectionString)
     {
-        services.AddPooledDbContextFactory<ApplicationDbContext>(options => 
-            options.UseSqlServer(connectionString, sqlOptions => 
+        services.AddPooledDbContextFactory<ApplicationDbContext>(options =>
+            options.UseSqlServer(connectionString, sqlOptions =>
                 sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)));
         services.AddScoped<ApplicationDbContext>(sp => sp.GetRequiredService<IDbContextFactory<ApplicationDbContext>>().CreateDbContext());
 
-        services.AddIdentityCore<AppUser>(options => {
+        services.AddIdentityCore<AppUser>(options =>
+        {
             //Password
             options.Password.RequireDigit = true;
             options.Password.RequireLowercase = true;
@@ -57,7 +58,7 @@ public static class PersistenceExtensions
         services.AddScoped<IMessageRepository, MessageRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IUserDocumentProgressRepository, UserDocumentProgressRepository>();
-        
+
         services.AddScoped<IProfileVectorStore, ProfileVectorStore>();
         services.AddScoped<IConversationVectorStore, ConversationVectorStore>();
 

@@ -9,7 +9,6 @@ namespace UteLearningHub.Application.Common.Dtos
         public string Description { get; init; } = default!;
         public bool IsDownload { get; init; }
         public VisibilityStatus Visibility { get; init; }
-        public ReviewStatus ReviewStatus { get; init; }
         public SubjectDto? Subject { get; init; }
         public TypeDto Type { get; init; } = default!;
         public IList<TagDto> Tags { get; init; } = [];

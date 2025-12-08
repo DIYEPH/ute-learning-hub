@@ -1,36 +1,42 @@
 ﻿using System.Text;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using StackExchange.Redis;
 using UteLearningHub.Application.Services.Authentication;
+using UteLearningHub.Application.Services.Cache;
 using UteLearningHub.Application.Services.Comment;
+using UteLearningHub.Application.Services.Document;
+using UteLearningHub.Application.Services.Email;
 using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
-using UteLearningHub.Application.Services.User;
 using UteLearningHub.Application.Services.Recommendation;
-using UteLearningHub.Application.Services.Cache;
+using UteLearningHub.Application.Services.Settings;
 using UteLearningHub.Application.Services.TrustScore;
-using UteLearningHub.Application.Services.Document;
+using UteLearningHub.Application.Services.User;
+using UteLearningHub.Application.Services.Author;
+using UteLearningHub.Application.Services.Conversation;
 using UteLearningHub.Infrastructure.ConfigurationOptions;
 using UteLearningHub.Infrastructure.Services.Authentication;
+using UteLearningHub.Infrastructure.Services.Cache;
 using UteLearningHub.Infrastructure.Services.Comment;
-using UteLearningHub.Infrastructure.Services.Identity;
-using UteLearningHub.Infrastructure.Services.Message;
-using UteLearningHub.Infrastructure.Services.User;
+using UteLearningHub.Infrastructure.Services.Document;
+using UteLearningHub.Infrastructure.Services.Email;
 using UteLearningHub.Infrastructure.Services.File;
 using UteLearningHub.Infrastructure.Services.FileStorage;
+using UteLearningHub.Infrastructure.Services.Identity;
+using UteLearningHub.Infrastructure.Services.Message;
 using UteLearningHub.Infrastructure.Services.Recommendation;
-using UteLearningHub.Infrastructure.Services.Cache;
+using UteLearningHub.Infrastructure.Services.Settings;
 using UteLearningHub.Infrastructure.Services.TrustScore;
-using UteLearningHub.Infrastructure.Services.Document;
-using UteLearningHub.Application.Services.Email;
-using UteLearningHub.Infrastructure.Services.Email;
-using StackExchange.Redis;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Configuration;
-using Amazon.S3;
+using UteLearningHub.Infrastructure.Services.User;
+using UteLearningHub.Infrastructure.Services.Author;
+using UteLearningHub.Infrastructure.Services.Conversation;
 
 namespace UteLearningHub.Infrastructure;
 
@@ -86,6 +92,7 @@ public static class InfrastructureExtensions
         services.AddSingleton<IConnectionTracker, ConnectionTrackerService>();
         services.AddScoped<IUserConversationService, UserConversationService>();
         services.AddScoped<IConversationSystemMessageService, ConversationSystemMessageService>();
+        services.AddScoped<ISystemSettingService, SystemSettingService>();
 
         // Add HttpContextAccessor for CurrentUserService
         services.AddHttpContextAccessor();
@@ -105,6 +112,13 @@ public static class InfrastructureExtensions
         services.AddScoped<IPdfPageCountService, PdfPageCountService>();
         services.AddScoped<DocxPageCountService>();
         services.AddScoped<IDocumentPageCountService, DocumentPageCountService>();
+        services.AddScoped<IDocumentQueryService, DocumentQueryService>();
+
+        // Author services
+        services.AddScoped<IAuthorQueryService, AuthorQueryService>();
+
+        // Conversation services
+        services.AddScoped<IConversationQueryService, ConversationQueryService>();
 
         // Email service
         services.AddScoped<IEmailService, EmailService>();

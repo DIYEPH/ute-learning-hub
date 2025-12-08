@@ -90,7 +90,7 @@ public class GetConversationByIdHandler : IRequestHandler<GetConversationByIdQue
                     IsMuted = m.IsMuted,
                     JoinedAt = m.CreatedAt
                 }).ToList(),
-            MessageCount = 0, 
+            MessageCount = 0,
             LastMessageId = conversation.LastMessage,
             CreatedById = conversation.CreatedById,
             CreatedAt = conversation.CreatedAt,

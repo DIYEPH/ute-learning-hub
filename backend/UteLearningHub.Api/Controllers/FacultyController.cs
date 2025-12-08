@@ -5,9 +5,8 @@ using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Faculty.Commands.CreateFaculty;
 using UteLearningHub.Application.Features.Faculty.Commands.DeleteFaculty;
 using UteLearningHub.Application.Features.Faculty.Commands.UpdateFaculty;
-using UteLearningHub.Application.Features.Faculty.Queries.GetFacultyById;
 using UteLearningHub.Application.Features.Faculty.Queries.GetFaculties;
-using UteLearningHub.Application.Services.FileStorage;
+using UteLearningHub.Application.Features.Faculty.Queries.GetFacultyById;
 
 namespace UteLearningHub.Api.Controllers;
 

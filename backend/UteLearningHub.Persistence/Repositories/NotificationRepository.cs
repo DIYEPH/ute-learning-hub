@@ -1,15 +1,14 @@
-﻿using UteLearningHub.CrossCuttingConcerns.DateTimes;
+﻿using Microsoft.EntityFrameworkCore;
+using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence.Repositories.Common;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
 
 namespace UteLearningHub.Persistence.Repositories;
 
 public class NotificationRepository : Repository<Notification, Guid>, INotificationRepository
 {
-    public NotificationRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider) 
+    public NotificationRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
         : base(dbContext, dateTimeProvider)
     {
     }
@@ -30,8 +29,8 @@ public class NotificationRepository : Repository<Notification, Guid>, INotificat
     {
         return await _dbContext.NotificationRecipients
             .Include(nr => nr.Notification)
-            .Where(nr => nr.RecipientId == userId 
-                && !nr.IsDeleted 
+            .Where(nr => nr.RecipientId == userId
+                && !nr.IsDeleted
                 && !nr.IsRead
                 && !nr.Notification.IsDeleted
                 && nr.Notification.ExpiredAt > DateTimeOffset.UtcNow)
@@ -39,9 +38,9 @@ public class NotificationRepository : Repository<Notification, Guid>, INotificat
     }
 
     public async Task CreateNotificationRecipientsAsync(
-        Guid notificationId, 
-        IEnumerable<Guid> recipientIds, 
-        DateTimeOffset receivedAt, 
+        Guid notificationId,
+        IEnumerable<Guid> recipientIds,
+        DateTimeOffset receivedAt,
         CancellationToken cancellationToken = default)
     {
         var recipients = recipientIds.Select(recipientId => new NotificationRecipient
@@ -58,14 +57,14 @@ public class NotificationRepository : Repository<Notification, Guid>, INotificat
     }
 
     public async Task<NotificationRecipient?> GetNotificationRecipientAsync(
-        Guid notificationId, 
-        Guid userId, 
-        bool disableTracking = false, 
+        Guid notificationId,
+        Guid userId,
+        bool disableTracking = false,
         CancellationToken cancellationToken = default)
     {
         var query = _dbContext.NotificationRecipients
-            .Where(nr => nr.NotificationId == notificationId 
-                && nr.RecipientId == userId 
+            .Where(nr => nr.NotificationId == notificationId
+                && nr.RecipientId == userId
                 && !nr.IsDeleted);
 
         if (disableTracking)
@@ -75,13 +74,13 @@ public class NotificationRepository : Repository<Notification, Guid>, INotificat
     }
 
     public async Task<List<NotificationRecipient>> GetUnreadNotificationRecipientsAsync(
-        Guid userId, 
+        Guid userId,
         CancellationToken cancellationToken = default)
     {
         return await _dbContext.NotificationRecipients
             .Include(nr => nr.Notification)
-            .Where(nr => nr.RecipientId == userId 
-                && !nr.IsDeleted 
+            .Where(nr => nr.RecipientId == userId
+                && !nr.IsDeleted
                 && !nr.IsRead
                 && !nr.Notification.IsDeleted
                 && nr.Notification.ExpiredAt > DateTimeOffset.UtcNow)

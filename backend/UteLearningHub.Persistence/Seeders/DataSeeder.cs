@@ -58,7 +58,7 @@ public class DataSeeder
         var adminUser = await _userManager.FindByEmailAsync("admin@ute.edu.vn");
         if (adminUser == null)
             throw new InvalidOperationException("Admin user must be created before seeding faculties");
-        
+
         var adminId = adminUser.Id;
 
         var faculties = new List<Faculty>
@@ -136,7 +136,7 @@ public class DataSeeder
         var adminUser = await _userManager.FindByEmailAsync("admin@ute.edu.vn");
         if (adminUser == null)
             throw new InvalidOperationException("Admin user must be created before seeding majors");
-        
+
         var adminId = adminUser.Id;
 
         var majors = new List<Major>
@@ -368,8 +368,8 @@ public class DataSeeder
                 MajorId = cnsMajor.Id,
                 CreatedAt = DateTimeOffset.UtcNow
             }
-        }; 
-        
+        };
+
         foreach (var student in students)
         {
             await _userManager.CreateAsync(student, "Student123!");

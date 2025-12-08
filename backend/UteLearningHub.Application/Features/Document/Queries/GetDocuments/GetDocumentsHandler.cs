@@ -60,18 +60,16 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
         if (request.Visibility.HasValue)
             query = query.Where(d => d.Visibility == request.Visibility.Value);
 
-        if (request.ReviewStatus.HasValue)
-            query = query.Where(d => d.ReviewStatus == request.ReviewStatus.Value);
-
         if (request.IsDownload.HasValue)
             query = query.Where(d => d.IsDownload == request.IsDownload.Value);
 
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
         var isAuthenticated = _currentUserService.IsAuthenticated;
 
-        if (!request.ReviewStatus.HasValue && !isAdmin)
+        // Non-admin users can only see documents with at least 1 approved file
+        if (!isAdmin)
         {
-            query = query.Where(d => d.ReviewStatus == ReviewStatus.Approved);
+            query = query.Where(d => d.DocumentFiles.Any(f => !f.IsDeleted && f.ReviewStatus == ReviewStatus.Approved));
         }
 
         if (!request.Visibility.HasValue)
@@ -120,7 +118,7 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
 
         // Get review stats for all documents
         var reviewStats = await _documentReviewRepository.GetQueryableSet()
-            .Where(dr => documentIds.Contains(dr.DocumentId) && !dr.IsDeleted)
+            .Where(dr => documentIds.Contains(dr.DocumentId))
             .GroupBy(dr => new { dr.DocumentId, dr.DocumentReviewType })
             .Select(g => new
             {
@@ -149,7 +147,6 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                 Description = d.Description,
                 IsDownload = d.IsDownload,
                 Visibility = d.Visibility,
-                ReviewStatus = d.ReviewStatus,
                 Subject = d.Subject != null ? new SubjectDto
                 {
                     Id = d.Subject.Id,
@@ -202,7 +199,6 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             Description = d.Description,
             IsDownload = d.IsDownload,
             Visibility = d.Visibility,
-            ReviewStatus = d.ReviewStatus,
             Subject = d.Subject,
             Type = d.Type,
             Tags = d.Tags,

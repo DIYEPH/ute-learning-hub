@@ -3,7 +3,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Notification : BaseEntity<Guid>, IAggregateRoot, IAuditable
+public class Notification : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditable
 {
     public Guid ObjectId { get; set; }
     public string Title { get; set; } = default!;

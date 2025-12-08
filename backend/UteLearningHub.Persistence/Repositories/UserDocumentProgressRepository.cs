@@ -8,19 +8,19 @@ namespace UteLearningHub.Persistence.Repositories;
 
 public class UserDocumentProgressRepository : Repository<UserDocumentProgress, Guid>, IUserDocumentProgressRepository
 {
-    public UserDocumentProgressRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider) 
+    public UserDocumentProgressRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
         : base(dbContext, dateTimeProvider)
     {
     }
 
     public async Task<UserDocumentProgress?> GetByUserAndDocumentFileAsync(
-        Guid userId, 
-        Guid documentFileId, 
-        bool disableTracking = false, 
+        Guid userId,
+        Guid documentFileId,
+        bool disableTracking = false,
         CancellationToken cancellationToken = default)
     {
         var query = GetQueryableSet()
-            .Where(p => p.UserId == userId && p.DocumentFileId == documentFileId && !p.IsDeleted);
+            .Where(p => p.UserId == userId && p.DocumentFileId == documentFileId);
 
         if (disableTracking)
             query = query.AsNoTracking();
@@ -29,13 +29,13 @@ public class UserDocumentProgressRepository : Repository<UserDocumentProgress, G
     }
 
     public async Task<IList<UserDocumentProgress>> GetByUserAndDocumentAsync(
-        Guid userId, 
-        Guid documentId, 
-        bool disableTracking = false, 
+        Guid userId,
+        Guid documentId,
+        bool disableTracking = false,
         CancellationToken cancellationToken = default)
     {
         var query = GetQueryableSet()
-            .Where(p => p.UserId == userId && p.DocumentId == documentId && !p.IsDeleted);
+            .Where(p => p.UserId == userId && p.DocumentId == documentId);
 
         if (disableTracking)
             query = query.AsNoTracking();

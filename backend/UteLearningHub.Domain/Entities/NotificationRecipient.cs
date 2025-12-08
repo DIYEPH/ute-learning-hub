@@ -2,7 +2,7 @@
 
 namespace UteLearningHub.Domain.Entities;
 
-public class NotificationRecipient : BaseEntity<Guid>
+public class NotificationRecipient : SoftDeletableEntity<Guid>
 {
     public Guid NotificationId { get; set; }
     public Guid RecipientId { get; set; }

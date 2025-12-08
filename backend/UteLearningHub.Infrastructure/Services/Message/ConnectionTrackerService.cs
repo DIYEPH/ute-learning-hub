@@ -6,7 +6,7 @@ namespace UteLearningHub.Infrastructure.Services.Message;
 public class ConnectionTrackerService : IConnectionTracker
 {
     private readonly ConcurrentDictionary<Guid, HashSet<string>> _userConnections = new();
-    
+
     private readonly ConcurrentDictionary<string, Guid> _connectionUsers = new();
 
     public void AddConnection(Guid userId, string connectionId)
@@ -19,7 +19,7 @@ public class ConnectionTrackerService : IConnectionTracker
                 existing.Add(connectionId);
                 return existing;
             });
-        
+
         _connectionUsers[connectionId] = userId;
     }
 
@@ -40,7 +40,7 @@ public class ConnectionTrackerService : IConnectionTracker
 
     public bool IsUserOnline(Guid userId)
     {
-        return _userConnections.TryGetValue(userId, out var connections) 
+        return _userConnections.TryGetValue(userId, out var connections)
             && connections.Count > 0;
     }
 
@@ -51,8 +51,8 @@ public class ConnectionTrackerService : IConnectionTracker
 
     public IEnumerable<string> GetUserConnectionIds(Guid userId)
     {
-        return _userConnections.TryGetValue(userId, out var connections) 
-            ? connections 
+        return _userConnections.TryGetValue(userId, out var connections)
+            ? connections
             : Enumerable.Empty<string>();
     }
 }

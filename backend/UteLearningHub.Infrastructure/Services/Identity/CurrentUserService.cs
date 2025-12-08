@@ -7,7 +7,7 @@ namespace UteLearningHub.Infrastructure.Services.Identity
     public class CurrentUserService : ICurrentUserService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public CurrentUserService(IHttpContextAccessor httpContextAccessor) 
+        public CurrentUserService(IHttpContextAccessor httpContextAccessor)
             => _httpContextAccessor = httpContextAccessor;
         public Guid? UserId
         {

@@ -18,7 +18,7 @@ public class DocxPageCountService : IDocumentPageCountService
 
             // Chỉ xử lý DOCX và DOC
             var mimeTypeLower = mimeType?.ToLowerInvariant() ?? "";
-            if (!mimeTypeLower.Contains("word") && 
+            if (!mimeTypeLower.Contains("word") &&
                 !mimeTypeLower.Contains("officedocument.wordprocessingml") &&
                 !mimeTypeLower.Contains("msword"))
             {
@@ -41,23 +41,23 @@ public class DocxPageCountService : IDocumentPageCountService
             // Đếm số page breaks và section breaks
             var pageBreaks = body.Descendants<Break>().Count(b => b.Type?.Value == BreakValues.Page);
             var sections = body.Descendants<SectionProperties>().Count();
-            
+
             // Đếm số paragraphs để ước tính thêm
             var paragraphs = body.Descendants<Paragraph>().Count();
-            
+
             // Ước tính số trang: 
             // - Mỗi section thường là 1 trang
             // - Mỗi page break là 1 trang mới
             // - Nếu có nhiều paragraphs (>50) thì có thể có nhiều trang hơn
             var estimatedPages = Math.Max(1, sections + pageBreaks);
-            
+
             // Nếu có nhiều paragraphs nhưng không có page breaks, ước tính dựa trên số paragraphs
             if (estimatedPages == 1 && paragraphs > 50)
             {
                 // Giả sử mỗi 30-40 paragraphs là 1 trang
                 estimatedPages = Math.Max(1, (int)Math.Ceiling(paragraphs / 35.0));
             }
-            
+
             return Task.FromResult<int?>(estimatedPages);
         }
         catch

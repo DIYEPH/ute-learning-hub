@@ -2,16 +2,16 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.Cache;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Recommendation;
-using UteLearningHub.Application.Services.Cache;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Conversation.Queries.GetConversationRecommendations;
 
-public class GetConversationRecommendationsHandler 
+public class GetConversationRecommendationsHandler
     : IRequestHandler<GetConversationRecommendationsQuery, GetConversationRecommendationsResponse>
 {
     private readonly IVectorCalculationService _vectorCalculationService;
@@ -56,22 +56,27 @@ public class GetConversationRecommendationsHandler
         GetConversationRecommendationsQuery request,
         CancellationToken cancellationToken)
     {
+        _logger.LogInformation("GetConversationRecommendations API called");
+
         if (!_currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to get recommendations");
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+        _logger.LogInformation("Getting recommendations for userId {UserId}", userId);
 
         // Kiểm tra cache
         var cacheKey = $"recommendations:{userId}:{request.TopK}:{request.MinSimilarity}";
         var cachedResponse = await _cache.GetAsync<GetConversationRecommendationsResponse>(cacheKey, cancellationToken);
         if (cachedResponse != null)
         {
-            _logger.LogDebug("Returning cached recommendations for user {UserId}", userId);
+            _logger.LogInformation("Returning CACHED recommendations for user {UserId} (cache hit)", userId);
             return cachedResponse;
         }
+        _logger.LogInformation("Cache miss, calculating recommendations");
 
         // Lấy hoặc tính user vector
         var userVector = await GetOrCalculateUserVectorAsync(userId, cancellationToken);
+        _logger.LogInformation("Got user vector with length {VectorLength}", userVector.Length);
 
         // Lấy tất cả conversations active và chưa join (bao gồm SubjectMajors để lấy FacultyId)
         var activeConversations = await _conversationRepository.GetQueryableSet()
@@ -82,13 +87,16 @@ public class GetConversationRecommendationsHandler
                 .ThenInclude(ct => ct.Tag)
             .Include(c => c.Members)
             .AsNoTracking()
-            .Where(c => !c.IsDeleted 
+            .Where(c => !c.IsDeleted
                 && c.ConversationStatus == ConversationStatus.Active
                 && !c.Members.Any(m => m.UserId == userId && !m.IsDeleted))
             .ToListAsync(cancellationToken);
 
+        _logger.LogInformation("Found {Count} active conversations user hasn't joined", activeConversations.Count);
+
         if (!activeConversations.Any())
         {
+            _logger.LogInformation("No active conversations found, returning empty");
             return new GetConversationRecommendationsResponse
             {
                 Recommendations = Array.Empty<ConversationRecommendationDto>(),
@@ -132,6 +140,9 @@ public class GetConversationRecommendationsHandler
         var topK = request.TopK ?? 10;
         var minSimilarity = request.MinSimilarity ?? 0.3f;
 
+        _logger.LogInformation("Calling AI service with {Count} conversation vectors, topK={TopK}, minSimilarity={MinSimilarity}",
+            conversationVectors.Count, topK, minSimilarity);
+
         var recommendationResponse = await _recommendationService.GetRecommendationsAsync(
             userVector,
             conversationVectors,
@@ -149,7 +160,7 @@ public class GetConversationRecommendationsHandler
                 if (!conversationDict.TryGetValue(rec.ConversationId, out var conversation))
                     return null;
 
-                var isMember = currentUserId.HasValue && 
+                var isMember = currentUserId.HasValue &&
                     conversation.Members.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
 
                 return new ConversationRecommendationDto
@@ -200,9 +211,7 @@ public class GetConversationRecommendationsHandler
     {
         // Tìm vector đã lưu trong DB
         var existingVector = await _profileVectorStore.Query()
-            .Where(v => v.UserId == userId 
-                && v.VectorType == ProfileVectorType.UserSubject 
-                && v.IsActive)
+            .Where(v => v.UserId == userId && v.IsActive)
             .OrderByDescending(v => v.CalculatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -242,8 +251,6 @@ public class GetConversationRecommendationsHandler
                 {
                     Id = Guid.NewGuid(),
                     UserId = userId,
-                    VectorType = ProfileVectorType.UserSubject,
-                    VectorDimension = _vectorDimension,
                     EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(calculatedVector),
                     CalculatedAt = DateTimeOffset.UtcNow,
                     IsActive = true
@@ -269,9 +276,7 @@ public class GetConversationRecommendationsHandler
     {
         // Tìm vector đã lưu trong DB
         var existingVector = await _conversationVectorStore.Query()
-            .Where(v => v.ConversationId == conversationId 
-                && v.VectorType == ProfileVectorType.ConversationTopic 
-                && v.IsActive)
+            .Where(v => v.ConversationId == conversationId && v.IsActive)
             .OrderByDescending(v => v.CalculatedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -306,9 +311,6 @@ public class GetConversationRecommendationsHandler
                 {
                     Id = Guid.NewGuid(),
                     ConversationId = conversationId,
-                    SubjectId = subjectId,
-                    VectorType = ProfileVectorType.ConversationTopic,
-                    VectorDimension = _vectorDimension,
                     EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(calculatedVector),
                     CalculatedAt = DateTimeOffset.UtcNow,
                     IsActive = true

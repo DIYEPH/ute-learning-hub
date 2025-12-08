@@ -15,7 +15,7 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
     private readonly ICommentService _commentService;
 
     public GetCommentsHandler(
-        ICommentRepository commentRepository, 
+        ICommentRepository commentRepository,
         ICurrentUserService currentUserService,
         ICommentService commentService)
     {
@@ -77,11 +77,11 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
             DocumentFileId = c.DocumentFileId,
             ParentId = c.ParentId,
             Content = c.Content,
-            AuthorName = authorInfo.TryGetValue(c.CreatedById, out var author) 
-                ? author.FullName 
+            AuthorName = authorInfo.TryGetValue(c.CreatedById, out var author)
+                ? author.FullName
                 : "Unknown",
-            AuthorAvatarUrl = authorInfo.TryGetValue(c.CreatedById, out var authorInfoValue) 
-                ? authorInfoValue.AvatarUrl 
+            AuthorAvatarUrl = authorInfo.TryGetValue(c.CreatedById, out var authorInfoValue)
+                ? authorInfoValue.AvatarUrl
                 : null,
             CreatedById = c.CreatedById,
             ReviewStatus = c.ReviewStatus,

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using UteLearningHub.Application.Services.Authentication;
@@ -34,7 +33,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Unit>
         var sessionId = _httpContextAccessor.HttpContext?.User?.FindFirst("session_id")?.Value;
 
         if (string.IsNullOrEmpty(sessionId))
-            return Unit.Value;  
+            return Unit.Value;
 
         // Revoke refresh token for this session
         await _refreshTokenService.RevokeRefreshTokenAsync(userId, sessionId, cancellationToken);

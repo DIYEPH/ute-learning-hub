@@ -1,6 +1,5 @@
 ﻿using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories.Base;
-using System.Linq;
 
 namespace UteLearningHub.Domain.Repositories;
 

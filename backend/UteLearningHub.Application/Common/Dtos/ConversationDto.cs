@@ -14,13 +14,13 @@ public record ConversationDto
     public SubjectDto? Subject { get; init; }
     public string? AvatarUrl { get; init; }
     public int MemberCount { get; init; }
-    public int MessageCount { get; init; }
+    public int UnreadCount { get; init; }
     public Guid? LastMessageId { get; init; }
     public Guid CreatedById { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; init; }
     public bool? IsCurrentUserMember { get; init; }
-    public bool? HasPendingJoinRequest { get; init; } 
+    public bool? HasPendingJoinRequest { get; init; }
 }
 
 public record ConversationDetailDto

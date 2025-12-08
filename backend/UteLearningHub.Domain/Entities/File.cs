@@ -2,7 +2,7 @@
 
 namespace UteLearningHub.Domain.Entities;
 
-public class File : BaseEntity<Guid>, IAggregateRoot, IAuditable
+public class File : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditable
 {
     public string FileName { get; set; } = default!;
     public string FileUrl { get; set; } = default!;

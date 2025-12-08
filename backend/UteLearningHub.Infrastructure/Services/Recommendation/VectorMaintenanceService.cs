@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using UteLearningHub.Application.Services.Cache;
 using UteLearningHub.Application.Services.Recommendation;
-using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence;
 
@@ -60,8 +59,6 @@ public class VectorMaintenanceService : IVectorMaintenanceService
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                VectorType = ProfileVectorType.UserSubject,
-                VectorDimension = VectorDimension,
                 EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vector),
                 CalculatedAt = DateTimeOffset.UtcNow,
                 IsActive = true
@@ -84,7 +81,7 @@ public class VectorMaintenanceService : IVectorMaintenanceService
         try
         {
             await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-            
+
             // Get conversation with Subject → SubjectMajors → Major (to get FacultyId)
             var conversation = await dbContext.Conversations
                 .Include(c => c.Subject)
@@ -127,9 +124,6 @@ public class VectorMaintenanceService : IVectorMaintenanceService
             {
                 Id = Guid.NewGuid(),
                 ConversationId = conversationId,
-                SubjectId = conversation.SubjectId,
-                VectorType = ProfileVectorType.ConversationTopic,
-                VectorDimension = VectorDimension,
                 EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vector),
                 CalculatedAt = DateTimeOffset.UtcNow,
                 IsActive = true

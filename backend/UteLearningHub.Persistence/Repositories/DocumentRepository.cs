@@ -1,9 +1,8 @@
-﻿using UteLearningHub.CrossCuttingConcerns.DateTimes;
+﻿using Microsoft.EntityFrameworkCore;
+using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence.Repositories.Common;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace UteLearningHub.Persistence.Repositories;
 
@@ -89,5 +88,13 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
     public async Task AddDocumentFileAsync(DocumentFile documentFile, CancellationToken cancellationToken = default)
     {
         await _dbContext.Set<DocumentFile>().AddAsync(documentFile, cancellationToken);
+    }
+
+    public async Task<bool> IsDocumentFileUsedElsewhereAsync(Guid fileId, Guid excludeDocumentFileId, CancellationToken cancellationToken = default)
+    {
+        return await GetQueryableSet()
+            .Where(d => !d.IsDeleted)
+            .SelectMany(d => d.DocumentFiles)
+            .AnyAsync(df => df.FileId == fileId && !df.IsDeleted && df.Id != excludeDocumentFileId, cancellationToken);
     }
 }

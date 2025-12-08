@@ -2,7 +2,7 @@
 
 using UteLearningHub.Domain.Entities.Base;
 
-public class Event : BaseEntity<Guid>, IAggregateRoot
+public class Event : SoftDeletableEntity<Guid>, IAggregateRoot
 {
     public string Title { get; set; } = default!;
     public string? ShortDescription { get; set; }

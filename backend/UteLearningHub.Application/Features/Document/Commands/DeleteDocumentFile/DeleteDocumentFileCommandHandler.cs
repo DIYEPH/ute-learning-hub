@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
@@ -67,10 +66,10 @@ public class DeleteDocumentFileCommandHandler : IRequestHandler<DeleteDocumentFi
 
         var file = await _fileUsageService.EnsureFileAsync(fileEntity.FileId, cancellationToken);
 
-        var otherUsage = await _documentRepository.GetQueryableSet()
-            .Where(d => !d.IsDeleted)
-            .SelectMany(d => d.DocumentFiles)
-            .AnyAsync(df => df.FileId == fileEntity.FileId && !df.IsDeleted && df.Id != fileEntity.Id, cancellationToken);
+        var otherUsage = await _documentRepository.IsDocumentFileUsedElsewhereAsync(
+            fileEntity.FileId, 
+            fileEntity.Id, 
+            cancellationToken);
 
         if (!otherUsage)
         {
@@ -78,5 +77,3 @@ public class DeleteDocumentFileCommandHandler : IRequestHandler<DeleteDocumentFi
         }
     }
 }
-
-

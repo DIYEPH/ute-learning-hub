@@ -14,11 +14,11 @@ public class CommentService : ICommentService
     }
 
     public async Task<Dictionary<Guid, CommentAuthorInfo>> GetCommentAuthorsAsync(
-        IEnumerable<Guid> userIds, 
+        IEnumerable<Guid> userIds,
         CancellationToken cancellationToken = default)
     {
         var userIdList = userIds.Distinct().ToList();
-        
+
         if (!userIdList.Any())
             return new Dictionary<Guid, CommentAuthorInfo>();
 

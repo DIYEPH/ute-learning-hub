@@ -1,14 +1,14 @@
+using Microsoft.EntityFrameworkCore;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence.Repositories.Common;
-using Microsoft.EntityFrameworkCore;
 
 namespace UteLearningHub.Persistence.Repositories;
 
 public class DocumentReviewRepository : Repository<DocumentReview, Guid>, IDocumentReviewRepository
 {
-    public DocumentReviewRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider) 
+    public DocumentReviewRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
         : base(dbContext, dateTimeProvider)
     {
     }
@@ -16,7 +16,7 @@ public class DocumentReviewRepository : Repository<DocumentReview, Guid>, IDocum
     public async Task<DocumentReview?> GetByDocumentFileIdAndUserIdAsync(Guid documentFileId, Guid userId, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
         var query = GetQueryableSet()
-            .Where(dr => dr.DocumentFileId == documentFileId && dr.CreatedById == userId && !dr.IsDeleted);
+            .Where(dr => dr.DocumentFileId == documentFileId && dr.CreatedById == userId);
 
         if (disableTracking)
             query = query.AsNoTracking();

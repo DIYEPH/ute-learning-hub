@@ -51,7 +51,7 @@ public class CommentController : ControllerBase
         var result = await _mediator.Send(command);
         return Ok(result);
     }
-    
+
     [HttpDelete("{id}")]
     [Authorize]
     public async Task<IActionResult> DeleteComment(Guid id)

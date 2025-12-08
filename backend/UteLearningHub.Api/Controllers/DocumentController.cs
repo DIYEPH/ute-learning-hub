@@ -2,18 +2,18 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Features.Document.Commands.AddDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.CreateDocument;
+using UteLearningHub.Application.Features.Document.Commands.DeleteDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
-using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
-using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
-using UteLearningHub.Application.Features.Document.Commands.ReviewDocument;
-using UteLearningHub.Application.Features.Document.Queries.GetMyDocuments;
-using UteLearningHub.Application.Features.Document.Commands.AddDocumentFile;
-using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentProgress;
-using UteLearningHub.Application.Features.Document.Queries.GetDocumentProgress;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentFile;
-using UteLearningHub.Application.Features.Document.Commands.DeleteDocumentFile;
+using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentProgress;
+using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
+using UteLearningHub.Application.Features.Document.Queries.GetDocumentProgress;
+using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
+using UteLearningHub.Application.Features.Document.Queries.GetMyDocuments;
+using UteLearningHub.Application.Features.Document.Queries.GetReadingHistory;
 
 namespace UteLearningHub.Api.Controllers
 {
@@ -22,7 +22,8 @@ namespace UteLearningHub.Api.Controllers
     public class DocumentController : ControllerBase
     {
         private readonly IMediator _mediator;
-        public DocumentController(IMediator mediator) { 
+        public DocumentController(IMediator mediator)
+        {
             _mediator = mediator;
         }
 
@@ -107,13 +108,12 @@ namespace UteLearningHub.Api.Controllers
             return Ok(result);
         }
 
-        [HttpPost("{id}/review")]
+        [HttpGet("reading-history")]
         [Authorize]
-        public async Task<IActionResult> ReviewDocument(Guid id, [FromBody] ReviewDocumentCommand command)
+        public async Task<ActionResult<PagedResponse<ReadingHistoryItemDto>>> GetReadingHistory([FromQuery] GetReadingHistoryQuery query)
         {
-            command = command with { DocumentId = id };
-            await _mediator.Send(command);
-            return NoContent();
+            var result = await _mediator.Send(query);
+            return Ok(result);
         }
 
         [HttpGet("files/{fileId}/progress")]
@@ -128,6 +128,15 @@ namespace UteLearningHub.Api.Controllers
         [HttpPut("files/{fileId}/progress")]
         [Authorize]
         public async Task<IActionResult> UpdateDocumentProgress(Guid fileId, [FromBody] UpdateDocumentProgressCommand command)
+        {
+            command = command with { DocumentFileId = fileId };
+            await _mediator.Send(command);
+            return NoContent();
+        }
+
+        [HttpPost("files/{fileId}/review")]
+        [Authorize]
+        public async Task<IActionResult> ReviewDocumentFile(Guid fileId, [FromBody] Application.Features.DocumentFiles.Commands.ReviewDocumentFile.ReviewDocumentFileCommand command)
         {
             command = command with { DocumentFileId = fileId };
             await _mediator.Send(command);

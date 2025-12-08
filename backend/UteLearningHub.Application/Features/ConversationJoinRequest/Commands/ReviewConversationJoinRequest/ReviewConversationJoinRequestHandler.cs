@@ -52,12 +52,12 @@ public class ReviewConversationJoinRequestHandler : IRequestHandler<ReviewConver
             throw new BadRequestException("Join requests are only available for private conversations");
 
         // Check permission: Admin, Owner, or Deputy
-        var isAdmin = _currentUserService.IsInRole("Admin");    
+        var isAdmin = _currentUserService.IsInRole("Admin");
 
         var isOwnerOrDeputy = await _conversationRepository.GetQueryableSet()
             .Where(c => c.Id == joinRequest.ConversationId)
             .SelectMany(c => c.Members)
-            .AnyAsync(m => m.UserId == userId 
+            .AnyAsync(m => m.UserId == userId
                         && (m.ConversationMemberRoleType == ConversationMemberRoleType.Owner ||
                             m.ConversationMemberRoleType == ConversationMemberRoleType.Deputy)
                         && !m.IsDeleted, cancellationToken);
@@ -87,8 +87,8 @@ public class ReviewConversationJoinRequestHandler : IRequestHandler<ReviewConver
             {
                 // Load conversation with members
                 var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
-                    joinRequest.ConversationId, 
-                    disableTracking: false, 
+                    joinRequest.ConversationId,
+                    disableTracking: false,
                     cancellationToken);
 
                 if (conversation == null)

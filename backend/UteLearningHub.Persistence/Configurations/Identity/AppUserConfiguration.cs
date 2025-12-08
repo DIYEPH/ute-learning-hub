@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UteLearningHub.Domain.Constaints;
-using UteLearningHub.Domain.Entities;
 using UteLearningHub.Persistence.Configurations.Common;
 using UteLearningHub.Persistence.Identity;
 

@@ -1,37 +1,53 @@
+using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace UteLearningHub.Persistence.Repositories;
 
 public class ProfileVectorStore : IProfileVectorStore
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-    public ProfileVectorStore(ApplicationDbContext dbContext)
+    public ProfileVectorStore(IDbContextFactory<ApplicationDbContext> dbContextFactory)
     {
-        _dbContext = dbContext;
+        _dbContextFactory = dbContextFactory;
     }
 
-    public IQueryable<ProfileVector> Query() => _dbContext.Set<ProfileVector>().AsQueryable();
+    public IQueryable<ProfileVector> Query()
+    {
+        var dbContext = _dbContextFactory.CreateDbContext();
+        return dbContext.Set<ProfileVector>().AsQueryable();
+    }
 
     public async Task<ProfileVector?> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Set<ProfileVector>()
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        return await dbContext.Set<ProfileVector>()
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task UpsertAsync(ProfileVector vector, CancellationToken cancellationToken = default)
     {
-        var exists = await _dbContext.Set<ProfileVector>()
-            .AnyAsync(x => x.Id == vector.Id, cancellationToken);
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        if (exists)
-            _dbContext.Set<ProfileVector>().Update(vector);
+        // Find existing vector by UserId (not Id) to properly update
+        var existingVector = await dbContext.Set<ProfileVector>()
+            .FirstOrDefaultAsync(x => x.UserId == vector.UserId && x.IsActive, cancellationToken);
+
+        if (existingVector != null)
+        {
+            // Update existing vector
+            existingVector.EmbeddingJson = vector.EmbeddingJson;
+            existingVector.CalculatedAt = vector.CalculatedAt;
+            dbContext.Set<ProfileVector>().Update(existingVector);
+        }
         else
-            await _dbContext.Set<ProfileVector>().AddAsync(vector, cancellationToken);
+        {
+            // Add new vector
+            await dbContext.Set<ProfileVector>().AddAsync(vector, cancellationToken);
+        }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

@@ -55,9 +55,6 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
         if (request.Visibility.HasValue)
             query = query.Where(d => d.Visibility == request.Visibility.Value);
 
-        if (request.ReviewStatus.HasValue)
-            query = query.Where(d => d.ReviewStatus == request.ReviewStatus.Value);
-
         if (request.IsDownload.HasValue)
             query = query.Where(d => d.IsDownload == request.IsDownload.Value);
 
@@ -71,7 +68,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
             "createdat" or "date" => request.SortDescending
                 ? query.OrderByDescending(d => d.CreatedAt)
                 : query.OrderBy(d => d.CreatedAt),
-            _ => query.OrderByDescending(d => d.CreatedAt) 
+            _ => query.OrderByDescending(d => d.CreatedAt)
         };
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -84,7 +81,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
 
         // Get review stats for all documents
         var reviewStats = await _documentReviewRepository.GetQueryableSet()
-            .Where(dr => documentIds.Contains(dr.DocumentId) && !dr.IsDeleted)
+            .Where(dr => documentIds.Contains(dr.DocumentId))
             .GroupBy(dr => new { dr.DocumentId, dr.DocumentReviewType })
             .Select(g => new
             {
@@ -113,7 +110,6 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                 Description = d.Description,
                 IsDownload = d.IsDownload,
                 Visibility = d.Visibility,
-                ReviewStatus = d.ReviewStatus,
                 Subject = d.Subject != null
                     ? new SubjectDto
                     {
@@ -170,7 +166,6 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
             Description = d.Description,
             IsDownload = d.IsDownload,
             Visibility = d.Visibility,
-            ReviewStatus = d.ReviewStatus,
             Subject = d.Subject,
             Type = d.Type,
             Tags = d.Tags,

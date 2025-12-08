@@ -36,7 +36,7 @@ public class VectorCalculationService : IVectorCalculationService
         {
             foreach (var item in facultyScores)
             {
-                var idx = FacultyDimensionStart + 
+                var idx = FacultyDimensionStart +
                     (int)(Math.Abs(item.Id.GetHashCode()) % (FacultyDimensionEnd - FacultyDimensionStart + 1));
                 var normalizedScore = (float)item.Score / totalFacultyScore;
                 vector[idx] += FacultyWeight * normalizedScore;
@@ -49,7 +49,7 @@ public class VectorCalculationService : IVectorCalculationService
         {
             foreach (var item in typeScores)
             {
-                var idx = TypeDimensionStart + 
+                var idx = TypeDimensionStart +
                     (int)(Math.Abs(item.Id.GetHashCode()) % (TypeDimensionEnd - TypeDimensionStart + 1));
                 var normalizedScore = (float)item.Score / totalTypeScore;
                 vector[idx] += TypeWeight * normalizedScore;
@@ -62,7 +62,7 @@ public class VectorCalculationService : IVectorCalculationService
         {
             foreach (var item in tagScores)
             {
-                var idx = TagDimensionStart + 
+                var idx = TagDimensionStart +
                     (int)(Math.Abs(item.Id.GetHashCode()) % (TagDimensionEnd - TagDimensionStart + 1));
                 var normalizedScore = (float)item.Score / totalTagScore;
                 vector[idx] += TagWeight * normalizedScore;
@@ -100,7 +100,7 @@ public class VectorCalculationService : IVectorCalculationService
             var weightPerFaculty = 0.5f / facultyIds.Count;
             foreach (var facultyId in facultyIds)
             {
-                var idx = FacultyDimensionStart + 
+                var idx = FacultyDimensionStart +
                     (int)(Math.Abs(facultyId.GetHashCode()) % (FacultyDimensionEnd - FacultyDimensionStart + 1));
                 vector[idx] += weightPerFaculty;
             }
@@ -112,7 +112,7 @@ public class VectorCalculationService : IVectorCalculationService
             var weightPerTag = 0.5f / tagIds.Count;
             foreach (var tagId in tagIds)
             {
-                var idx = TagDimensionStart + 
+                var idx = TagDimensionStart +
                     (int)(Math.Abs(tagId.GetHashCode()) % (TagDimensionEnd - TagDimensionStart + 1));
                 vector[idx] += weightPerTag;
             }

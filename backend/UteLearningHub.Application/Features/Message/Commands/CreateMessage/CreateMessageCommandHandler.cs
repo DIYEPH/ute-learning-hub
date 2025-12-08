@@ -1,6 +1,5 @@
 using MediatR;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Common.Events;
 using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Message;
@@ -8,7 +7,6 @@ using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 using DomainMessage = UteLearningHub.Domain.Entities.Message;
-using DomainFile = UteLearningHub.Domain.Entities.File;
 
 namespace UteLearningHub.Application.Features.Message.Commands.CreateMessage;
 
@@ -49,10 +47,10 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
 
         // Validate conversation exists and user is a member
         var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
-            request.ConversationId, 
-            disableTracking: false, 
+            request.ConversationId,
+            disableTracking: false,
             cancellationToken);
-        
+
         if (conversation == null || conversation.IsDeleted)
             throw new NotFoundException($"Conversation with id {request.ConversationId} not found");
 
@@ -60,9 +58,9 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
             throw new BadRequestException("Conversation is not active");
 
         // Check if user is a member
-        var isMember = conversation.Members.Any(m => 
+        var isMember = conversation.Members.Any(m =>
             m.UserId == userId && !m.IsDeleted);
-        
+
         if (!isMember)
             throw new ForbiddenException("You are not a member of this conversation");
 
@@ -70,11 +68,11 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
         if (request.ParentId.HasValue)
         {
             var parentMessage = await _messageRepository.GetByIdAsync(
-                request.ParentId.Value, 
-                disableTracking: true, 
+                request.ParentId.Value,
+                disableTracking: true,
                 cancellationToken);
-            
-            if (parentMessage == null || parentMessage.IsDeleted || 
+
+            if (parentMessage == null || parentMessage.IsDeleted ||
                 parentMessage.ConversationId != request.ConversationId)
                 throw new NotFoundException($"Parent message with id {request.ParentId.Value} not found");
         }
@@ -117,8 +115,8 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
 
         // Reload message with details
         var createdMessage = await _messageRepository.GetByIdWithDetailsAsync(
-            message.Id, 
-            disableTracking: true, 
+            message.Id,
+            disableTracking: true,
             cancellationToken);
 
         if (createdMessage == null)

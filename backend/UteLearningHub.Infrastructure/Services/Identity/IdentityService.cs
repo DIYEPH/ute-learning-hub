@@ -135,7 +135,7 @@ public class IdentityService : IIdentityService
             return (false, new[] { "User not found" });
 
         var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-        
+
         if (result.Succeeded)
             return (true, Enumerable.Empty<string>());
 
@@ -152,7 +152,7 @@ public class IdentityService : IIdentityService
         var decodedToken = Uri.UnescapeDataString(token);
 
         var result = await _userManager.ResetPasswordAsync(user, decodedToken, newPassword);
-        
+
         if (result.Succeeded)
             return (true, Enumerable.Empty<string>());
 

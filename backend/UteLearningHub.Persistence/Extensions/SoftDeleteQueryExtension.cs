@@ -4,7 +4,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Persistence.Extensions;
 
-public static class SoftDeleteQueryExtension 
+public static class SoftDeleteQueryExtension
 {
     public static void ApplySoftDelteQueryFilters(this ModelBuilder builder)
     {

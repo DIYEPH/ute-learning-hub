@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
 using UteLearningHub.Application.Features.File.Queries.GetFile;
 using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
@@ -127,7 +126,7 @@ public class FileController : ControllerBase
 
             // Set Content-Disposition to inline to display in browser
             Response.Headers.Append("Content-Disposition", "inline");
-            
+
             return File(response.FileStream, response.MimeType);
         }
         catch (NotFoundException)

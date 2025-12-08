@@ -30,9 +30,9 @@ public class MarkAsReadCommandHandler : IRequestHandler<MarkAsReadCommand, Unit>
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
         var recipient = await _notificationRepository.GetNotificationRecipientAsync(
-            request.NotificationId, 
-            userId, 
-            disableTracking: false, 
+            request.NotificationId,
+            userId,
+            disableTracking: false,
             cancellationToken);
 
         if (recipient == null)

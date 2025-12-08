@@ -3,7 +3,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Tag : BaseEntity<Guid>, IAggregateRoot, IAuditable, IReviewable
+public class Tag : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditable, IReviewable
 {
     public string TagName { get; set; } = default!;
     public ICollection<DocumentTag> DocumentTags { get; set; } = [];

@@ -42,6 +42,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<Tag> Tags { get; set; }
     public virtual DbSet<DomainType> Types { get; set; }
     public virtual DbSet<UserTrustHistory> UserTrustHistories { get; set; }
+    public virtual DbSet<SystemSetting> SystemSettings { get; set; }
 
     public async Task<IDisposable> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default)
     {
@@ -59,7 +60,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         if (_dbContextTransaction is null)
             throw new InvalidOperationException("No active transaction. Call BeginTransactionAsync() first.");
 
-        await _dbContextTransaction.CommitAsync(cancellationToken);  
+        await _dbContextTransaction.CommitAsync(cancellationToken);
     }
     protected override void OnModelCreating(ModelBuilder builder)
     {

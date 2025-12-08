@@ -3,7 +3,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Comment : BaseEntity<Guid>, IAuditable, IReviewable, IAggregateRoot
+public class Comment : SoftDeletableEntity<Guid>, IAuditable, IReviewable, IAggregateRoot
 {
     public Guid DocumentFileId { get; set; }
     public Guid? ParentId { get; set; }

@@ -61,9 +61,9 @@ public class UpdateSubjectCommandHandler : IRequestHandler<UpdateSubjectCommand,
 
         // Check if subject name or code already exists (excluding current subject)
         var existingSubject = await _subjectRepository.GetQueryableSet()
-            .Where(s => s.Id != request.Id 
-                && (s.SubjectName.ToLower() == request.SubjectName.ToLower() || 
-                    s.SubjectCode.ToLower() == request.SubjectCode.ToLower()) 
+            .Where(s => s.Id != request.Id
+                && (s.SubjectName.ToLower() == request.SubjectName.ToLower() ||
+                    s.SubjectCode.ToLower() == request.SubjectCode.ToLower())
                 && !s.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 

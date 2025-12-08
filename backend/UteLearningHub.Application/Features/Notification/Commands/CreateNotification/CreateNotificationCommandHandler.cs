@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Email;
 using UteLearningHub.Application.Services.Identity;
@@ -82,23 +81,23 @@ public class CreateNotificationCommandHandler : IRequestHandler<CreateNotificati
         {
             // Validate recipient IDs exist
             recipientIds = await _userService.ValidateUserIdsAsync(request.RecipientIds!, cancellationToken);
-            
+
             if (recipientIds.Count != request.RecipientIds!.Count)
                 throw new BadRequestException("Some recipient IDs are invalid");
         }
 
         // Create notification recipients
         await _notificationRepository.CreateNotificationRecipientsAsync(
-            notification.Id, 
-            recipientIds, 
-            _dateTimeProvider.OffsetNow, 
+            notification.Id,
+            recipientIds,
+            _dateTimeProvider.OffsetNow,
             cancellationToken);
 
         await _notificationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         // Gửi email notification cho recipients (async, không block response)
         // Chỉ gửi cho notification quan trọng hoặc khi có link
-        if (request.NotificationPriorityType == NotificationPriorityType.Hight || 
+        if (request.NotificationPriorityType == NotificationPriorityType.Hight ||
             !string.IsNullOrWhiteSpace(request.Link))
         {
             _ = Task.Run(async () =>
@@ -109,11 +108,11 @@ public class CreateNotificationCommandHandler : IRequestHandler<CreateNotificati
                     var recipientEmails = new List<string>();
                     var maxEmails = 100; // Giới hạn số lượng email để tránh spam
                     var count = 0;
-                    
+
                     foreach (var recipientId in recipientIds)
                     {
                         if (count >= maxEmails) break;
-                        
+
                         var user = await _identityService.FindByIdAsync(recipientId);
                         if (user != null && !string.IsNullOrWhiteSpace(user.Email))
                         {
@@ -125,18 +124,18 @@ public class CreateNotificationCommandHandler : IRequestHandler<CreateNotificati
                     // Gửi email cho recipients
                     if (recipientEmails.Any())
                     {
-                        var notificationLink = !string.IsNullOrWhiteSpace(request.Link) 
-                            ? request.Link.StartsWith("http") 
-                                ? request.Link 
+                        var notificationLink = !string.IsNullOrWhiteSpace(request.Link)
+                            ? request.Link.StartsWith("http")
+                                ? request.Link
                                 : $"http://localhost:3000{request.Link}"
                             : null;
 
                         await _emailService.SendEmailAsync(
                             recipientEmails,
                             $"Thông báo: {request.Title}",
-                            $"<h2>{request.Title}</h2><p>{request.Content}</p>" + 
-                            (!string.IsNullOrWhiteSpace(notificationLink) 
-                                ? $"<p><a href='{notificationLink}'>Xem chi tiết</a></p>" 
+                            $"<h2>{request.Title}</h2><p>{request.Content}</p>" +
+                            (!string.IsNullOrWhiteSpace(notificationLink)
+                                ? $"<p><a href='{notificationLink}'>Xem chi tiết</a></p>"
                                 : ""),
                             isHtml: true,
                             cancellationToken);

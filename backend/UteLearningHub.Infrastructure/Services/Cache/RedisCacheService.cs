@@ -50,9 +50,9 @@ public class RedisCacheService : ICacheService
         {
             var fullKey = GetFullKey(key);
             var json = JsonSerializer.Serialize(value);
-            
+
             var expiry = expiration ?? TimeSpan.FromMinutes(_options.DefaultExpirationMinutes);
-            
+
             await _database.StringSetAsync(fullKey, json, expiry);
         }
         catch (Exception ex)
@@ -80,7 +80,7 @@ public class RedisCacheService : ICacheService
         {
             var fullPattern = GetFullKey(pattern);
             var server = _connectionMultiplexer.GetServer(_connectionMultiplexer.GetEndPoints().First());
-            
+
             await foreach (var key in server.KeysAsync(pattern: fullPattern))
             {
                 await _database.KeyDeleteAsync(key);

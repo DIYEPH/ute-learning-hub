@@ -2,8 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using UteLearningHub.Application.Services.TrustScore;
 using UteLearningHub.Application.Services.User;
-using UteLearningHub.Domain.Entities;
-using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Infrastructure.Services.TrustScore;
@@ -58,9 +56,9 @@ public class TrustScoreService : ITrustScoreService
         {
             var trustScore = await GetTrustScoreAsync(userId, cancellationToken);
             var minimumScore = TrustScoreConstants.MinimumScores.GetValueOrDefault(action, 0);
-            
+
             var canPerform = trustScore >= minimumScore;
-            
+
             if (!canPerform)
                 _logger.LogWarning("User {UserId} cannot perform action {Action}. Trust score: {Score}, Required: {Required}", userId, action, trustScore, minimumScore);
 

@@ -1,15 +1,14 @@
-﻿using UteLearningHub.CrossCuttingConcerns.DateTimes;
+﻿using Microsoft.EntityFrameworkCore;
+using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence.Repositories.Common;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
 
 namespace UteLearningHub.Persistence.Repositories;
 
 public class ConversationRepository : Repository<Conversation, Guid>, IConversationRepository
 {
-    public ConversationRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider) 
+    public ConversationRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
         : base(dbContext, dateTimeProvider)
     {
     }
@@ -45,7 +44,7 @@ public class ConversationRepository : Repository<Conversation, Guid>, IConversat
     {
         var member = await _dbContext.ConversationMembers
             .FirstOrDefaultAsync(m => m.ConversationId == conversationId && m.UserId == userId && !m.IsDeleted, cancellationToken);
-        
+
         if (member != null)
         {
             member.IsDeleted = true;

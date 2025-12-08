@@ -18,7 +18,7 @@ public class UserConversationService : IUserConversationService
         var conversations = await _conversationRepository.GetQueryableSet()
             .Include(c => c.Members)
             .AsNoTracking()
-            .Where(c => !c.IsDeleted 
+            .Where(c => !c.IsDeleted
                 && c.ConversationStatus == Domain.Constaints.Enums.ConversationStatus.Active
                 && c.Members.Any(m => m.UserId == userId && !m.IsDeleted))
             .Select(c => c.Id)

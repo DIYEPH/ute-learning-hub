@@ -1,8 +1,9 @@
+using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class DocumentFile : BaseEntity<Guid>, IAuditable
+public class DocumentFile : SoftDeletableEntity<Guid>, IAuditable, IReviewable
 {
     public Guid DocumentId { get; set; }
     public Guid FileId { get; set; }
@@ -20,6 +21,9 @@ public class DocumentFile : BaseEntity<Guid>, IAuditable
 
     public Guid CreatedById { get; set; }
     public Guid? UpdatedById { get; set; }
+
+    public Guid? ReviewedById { get; set; }
+    public DateTimeOffset? ReviewedAt { get; set; }
+    public string? ReviewNote { get; set; }
+    public ReviewStatus ReviewStatus { get; set; } = ReviewStatus.PendingReview;
 }
-
-

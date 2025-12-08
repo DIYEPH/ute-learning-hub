@@ -5,8 +5,8 @@ using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
 using UteLearningHub.Application.Features.User.Commands.UpdateUser;
 using UteLearningHub.Application.Features.User.Queries.GetUsers;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Application.Services.User;
 using UteLearningHub.Application.Services.Recommendation;
+using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
@@ -25,7 +25,7 @@ public class UserService : IUserService
     private readonly IVectorMaintenanceService? _vectorMaintenanceService;
 
     public UserService(
-        ApplicationDbContext dbContext, 
+        ApplicationDbContext dbContext,
         IIdentityService identityService,
         IDateTimeProvider dateTimeProvider,
         UserManager<AppUser> userManager,
@@ -102,8 +102,8 @@ public class UserService : IUserService
     }
 
     public async Task<ProfileDto> UpdateProfileAsync(
-        Guid userId, 
-        UpdateProfileRequest request, 
+        Guid userId,
+        UpdateProfileRequest request,
         CancellationToken cancellationToken = default)
     {
         var appUser = await _dbContext.Users
@@ -127,10 +127,10 @@ public class UserService : IUserService
         {
             var major = await _dbContext.Majors
                 .FirstOrDefaultAsync(m => m.Id == request.MajorId.Value && !m.IsDeleted, cancellationToken);
-            
+
             if (major == null)
                 throw new NotFoundException($"Major with id {request.MajorId.Value} not found");
-            
+
             appUser.MajorId = request.MajorId.Value;
         }
 
@@ -138,11 +138,11 @@ public class UserService : IUserService
             appUser.Gender = request.Gender.Value;
 
         appUser.UpdatedAt = _dateTimeProvider.OffsetNow;
-        
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // Return updated profile
-        return await GetProfileAsync(userId, cancellationToken) 
+        return await GetProfileAsync(userId, cancellationToken)
             ?? throw new NotFoundException("User not found");
     }
 
@@ -246,7 +246,7 @@ public class UserService : IUserService
         foreach (var user in users)
         {
             var roles = await _userManager.GetRolesAsync(user);
-            
+
             userDtos.Add(new UserDto
             {
                 Id = user.Id,
@@ -374,10 +374,10 @@ public class UserService : IUserService
         {
             var major = await _dbContext.Majors
                 .FirstOrDefaultAsync(m => m.Id == request.MajorId.Value && !m.IsDeleted, cancellationToken);
-            
+
             if (major == null)
                 throw new NotFoundException($"Major with id {request.MajorId.Value} not found");
-            
+
             user.MajorId = request.MajorId.Value;
         }
 
@@ -400,7 +400,7 @@ public class UserService : IUserService
         }
 
         // Return updated user
-        return await GetUserByIdAsync(userId, cancellationToken) 
+        return await GetUserByIdAsync(userId, cancellationToken)
             ?? throw new NotFoundException("User not found");
     }
 
@@ -412,7 +412,7 @@ public class UserService : IUserService
 
         user.LockoutEnabled = true;
         user.LockoutEnd = banUntil ?? DateTimeOffset.UtcNow.AddYears(100); // Ban vĩnh viễn nếu null
-        
+
         await _userManager.UpdateAsync(user);
     }
 
@@ -424,7 +424,7 @@ public class UserService : IUserService
 
         user.LockoutEnabled = false;
         user.LockoutEnd = null;
-        
+
         await _userManager.UpdateAsync(user);
     }
 
@@ -461,14 +461,14 @@ public class UserService : IUserService
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         // Return updated user
-        return await GetUserByIdAsync(userId, cancellationToken) 
+        return await GetUserByIdAsync(userId, cancellationToken)
             ?? throw new NotFoundException("User not found");
     }
 
     public async Task<IList<UserTrustHistoryDto>> GetUserTrustHistoryAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var histories = await _dbContext.UserTrustHistories
-            .Where(h => h.UserId == userId && !h.IsDeleted)
+            .Where(h => h.UserId == userId)
             .OrderByDescending(h => h.CreatedAt)
             .AsNoTracking()
             .Select(h => new UserTrustHistoryDto
@@ -489,26 +489,11 @@ public class UserService : IUserService
         return trustScore switch
         {
             < 0 => TrustLever.None,           // Điểm âm hoặc 0
-            < 10 => TrustLever.Newbie,        // 0-9: Người mới
-            < 50 => TrustLever.Contributor,  // 10-49: Đã có đóng góp
-            < 100 => TrustLever.TrustedMember, // 50-99: Trust cao
+            < 5 => TrustLever.Newbie,        // 0-5: Người mới
+            < 40 => TrustLever.Contributor,  // 39: Đã có đóng góp
+            < 100 => TrustLever.TrustedMember, // 99: Trust cao
             < 200 => TrustLever.Moderator,   // 100-199: Có quyền xét duyệt
             _ => TrustLever.Master            // >= 200: Cấp cao nhất
         };
-    }
-
-    public async Task UpdateTrustScoreAndLevelAsync(Guid userId, int newTrustScore, CancellationToken cancellationToken = default)
-    {
-        var user = await _dbContext.Users
-            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-        if (user == null)
-            throw new NotFoundException($"User with id {userId} not found");
-
-        user.TrustScore = newTrustScore;
-        user.TrustLever = CalculateTrustLevel(newTrustScore);
-        user.UpdatedAt = _dateTimeProvider.OffsetNow;
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

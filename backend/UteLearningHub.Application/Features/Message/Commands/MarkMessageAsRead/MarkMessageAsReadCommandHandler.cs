@@ -1,8 +1,8 @@
 using MediatR;
+using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
-using UteLearningHub.Application.Services.Identity;
 
 namespace UteLearningHub.Application.Features.Message.Commands.MarkMessageAsRead;
 
@@ -34,8 +34,8 @@ public class MarkMessageAsReadCommandHandler : IRequestHandler<MarkMessageAsRead
 
         // Validate message exists
         var message = await _messageRepository.GetByIdAsync(
-            request.MessageId, 
-            disableTracking: true, 
+            request.MessageId,
+            disableTracking: true,
             cancellationToken);
 
         if (message == null || message.IsDeleted)
@@ -46,8 +46,8 @@ public class MarkMessageAsReadCommandHandler : IRequestHandler<MarkMessageAsRead
 
         // Validate conversation exists and get member info
         var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
-            request.ConversationId, 
-            disableTracking: false, 
+            request.ConversationId,
+            disableTracking: false,
             cancellationToken);
 
         if (conversation == null || conversation.IsDeleted)
@@ -65,10 +65,10 @@ public class MarkMessageAsReadCommandHandler : IRequestHandler<MarkMessageAsRead
 
         // Update LastReadMessageId (only if the new message is newer than current)
         // This ensures we don't go backwards in read status
-        if (member.LastReadMessageId == null || 
+        if (member.LastReadMessageId == null ||
             (message.CreatedAt > (await _messageRepository.GetByIdAsync(
-                member.LastReadMessageId.Value, 
-                disableTracking: true, 
+                member.LastReadMessageId.Value,
+                disableTracking: true,
                 cancellationToken))?.CreatedAt))
         {
             member.LastReadMessageId = request.MessageId;

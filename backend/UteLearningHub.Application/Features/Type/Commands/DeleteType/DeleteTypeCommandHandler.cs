@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Exceptions;
@@ -35,16 +34,11 @@ public class DeleteTypeCommandHandler : IRequestHandler<DeleteTypeCommand, Unit>
         if (type == null || type.IsDeleted)
             throw new NotFoundException($"Type with id {request.Id} not found");
 
-        // Check if type is being used by any documents
-        var documentCount = await _typeRepository.GetQueryableSet()
-            .Where(t => t.Id == request.Id)
-            .Select(t => t.Documents.Count(d => !d.IsDeleted))
-            .FirstOrDefaultAsync(cancellationToken);
+        var documentCount = await _typeRepository.GetDocumentCountAsync(request.Id, cancellationToken);
 
         if (documentCount > 0)
             throw new BadRequestException($"Cannot delete type. It is being used by {documentCount} document(s)");
 
-        // Soft delete
         await _typeRepository.DeleteAsync(type, userId, cancellationToken);
         await _typeRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -2,12 +2,12 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Features.User.Queries.GetUsers;
-using UteLearningHub.Application.Features.User.Queries.GetUserById;
-using UteLearningHub.Application.Features.User.Commands.UpdateUser;
 using UteLearningHub.Application.Features.User.Commands.BanUser;
-using UteLearningHub.Application.Features.User.Commands.UnbanUser;
 using UteLearningHub.Application.Features.User.Commands.ManageTrustScore;
+using UteLearningHub.Application.Features.User.Commands.UnbanUser;
+using UteLearningHub.Application.Features.User.Commands.UpdateUser;
+using UteLearningHub.Application.Features.User.Queries.GetUserById;
+using UteLearningHub.Application.Features.User.Queries.GetUsers;
 using UteLearningHub.Application.Features.User.Queries.GetUserTrustHistory;
 
 namespace UteLearningHub.Api.Controllers;

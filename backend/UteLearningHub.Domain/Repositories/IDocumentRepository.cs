@@ -1,6 +1,5 @@
 ﻿using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories.Base;
-using System.Linq;
 
 namespace UteLearningHub.Domain.Repositories;
 
@@ -12,4 +11,5 @@ public interface IDocumentRepository : IRepository<Document, Guid>
     Task<Document?> GetByFileIdAsync(Guid fileId, bool disableTracking = false, CancellationToken cancellationToken = default);
     Task<DocumentFile?> GetDocumentFileByIdAsync(Guid documentFileId, bool disableTracking = false, CancellationToken cancellationToken = default);
     Task AddDocumentFileAsync(DocumentFile documentFile, CancellationToken cancellationToken = default);
+    Task<bool> IsDocumentFileUsedElsewhereAsync(Guid fileId, Guid excludeDocumentFileId, CancellationToken cancellationToken = default);
 }

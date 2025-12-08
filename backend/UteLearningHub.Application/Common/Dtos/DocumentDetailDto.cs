@@ -9,8 +9,7 @@ public record DocumentDetailDto
     public string Description { get; init; } = default!;
     public bool IsDownload { get; init; }
     public VisibilityStatus Visibility { get; init; }
-    public ReviewStatus ReviewStatus { get; init; }
-    public SubjectDto? Subject { get; init; } 
+    public SubjectDto? Subject { get; init; }
     public TypeDto Type { get; init; } = default!;
     public IList<TagDto> Tags { get; init; } = [];
     public IList<AuthorDto> Authors { get; init; } = [];
@@ -19,7 +18,6 @@ public record DocumentDetailDto
     public int CommentCount { get; init; }
     public int UsefulCount { get; init; }
     public int NotUsefulCount { get; init; }
-    public int TotalCount { get; init; }
     public Guid CreatedById { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; init; }
@@ -36,6 +34,12 @@ public record DocumentFileDto
     public bool IsPrimary { get; init; }
     public int? TotalPages { get; init; }
     public Guid? CoverFileId { get; init; }
+
+    // Review properties
+    public ReviewStatus ReviewStatus { get; init; }
+    public Guid? ReviewedById { get; init; }
+    public DateTimeOffset? ReviewedAt { get; init; }
+    public string? ReviewNote { get; init; }
 
     // Thống kê theo từng DocumentFile
     public int CommentCount { get; init; }

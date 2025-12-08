@@ -1,38 +1,53 @@
+using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace UteLearningHub.Persistence.Repositories;
 
 public class ConversationVectorStore : IConversationVectorStore
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
 
-    public ConversationVectorStore(ApplicationDbContext dbContext)
+    public ConversationVectorStore(IDbContextFactory<ApplicationDbContext> dbContextFactory)
     {
-        _dbContext = dbContext;
+        _dbContextFactory = dbContextFactory;
     }
 
-    public IQueryable<ConversationVector> Query() => _dbContext.Set<ConversationVector>().AsQueryable();
+    public IQueryable<ConversationVector> Query()
+    {
+        var dbContext = _dbContextFactory.CreateDbContext();
+        return dbContext.Set<ConversationVector>().AsQueryable();
+    }
 
     public async Task<ConversationVector?> GetAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.Set<ConversationVector>()
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        return await dbContext.Set<ConversationVector>()
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public async Task UpsertAsync(ConversationVector vector, CancellationToken cancellationToken = default)
     {
-        var exists = await _dbContext.Set<ConversationVector>()
-            .AnyAsync(x => x.Id == vector.Id, cancellationToken);
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        if (exists)
-            _dbContext.Set<ConversationVector>().Update(vector);
+        // Find existing vector by ConversationId (not Id) to properly update
+        var existingVector = await dbContext.Set<ConversationVector>()
+            .FirstOrDefaultAsync(x => x.ConversationId == vector.ConversationId && x.IsActive, cancellationToken);
+
+        if (existingVector != null)
+        {
+            // Update existing vector
+            existingVector.EmbeddingJson = vector.EmbeddingJson;
+            existingVector.CalculatedAt = vector.CalculatedAt;
+            dbContext.Set<ConversationVector>().Update(existingVector);
+        }
         else
-            await _dbContext.Set<ConversationVector>().AddAsync(vector, cancellationToken);
+        {
+            // Add new vector
+            await dbContext.Set<ConversationVector>().AddAsync(vector, cancellationToken);
+        }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
     }
 }
-

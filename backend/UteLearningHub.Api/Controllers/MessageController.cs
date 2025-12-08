@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Message.Commands.CreateMessage;
 using UteLearningHub.Application.Features.Message.Commands.DeleteMessage;
+using UteLearningHub.Application.Features.Message.Commands.MarkMessageAsRead;
 using UteLearningHub.Application.Features.Message.Commands.PinMessage;
 using UteLearningHub.Application.Features.Message.Commands.UpdateMessage;
-using UteLearningHub.Application.Features.Message.Commands.MarkMessageAsRead;
 using UteLearningHub.Application.Features.Message.Queries.GetMessages;
 
 namespace UteLearningHub.Api.Controllers;
@@ -25,7 +25,7 @@ public class MessageController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<PagedResponse<MessageDto>>> GetMessages(
-        Guid conversationId, 
+        Guid conversationId,
         [FromQuery] GetMessagesQuery query)
     {
         query = query with { ConversationId = conversationId };
@@ -35,7 +35,7 @@ public class MessageController : ControllerBase
 
     [HttpPost]
     public async Task<ActionResult<MessageDto>> CreateMessage(
-        Guid conversationId, 
+        Guid conversationId,
         [FromBody] CreateMessageCommand command)
     {
         command = command with { ConversationId = conversationId };
@@ -45,8 +45,8 @@ public class MessageController : ControllerBase
 
     [HttpPut("{id}")]
     public async Task<ActionResult<MessageDto>> UpdateMessage(
-        Guid conversationId, 
-        Guid id, 
+        Guid conversationId,
+        Guid id,
         [FromBody] UpdateMessageCommand command)
     {
         command = command with { Id = id, ConversationId = conversationId };
@@ -64,8 +64,8 @@ public class MessageController : ControllerBase
 
     [HttpPost("{id}/pin")]
     public async Task<IActionResult> PinMessage(
-        Guid conversationId, 
-        Guid id, 
+        Guid conversationId,
+        Guid id,
         [FromBody] PinMessageCommand command)
     {
         command = command with { Id = id, ConversationId = conversationId };

@@ -53,9 +53,9 @@ public class UpdateMajorCommandHandler : IRequestHandler<UpdateMajorCommand, Maj
 
         // Check if major name or code already exists (excluding current major)
         var existingMajor = await _majorRepository.GetQueryableSet()
-            .Where(m => m.Id != request.Id 
-                && (m.MajorName.ToLower() == request.MajorName.ToLower() || 
-                    m.MajorCode.ToLower() == request.MajorCode.ToLower()) 
+            .Where(m => m.Id != request.Id
+                && (m.MajorName.ToLower() == request.MajorName.ToLower() ||
+                    m.MajorCode.ToLower() == request.MajorCode.ToLower())
                 && !m.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 

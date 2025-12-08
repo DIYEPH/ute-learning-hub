@@ -58,9 +58,9 @@ public class CreateSubjectCommandHandler : IRequestHandler<CreateSubjectCommand,
 
         // Check if subject name or code already exists
         var existingSubject = await _subjectRepository.GetQueryableSet()
-            .Where(s => 
-                (s.SubjectName.ToLower() == request.SubjectName.ToLower() || 
-                 s.SubjectCode.ToLower() == request.SubjectCode.ToLower()) 
+            .Where(s =>
+                (s.SubjectName.ToLower() == request.SubjectName.ToLower() ||
+                 s.SubjectCode.ToLower() == request.SubjectCode.ToLower())
                 && !s.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 

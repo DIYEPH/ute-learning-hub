@@ -7,10 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Features\Document\Commands\ReviewDocument\**" />
     <Compile Remove="Features\Document\Commands\UploadDocument\**" />
     <Compile Remove="Repositories\**" />
+    <EmbeddedResource Remove="Features\Document\Commands\ReviewDocument\**" />
     <EmbeddedResource Remove="Features\Document\Commands\UploadDocument\**" />
     <EmbeddedResource Remove="Repositories\**" />
+    <None Remove="Features\Document\Commands\ReviewDocument\**" />
     <None Remove="Features\Document\Commands\UploadDocument\**" />
     <None Remove="Repositories\**" />
   </ItemGroup>
@@ -18,8 +21,6 @@
   <ItemGroup>
     <Folder Include="Common\Commands\" />
     <Folder Include="Common\Queries\" />
-    <Folder Include="Features\Auth\Queries\" />
-    <Folder Include="Features\Document\Commands\ReviewDocument\" />
     <Folder Include="Features\User\" />
   </ItemGroup>
 

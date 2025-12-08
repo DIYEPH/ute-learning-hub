@@ -5,7 +5,7 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Event.Queries.GetActiveEvents;
 
-public class GetActiveEventsHandler 
+public class GetActiveEventsHandler
     : IRequestHandler<GetActiveEventsQuery, IReadOnlyList<EventDto>>
 {
     private readonly IEventRepository _eventRepository;

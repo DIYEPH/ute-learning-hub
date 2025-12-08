@@ -1,7 +1,6 @@
 using MediatR;
 using UteLearningHub.Application.Services.Email;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Domain.Exceptions;
 
 namespace UteLearningHub.Application.Features.Auth.Commands.ForgotPassword;
 
@@ -24,7 +23,7 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
     public async Task<Unit> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
         var user = await _identityService.FindByEmailAsync(request.Email);
-        
+
         if (user == null)
         {
             return Unit.Value;

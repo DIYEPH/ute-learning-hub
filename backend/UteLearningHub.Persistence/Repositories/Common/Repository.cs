@@ -57,11 +57,20 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
     }
     public Task DeleteAsync(TEntity entity, Guid? deletedById = null, CancellationToken cancellationToken = default)
     {
-        entity.IsDeleted = true;
-        entity.DeletedAt = _dateTimeProvider.OffsetNow;
-        entity.DeletedById = deletedById;
-        entity.UpdatedAt = _dateTimeProvider.OffsetNow;
-        DbSet.Update(entity);
+        // Check if entity supports soft delete
+        if (entity is ISoftDelete softDeletable)
+        {
+            softDeletable.IsDeleted = true;
+            softDeletable.DeletedAt = _dateTimeProvider.OffsetNow;
+            softDeletable.DeletedById = deletedById;
+            entity.UpdatedAt = _dateTimeProvider.OffsetNow;
+            DbSet.Update(entity);
+        }
+        else
+        {
+            // Hard delete for entities without soft delete
+            DbSet.Remove(entity);
+        }
         return Task.CompletedTask;
     }
     public async Task AddOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
@@ -80,7 +89,7 @@ public class Repository<TEntity, TKey> : IRepository<TEntity, TKey>
         var list = entities.ToList();
         foreach (var entity in list)
             entity.CreatedAt = now;
-        
+
         await _dbContext.BulkInsertAsync(entities, cancellationToken: cancellationToken);
     }
     public async Task BulkUpdateAsync(List<TEntity> entities, CancellationToken cancellationToken = default)

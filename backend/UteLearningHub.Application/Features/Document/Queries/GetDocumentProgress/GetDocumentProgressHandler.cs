@@ -32,7 +32,7 @@ public class GetDocumentProgressHandler : IRequestHandler<GetDocumentProgressQue
         // Validate document file exists
         var documentFileId = request.DocumentFileId;
         var documentId = await _documentRepository.GetDocumentIdByDocumentFileIdAsync(documentFileId, cancellationToken);
-        
+
         if (!documentId.HasValue)
             throw new NotFoundException($"Document file with id {documentFileId} not found");
 
@@ -43,9 +43,10 @@ public class GetDocumentProgressHandler : IRequestHandler<GetDocumentProgressQue
 
         var isAdmin = _currentUserService.IsInRole("Admin");
 
-        // Chỉ admin mới xem được tài liệu chưa duyệt
-        if (!isAdmin && document.ReviewStatus != Domain.Constaints.Enums.ReviewStatus.Approved)
-            throw new NotFoundException("Document not found");
+        // Check file-level review status
+        var documentFile = await _documentRepository.GetDocumentFileByIdAsync(documentFileId, disableTracking: true, cancellationToken);
+        if (!isAdmin && documentFile != null && documentFile.ReviewStatus != Domain.Constaints.Enums.ReviewStatus.Approved)
+            throw new NotFoundException("Document file not found");
 
         // Kiểm tra visibility
         if (document.Visibility == Domain.Constaints.Enums.VisibilityStatus.Private)
@@ -58,9 +59,9 @@ public class GetDocumentProgressHandler : IRequestHandler<GetDocumentProgressQue
 
         // Lấy progress
         var progress = await _progressRepository.GetByUserAndDocumentFileAsync(
-            userId, 
-            documentFileId, 
-            disableTracking: true, 
+            userId,
+            documentFileId,
+            disableTracking: true,
             cancellationToken);
 
         if (progress == null)

@@ -1,14 +1,14 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UteLearningHub.Application.Features.Auth.Commands.Login;
-using UteLearningHub.Application.Features.Auth.Commands.LoginWithMicrosoft;
-using UteLearningHub.Application.Features.Auth.Commands.RefreshToken;
-using UteLearningHub.Application.Features.Auth.Commands.Logout;
-using UteLearningHub.Application.Features.Auth.Commands.ForgotPassword;
-using UteLearningHub.Application.Features.Auth.Commands.ResetPassword;
 using UteLearningHub.Application.Features.Auth.Commands.ChangePassword;
 using UteLearningHub.Application.Features.Auth.Commands.ChangeUsername;
+using UteLearningHub.Application.Features.Auth.Commands.ForgotPassword;
+using UteLearningHub.Application.Features.Auth.Commands.Login;
+using UteLearningHub.Application.Features.Auth.Commands.LoginWithMicrosoft;
+using UteLearningHub.Application.Features.Auth.Commands.Logout;
+using UteLearningHub.Application.Features.Auth.Commands.RefreshToken;
+using UteLearningHub.Application.Features.Auth.Commands.ResetPassword;
 
 namespace UteLearningHub.Api.Controllers;
 

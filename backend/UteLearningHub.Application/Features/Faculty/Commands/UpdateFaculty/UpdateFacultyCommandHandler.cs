@@ -45,9 +45,9 @@ public class UpdateFacultyCommandHandler : IRequestHandler<UpdateFacultyCommand,
 
         // Check if faculty name or code already exists (excluding current faculty)
         var existingFaculty = await _facultyRepository.GetQueryableSet()
-            .Where(f => f.Id != request.Id 
-                && (f.FacultyName.ToLower() == request.FacultyName.ToLower() || 
-                    f.FacultyCode.ToLower() == request.FacultyCode.ToLower()) 
+            .Where(f => f.Id != request.Id
+                && (f.FacultyName.ToLower() == request.FacultyName.ToLower() ||
+                    f.FacultyCode.ToLower() == request.FacultyCode.ToLower())
                 && !f.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 

@@ -1,6 +1,6 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Features.Author.Queries.GetAuthorById;
+using UteLearningHub.Application.Services.Author;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Exceptions;
@@ -13,15 +13,18 @@ public class UpdateAuthorCommandHandler : IRequestHandler<UpdateAuthorCommand, A
     private readonly IAuthorRepository _authorRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IAuthorQueryService _authorQueryService;
 
     public UpdateAuthorCommandHandler(
         IAuthorRepository authorRepository,
         ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IAuthorQueryService authorQueryService)
     {
         _authorRepository = authorRepository;
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
+        _authorQueryService = authorQueryService;
     }
 
     public async Task<AuthorDetailDto> Handle(UpdateAuthorCommand request, CancellationToken cancellationToken)
@@ -36,14 +39,11 @@ public class UpdateAuthorCommandHandler : IRequestHandler<UpdateAuthorCommand, A
         if (author == null || author.IsDeleted)
             throw new NotFoundException($"Author with id {request.Id} not found");
 
-        // Check for duplicate name if updating
         if (!string.IsNullOrWhiteSpace(request.FullName) && request.FullName != author.FullName)
         {
-            var existingAuthor = await _authorRepository.GetQueryableSet()
-                .Where(a => a.FullName.ToLower() == request.FullName.ToLower() && !a.IsDeleted && a.Id != request.Id)
-                .FirstOrDefaultAsync(cancellationToken);
+            var existingAuthor = await _authorRepository.FindByNameAsync(request.FullName, cancellationToken: cancellationToken);
 
-            if (existingAuthor != null)
+            if (existingAuthor != null && existingAuthor.Id != request.Id)
                 throw new BadRequestException($"Author with name '{request.FullName}' already exists");
 
             author.FullName = request.FullName;
@@ -57,17 +57,7 @@ public class UpdateAuthorCommandHandler : IRequestHandler<UpdateAuthorCommand, A
 
         await _authorRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        var documentCount = await _authorRepository.GetQueryableSet()
-            .Where(a => a.Id == request.Id)
-            .Select(a => a.DocumentAuthors.Count)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return new AuthorDetailDto
-        {
-            Id = author.Id,
-            FullName = author.FullName,
-            Description = author.Description,
-            DocumentCount = documentCount
-        };
+        var result = await _authorQueryService.GetByIdAsync(request.Id, cancellationToken);
+        return result ?? throw new NotFoundException($"Author with id {request.Id} not found after update");
     }
 }

@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -33,24 +32,19 @@ public class CreateTagCommandHandler : IRequestHandler<CreateTagCommand, TagDeta
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Validate TagName is not empty
         if (string.IsNullOrWhiteSpace(request.TagName))
             throw new BadRequestException("TagName cannot be empty");
 
-        // Check if tag name already exists
-        var existingTag = await _tagRepository.GetQueryableSet()
-            .Where(t => t.TagName.ToLower() == request.TagName.ToLower() && !t.IsDeleted)
-            .FirstOrDefaultAsync(cancellationToken);
+        var existingTag = await _tagRepository.FindByNameAsync(request.TagName, cancellationToken: cancellationToken);
 
         if (existingTag != null)
             throw new BadRequestException($"Tag with name '{request.TagName}' already exists");
 
-        // Create tag - auto approve for users (or can be PendingReview if needed)
         var tag = new TagEntity
         {
             Id = Guid.NewGuid(),
             TagName = request.TagName,
-            ReviewStatus = ReviewStatus.Approved, // Auto approve, or can be PendingReview
+            ReviewStatus = ReviewStatus.Approved,
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };

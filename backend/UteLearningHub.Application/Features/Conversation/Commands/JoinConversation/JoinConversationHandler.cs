@@ -5,9 +5,9 @@ using UteLearningHub.Application.Services.Message;
 using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
+using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
-using UteLearningHub.Domain.Entities;
 
 namespace UteLearningHub.Application.Features.Conversation.Commands.JoinConversation;
 
@@ -63,7 +63,7 @@ public class JoinConversationHandler : IRequestHandler<JoinConversationCommand, 
             throw new BadRequestException("Private conversations require a join request. Please use the join request endpoint.");
 
         var deletedMember = await _conversationRepository.GetDeletedMemberAsync(conversation.Id, userId, cancellationToken);
-        
+
         if (deletedMember != null)
         {
             deletedMember.ConversationMemberRoleType = ConversationMemberRoleType.Member;

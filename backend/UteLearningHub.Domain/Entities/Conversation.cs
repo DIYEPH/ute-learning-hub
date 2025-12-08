@@ -3,7 +3,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Conversation : BaseEntity<Guid>, IAggregateRoot, IAuditable
+public class Conversation : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditable
 {
     public Guid? SubjectId { get; set; }
     public Guid? LastMessage { get; set; }

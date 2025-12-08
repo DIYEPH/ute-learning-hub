@@ -50,37 +50,42 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
         // Lấy thông tin document để biết người tạo
         var document = await _documentRepository.GetByIdAsync(documentId.Value, disableTracking: true, cancellationToken);
         var documentCreatorId = document?.CreatedById;
+        var canUpdateTrustScore = _trustScoreService != null && documentCreatorId.HasValue && documentCreatorId.Value != userId;
 
         var existingReview = await _documentReviewRepository.GetByDocumentFileIdAndUserIdAsync(
             request.DocumentFileId,
             userId,
             disableTracking: false,
             cancellationToken);
+
+        // CASE 1: Same type clicked again → Toggle off (Delete)
         if (existingReview != null && existingReview.DocumentReviewType == request.DocumentReviewType)
         {
-            // Xóa review (unlike/un-dislike) - trừ điểm cho người tạo document
+            var oldType = existingReview.DocumentReviewType;
             await _documentReviewRepository.DeleteAsync(existingReview, userId, cancellationToken);
             await _documentReviewRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-            // Trừ điểm cho người tạo document khi bị unlike (async)
-            if (_trustScoreService != null && documentCreatorId.HasValue && 
-                existingReview.DocumentReviewType == DocumentReviewType.Useful)
+            // Hoàn lại điểm đã cộng/trừ trước đó
+            if (canUpdateTrustScore)
             {
                 _ = Task.Run(async () =>
                 {
                     try
                     {
-                        var points = -TrustScoreConstants.GetActionPoints("DocumentLiked");
-                        await _trustScoreService.AddTrustScoreAsync(
-                            documentCreatorId.Value,
-                            points,
-                            $"Bị unlike document",
-                            cancellationToken);
+                        if (oldType == DocumentReviewType.Useful)
+                        {
+                            // Was liked → undo like = -points
+                            var points = -TrustScoreConstants.GetActionPoints("DocumentLiked");
+                            await _trustScoreService!.AddTrustScoreAsync(documentCreatorId!.Value, points, "Hủy like document", cancellationToken);
+                        }
+                        else if (oldType == DocumentReviewType.NotUseful)
+                        {
+                            // Was disliked → undo dislike = +points (hoàn lại điểm bị trừ)
+                            var points = -TrustScoreConstants.GetActionPoints("DocumentUnliked");
+                            await _trustScoreService!.AddTrustScoreAsync(documentCreatorId!.Value, points, "Hủy dislike document", cancellationToken);
+                        }
                     }
-                    catch
-                    {
-                        // Log error nhưng không throw
-                    }
+                    catch { }
                 }, cancellationToken);
             }
 
@@ -97,7 +102,10 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
         }
 
         DocumentReviewEntity review;
+        DocumentReviewType? oldReviewType = existingReview?.DocumentReviewType;
 
+        // CASE 2: Different type clicked → Change vote (Update)
+        // CASE 3: No existing review → Create new
         if (existingReview != null)
         {
             existingReview.DocumentReviewType = request.DocumentReviewType;
@@ -110,7 +118,6 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
         {
             review = new DocumentReviewEntity
             {
-                Id = Guid.NewGuid(),
                 DocumentId = documentId.Value,
                 DocumentFileId = request.DocumentFileId,
                 DocumentReviewType = request.DocumentReviewType,
@@ -122,70 +129,59 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
 
         await _documentReviewRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Cập nhật trust score cho người tạo document khi được like/unlike (async)
-        if (_trustScoreService != null && documentCreatorId.HasValue && documentCreatorId.Value != userId)
+        // Cập nhật trust score
+        if (canUpdateTrustScore)
         {
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    int points;
-                    string reason;
-                    
-                    if (review.DocumentReviewType == DocumentReviewType.Useful)
+                    // Step 1: Hoàn lại điểm cũ (nếu có)
+                    if (oldReviewType.HasValue)
                     {
-                        // Được like - cộng điểm
-                        points = TrustScoreConstants.GetActionPoints("DocumentLiked");
-                        reason = "Document được like";
-                    }
-                    else if (review.DocumentReviewType == DocumentReviewType.NotUseful)
-                    {
-                        // Bị unlike - trừ điểm
-                        points = TrustScoreConstants.GetActionPoints("DocumentUnliked");
-                        reason = "Document bị unlike";
-                    }
-                    else
-                    {
-                        return; // Không xử lý các loại review khác
-                    }
-
-                    // Nếu có review cũ, cần hoàn lại điểm
-                    if (existingReview != null)
-                    {
-                        if (existingReview.DocumentReviewType == DocumentReviewType.Useful)
+                        if (oldReviewType.Value == DocumentReviewType.Useful)
                         {
-                            // Hoàn lại điểm like cũ
-                            await _trustScoreService.AddTrustScoreAsync(
-                                documentCreatorId.Value,
+                            // Was liked → undo like = -points
+                            await _trustScoreService!.AddTrustScoreAsync(
+                                documentCreatorId!.Value,
                                 -TrustScoreConstants.GetActionPoints("DocumentLiked"),
-                                "Hoàn lại điểm like cũ",
+                                "Đổi từ like sang dislike - hoàn điểm like",
                                 cancellationToken);
                         }
-                        else if (existingReview.DocumentReviewType == DocumentReviewType.NotUseful)
+                        else if (oldReviewType.Value == DocumentReviewType.NotUseful)
                         {
-                            // Hoàn lại điểm unlike cũ
-                            await _trustScoreService.AddTrustScoreAsync(
-                                documentCreatorId.Value,
+                            // Was disliked → undo dislike = +points
+                            await _trustScoreService!.AddTrustScoreAsync(
+                                documentCreatorId!.Value,
                                 -TrustScoreConstants.GetActionPoints("DocumentUnliked"),
-                                "Hoàn lại điểm unlike cũ",
+                                "Đổi từ dislike sang like - hoàn điểm dislike",
                                 cancellationToken);
                         }
                     }
 
-                    await _trustScoreService.AddTrustScoreAsync(
-                        documentCreatorId.Value,
-                        points,
-                        reason,
-                        cancellationToken);
+                    // Step 2: Áp dụng điểm mới
+                    if (request.DocumentReviewType == DocumentReviewType.Useful)
+                    {
+                        await _trustScoreService!.AddTrustScoreAsync(
+                            documentCreatorId!.Value,
+                            TrustScoreConstants.GetActionPoints("DocumentLiked"),
+                            "Document được like",
+                            cancellationToken);
+                    }
+                    else if (request.DocumentReviewType == DocumentReviewType.NotUseful)
+                    {
+                        await _trustScoreService!.AddTrustScoreAsync(
+                            documentCreatorId!.Value,
+                            TrustScoreConstants.GetActionPoints("DocumentUnliked"),
+                            "Document bị dislike",
+                            cancellationToken);
+                    }
                 }
-                catch
-                {
-                    // Log error nhưng không throw
-                }
+                catch { }
             }, cancellationToken);
         }
 
-        // Cập nhật user vector khi user like/unlike document (async, không block response)
+        // Update vector
         if (_vectorMaintenanceService != null)
         {
             _ = Task.Run(async () =>
@@ -194,11 +190,7 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
                 {
                     await _vectorMaintenanceService.UpdateUserVectorAsync(userId, cancellationToken);
                 }
-                catch
-                {
-                    // Log error nhưng không throw để không ảnh hưởng đến response
-                    // Logger có thể được inject nếu cần
-                }
+                catch { }
             }, cancellationToken);
         }
 
@@ -214,3 +206,4 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
         };
     }
 }
+

@@ -3,7 +3,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Subject : BaseEntity<Guid>, IAggregateRoot, IAuditable, IReviewable
+public class Subject : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditable, IReviewable
 {
     public string SubjectName { get; set; } = default!;
     public string SubjectCode { get; set; } = default!;

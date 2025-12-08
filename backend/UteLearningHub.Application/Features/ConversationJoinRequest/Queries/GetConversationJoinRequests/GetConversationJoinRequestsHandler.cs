@@ -2,9 +2,9 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
-using UteLearningHub.Domain.Constaints.Enums;
 
 namespace UteLearningHub.Application.Features.ConversationJoinRequest.Queries.GetConversationJoinRequests;
 
@@ -44,8 +44,8 @@ public class GetConversationJoinRequestsHandler : IRequestHandler<GetConversatio
         {
             // Verify conversation exists and is Private
             var conversation = await _conversationRepository.GetByIdAsync(
-                request.ConversationId.Value, 
-                disableTracking: true, 
+                request.ConversationId.Value,
+                disableTracking: true,
                 cancellationToken);
 
             if (conversation == null || conversation.IsDeleted)
@@ -60,7 +60,7 @@ public class GetConversationJoinRequestsHandler : IRequestHandler<GetConversatio
                 isOwner = await _conversationRepository.GetQueryableSet()
                     .Where(c => c.Id == request.ConversationId.Value)
                     .SelectMany(c => c.Members)
-                    .AnyAsync(m => m.UserId == userId 
+                    .AnyAsync(m => m.UserId == userId
                                 && (m.ConversationMemberRoleType == ConversationMemberRoleType.Owner ||
                                     m.ConversationMemberRoleType == ConversationMemberRoleType.Deputy)
                                 && !m.IsDeleted, cancellationToken);
@@ -88,7 +88,7 @@ public class GetConversationJoinRequestsHandler : IRequestHandler<GetConversatio
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             var searchTerm = request.SearchTerm.ToLower();
-            query = query.Where(r => r.Content.ToLower().Contains(searchTerm) 
+            query = query.Where(r => r.Content.ToLower().Contains(searchTerm)
                                   || r.Conversation.ConversationName.ToLower().Contains(searchTerm));
         }
 
@@ -105,7 +105,7 @@ public class GetConversationJoinRequestsHandler : IRequestHandler<GetConversatio
         // Get requester information
         var requesterIds = joinRequests.Select(r => r.CreatedById).Distinct();
         var requesterInfo = new Dictionary<Guid, (string FullName, string? AvatarUrl)>();
-        
+
         foreach (var requesterId in requesterIds)
         {
             var requester = await _identityService.FindByIdAsync(requesterId);
@@ -121,11 +121,11 @@ public class GetConversationJoinRequestsHandler : IRequestHandler<GetConversatio
             ConversationId = r.ConversationId,
             ConversationName = r.Conversation.ConversationName,
             Content = r.Content,
-            RequesterName = requesterInfo.TryGetValue(r.CreatedById, out var info) 
-                ? info.FullName 
+            RequesterName = requesterInfo.TryGetValue(r.CreatedById, out var info)
+                ? info.FullName
                 : "Unknown",
-            RequesterAvatarUrl = requesterInfo.TryGetValue(r.CreatedById, out var requester) 
-                ? requester.AvatarUrl 
+            RequesterAvatarUrl = requesterInfo.TryGetValue(r.CreatedById, out var requester)
+                ? requester.AvatarUrl
                 : null,
             CreatedById = r.CreatedById,
             ReviewStatus = r.ReviewStatus,

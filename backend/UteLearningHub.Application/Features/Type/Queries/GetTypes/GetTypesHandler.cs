@@ -1,9 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Features.Type.Queries.GetTypes;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Type.Queries.GetTypes;

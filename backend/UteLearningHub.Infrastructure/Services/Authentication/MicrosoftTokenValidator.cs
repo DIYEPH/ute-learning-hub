@@ -1,5 +1,4 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Protocols;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -67,7 +66,7 @@ public class MicrosoftTokenValidator : IMicrosoftTokenValidator
 
             if (string.IsNullOrEmpty(oid) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(name))
                 return null;
-            
+
 
             return new MicrosoftUserInfo(email, name, oid);
         }

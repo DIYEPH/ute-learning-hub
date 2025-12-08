@@ -112,14 +112,14 @@ public class UserDataRepository : IUserDataRepository
             .Include(dr => dr.Document)
                 .ThenInclude(d => d.DocumentTags)
             .AsNoTracking()
-            .Where(dr => dr.CreatedById == userId && !dr.IsDeleted && !dr.Document.IsDeleted)
+            .Where(dr => dr.CreatedById == userId && !dr.Document.IsDeleted)
             .ToListAsync(cancellationToken);
 
         foreach (var review in reviews)
         {
             var doc = review.Document;
-            var score = review.DocumentReviewType == DocumentReviewType.Useful 
-                ? UsefulVoteScore 
+            var score = review.DocumentReviewType == DocumentReviewType.Useful
+                ? UsefulVoteScore
                 : NotUsefulVoteScore;
 
             // Type score

@@ -3,7 +3,7 @@ using UteLearningHub.Domain.Entities.Base;
 
 namespace UteLearningHub.Domain.Entities;
 
-public class ConversationJoinRequest : BaseEntity<Guid>, IAuditable, IReviewable
+public class ConversationJoinRequest : SoftDeletableEntity<Guid>, IAuditable, IReviewable
 {
     public Guid ConversationId { get; set; }
     public string Content { get; set; } = default!;

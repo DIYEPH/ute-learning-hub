@@ -9,9 +9,9 @@ using UteLearningHub.Application.Features.Conversation.Commands.LeaveConversatio
 using UteLearningHub.Application.Features.Conversation.Commands.UpdateConversation;
 using UteLearningHub.Application.Features.Conversation.Commands.UpdateMemberRole;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversationById;
+using UteLearningHub.Application.Features.Conversation.Queries.GetConversationRecommendations;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversations;
 using UteLearningHub.Application.Features.Conversation.Queries.GetOnlineMembers;
-using UteLearningHub.Application.Features.Conversation.Queries.GetConversationRecommendations;
 
 namespace UteLearningHub.Api.Controllers;
 

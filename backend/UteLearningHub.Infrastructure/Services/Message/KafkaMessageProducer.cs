@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Confluent.Kafka;
 using Microsoft.Extensions.Options;
-using UteLearningHub.Application.Common.Events;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Common.Events;
 using UteLearningHub.Application.Services.Message;
 using UteLearningHub.Infrastructure.ConfigurationOptions;
 

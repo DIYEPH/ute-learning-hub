@@ -589,29 +589,11 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("ConHieuLuc");
 
-                    b.Property<string>("SourceDataJson")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("NguonDuLieu");
-
-                    b.Property<Guid?>("SubjectId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("MonHocId");
-
-                    b.Property<int>("VectorDimension")
-                        .HasColumnType("int")
-                        .HasColumnName("SoChieu");
-
-                    b.Property<int>("VectorType")
-                        .HasColumnType("int")
-                        .HasColumnName("LoaiVector");
-
                     b.HasKey("Id");
 
                     b.HasIndex("ConversationId");
 
                     b.HasIndex("IsActive");
-
-                    b.HasIndex("SubjectId");
 
                     b.ToTable("DacTrungCuocTroChuyen", (string)null);
                 });
@@ -835,14 +817,6 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("TaoBoi");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<Guid?>("DeletedById")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("BiXoaBoi");
-
                     b.Property<Guid>("DocumentFileId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("TaiLieu_TepId");
@@ -854,10 +828,6 @@ namespace UteLearningHub.Persistence.Migrations
                     b.Property<int>("DocumentReviewType")
                         .HasColumnType("int")
                         .HasColumnName("LoaiDanhGia");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("CoDaXoa");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -1435,37 +1405,15 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("ConHieuLuc");
 
-                    b.Property<string>("SourceDataJson")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("NguonDuLieu");
-
-                    b.Property<Guid?>("SubjectId")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("MonHocId");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("NguoiDungId");
-
-                    b.Property<int>("VectorDimension")
-                        .HasColumnType("int")
-                        .HasColumnName("SoChieu");
-
-                    b.Property<int>("VectorType")
-                        .HasColumnType("int")
-                        .HasColumnName("LoaiVector");
 
                     b.HasKey("Id");
 
                     b.HasIndex("IsActive");
 
-                    b.HasIndex("SubjectId");
-
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId", "SubjectId");
-
-                    b.HasIndex("UserId", "VectorType");
 
                     b.ToTable("DacTrungNguoiDung", (string)null);
                 });
@@ -1766,17 +1714,6 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("NgayTao");
 
-                    b.Property<Guid>("CreatedById")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<Guid?>("DeletedById")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("BiXoaBoi");
-
                     b.Property<Guid?>("DocumentFileId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("TaiLieu_TepId");
@@ -1784,10 +1721,6 @@ namespace UteLearningHub.Persistence.Migrations
                     b.Property<Guid>("DocumentId")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("TaiLieuId");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("CoDaXoa");
 
                     b.Property<DateTimeOffset>("LastAccessedAt")
                         .HasColumnType("datetimeoffset")
@@ -1811,9 +1744,6 @@ namespace UteLearningHub.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("NgayCapNhat");
-
-                    b.Property<Guid?>("UpdatedById")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uniqueidentifier")
@@ -2183,14 +2113,7 @@ namespace UteLearningHub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("UteLearningHub.Domain.Entities.Subject", "Subject")
-                        .WithMany()
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("Conversation");
-
-                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.Document", b =>
@@ -2379,7 +2302,7 @@ namespace UteLearningHub.Persistence.Migrations
                     b.HasOne("UteLearningHub.Persistence.Identity.AppUser", null)
                         .WithMany("CreatedNotifications")
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
@@ -2398,16 +2321,6 @@ namespace UteLearningHub.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Notification");
-                });
-
-            modelBuilder.Entity("UteLearningHub.Domain.Entities.ProfileVector", b =>
-                {
-                    b.HasOne("UteLearningHub.Domain.Entities.Subject", "Subject")
-                        .WithMany()
-                        .HasForeignKey("SubjectId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Subject");
                 });
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.Report", b =>
@@ -2480,12 +2393,12 @@ namespace UteLearningHub.Persistence.Migrations
                     b.HasOne("UteLearningHub.Domain.Entities.DocumentFile", "DocumentFile")
                         .WithMany()
                         .HasForeignKey("DocumentFileId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("UteLearningHub.Domain.Entities.Document", "Document")
                         .WithMany("UserProgresses")
                         .HasForeignKey("DocumentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Document");

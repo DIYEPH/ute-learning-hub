@@ -42,8 +42,8 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
         var message = await _messageRepository.GetByIdAsync(
-            request.Id, 
-            disableTracking: false, 
+            request.Id,
+            disableTracking: false,
             cancellationToken);
 
         if (message == null || message.IsDeleted)
@@ -53,8 +53,8 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
             throw new BadRequestException("Message does not belong to the specified conversation");
 
         var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
-            request.ConversationId, 
-            disableTracking: false, 
+            request.ConversationId,
+            disableTracking: false,
             cancellationToken);
 
         if (conversation == null || conversation.IsDeleted)
@@ -70,8 +70,8 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
              m.ConversationMemberRoleType == ConversationMemberRoleType.Deputy) &&
             !m.IsDeleted);
 
-        var canDelete = isOwner || 
-                       isAdmin || 
+        var canDelete = isOwner ||
+                       isAdmin ||
                        isConversationOwnerOrDeputy ||
                        (trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator);
 

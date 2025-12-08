@@ -36,7 +36,7 @@ public class UpdateDocumentProgressCommandHandler : IRequestHandler<UpdateDocume
         // Validate document file exists
         var documentFileId = request.DocumentFileId;
         var documentId = await _documentRepository.GetDocumentIdByDocumentFileIdAsync(documentFileId, cancellationToken);
-        
+
         if (!documentId.HasValue)
             throw new NotFoundException($"Document file with id {documentFileId} not found");
 
@@ -47,9 +47,12 @@ public class UpdateDocumentProgressCommandHandler : IRequestHandler<UpdateDocume
 
         var isAdmin = _currentUserService.IsInRole("Admin");
 
-        // Chỉ admin mới xem được tài liệu chưa duyệt
-        if (!isAdmin && document.ReviewStatus != Domain.Constaints.Enums.ReviewStatus.Approved)
-            throw new NotFoundException("Document not found");
+        // Lấy DocumentFile để kiểm tra review status và TotalPages
+        var documentFile = await _documentRepository.GetDocumentFileByIdAsync(documentFileId, disableTracking: true, cancellationToken);
+        
+        // Check file-level review status
+        if (!isAdmin && documentFile != null && documentFile.ReviewStatus != Domain.Constaints.Enums.ReviewStatus.Approved)
+            throw new NotFoundException("Document file not found");
 
         // Kiểm tra visibility
         if (document.Visibility == Domain.Constaints.Enums.VisibilityStatus.Private)
@@ -60,14 +63,11 @@ public class UpdateDocumentProgressCommandHandler : IRequestHandler<UpdateDocume
         }
         // Internal và Public: đã authenticated (đã check ở đầu method)
 
-        // Lấy DocumentFile để lấy TotalPages
-        var documentFile = await _documentRepository.GetDocumentFileByIdAsync(documentFileId, disableTracking: true, cancellationToken);
-
         // Tìm hoặc tạo progress
         var progress = await _progressRepository.GetByUserAndDocumentFileAsync(
-            userId, 
-            documentFileId, 
-            disableTracking: false, 
+            userId,
+            documentFileId,
+            disableTracking: false,
             cancellationToken);
 
         var now = _dateTimeProvider.OffsetNow;
@@ -83,8 +83,7 @@ public class UpdateDocumentProgressCommandHandler : IRequestHandler<UpdateDocume
                 DocumentFileId = documentFileId,
                 LastPage = request.LastPage,
                 TotalPages = documentFile?.TotalPages,
-                LastAccessedAt = now,
-                CreatedById = userId
+                LastAccessedAt = now
             };
             await _progressRepository.AddAsync(progress, cancellationToken);
         }
@@ -98,7 +97,6 @@ public class UpdateDocumentProgressCommandHandler : IRequestHandler<UpdateDocume
             {
                 progress.TotalPages = documentFile.TotalPages;
             }
-            progress.UpdatedById = userId;
             await _progressRepository.UpdateAsync(progress, cancellationToken);
         }
 

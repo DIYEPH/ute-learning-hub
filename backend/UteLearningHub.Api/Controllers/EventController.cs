@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Event.Commands.CreateEvent;
-using UteLearningHub.Application.Features.Event.Commands.UpdateEvent;
 using UteLearningHub.Application.Features.Event.Commands.DeleteEvent;
+using UteLearningHub.Application.Features.Event.Commands.UpdateEvent;
 using UteLearningHub.Application.Features.Event.Queries.GetActiveEvents;
 
 namespace UteLearningHub.Api.Controllers;

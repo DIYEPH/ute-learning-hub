@@ -15,3 +15,9 @@ public enum TrustScoreAction
     CreateConversation  // Tạo nhóm học
 }
 
+public enum ActionPoints
+{
+    CreateDocument,
+    DocumentLiked,
+    ReportApproved,
+}

@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -31,7 +30,6 @@ public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, TagDeta
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Validate TagName is not empty
         if (string.IsNullOrWhiteSpace(request.TagName))
             throw new BadRequestException("TagName cannot be empty");
 
@@ -40,22 +38,15 @@ public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, TagDeta
         if (tag == null || tag.IsDeleted)
             throw new NotFoundException($"Tag with id {request.Id} not found");
 
-        // Check permission: owner or admin
         var isAdmin = _currentUserService.IsInRole("Admin");
         if (!isAdmin && tag.CreatedById != userId)
             throw new UnauthorizedException("You don't have permission to update this tag");
 
-        // Check if tag name already exists (excluding current tag)
-        var existingTag = await _tagRepository.GetQueryableSet()
-            .Where(t => t.Id != request.Id 
-                && t.TagName.ToLower() == request.TagName.ToLower() 
-                && !t.IsDeleted)
-            .FirstOrDefaultAsync(cancellationToken);
+        var existingTag = await _tagRepository.FindByNameAsync(request.TagName, cancellationToken: cancellationToken);
 
-        if (existingTag != null)
+        if (existingTag != null && existingTag.Id != request.Id)
             throw new BadRequestException($"Tag with name '{request.TagName}' already exists");
 
-        // Update tag
         tag.TagName = request.TagName;
         tag.UpdatedById = userId;
         tag.UpdatedAt = _dateTimeProvider.OffsetNow;
@@ -63,11 +54,7 @@ public class UpdateTagCommandHandler : IRequestHandler<UpdateTagCommand, TagDeta
         await _tagRepository.UpdateAsync(tag, cancellationToken);
         await _tagRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Get document count
-        var documentCount = await _tagRepository.GetQueryableSet()
-            .Where(t => t.Id == request.Id)
-            .Select(t => t.DocumentTags.Count)
-            .FirstOrDefaultAsync(cancellationToken);
+        var documentCount = await _tagRepository.GetDocumentCountAsync(request.Id, cancellationToken);
 
         return new TagDetailDto
         {

@@ -6,7 +6,7 @@ public record GetMessagesRequest
     public Guid? ParentId { get; init; } // Nếu có thì lấy replies của message đó
     public int Page { get; init; } = 1;
     public int PageSize { get; init; } = 50;
-    
+
     public int Skip => (Page - 1) * PageSize;
     public int Take => PageSize;
 }

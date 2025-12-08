@@ -42,8 +42,8 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
 
         // Get message with details
         var message = await _messageRepository.GetByIdWithDetailsAsync(
-            request.Id, 
-            disableTracking: false, 
+            request.Id,
+            disableTracking: false,
             cancellationToken);
 
         if (message == null || message.IsDeleted)
@@ -58,8 +58,8 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
 
         // Validate conversation is still active
         var conversation = await _conversationRepository.GetByIdAsync(
-            request.ConversationId, 
-            disableTracking: true, 
+            request.ConversationId,
+            disableTracking: true,
             cancellationToken);
 
         if (conversation == null || conversation.IsDeleted)
@@ -79,8 +79,8 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
 
         // Reload message with details
         var updatedMessage = await _messageRepository.GetByIdWithDetailsAsync(
-            message.Id, 
-            disableTracking: true, 
+            message.Id,
+            disableTracking: true,
             cancellationToken);
 
         if (updatedMessage == null)
@@ -113,17 +113,14 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
             UpdatedAt = updatedMessage.UpdatedAt
         };
 
-        // Publish message updated event (async, không block response)
         _ = Task.Run(async () =>
         {
             try
             {
                 await _messageQueueProducer.PublishMessageUpdatedAsync(messageDto, cancellationToken);
             }
-            catch (Exception ex)
+            catch 
             {
-                // Log error nhưng không throw để không ảnh hưởng đến response
-                // Logger có thể được inject nếu cần
             }
         }, cancellationToken);
 

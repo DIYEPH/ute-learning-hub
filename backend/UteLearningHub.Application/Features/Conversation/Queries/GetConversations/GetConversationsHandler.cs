@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Conversation.Queries.GetConversations;
@@ -28,6 +27,7 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
         var query = _conversationRepository.GetQueryableSet()
             .Include(c => c.Subject)
             .Include(c => c.Members)
+            .Include(c => c.Messages.Where(m => !m.IsDeleted))
             .Include(c => c.ConversationJoinRequests)
             .Include(c => c.ConversationTags)
                 .ThenInclude(ct => ct.Tag)
@@ -96,6 +96,32 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
                 r.ReviewStatus == Domain.Constaints.Enums.ReviewStatus.PendingReview &&
                 !r.IsDeleted);
 
+            // Calculate unread count for current user
+            var unreadCount = 0;
+            if (currentUserId.HasValue && isMember)
+            {
+                var member = c.Members.FirstOrDefault(m => m.UserId == currentUserId.Value && !m.IsDeleted);
+                if (member != null)
+                {
+                    if (member.LastReadMessageId == null)
+                    {
+                        // Never read - all messages are unread (except own messages)
+                        unreadCount = c.Messages.Count(m => m.CreatedById != currentUserId.Value);
+                    }
+                    else
+                    {
+                        // Find last read message and count messages after it
+                        var lastReadMessage = c.Messages.FirstOrDefault(m => m.Id == member.LastReadMessageId);
+                        if (lastReadMessage != null)
+                        {
+                            unreadCount = c.Messages.Count(m => 
+                                m.CreatedAt > lastReadMessage.CreatedAt && 
+                                m.CreatedById != currentUserId.Value);
+                        }
+                    }
+                }
+            }
+
             return new ConversationDto
             {
                 Id = c.Id,
@@ -119,7 +145,7 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
                 } : null,
                 AvatarUrl = c.AvatarUrl,
                 MemberCount = c.Members.Count(m => !m.IsDeleted),
-                MessageCount = 0, 
+                UnreadCount = unreadCount,
                 LastMessageId = c.LastMessage,
                 CreatedById = c.CreatedById,
                 CreatedAt = c.CreatedAt,

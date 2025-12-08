@@ -49,9 +49,9 @@ public class CreateMajorCommandHandler : IRequestHandler<CreateMajorCommand, Maj
 
         // Check if major name or code already exists
         var existingMajor = await _majorRepository.GetQueryableSet()
-            .Where(m => 
-                (m.MajorName.ToLower() == request.MajorName.ToLower() || 
-                 m.MajorCode.ToLower() == request.MajorCode.ToLower()) 
+            .Where(m =>
+                (m.MajorName.ToLower() == request.MajorName.ToLower() ||
+                 m.MajorCode.ToLower() == request.MajorCode.ToLower())
                 && !m.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 

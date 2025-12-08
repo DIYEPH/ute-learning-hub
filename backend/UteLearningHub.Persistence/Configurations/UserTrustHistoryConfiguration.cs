@@ -19,8 +19,7 @@ public class UserTrustHistoryConfiguration : IEntityTypeConfiguration<UserTrustH
         builder.Property(u => u.Score).HasColumnName("DiemThayDoi");
         builder.Property(u => u.Reason).HasColumnName("LyDo");
 
-        builder.ApplySoftDelete<UserTrustHistory>()
-            .ApplyTrack<UserTrustHistory>();
+        builder.ApplyTrack<UserTrustHistory>();
 
         builder.HasOne<AppUser>()
             .WithMany(u => u.UserTrustHistories)

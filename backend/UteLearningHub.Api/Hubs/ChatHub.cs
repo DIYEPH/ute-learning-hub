@@ -14,8 +14,8 @@ public class ChatHub : Hub
     private readonly IMessageHubService _messageHubService;
 
     public ChatHub(
-        ICurrentUserService currentUserService, 
-        IConnectionTracker connectionTrackerService, 
+        ICurrentUserService currentUserService,
+        IConnectionTracker connectionTrackerService,
         IUserConversationService userConversationService,
         IMessageHubService messageHubService)
     {
@@ -30,11 +30,11 @@ public class ChatHub : Hub
         if (_currentUserService.IsAuthenticated && _currentUserService.UserId.HasValue)
         {
             var userId = _currentUserService.UserId.Value;
-            
+
             // Add connection - don't broadcast here, wait until user joins a conversation
             _connectionTrackerService.AddConnection(userId, Context.ConnectionId);
         }
-        
+
         await base.OnConnectedAsync();
     }
 
@@ -43,23 +43,23 @@ public class ChatHub : Hub
         if (_currentUserService.UserId.HasValue)
         {
             var userId = _currentUserService.UserId.Value;
-            
+
             // Remove connection
             _connectionTrackerService.RemoveConnection(Context.ConnectionId);
-            
+
             // Check if user still has other connections
             if (!_connectionTrackerService.IsUserOnline(userId))
             {
                 // User is now offline - broadcast to all conversations
                 var conversationIds = await _userConversationService.GetUserConversationIdsAsync(userId);
-                
+
                 foreach (var conversationId in conversationIds)
                 {
                     await _messageHubService.BroadcastUserOfflineAsync(userId, conversationId);
                 }
             }
         }
-        
+
         await base.OnDisconnectedAsync(exception);
     }
 
@@ -73,10 +73,10 @@ public class ChatHub : Hub
         }
 
         var userId = _currentUserService.UserId.Value;
-        
+
         // Join group first
         await Groups.AddToGroupAsync(Context.ConnectionId, $"conversation_{conversationId}");
-        
+
         // Notify others in conversation that user is online
         // Only broadcast if user is actually online (has active connections)
         if (_connectionTrackerService.IsUserOnline(userId))

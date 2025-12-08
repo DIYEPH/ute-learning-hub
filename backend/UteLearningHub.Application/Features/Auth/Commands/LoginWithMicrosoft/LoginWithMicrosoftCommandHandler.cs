@@ -14,9 +14,9 @@ public class LoginWithMicrosoftCommandHandler : IRequestHandler<LoginWithMicroso
     private readonly IEmailService _emailService;
 
     public LoginWithMicrosoftCommandHandler(
-        IJwtTokenService jwtTokenService, 
-        IRefreshTokenService refreshTokenService, 
-        IIdentityService identityService, 
+        IJwtTokenService jwtTokenService,
+        IRefreshTokenService refreshTokenService,
+        IIdentityService identityService,
         IMicrosoftTokenValidator microsoftTokenValidator,
         IEmailService emailService)
     {

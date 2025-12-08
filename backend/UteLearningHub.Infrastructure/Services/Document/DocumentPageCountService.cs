@@ -35,7 +35,7 @@ public class DocumentPageCountService : IDocumentPageCountService
         }
 
         // DOCX/DOC
-        if (mimeTypeLower.Contains("word") || 
+        if (mimeTypeLower.Contains("word") ||
             mimeTypeLower.Contains("officedocument.wordprocessingml") ||
             mimeTypeLower.Contains("msword"))
         {

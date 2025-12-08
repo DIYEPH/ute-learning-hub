@@ -1,6 +1,3 @@
-using MediatR;
-using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Features.Account.Queries.GetProfile;
 using UteLearningHub.Domain.Constaints.Enums;
 
 namespace UteLearningHub.Application.Features.Account.Commands.UpdateProfile;

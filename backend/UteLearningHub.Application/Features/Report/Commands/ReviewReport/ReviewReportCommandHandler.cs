@@ -1,7 +1,7 @@
 using MediatR;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Application.Services.User;
 using UteLearningHub.Application.Services.TrustScore;
+using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
@@ -42,7 +42,7 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
         var isAdmin = _currentUserService.IsInRole("Admin");
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
 
-        var canReview = isAdmin || 
+        var canReview = isAdmin ||
                        (trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator);
 
         if (!canReview)

@@ -58,9 +58,13 @@ services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        policy.WithOrigins(
+                "http://localhost:3000",
+                "https://localhost:3000"
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials(); // Required for SignalR
     });
 });
 services.AddOpenApi(options =>
@@ -69,7 +73,7 @@ services.AddOpenApi(options =>
     {
         document.Components ??= new OpenApiComponents();
         document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
-        
+
         document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.Http,
@@ -77,7 +81,7 @@ services.AddOpenApi(options =>
             BearerFormat = "JWT",
             Description = "Enter JWT token. If not provided, token will be read from cookies."
         };
-        
+
         return Task.CompletedTask;
     });
 });

@@ -1,41 +1,21 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
-using UteLearningHub.Domain.Constaints.Enums;
+using UteLearningHub.Application.Services.Author;
 using UteLearningHub.Domain.Exceptions;
-using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Author.Queries.GetAuthorById;
 
 public class GetAuthorByIdHandler : IRequestHandler<GetAuthorByIdQuery, AuthorDetailDto>
 {
-    private readonly IAuthorRepository _authorRepository;
+    private readonly IAuthorQueryService _authorQueryService;
 
-    public GetAuthorByIdHandler(IAuthorRepository authorRepository)
+    public GetAuthorByIdHandler(IAuthorQueryService authorQueryService)
     {
-        _authorRepository = authorRepository;
+        _authorQueryService = authorQueryService;
     }
 
     public async Task<AuthorDetailDto> Handle(GetAuthorByIdQuery request, CancellationToken cancellationToken)
     {
-        var author = await _authorRepository.GetByIdAsync(request.Id, disableTracking: true, cancellationToken);
-
-        if (author == null || author.IsDeleted)
-            throw new NotFoundException($"Author with id {request.Id} not found");
-
-        if (author.ReviewStatus != ReviewStatus.Approved)
-            throw new NotFoundException($"Author with id {request.Id} not found");
-
-        var documentCount = await _authorRepository.GetQueryableSet()
-            .Where(a => a.Id == request.Id)
-            .Select(a => a.DocumentAuthors.Count)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return new AuthorDetailDto
-        {
-            Id = author.Id,
-            FullName = author.FullName,
-            Description = author.Description,
-            DocumentCount = documentCount
-        };
+        var author = await _authorQueryService.GetByIdAsync(request.Id, cancellationToken);
+        return author ?? throw new NotFoundException($"Author with id {request.Id} not found");
     }
 }

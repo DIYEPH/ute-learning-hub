@@ -2,7 +2,7 @@
 
 namespace UteLearningHub.Domain.Entities;
 
-public class Major : BaseEntity<Guid>, IAggregateRoot, IAuditable
+public class Major : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditable
 {
     public Guid FacultyId { get; set; }
     public string MajorName { get; set; } = default!;

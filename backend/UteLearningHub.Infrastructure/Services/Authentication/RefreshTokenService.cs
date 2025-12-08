@@ -44,8 +44,8 @@ public class RefreshTokenService : IRefreshTokenService
         {
             // Revoke all sessions: Delete all refresh tokens for this user from database
             var tokensToDelete = await _dbContext.UserTokens
-                .Where(t => t.UserId == userId && 
-                           t.LoginProvider == RefreshTokenProvider && 
+                .Where(t => t.UserId == userId &&
+                           t.LoginProvider == RefreshTokenProvider &&
                            t.Name.StartsWith(RefreshTokenPurpose))
                 .ToListAsync(cancellationToken);
 

@@ -15,9 +15,9 @@ public record CreateDocumentRequest
     public Guid? SubjectId { get; init; }
     public Guid TypeId { get; init; }
     public IList<Guid>? TagIds { get; init; }
-    public IList<string>? TagNames { get; init; } 
-    public IList<Guid>? AuthorIds { get; init; }  
-    public IList<AuthorInput>? Authors { get; init; }  
+    public IList<string>? TagNames { get; init; }
+    public IList<Guid>? AuthorIds { get; init; }
+    public IList<AuthorInput>? Authors { get; init; }
     public bool IsDownload { get; init; } = true;
     public VisibilityStatus Visibility { get; init; } = VisibilityStatus.Internal;
     public Guid? CoverFileId { get; init; }

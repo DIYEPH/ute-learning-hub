@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Services.Message;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;

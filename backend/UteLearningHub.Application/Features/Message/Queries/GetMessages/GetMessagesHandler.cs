@@ -30,10 +30,10 @@ public class GetMessagesHandler : IRequestHandler<GetMessagesQuery, PagedRespons
     {
         // Validate conversation exists
         var conversation = await _conversationRepository.GetByIdAsync(
-            request.ConversationId, 
-            disableTracking: true, 
+            request.ConversationId,
+            disableTracking: true,
             cancellationToken);
-        
+
         if (conversation == null || conversation.IsDeleted)
             throw new NotFoundException($"Conversation with id {request.ConversationId} not found");
 
@@ -41,16 +41,16 @@ public class GetMessagesHandler : IRequestHandler<GetMessagesQuery, PagedRespons
         if (_currentUserService.IsAuthenticated)
         {
             var conversationWithMembers = await _conversationRepository.GetByIdWithDetailsAsync(
-                request.ConversationId, 
-                disableTracking: true, 
+                request.ConversationId,
+                disableTracking: true,
                 cancellationToken);
-            
+
             if (conversationWithMembers != null)
             {
                 var userId = _currentUserService.UserId;
-                var isMember = conversationWithMembers.Members.Any(m => 
+                var isMember = conversationWithMembers.Members.Any(m =>
                     m.UserId == userId && !m.IsDeleted);
-                
+
                 if (!isMember)
                     throw new ForbiddenException("You are not a member of this conversation");
             }
@@ -59,7 +59,7 @@ public class GetMessagesHandler : IRequestHandler<GetMessagesQuery, PagedRespons
         var query = _messageRepository.GetQueryableWithDetails()
             .AsNoTracking()
             .Where(m => m.ConversationId == request.ConversationId && !m.IsDeleted);
-            
+
         if (request.ParentId.HasValue)
             query = query.Where(m => m.ParentId == request.ParentId.Value);
 

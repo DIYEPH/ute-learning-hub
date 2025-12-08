@@ -17,7 +17,7 @@ public class PdfPageCountService : IPdfPageCountService
 
             using var document = PdfDocument.Open(fileStream);
             var pageCount = document.NumberOfPages;
-            
+
             return Task.FromResult<int?>(pageCount);
         }
         catch

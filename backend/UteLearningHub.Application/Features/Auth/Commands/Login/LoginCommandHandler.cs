@@ -29,7 +29,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, LoginResponse>
 
         // 2. Check password
         var isPasswordValid = await _identityService.CheckPasswordAsync(user.Id, request.Password);
-        if (!isPasswordValid) 
+        if (!isPasswordValid)
             throw new UnauthorizedException();
 
         // 3. Generate tokens
