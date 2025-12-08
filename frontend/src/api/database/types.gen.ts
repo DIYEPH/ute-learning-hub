@@ -96,7 +96,7 @@ export type ConversationDto = {
     subject?: SubjectDto;
     avatarUrl?: string | null;
     memberCount?: number;
-    messageCount?: number;
+    unreadCount?: number;
     lastMessageId?: string | null;
     createdById?: string;
     createdAt?: string;
@@ -272,7 +272,6 @@ export type DocumentDetailDto = {
     commentCount?: number;
     usefulCount?: number;
     notUsefulCount?: number;
-    totalCount?: number;
     createdById?: string;
     createdAt?: string;
     updatedAt?: string | null;
@@ -597,6 +596,16 @@ export type PagedResponseOfNotificationDto = {
     hasNextPage?: boolean;
 };
 
+export type PagedResponseOfReadingHistoryItemDto = {
+    items?: Array<ReadingHistoryItemDto>;
+    totalCount?: number;
+    page?: number;
+    pageSize?: number;
+    totalPages?: number;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
+};
+
 export type PagedResponseOfReportDto = {
     items?: Array<ReportDto>;
     totalCount?: number;
@@ -667,6 +676,18 @@ export type ProfileDto = {
     roles?: Array<string>;
     major?: MajorDto;
     createdAt?: string;
+};
+
+export type ReadingHistoryItemDto = {
+    documentId?: string;
+    documentName?: string;
+    documentFileId?: string | null;
+    fileTitle?: string | null;
+    lastPage?: number;
+    totalPages?: number | null;
+    lastAccessedAt?: string | null;
+    coverFileId?: string | null;
+    subjectName?: string | null;
 };
 
 export type RefreshTokenCommand = {
@@ -1738,6 +1759,27 @@ export type PostApiDocumentByIdReviewResponses = {
      */
     200: unknown;
 };
+
+export type GetApiDocumentReadingHistoryData = {
+    body?: never;
+    path?: never;
+    query?: {
+        Page?: number;
+        PageSize?: number;
+        Skip?: number;
+        Take?: number;
+    };
+    url: '/api/Document/reading-history';
+};
+
+export type GetApiDocumentReadingHistoryResponses = {
+    /**
+     * OK
+     */
+    200: PagedResponseOfReadingHistoryItemDto;
+};
+
+export type GetApiDocumentReadingHistoryResponse = GetApiDocumentReadingHistoryResponses[keyof GetApiDocumentReadingHistoryResponses];
 
 export type GetApiDocumentFilesByFileIdProgressData = {
     body?: never;

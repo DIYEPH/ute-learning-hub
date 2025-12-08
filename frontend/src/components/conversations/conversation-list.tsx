@@ -20,7 +20,8 @@ export function ConversationList({
     <div className="divide-y divide-slate-200 dark:divide-slate-700">
       {conversations.map((conversation) => {
         const isSelected = conversation.id === selectedId;
-        const hasUnread = false; // TODO: Implement unread count
+        const unreadCount = conversation.unreadCount ?? 0;
+        const hasUnread = unreadCount > 0;
 
         return (
           <button
@@ -28,25 +29,34 @@ export function ConversationList({
             onClick={() => conversation.id && onSelect(conversation.id)}
             className={cn(
               "w-full p-2 md:p-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors",
-              isSelected && "bg-sky-50 dark:bg-sky-950 border-r-2 border-sky-500"
+              isSelected && "bg-sky-50 dark:bg-sky-950 border-r-2 border-sky-500",
+              hasUnread && !isSelected && "bg-sky-50/50 dark:bg-sky-950/30"
             )}
           >
             <div className="flex items-start gap-3">
-              <Avatar className="h-12 w-12 flex-shrink-0">
-                <AvatarImage
-                  src={conversation.avatarUrl || undefined}
-                  alt={conversation.conversationName || "Avatar"}
-                />
-                <AvatarFallback>
-                  <MessageCircle className="h-6 w-6" />
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-12 w-12 flex-shrink-0">
+                  <AvatarImage
+                    src={conversation.avatarUrl || undefined}
+                    alt={conversation.conversationName || "Avatar"}
+                  />
+                  <AvatarFallback>
+                    <MessageCircle className="h-6 w-6" />
+                  </AvatarFallback>
+                </Avatar>
+                {hasUnread && (
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-[10px] font-bold text-white">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <h3
                     className={cn(
-                      "text-sm font-semibold truncate",
+                      "text-sm truncate",
+                      hasUnread ? "font-bold" : "font-semibold",
                       isSelected
                         ? "text-sky-700 dark:text-sky-300"
                         : "text-foreground"
@@ -54,9 +64,6 @@ export function ConversationList({
                   >
                     {conversation.conversationName || "Cuộc trò chuyện"}
                   </h3>
-                  {hasUnread && (
-                    <span className="flex-shrink-0 h-2 w-2 rounded-full bg-sky-500" />
-                  )}
                 </div>
 
                 {conversation.tags && conversation.tags.length > 0 && (
@@ -83,9 +90,6 @@ export function ConversationList({
                       <Users className="h-3 w-3" />
                       <span>{conversation.memberCount}</span>
                     </div>
-                  )}
-                  {conversation.messageCount !== undefined && (
-                    <span>{conversation.messageCount} tin nhắn</span>
                   )}
                 </div>
               </div>

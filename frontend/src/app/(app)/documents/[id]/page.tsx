@@ -37,7 +37,8 @@ export default function DocumentDetailPage() {
 
         const payload = (response.data ??
           response) as DocumentDetailDto | undefined;
-        if (!cancelled && payload) {
+        // Check if payload is a valid document (has id) and not an error object
+        if (!cancelled && payload && typeof payload === 'object' && 'id' in payload) {
           setData(payload);
         }
       } catch (err: any) {
@@ -70,7 +71,8 @@ export default function DocumentDetailPage() {
         path: { id: documentId },
       });
       const payload = (response.data ?? response) as DocumentDetailDto | undefined;
-      if (payload) {
+      // Check if payload is a valid document (has id) and not an error object
+      if (payload && typeof payload === 'object' && 'id' in payload) {
         setData(payload);
       }
     } catch (err) {
@@ -115,7 +117,16 @@ export default function DocumentDetailPage() {
     );
   }
 
-  const doc = data!;
+  // Guard against null data
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+      </div>
+    );
+  }
+
+  const doc = data;
   const files = doc.files ?? [];
   const tags = doc.tags ?? [];
   const authors = doc.authors ?? [];

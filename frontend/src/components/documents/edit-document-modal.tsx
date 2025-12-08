@@ -28,6 +28,11 @@ export function EditDocumentModal({
   document,
   onSuccess,
 }: EditDocumentModalProps) {
+  // Guard against invalid document object (e.g., error response)
+  if (!document || !('id' in document) || !document.id) {
+    return null;
+  }
+
   const { fetchSubjects, loading: loadingSubjects } = useSubjects();
   const { fetchTypes, loading: loadingTypes } = useTypes();
 

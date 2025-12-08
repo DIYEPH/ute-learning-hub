@@ -152,8 +152,10 @@ export function ConversationCard({
                   <span>{conversation.memberCount} thành viên</span>
                 </div>
               )}
-              {conversation.messageCount !== undefined && conversation.messageCount > 0 && (
-                <span>{conversation.messageCount} tin nhắn</span>
+              {conversation.unreadCount !== undefined && conversation.unreadCount > 0 && (
+                <span className="inline-flex items-center rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                  {conversation.unreadCount > 99 ? "99+" : conversation.unreadCount} chưa đọc
+                </span>
               )}
             </div>
 

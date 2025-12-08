@@ -1,27 +1,4 @@
 /**
- * Convert file URL to absolute URL with API base
- * Handles both relative (/uploads/...) and absolute URLs
- */
-export function getFileUrl(fileUrl: string | undefined | null): string {
-  if (!fileUrl) return "";
-
-  // Already absolute URL
-  if (fileUrl.startsWith("http://") || fileUrl.startsWith("https://") || fileUrl.startsWith("blob:")) {
-    return fileUrl;
-  }
-
-  // Relative URL - prepend API base URL
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7080";
-
-  // Handle URLs starting with / or not
-  if (fileUrl.startsWith("/")) {
-    return `${apiBaseUrl}${fileUrl}`;
-  }
-
-  return `${apiBaseUrl}/${fileUrl}`;
-}
-
-/**
  * Get access token from localStorage (client-side only)
  */
 function getToken(): string | undefined {

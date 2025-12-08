@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Search, Filter, X } from "lucide-react";
-import { getApiConversation, getApiTag } from "@/src/api/database/sdk.gen";
+import { Loader2, Search, Filter, X, Sparkles } from "lucide-react";
+import { getApiConversation, getApiTag, getApiConversationRecommendations } from "@/src/api/database/sdk.gen";
 import type {
   ConversationDto,
   PagedResponseOfConversationDto,
   TagDto,
+  ConversationRecommendationDto,
 } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { ConversationCard } from "@/src/components/conversations/conversation-card";
+import { RecommendationCard } from "@/src/components/conversations/recommendation-card";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import type { SubjectDto2 } from "@/src/api/database/types.gen";
 
@@ -40,8 +42,13 @@ export default function ConversationsPage() {
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
   const [tags, setTags] = useState<TagDto[]>([]);
 
+  // Recommendations
+  const [recommendations, setRecommendations] = useState<ConversationRecommendationDto[]>([]);
+  const [loadingRecs, setLoadingRecs] = useState(true);
+
   useEffect(() => {
     void loadFilterOptions();
+    void fetchRecommendations();
   }, []);
 
   useEffect(() => {
@@ -67,6 +74,21 @@ export default function ConversationsPage() {
       }
     } catch (err) {
       console.error("Error loading filter options:", err);
+    }
+  };
+
+  const fetchRecommendations = async () => {
+    setLoadingRecs(true);
+    try {
+      const response = await getApiConversationRecommendations();
+      const payload = (response.data ?? response) as any;
+      const items = payload?.recommendations ?? [];
+      setRecommendations(items);
+    } catch (err) {
+      console.error("Error loading recommendations:", err);
+      setRecommendations([]);
+    } finally {
+      setLoadingRecs(false);
     }
   };
 
@@ -151,6 +173,27 @@ export default function ConversationsPage() {
           Tìm và tham gia các cuộc trò chuyện công khai hoặc xin tham gia các nhóm riêng tư
         </p>
       </div>
+
+      {/* Recommendations Section */}
+      {!loadingRecs && recommendations.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="h-5 w-5 text-sky-500" />
+            <h2 className="text-lg font-semibold text-foreground">Gợi ý cho bạn</h2>
+          </div>
+          <div className="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
+            {recommendations.map((rec) => (
+              <RecommendationCard key={rec.conversationId} recommendation={rec} />
+            ))}
+          </div>
+        </div>
+      )}
+      {loadingRecs && (
+        <div className="mb-8 flex items-center gap-2 text-sm text-slate-500">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>Đang tải gợi ý...</span>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="mb-6 space-y-4">

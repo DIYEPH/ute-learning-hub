@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileText, MessageSquare, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ArrowLeft, FileText, MessageSquare, X } from "lucide-react";
 
 import { getApiDocumentById } from "@/src/api/database/sdk.gen";
 import type { DocumentDetailDto, DocumentFileDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { DocumentFileCommentsPanel } from "@/src/components/documents/document-file-comments-panel";
+import { PdfViewer } from "@/src/components/documents/pdf-viewer";
 import { getFileUrlById } from "@/src/lib/file-url";
 import { cn } from "@/lib/utils";
 
@@ -22,7 +23,7 @@ export default function DocumentFileDetailPage() {
   const [file, setFile] = useState<DocumentFileDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showComments, setShowComments] = useState(true);
+  const [showComments, setShowComments] = useState(false);
 
   useEffect(() => {
     if (!documentId || !documentFileId) return;
@@ -184,11 +185,21 @@ export default function DocumentFileDetailPage() {
           showComments ? "lg:mr-0" : ""
         )}>
           {fileUrl ? (
-            <iframe
-              src={fileUrl}
-              title={file.title || "Document file"}
-              className="h-full w-full border-0"
-            />
+            file.mimeType === "application/pdf" ? (
+              <PdfViewer
+                fileUrl={fileUrl}
+                fileId={file.id!}
+                documentId={documentId}
+                title={file.title || undefined}
+                className="h-full w-full"
+              />
+            ) : (
+              <iframe
+                src={fileUrl}
+                title={file.title || "Document file"}
+                className="h-full w-full border-0"
+              />
+            )
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <FileText className="h-10 w-10 opacity-40" />
@@ -198,35 +209,44 @@ export default function DocumentFileDetailPage() {
           )}
         </div>
 
-        {/* Comments Panel - Collapsible Sidebar */}
-        <div className={cn(
-          "border-l border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col transition-all duration-300 ease-in-out overflow-hidden",
-          showComments ? "w-[280px] lg:w-[300px]" : "w-0"
-        )}>
-          {showComments && (
-            <div className="flex flex-col h-full min-w-[280px] lg:min-w-[300px]">
-              <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200 dark:border-slate-700 shrink-0">
-                <h2 className="text-sm font-semibold text-foreground">Bình luận</h2>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowComments(false)}
-                  className="h-7 w-7"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <DocumentFileCommentsPanel
-                  documentId={documentId}
-                  documentFileId={documentFileId}
-                  initialUsefulCount={file.usefulCount ?? 0}
-                  initialNotUsefulCount={file.notUsefulCount ?? 0}
-                />
+        {/* Comments Panel - Overlay on mobile, sidebar on desktop */}
+        {showComments && (
+          <>
+            {/* Mobile overlay backdrop */}
+            <div
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              onClick={() => setShowComments(false)}
+            />
+            {/* Comments panel */}
+            <div className={cn(
+              "fixed right-0 top-0 bottom-0 z-50 w-[85vw] max-w-[320px]",
+              "lg:relative lg:z-auto lg:w-[300px]",
+              "border-l border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 flex flex-col"
+            )}>
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between px-3 py-2 border-b border-slate-200 dark:border-slate-700 shrink-0">
+                  <h2 className="text-sm font-semibold text-foreground">Bình luận</h2>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setShowComments(false)}
+                    className="h-7 w-7"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <DocumentFileCommentsPanel
+                    documentId={documentId}
+                    documentFileId={documentFileId}
+                    initialUsefulCount={file.usefulCount ?? 0}
+                    initialNotUsefulCount={file.notUsefulCount ?? 0}
+                  />
+                </div>
               </div>
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );

@@ -2296,6 +2296,69 @@
         }
       }
     },
+    "/api/Document/reading-history": {
+      "get": {
+        "tags": [
+          "Document"
+        ],
+        "parameters": [
+          {
+            "name": "Page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Skip",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "Take",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseOfReadingHistoryItemDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseOfReadingHistoryItemDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseOfReadingHistoryItemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Document/files/{fileId}/progress": {
       "get": {
         "tags": [
@@ -5384,7 +5447,7 @@
             "type": "integer",
             "format": "int32"
           },
-          "messageCount": {
+          "unreadCount": {
             "type": "integer",
             "format": "int32"
           },
@@ -5942,10 +6005,6 @@
             "format": "int32"
           },
           "notUsefulCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "totalCount": {
             "type": "integer",
             "format": "int32"
           },
@@ -6937,6 +6996,39 @@
           }
         }
       },
+      "PagedResponseOfReadingHistoryItemDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReadingHistoryItemDto"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          }
+        }
+      },
       "PagedResponseOfReportDto": {
         "type": "object",
         "properties": {
@@ -7168,6 +7260,50 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "ReadingHistoryItemDto": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentName": {
+            "type": "string"
+          },
+          "documentFileId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "fileTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "lastAccessedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "coverFileId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "subjectName": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

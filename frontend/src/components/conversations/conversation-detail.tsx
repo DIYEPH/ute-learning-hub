@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { ArrowLeft, Send, Loader2, Paperclip, List, Settings, FolderOpen, X, Image as ImageIcon } from "lucide-react";
 // import { format } from "date-fns";
 // import { vi } from "date-fns/locale";
@@ -9,6 +9,7 @@ import {
   getApiConversationById,
   getApiConversationsByConversationIdMessages,
   postApiConversationsByConversationIdMessages,
+  postApiConversationsByConversationIdMessagesByIdMarkAsRead,
 } from "@/src/api/database/sdk.gen";
 import type {
   ConversationDetailDto,
@@ -25,6 +26,7 @@ import { PinnedMessagesSection } from "@/src/components/conversations/pinned-mes
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { usePinMessage } from "@/src/hooks/use-pin-message";
 import { useFileUpload } from "@/src/hooks/use-file-upload";
+import { useSignalR } from "@/src/components/providers/signalr-provider";
 
 interface ConversationDetailProps {
   conversationId: string;
@@ -46,9 +48,25 @@ export function ConversationDetail({
   const [error, setError] = useState<string | null>(null);
   const [showEditSidebar, setShowEditSidebar] = useState(false);
   const [showFilesSidebar, setShowFilesSidebar] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // SignalR integration
+  const {
+    isConnected,
+    joinConversation,
+    leaveConversation,
+    sendTyping,
+    onMessageReceived,
+    onMessageUpdated,
+    onMessageDeleted,
+    onMessagePinned,
+    onMessageUnpinned,
+    onUserTyping,
+  } = useSignalR();
 
   const { togglePin } = usePinMessage(conversationId, (updatedMessage) => {
     setMessages((prev) =>
@@ -64,6 +82,18 @@ export function ConversationDetail({
       return dateB - dateA; // Mới nhất trước
     });
 
+  // Mark message as read callback
+  const markLastMessageAsRead = useCallback(async (messageId: string) => {
+    try {
+      await postApiConversationsByConversationIdMessagesByIdMarkAsRead({
+        path: { conversationId, id: messageId },
+      });
+    } catch (err) {
+      // Silently fail - not critical
+      console.error("Failed to mark message as read:", err);
+    }
+  }, [conversationId]);
+
   useEffect(() => {
     void fetchConversation();
     void fetchMessages();
@@ -72,6 +102,93 @@ export function ConversationDetail({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // SignalR: Join/Leave conversation
+  useEffect(() => {
+    if (isConnected && conversationId) {
+      joinConversation(conversationId);
+      return () => {
+        leaveConversation(conversationId);
+      };
+    }
+  }, [isConnected, conversationId, joinConversation, leaveConversation]);
+
+  // SignalR: Subscribe to message events
+  useEffect(() => {
+    // Message received
+    const unsubReceived = onMessageReceived((message) => {
+      if (message.conversationId === conversationId) {
+        setMessages((prev) => {
+          // Avoid duplicates
+          if (prev.some((m) => m.id === message.id)) return prev;
+          return [...prev, message];
+        });
+
+        // Mark as read if not own message
+        if (message.id && message.createdById !== profile?.id) {
+          void markLastMessageAsRead(message.id);
+        }
+      }
+    });
+
+    // Message updated
+    const unsubUpdated = onMessageUpdated((message) => {
+      if (message.conversationId === conversationId) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === message.id ? message : m))
+        );
+      }
+    });
+
+    // Message deleted
+    const unsubDeleted = onMessageDeleted((data) => {
+      if (data.conversationId === conversationId) {
+        setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
+      }
+    });
+
+    // Message pinned
+    const unsubPinned = onMessagePinned((message) => {
+      if (message.conversationId === conversationId) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === message.id ? message : m))
+        );
+      }
+    });
+
+    // Message unpinned
+    const unsubUnpinned = onMessageUnpinned((message) => {
+      if (message.conversationId === conversationId) {
+        setMessages((prev) =>
+          prev.map((m) => (m.id === message.id ? message : m))
+        );
+      }
+    });
+
+    // User typing
+    const unsubTyping = onUserTyping((data) => {
+      if (data.conversationId === conversationId && data.userId !== profile?.id) {
+        setTypingUsers((prev) => {
+          const next = new Map(prev);
+          if (data.isTyping) {
+            next.set(data.userId, data.userId);
+          } else {
+            next.delete(data.userId);
+          }
+          return next;
+        });
+      }
+    });
+
+    return () => {
+      unsubReceived();
+      unsubUpdated();
+      unsubDeleted();
+      unsubPinned();
+      unsubUnpinned();
+      unsubTyping();
+    };
+  }, [conversationId, profile?.id, onMessageReceived, onMessageUpdated, onMessageDeleted, onMessagePinned, onMessageUnpinned, onUserTyping]);
 
   const fetchConversation = async () => {
     try {
@@ -105,6 +222,14 @@ export function ConversationDetail({
       const items = payload?.items ?? [];
 
       setMessages(items);
+
+      // Mark last message as read
+      if (items.length > 0) {
+        const lastMessage = items[items.length - 1];
+        if (lastMessage.id && lastMessage.createdById !== profile?.id) {
+          void markLastMessageAsRead(lastMessage.id);
+        }
+      }
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||
@@ -161,11 +286,10 @@ export function ConversationDetail({
 
       const newMessage = (response.data ?? response) as MessageDto | undefined;
       if (newMessage) {
-        setMessages((prev) => [...prev, newMessage]);
         setMessageContent("");
         setSelectedFiles([]);
         setReplyTo(null);
-        void fetchConversation(); // Refresh để cập nhật messageCount
+        void fetchConversation();
       }
     } catch (err: any) {
       const message =
@@ -181,6 +305,24 @@ export function ConversationDetail({
   const isImageFile = (file: File) => {
     return file.type.startsWith("image/");
   };
+
+  // Handle typing indicator
+  const handleTyping = useCallback(() => {
+    if (!isConnected) return;
+
+    // Send typing = true
+    sendTyping(conversationId, true);
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Set timeout to send typing = false after 2 seconds of no typing
+    typingTimeoutRef.current = setTimeout(() => {
+      sendTyping(conversationId, false);
+    }, 2000);
+  }, [isConnected, conversationId, sendTyping]);
 
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
@@ -343,6 +485,23 @@ export function ConversationDetail({
               );
             })
           )}
+
+          {/* Typing indicator */}
+          {typingUsers.size > 0 && (
+            <div className="flex items-center gap-2 px-4 py-2 text-sm text-slate-500 dark:text-slate-400">
+              <div className="flex gap-1">
+                <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+              <span>
+                {typingUsers.size === 1
+                  ? "Ai đó đang nhập..."
+                  : `${typingUsers.size} người đang nhập...`}
+              </span>
+            </div>
+          )}
+
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
@@ -438,7 +597,10 @@ export function ConversationDetail({
               type="text"
               placeholder="Nhập tin nhắn..."
               value={messageContent}
-              onChange={(e) => setMessageContent(e.target.value)}
+              onChange={(e) => {
+                setMessageContent(e.target.value);
+                handleTyping();
+              }}
               disabled={sending}
               className="flex-1 text-sm md:text-base"
               onKeyDown={(e) => {

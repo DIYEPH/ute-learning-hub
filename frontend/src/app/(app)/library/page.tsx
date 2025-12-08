@@ -153,7 +153,7 @@ export default function LibraryPage() {
           </h2>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
           {documents.map((doc) => (
             <DocumentCard
               key={doc.id}
