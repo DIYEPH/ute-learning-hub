@@ -5,88 +5,111 @@ import { Button } from "@/src/components/ui/button";
 import { Pagination } from "@/src/components/ui/pagination";
 import { Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useConversations } from "@/src/hooks/use-conversations";
+import { useDocuments } from "@/src/hooks/use-documents";
 import { useNotification } from "@/src/components/ui/notification-center";
-import { ConversationTable } from "@/src/components/admin/conversations/conversation-table";
-import { ConversationForm } from "@/src/components/admin/conversations/conversation-form";
+import { DocumentTable } from "@/src/components/admin/documents/document-table";
+import { DocumentForm } from "@/src/components/admin/documents/document-form";
+import { DocumentDetailModal } from "@/src/components/admin/documents/document-detail-modal";
+import { ReviewModal } from "@/src/components/admin/documents/review-modal";
 import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { EditModal } from "@/src/components/admin/modals/edit-modal";
 import { AdvancedSearchFilter } from "@/src/components/admin/advanced-search-filter";
-import type { ConversationDto, UpdateConversationCommand } from "@/src/api/database/types.gen";
+import type { DocumentDto, UpdateDocumentCommand, ReviewDocumentCommand } from "@/src/api/database/types.gen";
 
-export default function ConversationsManagementPage() {
-    const t = useTranslations("admin.conversations");
+export default function DocumentsManagementPage() {
+    const t = useTranslations("admin.documents");
     const notification = useNotification();
-    const { fetchConversations, updateConversation, deleteConversation, loading, error } = useConversations();
+    const { fetchDocuments, updateDocument, deleteDocument, reviewDocument, loading, error } = useDocuments();
 
-    const [conversations, setConversations] = useState<ConversationDto[]>([]);
+    const [documents, setDocuments] = useState<DocumentDto[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [page, setPage] = useState(1);
     const [pageSize] = useState(10);
     const [searchTerm, setSearchTerm] = useState("");
-    const [typeFilter, setTypeFilter] = useState<string | null>(null);
-    const [statusFilter, setStatusFilter] = useState<string | null>(null);
+    const [visibilityFilter, setVisibilityFilter] = useState<string | null>(null);
+    const [reviewStatusFilter, setReviewStatusFilter] = useState<string | null>(null);
     const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
     const [sortKey, setSortKey] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [deleteAllModalOpen, setDeleteAllModalOpen] = useState(false);
-    const [selectedConversation, setSelectedConversation] = useState<ConversationDto | null>(null);
+    const [selectedDocument, setSelectedDocument] = useState<DocumentDto | null>(null);
     const [formLoading, setFormLoading] = useState(false);
 
-    const loadConversations = useCallback(async () => {
+    const loadDocuments = useCallback(async () => {
         try {
-            const response = await fetchConversations({
+            const response = await fetchDocuments({
                 SearchTerm: searchTerm || undefined,
-                ConversationType: typeFilter || undefined,
-                ConversationStatus: statusFilter || undefined,
                 IsDeleted: deletedFilter === "true" ? true : deletedFilter === "false" ? false : undefined,
                 Page: page,
                 PageSize: pageSize,
             });
 
             if (response) {
-                setConversations(response.items || []);
+                setDocuments(response.items || []);
                 setTotalCount(response.totalCount || 0);
             }
         } catch (err) {
-            console.error("Error loading conversations:", err);
+            console.error("Error loading documents:", err);
         }
-    }, [fetchConversations, searchTerm, typeFilter, statusFilter, deletedFilter, page, pageSize]);
+    }, [fetchDocuments, searchTerm, visibilityFilter, reviewStatusFilter, deletedFilter, page, pageSize]);
 
     useEffect(() => {
-        loadConversations();
-    }, [loadConversations]);
+        loadDocuments();
+    }, [loadDocuments]);
 
-    const handleEdit = async (command: UpdateConversationCommand) => {
-        if (!selectedConversation?.id) return;
+    const handleEdit = async (command: UpdateDocumentCommand) => {
+        if (!selectedDocument?.id) return;
         setFormLoading(true);
         try {
-            await updateConversation(selectedConversation.id, command);
-            await loadConversations();
+            await updateDocument(selectedDocument.id, command);
+            await loadDocuments();
             setEditModalOpen(false);
-            setSelectedConversation(null);
+            setSelectedDocument(null);
             notification.success(t("notifications.updateSuccess"));
         } catch (err) {
-            console.error("Error updating conversation:", err);
+            console.error("Error updating document:", err);
             notification.error(t("notifications.updateError"));
         } finally {
             setFormLoading(false);
         }
     };
 
-    const handleDelete = async () => {
-        if (!selectedConversation?.id) return;
+    const handleReview = async (command: ReviewDocumentCommand) => {
         setFormLoading(true);
         try {
-            await deleteConversation(selectedConversation.id);
-            await loadConversations();
+            const success = await reviewDocument(command);
+            if (success) {
+                await loadDocuments();
+                setReviewModalOpen(false);
+                setSelectedDocument(null);
+                notification.success(t("notifications.reviewSuccess"));
+            } else {
+                notification.error(t("notifications.reviewError"));
+            }
+        } catch (err) {
+            console.error("Error reviewing document:", err);
+            notification.error(t("notifications.reviewError"));
+        } finally {
+            setFormLoading(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!selectedDocument?.id) return;
+        setFormLoading(true);
+        try {
+            await deleteDocument(selectedDocument.id);
+            await loadDocuments();
             setDeleteModalOpen(false);
-            setSelectedConversation(null);
+            setSelectedDocument(null);
             notification.success(t("notifications.deleteSuccess"));
         } catch (err) {
-            console.error("Error deleting conversation:", err);
+            console.error("Error deleting document:", err);
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -96,11 +119,11 @@ export default function ConversationsManagementPage() {
     const handleBulkDelete = async (ids: string[]) => {
         setFormLoading(true);
         try {
-            await Promise.all(ids.map((id) => deleteConversation(id)));
-            await loadConversations();
+            await Promise.all(ids.map((id) => deleteDocument(id)));
+            await loadDocuments();
             notification.success(t("notifications.bulkDeleteSuccess", { count: ids.length }));
         } catch (err) {
-            console.error("Error bulk deleting conversations:", err);
+            console.error("Error bulk deleting documents:", err);
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -108,16 +131,16 @@ export default function ConversationsManagementPage() {
     };
 
     const handleDeleteAll = async () => {
-        if (conversations.length === 0) return;
+        if (documents.length === 0) return;
         setFormLoading(true);
         try {
-            const ids = conversations.map((c) => c.id).filter((id): id is string => !!id);
-            await Promise.all(ids.map((id) => deleteConversation(id)));
-            await loadConversations();
+            const ids = documents.map((d) => d.id).filter((id): id is string => !!id);
+            await Promise.all(ids.map((id) => deleteDocument(id)));
+            await loadDocuments();
             setDeleteAllModalOpen(false);
             notification.success(t("notifications.bulkDeleteSuccess", { count: ids.length }));
         } catch (err) {
-            console.error("Error deleting all conversations:", err);
+            console.error("Error deleting all documents:", err);
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -126,8 +149,8 @@ export default function ConversationsManagementPage() {
 
     const handleReset = () => {
         setSearchTerm("");
-        setTypeFilter(null);
-        setStatusFilter(null);
+        setVisibilityFilter(null);
+        setReviewStatusFilter(null);
         setDeletedFilter(null);
         setSortKey(null);
         setSortDirection(null);
@@ -135,10 +158,10 @@ export default function ConversationsManagementPage() {
     };
 
     const handleFilterChange = (key: string, value: string | null) => {
-        if (key === "type") {
-            setTypeFilter(value);
-        } else if (key === "status") {
-            setStatusFilter(value);
+        if (key === "visibility") {
+            setVisibilityFilter(value);
+        } else if (key === "reviewStatus") {
+            setReviewStatusFilter(value);
         } else if (key === "deleted") {
             setDeletedFilter(value);
         }
@@ -157,7 +180,7 @@ export default function ConversationsManagementPage() {
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h1 className="text-xl md:text-2xl font-semibold text-foreground">{t("title")}</h1>
                 <div className="flex gap-2">
-                    {conversations.length > 0 && (
+                    {documents.length > 0 && (
                         <Button
                             onClick={() => setDeleteAllModalOpen(true)}
                             variant="destructive"
@@ -179,25 +202,25 @@ export default function ConversationsManagementPage() {
                     placeholder={t("searchPlaceholder")}
                     filters={[
                         {
-                            key: "type",
-                            label: t("filter.type"),
+                            key: "visibility",
+                            label: t("filter.visibility"),
                             type: "select",
-                            value: typeFilter,
+                            value: visibilityFilter,
                             options: [
-                                { value: "0", label: "Private" },
-                                { value: "1", label: "Group" },
-                                { value: "2", label: "AI" },
+                                { value: "0", label: t("filter.private") },
+                                { value: "1", label: t("filter.public") },
                             ],
                         },
                         {
-                            key: "status",
-                            label: t("filter.status"),
+                            key: "reviewStatus",
+                            label: t("filter.reviewStatus"),
                             type: "select",
-                            value: statusFilter,
+                            value: reviewStatusFilter,
                             options: [
-                                { value: "0", label: t("filter.active") },
-                                { value: "1", label: t("filter.inactive") },
-                                { value: "2", label: t("filter.archived") },
+                                { value: "0", label: t("filter.pending") },
+                                { value: "1", label: t("filter.hidden") },
+                                { value: "2", label: t("filter.approved") },
+                                { value: "3", label: t("filter.rejected") },
                             ],
                         },
                         {
@@ -222,23 +245,31 @@ export default function ConversationsManagementPage() {
                 </div>
             )}
 
-            {conversations.length > 0 && (
+            {documents.length > 0 && (
                 <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
                     {t("foundCount", { count: totalCount })}
                 </div>
             )}
 
             <div className="mt-4">
-                <ConversationTable
-                    conversations={conversations}
+                <DocumentTable
+                    documents={documents}
                     loading={loading}
-                    onEdit={(conversation) => {
-                        setSelectedConversation(conversation);
+                    onViewDetail={(doc) => {
+                        setSelectedDocument(doc);
+                        setDetailModalOpen(true);
+                    }}
+                    onEdit={(doc) => {
+                        setSelectedDocument(doc);
                         setEditModalOpen(true);
                     }}
-                    onDelete={(conversation) => {
-                        setSelectedConversation(conversation);
+                    onDelete={(doc) => {
+                        setSelectedDocument(doc);
                         setDeleteModalOpen(true);
+                    }}
+                    onReview={(doc) => {
+                        setSelectedDocument(doc);
+                        setReviewModalOpen(true);
                     }}
                     onBulkDelete={handleBulkDelete}
                     onSort={handleSort}
@@ -258,16 +289,26 @@ export default function ConversationsManagementPage() {
                 className="mt-4"
             />
 
+            {/* Detail Modal */}
+            <DocumentDetailModal
+                open={detailModalOpen}
+                onOpenChange={(open) => {
+                    setDetailModalOpen(open);
+                    if (!open) setSelectedDocument(null);
+                }}
+                documentId={selectedDocument?.id || null}
+            />
+
             {/* Edit Modal */}
             <EditModal
                 open={editModalOpen}
                 onOpenChange={(open) => {
                     setEditModalOpen(open);
-                    if (!open) setSelectedConversation(null);
+                    if (!open) setSelectedDocument(null);
                 }}
                 title={t("editTitle")}
                 onSubmit={async () => {
-                    const form = document.getElementById("conversation-form") as HTMLFormElement;
+                    const form = document.getElementById("document-form") as HTMLFormElement;
                     if (form) {
                         form.requestSubmit();
                     }
@@ -275,25 +316,38 @@ export default function ConversationsManagementPage() {
                 loading={formLoading}
                 size="lg"
             >
-                <ConversationForm
-                    initialData={selectedConversation as import("@/src/components/admin/conversations/conversation-form").ConversationFormData || undefined}
+                <DocumentForm
+                    initialData={selectedDocument as import("@/src/components/admin/documents/document-form").DocumentFormData || undefined}
                     onSubmit={handleEdit}
                     loading={formLoading}
                 />
             </EditModal>
+
+            {/* Review Modal */}
+            <ReviewModal
+                open={reviewModalOpen}
+                onOpenChange={(open) => {
+                    setReviewModalOpen(open);
+                    if (!open) setSelectedDocument(null);
+                }}
+                documentId={selectedDocument?.id || null}
+                documentName={selectedDocument?.documentName || ""}
+                onSubmit={handleReview}
+                loading={formLoading}
+            />
 
             {/* Delete Modal */}
             <DeleteModal
                 open={deleteModalOpen}
                 onOpenChange={(open) => {
                     setDeleteModalOpen(open);
-                    if (!open) setSelectedConversation(null);
+                    if (!open) setSelectedDocument(null);
                 }}
                 onConfirm={handleDelete}
                 title={t("deleteModal.title")}
                 description={t("deleteModal.description")}
                 loading={formLoading}
-                itemName={selectedConversation?.conversationName || ""}
+                itemName={selectedDocument?.documentName || ""}
             />
 
             {/* Delete All Modal */}
@@ -302,11 +356,10 @@ export default function ConversationsManagementPage() {
                 onOpenChange={setDeleteAllModalOpen}
                 onConfirm={handleDeleteAll}
                 title={t("deleteAllModal.title")}
-                description={t("deleteAllModal.description", { count: conversations.length })}
+                description={t("deleteAllModal.description", { count: documents.length })}
                 loading={formLoading}
-                itemName={`${conversations.length} ${t("items")}`}
+                itemName={`${documents.length} ${t("items")}`}
             />
         </div>
     );
 }
-

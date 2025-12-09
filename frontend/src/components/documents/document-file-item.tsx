@@ -20,12 +20,18 @@ export function DocumentFileItem({ file, index, documentName }: DocumentFileItem
 
   return (
     <div className="flex h-full flex-col border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800 overflow-hidden hover:border-sky-400 hover:shadow-md transition-all cursor-pointer">
-      {coverUrl && (
+      {coverUrl ? (
         <img
           src={coverUrl}
           alt={title}
           className="w-full aspect-[5/3] object-cover"
         />
+      ) : (
+        <div className="w-full aspect-[5/3] bg-gradient-to-br from-slate-600 to-slate-800 dark:from-slate-700 dark:to-slate-900 flex items-center justify-center p-2">
+          <span className="text-white text-center text-xs font-medium line-clamp-3 leading-tight">
+            {title}
+          </span>
+        </div>
       )}
       <div className="flex flex-1 flex-col gap-1 p-2">
         <div className="flex-1 min-w-0">

@@ -157,90 +157,86 @@ export default function DocumentDetailPage() {
       {/* Thông tin document + upload + danh sách file */}
       <div className="grid gap-4 lg:gap-6 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] items-start">
         {/* Bên trái: thông tin + upload */}
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-            <div className="space-y-3">
-              <div>
-                <h1 className="text-xl font-semibold text-foreground">
-                  {doc.documentName ?? "Tài liệu"}
-                </h1>
-                {authors.length > 0 && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Tác giả:{" "}
-                    <span className="font-medium">
-                      {authors.map((a) => a.fullName).join(", ")}
-                    </span>
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-wrap gap-2 text-xs">
-                {doc.type?.typeName && (
-                  <Badge variant="outline" className="border-sky-200 text-sky-700">
-                    {doc.type.typeName}
-                  </Badge>
-                )}
-                {doc.subject?.subjectName && (
-                  <Badge
-                    variant="outline"
-                    className="border-emerald-200 text-emerald-700"
-                  >
-                    {doc.subject.subjectName}
-                  </Badge>
-                )}
-                {doc.visibility === 0 && (
-                  <Badge
-                    variant="outline"
-                    className="border-blue-200 text-blue-700"
-                  >
-                    Công khai
-                  </Badge>
-                )}
-                {doc.visibility === 1 && (
-                  <Badge
-                    variant="outline"
-                    className="border-slate-200 text-slate-700"
-                  >
-                    Riêng tư
-                  </Badge>
-                )}
-                {doc.visibility === 2 && (
-                  <Badge
-                    variant="outline"
-                    className="border-amber-200 text-amber-700"
-                  >
-                    Nội bộ
-                  </Badge>
-                )}
-              </div>
-
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.map((tag) => (
-                    <Badge
-                      key={tag.id}
-                      variant="secondary"
-                      className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 text-[11px]"
-                    >
-                      #{tag.tagName}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {doc.description && (
-                <div className="space-y-1">
-                  <h2 className="text-xs font-semibold text-foreground">Mô tả</h2>
-                  <ScrollArea className="max-h-40 rounded-md border bg-slate-50 p-3 text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-200">
-                    {doc.description}
-                  </ScrollArea>
-                </div>
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <div className="space-y-3">
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">
+                {doc.documentName ?? "Tài liệu"}
+              </h1>
+              {authors.length > 0 && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Tác giả:{" "}
+                  <span className="font-medium">
+                    {authors.map((a) => a.fullName).join(", ")}
+                  </span>
+                </p>
               )}
             </div>
-          </div>
 
-          {/* Form upload chương/file */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+            <div className="flex flex-wrap gap-2 text-xs">
+              {doc.type?.typeName && (
+                <Badge variant="outline" className="border-sky-200 text-sky-700">
+                  {doc.type.typeName}
+                </Badge>
+              )}
+              {doc.subject?.subjectName && (
+                <Badge
+                  variant="outline"
+                  className="border-emerald-200 text-emerald-700"
+                >
+                  {doc.subject.subjectName}
+                </Badge>
+              )}
+              {doc.visibility === 0 && (
+                <Badge
+                  variant="outline"
+                  className="border-blue-200 text-blue-700"
+                >
+                  Công khai
+                </Badge>
+              )}
+              {doc.visibility === 1 && (
+                <Badge
+                  variant="outline"
+                  className="border-slate-200 text-slate-700"
+                >
+                  Riêng tư
+                </Badge>
+              )}
+              {doc.visibility === 2 && (
+                <Badge
+                  variant="outline"
+                  className="border-amber-200 text-amber-700"
+                >
+                  Nội bộ
+                </Badge>
+              )}
+            </div>
+
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <Badge
+                    key={tag.id}
+                    variant="secondary"
+                    className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 text-[11px]"
+                  >
+                    #{tag.tagName}
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {doc.description && (
+              <div className="space-y-1">
+                <h2 className="text-xs font-semibold text-foreground">Mô tả</h2>
+                <ScrollArea className="max-h-40 rounded-md border bg-slate-50 p-3 text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-200">
+                  {doc.description}
+                </ScrollArea>
+              </div>
+            )}
+
+            {/* Form upload chương/file - nằm trong cùng card */}
             <DocumentFileUpload
               documentId={documentId}
               onUploadSuccess={refreshData}

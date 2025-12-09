@@ -217,7 +217,132 @@
     },
     "documents": {
       "title": "Quản lý tài liệu",
-      "description": "Duyệt và quản lý tài liệu được tải lên"
+      "description": "Duyệt và quản lý tài liệu được tải lên",
+      "editTitle": "Chỉnh sửa tài liệu",
+      "searchPlaceholder": "Tìm kiếm tài liệu...",
+      "items": "tài liệu",
+      "foundCount": "Tìm thấy {count} tài liệu",
+      "deleteAll": "Xóa tất cả",
+      "form": {
+        "documentName": "Tên tài liệu",
+        "documentNamePlaceholder": "Nhập tên tài liệu...",
+        "description": "Mô tả",
+        "descriptionPlaceholder": "Nhập mô tả tài liệu...",
+        "subject": "Môn học",
+        "selectSubject": "Chọn môn học",
+        "type": "Loại tài liệu",
+        "selectType": "Chọn loại",
+        "tags": "Thẻ",
+        "visibility": "Hiển thị",
+        "selectVisibility": "Chọn hiển thị",
+        "isDownload": "Cho phép tải xuống"
+      },
+      "table": {
+        "documentName": "Tên tài liệu",
+        "subject": "Môn học",
+        "type": "Loại",
+        "visibility": "Hiển thị",
+        "reviewStatus": "Trạng thái duyệt",
+        "fileCount": "Số file",
+        "createdAt": "Ngày tạo",
+        "viewDetail": "Xem chi tiết",
+        "edit": "Sửa",
+        "delete": "Xóa",
+        "review": "Duyệt",
+        "loading": "Đang tải...",
+        "noData": "Không có tài liệu nào",
+        "deleteSelected": "Xóa đã chọn"
+      },
+      "filter": {
+        "visibility": "Hiển thị",
+        "private": "Riêng tư",
+        "public": "Công khai",
+        "reviewStatus": "Trạng thái duyệt",
+        "pending": "Chờ duyệt",
+        "hidden": "Ẩn",
+        "approved": "Đã duyệt",
+        "rejected": "Bị từ chối",
+        "deleted": "Trạng thái",
+        "activeItems": "Đang hoạt động",
+        "deletedItems": "Đã xóa"
+      },
+      "detailModal": {
+        "title": "Chi tiết tài liệu",
+        "authors": "Tác giả",
+        "files": "Danh sách file",
+        "pages": "trang",
+        "primary": "Chính",
+        "noFiles": "Không có file nào",
+        "downloadable": "Cho phép tải xuống"
+      },
+      "reviewModal": {
+        "title": "Duyệt tài liệu",
+        "description": "Bạn có muốn duyệt tài liệu này không?",
+        "note": "Ghi chú",
+        "notePlaceholder": "Nhập ghi chú (tùy chọn)...",
+        "approve": "Phê duyệt",
+        "reject": "Từ chối",
+        "cancel": "Hủy"
+      },
+      "deleteModal": {
+        "title": "Xóa tài liệu",
+        "description": "Bạn có chắc chắn muốn xóa tài liệu này không?"
+      },
+      "deleteAllModal": {
+        "title": "Xóa tất cả tài liệu",
+        "description": "Bạn có chắc chắn muốn xóa tất cả {count} tài liệu không?"
+      },
+      "notifications": {
+        "updateSuccess": "Đã cập nhật tài liệu thành công!",
+        "updateError": "Không thể cập nhật tài liệu",
+        "reviewSuccess": "Đã duyệt tài liệu thành công!",
+        "reviewError": "Không thể duyệt tài liệu",
+        "deleteSuccess": "Đã xóa tài liệu thành công!",
+        "deleteError": "Không thể xóa tài liệu",
+        "bulkDeleteSuccess": "Đã xóa {count} tài liệu thành công!"
+      }
+    },
+    "authors": {
+      "title": "Quản lý tác giả",
+      "createTitle": "Thêm tác giả",
+      "editTitle": "Sửa tác giả",
+      "searchPlaceholder": "Tìm kiếm tác giả...",
+      "items": "tác giả",
+      "foundCount": "Tìm thấy {count} tác giả",
+      "deleteAll": "Xóa tất cả",
+      "form": {
+        "fullName": "Họ tên",
+        "fullNamePlaceholder": "Nhập họ tên tác giả...",
+        "description": "Mô tả",
+        "descriptionPlaceholder": "Nhập mô tả về tác giả...",
+        "duplicateWarning": "Tên tác giả này đã tồn tại!"
+      },
+      "table": {
+        "fullName": "Họ tên",
+        "description": "Mô tả",
+        "edit": "Sửa",
+        "delete": "Xóa",
+        "loading": "Đang tải...",
+        "noData": "Không có tác giả nào",
+        "deleteSelected": "Xóa đã chọn"
+      },
+      "deleteModal": {
+        "title": "Xóa tác giả",
+        "description": "Bạn có chắc chắn muốn xóa tác giả này không?"
+      },
+      "deleteAllModal": {
+        "title": "Xóa tất cả tác giả",
+        "description": "Bạn có chắc chắn muốn xóa tất cả {count} tác giả không?"
+      },
+      "notifications": {
+        "createSuccess": "Đã thêm tác giả thành công!",
+        "createError": "Không thể thêm tác giả",
+        "updateSuccess": "Đã cập nhật tác giả thành công!",
+        "updateError": "Không thể cập nhật tác giả",
+        "deleteSuccess": "Đã xóa tác giả thành công!",
+        "deleteError": "Không thể xóa tác giả",
+        "bulkDeleteSuccess": "Đã xóa {count} tác giả thành công!"
+      }
     },
     "subjects": {
       "title": "Quản lý môn học",
@@ -491,9 +616,22 @@
     },
     "conversations": {
       "title": "Quản lý cuộc trò chuyện",
+      "editTitle": "Chỉnh sửa cuộc trò chuyện",
       "searchPlaceholder": "Tìm kiếm cuộc trò chuyện...",
       "items": "cuộc trò chuyện",
       "foundCount": "Tìm thấy {count} cuộc trò chuyện",
+      "form": {
+        "conversationName": "Tên cuộc trò chuyện",
+        "conversationNamePlaceholder": "Nhập tên cuộc trò chuyện...",
+        "conversationType": "Loại cuộc trò chuyện",
+        "selectType": "Chọn loại",
+        "conversationStatus": "Trạng thái",
+        "selectStatus": "Chọn trạng thái",
+        "subject": "Môn học",
+        "selectSubject": "Chọn môn học",
+        "avatarUrl": "URL ảnh đại diện",
+        "isAllowMemberPin": "Cho phép thành viên ghim tin nhắn"
+      },
       "table": {
         "name": "Tên cuộc trò chuyện",
         "type": "Loại",
@@ -501,6 +639,7 @@
         "subject": "Môn học",
         "members": "Thành viên",
         "createdAt": "Ngày tạo",
+        "edit": "Sửa",
         "delete": "Xóa",
         "loading": "Đang tải...",
         "noData": "Không có cuộc trò chuyện nào",
@@ -526,6 +665,8 @@
         "description": "Bạn có chắc chắn muốn xóa tất cả {count} cuộc trò chuyện không?"
       },
       "notifications": {
+        "updateSuccess": "Đã cập nhật cuộc trò chuyện thành công!",
+        "updateError": "Không thể cập nhật cuộc trò chuyện",
         "deleteSuccess": "Đã xóa cuộc trò chuyện thành công!",
         "deleteError": "Không thể xóa cuộc trò chuyện",
         "bulkDeleteSuccess": "Đã xóa {count} cuộc trò chuyện thành công!"

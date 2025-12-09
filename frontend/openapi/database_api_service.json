@@ -1691,13 +1691,6 @@
             }
           },
           {
-            "name": "ReviewStatus",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "IsDownload",
             "in": "query",
             "schema": {
@@ -2253,49 +2246,6 @@
         }
       }
     },
-    "/api/Document/{id}/review": {
-      "post": {
-        "tags": [
-          "Document"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReviewDocumentCommand"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReviewDocumentCommand"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/ReviewDocumentCommand"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
     "/api/Document/reading-history": {
       "get": {
         "tags": [
@@ -2428,6 +2378,49 @@
             "application/*+json": {
               "schema": {
                 "$ref": "#/components/schemas/UpdateDocumentProgressCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Document/files/{fileId}/review": {
+      "post": {
+        "tags": [
+          "Document"
+        ],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewDocumentFileCommand"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewDocumentFileCommand"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewDocumentFileCommand"
               }
             }
           },
@@ -5964,9 +5957,6 @@
           "visibility": {
             "$ref": "#/components/schemas/VisibilityStatus"
           },
-          "reviewStatus": {
-            "$ref": "#/components/schemas/ReviewStatus"
-          },
           "subject": {
             "$ref": "#/components/schemas/SubjectDto"
           },
@@ -6041,9 +6031,6 @@
           },
           "visibility": {
             "$ref": "#/components/schemas/VisibilityStatus"
-          },
-          "reviewStatus": {
-            "$ref": "#/components/schemas/ReviewStatus"
           },
           "subject": {
             "$ref": "#/components/schemas/SubjectDto"
@@ -6132,6 +6119,23 @@
           "coverFileId": {
             "type": "string",
             "format": "uuid",
+            "nullable": true
+          },
+          "reviewStatus": {
+            "$ref": "#/components/schemas/ReviewStatus"
+          },
+          "reviewedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "reviewNote": {
+            "type": "string",
             "nullable": true
           },
           "commentCount": {
@@ -7383,10 +7387,10 @@
           }
         }
       },
-      "ReviewDocumentCommand": {
+      "ReviewDocumentFileCommand": {
         "type": "object",
         "properties": {
-          "documentId": {
+          "documentFileId": {
             "type": "string",
             "format": "uuid"
           },

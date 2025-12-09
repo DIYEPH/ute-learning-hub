@@ -33,6 +33,7 @@ const ConversationStatusColors: Record<number, string> = {
 
 interface ConversationTableProps {
     conversations: ConversationDto[];
+    onEdit?: (conversation: ConversationDto) => void;
     onDelete?: (conversation: ConversationDto) => void;
     onBulkDelete?: (ids: string[]) => void | Promise<void>;
     loading?: boolean;
@@ -44,6 +45,7 @@ interface ConversationTableProps {
 
 export function ConversationTable({
     conversations,
+    onEdit,
     onDelete,
     onBulkDelete,
     loading,
@@ -134,8 +136,10 @@ export function ConversationTable({
             data={conversations}
             columns={columns}
             loading={loading}
+            onEdit={onEdit}
             onDelete={onDelete}
             onBulkDelete={onBulkDelete}
+            editLabel={t("table.edit")}
             deleteLabel={t("table.delete")}
             loadingLabel={t("table.loading")}
             noDataLabel={t("table.noData")}
@@ -144,7 +148,8 @@ export function ConversationTable({
             sortKey={sortKey}
             sortDirection={sortDirection}
             enableClientSort={enableClientSort}
-            showActions={!!onDelete}
+            showActions={!!onEdit || !!onDelete}
         />
     );
 }
+

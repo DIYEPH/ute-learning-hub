@@ -1,6 +1,6 @@
-import { StatisticsPage } from '@/src/components/admin/statistics-page';
+import { redirect } from "next/navigation";
 
 export default function AdminDashboardPage() {
-  return <StatisticsPage />;
+  // Redirect to statistics page or first available admin page
+  redirect("/admin/statistics");
 }
-

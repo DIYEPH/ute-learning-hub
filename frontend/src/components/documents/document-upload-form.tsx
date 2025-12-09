@@ -217,7 +217,7 @@ export function DocumentUploadForm({
         </div>
       )}
 
-      <div className="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="documentName">
             {t("documentName")} <span className="text-red-500">*</span>
@@ -243,180 +243,183 @@ export function DocumentUploadForm({
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, description: e.target.value }))
             }
-            rows={4}
+            rows={3}
             required
             disabled={isDisabled}
             className={textareaClassName}
           />
         </div>
-        <div>
-          <Label htmlFor="authors">{t("author")} (Tùy chọn)</Label>
+      </div>
 
-          {/* Multi-select cho authors có sẵn */}
-          <select
-            id="authors"
-            multiple
-            value={formData.authorIds || []}
-            onChange={(e) => {
-              const selectedOptions = Array.from(e.target.selectedOptions);
-              const selectedIds = selectedOptions.map((option) => option.value);
-              setFormData((prev) => ({ ...prev, authorIds: selectedIds }));
-            }}
+      {/* Author section - riêng biệt */}
+      <div>
+        <Label htmlFor="authors">{t("author")} (Tùy chọn)</Label>
+
+        {/* Multi-select cho authors có sẵn */}
+        <select
+          id="authors"
+          multiple
+          value={formData.authorIds || []}
+          onChange={(e) => {
+            const selectedOptions = Array.from(e.target.selectedOptions);
+            const selectedIds = selectedOptions.map((option) => option.value);
+            setFormData((prev) => ({ ...prev, authorIds: selectedIds }));
+          }}
+          disabled={isDisabled}
+          size={4}
+          className={selectClassName}
+        >
+          {authors
+            .filter((a): a is AuthorListDto & { id: string } => !!a?.id)
+            .map((author) => (
+              <option key={author.id} value={author.id}>
+                {author.fullName}
+              </option>
+            ))}
+        </select>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          Giữ Ctrl/Cmd để chọn nhiều tác giả
+        </p>
+
+        {/* Nút thêm tác giả mới */}
+        {!showNewAuthorForm && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setShowNewAuthorForm(true)}
             disabled={isDisabled}
-            size={4}
-            className={selectClassName}
+            className="mt-2"
           >
-            {authors
-              .filter((a): a is AuthorListDto & { id: string } => !!a?.id)
-              .map((author) => (
-                <option key={author.id} value={author.id}>
-                  {author.fullName}
-                </option>
-              ))}
-          </select>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            Giữ Ctrl/Cmd để chọn nhiều tác giả
-          </p>
+            <Plus size={16} className="mr-1" /> Thêm tác giả mới
+          </Button>
+        )}
 
-          {/* Nút thêm tác giả mới */}
-          {!showNewAuthorForm && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowNewAuthorForm(true)}
-              disabled={isDisabled}
-              className="mt-2"
-            >
-              <Plus size={16} className="mr-1" /> Thêm tác giả mới
-            </Button>
-          )}
-
-          {/* Form thêm tác giả mới */}
-          {showNewAuthorForm && (
-            <div className="mt-2 p-3 border rounded-md bg-slate-50 dark:bg-slate-800">
-              <div className="space-y-2">
-                <div>
-                  <Label htmlFor="newAuthorName" className="text-sm">Tên tác giả *</Label>
-                  <Input
-                    id="newAuthorName"
-                    value={newAuthorName}
-                    onChange={(e) => setNewAuthorName(e.target.value)}
-                    placeholder="Nhập tên tác giả"
-                    disabled={isDisabled}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="newAuthorDescription" className="text-sm">Mô tả</Label>
-                  <Input
-                    id="newAuthorDescription"
-                    value={newAuthorDescription}
-                    onChange={(e) => setNewAuthorDescription(e.target.value)}
-                    placeholder="VD: Giảng viên CNTT, Tiến sĩ..."
-                    disabled={isDisabled}
-                    className="mt-1"
-                  />
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => {
-                      if (newAuthorName.trim()) {
-                        const newAuthor: AuthorInput = {
-                          fullName: newAuthorName.trim(),
-                          description: newAuthorDescription.trim() || undefined,
-                        };
-                        setFormData((prev) => ({
-                          ...prev,
-                          authors: [...(prev.authors || []), newAuthor],
-                        }));
-                        setNewAuthorName("");
-                        setNewAuthorDescription("");
-                        setShowNewAuthorForm(false);
-                      }
-                    }}
-                    disabled={isDisabled || !newAuthorName.trim()}
-                  >
-                    Thêm
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setShowNewAuthorForm(false);
+        {/* Form thêm tác giả mới */}
+        {showNewAuthorForm && (
+          <div className="mt-2 p-3 border rounded-md bg-slate-50 dark:bg-slate-800">
+            <div className="space-y-2">
+              <div>
+                <Label htmlFor="newAuthorName" className="text-sm">Tên tác giả *</Label>
+                <Input
+                  id="newAuthorName"
+                  value={newAuthorName}
+                  onChange={(e) => setNewAuthorName(e.target.value)}
+                  placeholder="Nhập tên tác giả"
+                  disabled={isDisabled}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label htmlFor="newAuthorDescription" className="text-sm">Mô tả</Label>
+                <textarea
+                  id="newAuthorDescription"
+                  value={newAuthorDescription}
+                  onChange={(e) => setNewAuthorDescription(e.target.value)}
+                  placeholder="VD: Giảng viên CNTT, Tiến sĩ..."
+                  disabled={isDisabled}
+                  rows={2}
+                  className={textareaClassName}
+                />
+              </div>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    if (newAuthorName.trim()) {
+                      const newAuthor: AuthorInput = {
+                        fullName: newAuthorName.trim(),
+                        description: newAuthorDescription.trim() || undefined,
+                      };
+                      setFormData((prev) => ({
+                        ...prev,
+                        authors: [...(prev.authors || []), newAuthor],
+                      }));
                       setNewAuthorName("");
                       setNewAuthorDescription("");
-                    }}
-                    disabled={isDisabled}
-                  >
-                    Hủy
-                  </Button>
-                </div>
+                      setShowNewAuthorForm(false);
+                    }
+                  }}
+                  disabled={isDisabled || !newAuthorName.trim()}
+                >
+                  Thêm
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setShowNewAuthorForm(false);
+                    setNewAuthorName("");
+                    setNewAuthorDescription("");
+                  }}
+                  disabled={isDisabled}
+                >
+                  Hủy
+                </Button>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Hiển thị authors đã chọn */}
-          {((formData.authorIds?.length || 0) > 0 ||
-            (formData.authors?.length || 0) > 0) && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {/* Authors từ authorIds (có sẵn) */}
-                {formData.authorIds?.map((authorId) => {
-                  const author = authors.find((a) => a.id === authorId);
-                  if (!author) return null;
-                  return (
-                    <div
-                      key={authorId}
-                      className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
-                    >
-                      <span>{author.fullName}</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setFormData((prev) => ({
-                            ...prev,
-                            authorIds: (prev.authorIds || []).filter((id) => id !== authorId),
-                          }));
-                        }}
-                        disabled={isDisabled}
-                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  );
-                })}
-                {/* Authors từ authors (mới thêm) */}
-                {formData.authors?.map((author, index) => (
+        {/* Hiển thị authors đã chọn */}
+        {((formData.authorIds?.length || 0) > 0 ||
+          (formData.authors?.length || 0) > 0) && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {/* Authors từ authorIds (có sẵn) */}
+              {formData.authorIds?.map((authorId) => {
+                const author = authors.find((a) => a.id === authorId);
+                if (!author) return null;
+                return (
                   <div
-                    key={`new-author-${index}`}
-                    className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
+                    key={authorId}
+                    className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
                   >
                     <span>{author.fullName}</span>
-                    <span className="text-xs text-green-600 dark:text-green-400">
-                      (mới)
-                    </span>
                     <button
                       type="button"
                       onClick={() => {
                         setFormData((prev) => ({
                           ...prev,
-                          authors: (prev.authors || []).filter((_, i) => i !== index),
+                          authorIds: (prev.authorIds || []).filter((id) => id !== authorId),
                         }));
                       }}
                       disabled={isDisabled}
-                      className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
                     >
                       <X size={14} />
                     </button>
                   </div>
-                ))}
-              </div>
-            )}
-        </div>
+                );
+              })}
+              {/* Authors từ authors (mới thêm) */}
+              {formData.authors?.map((author, index) => (
+                <div
+                  key={`new-author-${index}`}
+                  className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
+                >
+                  <span>{author.fullName}</span>
+                  <span className="text-xs text-green-600 dark:text-green-400">
+                    (mới)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        authors: (prev.authors || []).filter((_, i) => i !== index),
+                      }));
+                    }}
+                    disabled={isDisabled}
+                    className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
       </div>
 
       <div className="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -630,6 +633,6 @@ export function DocumentUploadForm({
           <option value={2}>Nội bộ</option>
         </select>
       </div>
-    </form>
+    </form >
   );
 }

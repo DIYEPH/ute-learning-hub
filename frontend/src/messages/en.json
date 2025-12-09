@@ -217,7 +217,132 @@
     },
     "documents": {
       "title": "Document Management",
-      "description": "Review and manage uploaded documents"
+      "description": "Review and manage uploaded documents",
+      "editTitle": "Edit Document",
+      "searchPlaceholder": "Search documents...",
+      "items": "documents",
+      "foundCount": "Found {count} documents",
+      "deleteAll": "Delete All",
+      "form": {
+        "documentName": "Document Name",
+        "documentNamePlaceholder": "Enter document name...",
+        "description": "Description",
+        "descriptionPlaceholder": "Enter document description...",
+        "subject": "Subject",
+        "selectSubject": "Select subject",
+        "type": "Document Type",
+        "selectType": "Select type",
+        "tags": "Tags",
+        "visibility": "Visibility",
+        "selectVisibility": "Select visibility",
+        "isDownload": "Allow download"
+      },
+      "table": {
+        "documentName": "Document Name",
+        "subject": "Subject",
+        "type": "Type",
+        "visibility": "Visibility",
+        "reviewStatus": "Review Status",
+        "fileCount": "Files",
+        "createdAt": "Created At",
+        "viewDetail": "View Detail",
+        "edit": "Edit",
+        "delete": "Delete",
+        "review": "Review",
+        "loading": "Loading...",
+        "noData": "No documents found",
+        "deleteSelected": "Delete Selected"
+      },
+      "filter": {
+        "visibility": "Visibility",
+        "private": "Private",
+        "public": "Public",
+        "reviewStatus": "Review Status",
+        "pending": "Pending",
+        "hidden": "Hidden",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "deleted": "Status",
+        "activeItems": "Active",
+        "deletedItems": "Deleted"
+      },
+      "detailModal": {
+        "title": "Document Details",
+        "authors": "Authors",
+        "files": "Files",
+        "pages": "pages",
+        "primary": "Primary",
+        "noFiles": "No files found",
+        "downloadable": "Downloadable"
+      },
+      "reviewModal": {
+        "title": "Review Document",
+        "description": "Do you want to review this document?",
+        "note": "Note",
+        "notePlaceholder": "Enter note (optional)...",
+        "approve": "Approve",
+        "reject": "Reject",
+        "cancel": "Cancel"
+      },
+      "deleteModal": {
+        "title": "Delete Document",
+        "description": "Are you sure you want to delete this document?"
+      },
+      "deleteAllModal": {
+        "title": "Delete All Documents",
+        "description": "Are you sure you want to delete all {count} documents?"
+      },
+      "notifications": {
+        "updateSuccess": "Document updated successfully!",
+        "updateError": "Could not update document",
+        "reviewSuccess": "Document reviewed successfully!",
+        "reviewError": "Could not review document",
+        "deleteSuccess": "Document deleted successfully!",
+        "deleteError": "Could not delete document",
+        "bulkDeleteSuccess": "Successfully deleted {count} documents!"
+      }
+    },
+    "authors": {
+      "title": "Author Management",
+      "createTitle": "Add Author",
+      "editTitle": "Edit Author",
+      "searchPlaceholder": "Search authors...",
+      "items": "authors",
+      "foundCount": "Found {count} authors",
+      "deleteAll": "Delete All",
+      "form": {
+        "fullName": "Full Name",
+        "fullNamePlaceholder": "Enter author name...",
+        "description": "Description",
+        "descriptionPlaceholder": "Enter author description...",
+        "duplicateWarning": "This author name already exists!"
+      },
+      "table": {
+        "fullName": "Full Name",
+        "description": "Description",
+        "edit": "Edit",
+        "delete": "Delete",
+        "loading": "Loading...",
+        "noData": "No authors found",
+        "deleteSelected": "Delete Selected"
+      },
+      "deleteModal": {
+        "title": "Delete Author",
+        "description": "Are you sure you want to delete this author?"
+      },
+      "deleteAllModal": {
+        "title": "Delete All Authors",
+        "description": "Are you sure you want to delete all {count} authors?"
+      },
+      "notifications": {
+        "createSuccess": "Author created successfully!",
+        "createError": "Could not create author",
+        "updateSuccess": "Author updated successfully!",
+        "updateError": "Could not update author",
+        "deleteSuccess": "Author deleted successfully!",
+        "deleteError": "Could not delete author",
+        "bulkDeleteSuccess": "Successfully deleted {count} authors!"
+      }
     },
     "subjects": {
       "title": "Subject Management",
@@ -482,9 +607,22 @@
     },
     "conversations": {
       "title": "Conversation Management",
+      "editTitle": "Edit Conversation",
       "searchPlaceholder": "Search conversations...",
       "items": "conversations",
       "foundCount": "Found {count} conversations",
+      "form": {
+        "conversationName": "Conversation Name",
+        "conversationNamePlaceholder": "Enter conversation name...",
+        "conversationType": "Conversation Type",
+        "selectType": "Select type",
+        "conversationStatus": "Status",
+        "selectStatus": "Select status",
+        "subject": "Subject",
+        "selectSubject": "Select subject",
+        "avatarUrl": "Avatar URL",
+        "isAllowMemberPin": "Allow members to pin messages"
+      },
       "table": {
         "name": "Conversation Name",
         "type": "Type",
@@ -492,6 +630,7 @@
         "subject": "Subject",
         "members": "Members",
         "createdAt": "Created At",
+        "edit": "Edit",
         "delete": "Delete",
         "loading": "Loading...",
         "noData": "No conversations found",
@@ -517,6 +656,8 @@
         "description": "Are you sure you want to delete all {count} conversations?"
       },
       "notifications": {
+        "updateSuccess": "Conversation updated successfully!",
+        "updateError": "Could not update conversation",
         "deleteSuccess": "Conversation deleted successfully!",
         "deleteError": "Could not delete conversation",
         "bulkDeleteSuccess": "Successfully deleted {count} conversations!"

@@ -262,7 +262,6 @@ export type DocumentDetailDto = {
     description?: string;
     isDownload?: boolean;
     visibility?: VisibilityStatus;
-    reviewStatus?: ReviewStatus;
     subject?: SubjectDto;
     type?: TypeDto;
     tags?: Array<TagDto>;
@@ -283,7 +282,6 @@ export type DocumentDto = {
     description?: string;
     isDownload?: boolean;
     visibility?: VisibilityStatus;
-    reviewStatus?: ReviewStatus;
     subject?: SubjectDto;
     type?: TypeDto;
     tags?: Array<TagDto>;
@@ -307,6 +305,10 @@ export type DocumentFileDto = {
     isPrimary?: boolean;
     totalPages?: number | null;
     coverFileId?: string | null;
+    reviewStatus?: ReviewStatus;
+    reviewedById?: string | null;
+    reviewedAt?: string | null;
+    reviewNote?: string | null;
     commentCount?: number;
     usefulCount?: number;
     notUsefulCount?: number;
@@ -722,8 +724,8 @@ export type ReviewConversationJoinRequestCommand = {
     reviewNote?: string | null;
 };
 
-export type ReviewDocumentCommand = {
-    documentId?: string;
+export type ReviewDocumentFileCommand = {
+    documentFileId?: string;
     reviewStatus?: ReviewStatus;
     reviewNote?: string | null;
 };
@@ -1568,7 +1570,6 @@ export type GetApiDocumentData = {
         AuthorId?: string;
         SearchTerm?: string;
         Visibility?: string;
-        ReviewStatus?: string;
         IsDownload?: boolean;
         SortBy?: string;
         SortDescending?: boolean;
@@ -1744,22 +1745,6 @@ export type PutApiDocumentByDocumentIdFilesByFileIdResponses = {
 
 export type PutApiDocumentByDocumentIdFilesByFileIdResponse = PutApiDocumentByDocumentIdFilesByFileIdResponses[keyof PutApiDocumentByDocumentIdFilesByFileIdResponses];
 
-export type PostApiDocumentByIdReviewData = {
-    body: ReviewDocumentCommand;
-    path: {
-        id: string;
-    };
-    query?: never;
-    url: '/api/Document/{id}/review';
-};
-
-export type PostApiDocumentByIdReviewResponses = {
-    /**
-     * OK
-     */
-    200: unknown;
-};
-
 export type GetApiDocumentReadingHistoryData = {
     body?: never;
     path?: never;
@@ -1809,6 +1794,22 @@ export type PutApiDocumentFilesByFileIdProgressData = {
 };
 
 export type PutApiDocumentFilesByFileIdProgressResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiDocumentFilesByFileIdReviewData = {
+    body: ReviewDocumentFileCommand;
+    path: {
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/Document/files/{fileId}/review';
+};
+
+export type PostApiDocumentFilesByFileIdReviewResponses = {
     /**
      * OK
      */
