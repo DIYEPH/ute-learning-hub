@@ -14,7 +14,7 @@ public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
     public string FullName { get; set; } = default!;
     public int TrustScore { get; set; } = 0;
     public bool IsSuggest { get; set; }
-    public TrustLever TrustLever { get; set; } = TrustLever.None;
+    public TrustLever TrustLever { get; set; }
     public Gender Gender { get; set; } = Gender.Other;
     public Major? Major { get; set; }
     public ICollection<UserTrustHistory> UserTrustHistories { get; set; } = [];
@@ -34,7 +34,6 @@ public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
     public ICollection<Message> Messages { get; set; } = [];
     public ICollection<Subject> Subjects { get; set; } = [];
 
-    public byte[] RowVersion { get; set; } = default!;
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
     public DateTimeOffset? LastLoginAt { get; set; }
@@ -42,4 +41,5 @@ public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
     public bool IsDeleted { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     public Guid? DeletedById { get; set; }
+    public byte[]? RowVersion { get; set; }
 }

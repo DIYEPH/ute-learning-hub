@@ -1,11 +1,12 @@
 using MediatR;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Events;
 using UteLearningHub.Application.Services.Document;
 using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.Application.Services.Settings;
+using UteLearningHub.Application.Services.TrustScore;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
@@ -23,9 +24,10 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
     private readonly IDocumentPageCountService _documentPageCountService;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
-    private readonly IVectorMaintenanceService _vectorUpdateService;
     private readonly ISystemSettingService _systemSettingService;
     private readonly IDocumentQueryService _documentQueryService;
+    private readonly ITrustScoreService _trustScoreService;
+    private readonly IMediator _mediator;
 
     public AddDocumentFileCommandHandler(
         IDocumentRepository documentRepository,
@@ -35,9 +37,10 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
         IDocumentPageCountService documentPageCountService,
         ICurrentUserService currentUserService,
         IUserService userService,
-        IVectorMaintenanceService vectorUpdateService,
         ISystemSettingService systemSettingService,
-        IDocumentQueryService documentQueryService)
+        IDocumentQueryService documentQueryService,
+        ITrustScoreService trustScoreService,
+        IMediator mediator)
     {
         _documentRepository = documentRepository;
         _fileUsageService = fileUsageService;
@@ -46,9 +49,10 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
         _documentPageCountService = documentPageCountService;
         _currentUserService = currentUserService;
         _userService = userService;
-        _vectorUpdateService = vectorUpdateService;
         _systemSettingService = systemSettingService;
         _documentQueryService = documentQueryService;
+        _trustScoreService = trustScoreService;
+        _mediator = mediator;
     }
 
     public async Task<DocumentDetailDto> Handle(AddDocumentFileCommand request, CancellationToken cancellationToken)
@@ -65,13 +69,9 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
 
         var isOwner = document.CreatedById == userId;
         var isAdmin = _currentUserService.IsInRole("Admin");
-        var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
+        var canAdd = (isOwner || isAdmin);
 
-        var canUpdate = isOwner ||
-                        isAdmin ||
-                        (trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator);
-
-        if (!canUpdate)
+        if (!canAdd)
             throw new UnauthorizedException("You don't have permission to add chapters to this document");
 
         if (request.FileId == Guid.Empty)
@@ -120,12 +120,13 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
         var createDocumentSetting = await _systemSettingService.GetIntAsync(SystemName.CreateDocument, 0, cancellationToken);
         
         ReviewStatus reviewStatus;
+        var trustLevel = await _userService.GetTrustLevelAsync(userId,cancellationToken);
         if (isAdmin)
             reviewStatus = ReviewStatus.Approved;
         else if (createDocumentSetting == 0)
             reviewStatus = ReviewStatus.Approved;
         else if (createDocumentSetting == 1)
-            reviewStatus = (trustLevel.HasValue && trustLevel.Value >= TrustLever.TrustedMember)
+            reviewStatus = (trustLevel == TrustLever.TrustedMember || trustLevel == TrustLever.Moderator || trustLevel == TrustLever.Master)
                 ? ReviewStatus.Approved
                 : ReviewStatus.PendingReview;
         else
@@ -154,7 +155,34 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
         await _documentRepository.AddDocumentFileAsync(chapter, cancellationToken);
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        _ = Task.Run(() => _vectorUpdateService.UpdateUserVectorAsync(userId, cancellationToken));
+        //⭐ Fire-and-forget: Award trust score and trigger vector update via events
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _trustScoreService.AddTrustScoreAsync(
+                    userId, 
+                    TrustScoreConstants.GetActionPoints("CreateDocument"), 
+                    "Thêm chương/file tài liệu", 
+                    cancellationToken);
+                
+                // ⭐ Publish event to trigger vector update
+                await _mediator.Publish(new UserActivityEvent
+                {
+                    UserId = userId,
+                    ActivityType = "DocumentFileUploaded",
+                    Metadata = new Dictionary<string, object>
+                    {
+                        { "DocumentId", request.DocumentId },
+                        { "FileId", request.FileId }
+                    }
+                }, cancellationToken);
+            }
+            catch
+            {
+                // Ignore errors in background tasks
+            }
+        });
 
         var result = await _documentQueryService.GetDetailByIdAsync(request.DocumentId, cancellationToken);
         return result ?? throw new NotFoundException($"Document with id {request.DocumentId} not found after update");

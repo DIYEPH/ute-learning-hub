@@ -50,27 +50,6 @@ public class TrustScoreService : ITrustScoreService
         }
     }
 
-    public async Task<bool> CanPerformActionAsync(Guid userId, TrustScoreAction action, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var trustScore = await GetTrustScoreAsync(userId, cancellationToken);
-            var minimumScore = TrustScoreConstants.MinimumScores.GetValueOrDefault(action, 0);
-
-            var canPerform = trustScore >= minimumScore;
-
-            if (!canPerform)
-                _logger.LogWarning("User {UserId} cannot perform action {Action}. Trust score: {Score}, Required: {Required}", userId, action, trustScore, minimumScore);
-
-            return canPerform;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error checking trust score for user {UserId}", userId);
-            return false;
-        }
-    }
-
     public async Task<int> GetTrustScoreAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var user = await _dbContext.Users

@@ -2,15 +2,6 @@ namespace UteLearningHub.Application.Services.TrustScore;
 
 public static class TrustScoreConstants
 {
-    /// Điểm tối thiểu cho từng hành động
-    public static readonly Dictionary<TrustScoreAction, int> MinimumScores = new()
-    {
-        { TrustScoreAction.CreateDocument, 0 },      
-        { TrustScoreAction.CreateReport, 5 },        
-        { TrustScoreAction.CreateComment, 0 },       
-        { TrustScoreAction.CreateConversation, 10 }  
-    };
-
     /// Điểm thưởng/phạt cho từng hành động
     public static readonly Dictionary<string, int> ActionPoints = new()
     {

@@ -12,8 +12,8 @@ using UteLearningHub.Persistence;
 namespace UteLearningHub.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251206142950_RenewDB")]
-    partial class RenewDB
+    [Migration("20251208185926_UpdateRowVersion")]
+    partial class UpdateRowVersion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -229,7 +229,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -304,7 +303,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -387,7 +385,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -466,7 +463,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -528,7 +524,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -649,25 +644,8 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("TenChuanHoa");
 
-                    b.Property<string>("ReviewNote")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("NoiDungDuyet");
-
-                    b.Property<int>("ReviewStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("TrangThaiDuyet");
-
-                    b.Property<DateTimeOffset?>("ReviewedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayDuyet");
-
-                    b.Property<Guid?>("ReviewedById")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("DuyetBoi");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -772,9 +750,24 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ThuTu");
 
+                    b.Property<string>("ReviewNote")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("NoiDungDuyet");
+
+                    b.Property<int>("ReviewStatus")
+                        .HasColumnType("int")
+                        .HasColumnName("TrangThaiDuyet");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("NgayDuyet");
+
+                    b.Property<Guid?>("ReviewedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("DuyetBoi");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -834,7 +827,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -925,7 +917,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -996,7 +987,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1061,7 +1051,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1123,7 +1112,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1192,7 +1180,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1295,7 +1282,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1366,7 +1352,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1478,7 +1463,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1548,7 +1532,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1595,6 +1578,22 @@ namespace UteLearningHub.Persistence.Migrations
                     b.ToTable("MonHoc_Nganh", (string)null);
                 });
 
+            modelBuilder.Entity("UteLearningHub.Domain.Entities.SystemSetting", b =>
+                {
+                    b.Property<string>("Name")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnName("Ten");
+
+                    b.Property<int>("Value")
+                        .HasColumnType("int")
+                        .HasColumnName("GiaTri");
+
+                    b.HasKey("Name");
+
+                    b.ToTable("CaiDatHeThong", (string)null);
+                });
+
             modelBuilder.Entity("UteLearningHub.Domain.Entities.Tag", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1639,7 +1638,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1688,7 +1686,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1735,7 +1732,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1771,18 +1767,6 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("NgayTao");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayXoa");
-
-                    b.Property<Guid?>("DeletedById")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("BiXoaBoi");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit")
-                        .HasColumnName("CoDaXoa");
-
                     b.Property<string>("Reason")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -1790,7 +1774,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");

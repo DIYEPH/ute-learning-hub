@@ -1,15 +1,28 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace UteLearningHub.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class RenewDB : Migration
+    public partial class UpdateRowVersion : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "CaiDatHeThong",
+                columns: table => new
+                {
+                    Ten = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    GiaTri = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CaiDatHeThong", x => x.Ten);
+                });
+
             migrationBuilder.CreateTable(
                 name: "DacTrungNguoiDung",
                 columns: table => new
@@ -35,7 +48,7 @@ namespace UteLearningHub.Persistence.Migrations
                     Logo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -53,7 +66,7 @@ namespace UteLearningHub.Persistence.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TenLoai = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -79,7 +92,7 @@ namespace UteLearningHub.Persistence.Migrations
                     KetThucLuc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     DangHoatDong = table.Column<bool>(type: "bit", nullable: false),
                     DoUuTien = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -104,7 +117,7 @@ namespace UteLearningHub.Persistence.Migrations
                     NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -140,7 +153,7 @@ namespace UteLearningHub.Persistence.Migrations
                     MaNganh = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -252,12 +265,9 @@ namespace UteLearningHub.Persistence.Migrations
                     NguoiDungId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     DiemThayDoi = table.Column<double>(type: "float", nullable: false),
                     LyDo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
-                    NgayXoa = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    BiXoaBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -283,7 +293,7 @@ namespace UteLearningHub.Persistence.Migrations
                     NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -377,7 +387,7 @@ namespace UteLearningHub.Persistence.Migrations
                     LoaiFile = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -407,7 +417,7 @@ namespace UteLearningHub.Persistence.Migrations
                     NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -440,7 +450,7 @@ namespace UteLearningHub.Persistence.Migrations
                     CapDoThongBao = table.Column<int>(type: "int", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -473,7 +483,7 @@ namespace UteLearningHub.Persistence.Migrations
                     TrangThai = table.Column<int>(type: "int", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -536,11 +546,7 @@ namespace UteLearningHub.Persistence.Migrations
                     TepBiaId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DuyetBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -588,7 +594,7 @@ namespace UteLearningHub.Persistence.Migrations
                     SentAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     ReceivedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     ReadAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -622,7 +628,7 @@ namespace UteLearningHub.Persistence.Migrations
                     TinNhanDocGanNhat = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     CoBiChanChat = table.Column<bool>(type: "bit", nullable: false),
                     QuyenNhom = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -704,7 +710,7 @@ namespace UteLearningHub.Persistence.Migrations
                     LoaiTinNhan = table.Column<int>(type: "int", nullable: true),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -747,7 +753,7 @@ namespace UteLearningHub.Persistence.Migrations
                     NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -810,7 +816,11 @@ namespace UteLearningHub.Persistence.Migrations
                     TepBiaId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    DuyetBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -902,7 +912,7 @@ namespace UteLearningHub.Persistence.Migrations
                     NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -948,7 +958,7 @@ namespace UteLearningHub.Persistence.Migrations
                     LoaiDanhGia = table.Column<int>(type: "int", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
                 },
@@ -986,7 +996,7 @@ namespace UteLearningHub.Persistence.Migrations
                     TrangCuoiCung = table.Column<int>(type: "int", nullable: false),
                     TongSoTrang = table.Column<int>(type: "int", nullable: true),
                     LanTruyCapGanNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true)
                 },
@@ -1021,7 +1031,7 @@ namespace UteLearningHub.Persistence.Migrations
                     NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
@@ -1337,6 +1347,9 @@ namespace UteLearningHub.Persistence.Migrations
         {
             migrationBuilder.DropTable(
                 name: "BaoCao");
+
+            migrationBuilder.DropTable(
+                name: "CaiDatHeThong");
 
             migrationBuilder.DropTable(
                 name: "CuocTroChuyen_ThanhVien");

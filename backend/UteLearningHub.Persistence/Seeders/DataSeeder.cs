@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
+using UteLearningHub.Domain.Repositories.UnitOfWork;
 using UteLearningHub.Persistence.Identity;
 using DomainType = UteLearningHub.Domain.Entities.Type;
 
@@ -24,6 +25,7 @@ public class DataSeeder
     {
         await SeedRolesAsync();
         await SeedAdminAsync(); // Tạo admin trước để lấy adminId
+        await SeedSystemAsync();
         await SeedFacultiesAsync();
         await SeedMajorsAsync();
         await SeedUsersAsync(); // Tạo các users khác (students)
@@ -34,6 +36,24 @@ public class DataSeeder
 
         await _context.SaveChangesAsync();
     }
+    private async Task SeedSystemAsync()
+    {
+        if (await _context.SystemSettings.AnyAsync()) return;
+
+        var name = SystemName.CreateDocument;
+
+        var system = new SystemSetting
+        {
+            Name = name,
+            Value = 0
+        };
+
+        await _context.SystemSettings.AddAsync(system);
+        await _context.SaveChangesAsync();
+    }
+
+
+
     private async Task SeedRolesAsync()
     {
         var roles = new[] { "Admin", "Student" };

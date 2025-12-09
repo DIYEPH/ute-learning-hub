@@ -30,7 +30,6 @@ public class ReviewDocumentFileCommandHandler : IRequestHandler<ReviewDocumentFi
 
     public async Task<Unit> Handle(ReviewDocumentFileCommand request, CancellationToken cancellationToken)
     {
-        // Only admin or moderator can review document files
         if (!_currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to review document files");
 

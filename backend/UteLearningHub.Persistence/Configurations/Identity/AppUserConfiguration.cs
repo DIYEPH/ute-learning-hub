@@ -21,7 +21,18 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
         builder.Property(u => u.Gender).HasColumnName("GioiTinh");
         builder.Property(u => u.AvatarUrl).HasColumnName("HinhDaiDien");
         builder.Property(u => u.TrustScore).HasColumnName("DiemXacThuc");
-        builder.Property(u => u.TrustLever).HasColumnName("CapDoXacThuc");
+        builder.Property(u => u.TrustLever)
+            .HasColumnName("CapDoXacThuc")
+            .HasComputedColumnSql(@"
+                CASE 
+                    WHEN [DiemXacThuc] < 0 THEN 0
+                    WHEN [DiemXacThuc] < 5 THEN 1
+                    WHEN [DiemXacThuc] < 40 THEN 2
+                    WHEN [DiemXacThuc] < 100 THEN 3
+                    WHEN [DiemXacThuc] < 200 THEN 4
+                    ELSE 5
+                END", stored: true);
+        
         builder.Property(u => u.LastLoginAt).HasColumnName("LanDangNhapGanNhat");
 
         builder.Property(u => u.UserName).HasColumnName("TenDangNhap");

@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Events;
 using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
 using UteLearningHub.Application.Features.User.Commands.UpdateUser;
 using UteLearningHub.Application.Features.User.Queries.GetUsers;
@@ -23,18 +25,21 @@ public class UserService : IUserService
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly UserManager<AppUser> _userManager;
     private readonly IVectorMaintenanceService? _vectorMaintenanceService;
+    private readonly IMediator _mediator;
 
     public UserService(
         ApplicationDbContext dbContext,
         IIdentityService identityService,
         IDateTimeProvider dateTimeProvider,
         UserManager<AppUser> userManager,
+        IMediator mediator,
         IVectorMaintenanceService? vectorMaintenanceService = null)
     {
         _dbContext = dbContext;
         _identityService = identityService;
         _dateTimeProvider = dateTimeProvider;
         _userManager = userManager;
+        _mediator = mediator;
         _vectorMaintenanceService = vectorMaintenanceService;
     }
 
@@ -437,11 +442,9 @@ public class UserService : IUserService
             throw new NotFoundException($"User with id {userId} not found");
 
         var oldTrustScore = user.TrustScore;
+        var oldTrustLevel = user.TrustLever; // Save old level before update
+        
         user.TrustScore = trustScore;
-
-        // Auto-calculate TrustLevel based on TrustScore
-        user.TrustLever = CalculateTrustLevel(trustScore);
-
         user.UpdatedAt = _dateTimeProvider.OffsetNow;
 
         // Lưu lịch sử thay đổi trust score
@@ -459,6 +462,23 @@ public class UserService : IUserService
         }
 
         await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // ⭐ Reload to get updated computed TrustLevel from database
+        await _dbContext.Entry(user).ReloadAsync(cancellationToken);
+        var newTrustLevel = user.TrustLever;
+
+        // ⭐ Publish event if level changed
+        if (newTrustLevel > oldTrustLevel)
+        {
+            await _mediator.Publish(new TrustLevelChangedEvent
+            {
+                UserId = userId,
+                OldLevel = oldTrustLevel,
+                NewLevel = newTrustLevel,
+                NewScore = trustScore,
+                ScoreDelta = trustScore - oldTrustScore
+            }, cancellationToken);
+        }
 
         // Return updated user
         return await GetUserByIdAsync(userId, cancellationToken)
@@ -482,18 +502,5 @@ public class UserService : IUserService
             .ToListAsync(cancellationToken);
 
         return histories;
-    }
-
-    private static TrustLever CalculateTrustLevel(int trustScore)
-    {
-        return trustScore switch
-        {
-            < 0 => TrustLever.None,           // Điểm âm hoặc 0
-            < 5 => TrustLever.Newbie,        // 0-5: Người mới
-            < 40 => TrustLever.Contributor,  // 39: Đã có đóng góp
-            < 100 => TrustLever.TrustedMember, // 99: Trust cao
-            < 200 => TrustLever.Moderator,   // 100-199: Có quyền xét duyệt
-            _ => TrustLever.Master            // >= 200: Cấp cao nhất
-        };
     }
 }
