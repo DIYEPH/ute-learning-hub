@@ -3,6 +3,11 @@ from pydantic import BaseModel
 from typing import List
 import numpy as np
 import time
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -39,10 +44,17 @@ async def recommend_study_groups(request: RecommendationRequest):
     start_time = time.time()
     
     try:
+        logger.info("=" * 50)
+        logger.info("Received recommendation request")
+        logger.info(f"topK={request.topK}, minSimilarity={request.minSimilarity}")
+        logger.info(f"User vector length: {len(request.userVector)}")
+        logger.info(f"Number of conversations: {len(request.conversationVectors)}")
+        
         if not request.userVector:
             raise HTTPException(status_code=400, detail="userVector không được rỗng")
         
         if not request.conversationVectors:
+            logger.info("No conversation vectors, returning empty")
             return RecommendationResponse(
                 recommendations=[],
                 totalProcessed=0,
@@ -50,6 +62,9 @@ async def recommend_study_groups(request: RecommendationRequest):
             )
         
         user_vector = np.array(request.userVector, dtype=np.float32)
+        logger.info(f"User vector (first 10 values): {user_vector[:10].tolist()}")
+        logger.info(f"User vector non-zero count: {np.count_nonzero(user_vector)}")
+        
         conversation_ids = [c["id"] for c in request.conversationVectors]
         conversation_vectors_list = [c["vector"] for c in request.conversationVectors]
         
@@ -62,7 +77,18 @@ async def recommend_study_groups(request: RecommendationRequest):
                 )
         
         conversation_vectors = np.array(conversation_vectors_list, dtype=np.float32)
+        
+        # Log each conversation vector
+        for i, (conv_id, vec) in enumerate(zip(conversation_ids, conversation_vectors)):
+            logger.info(f"Conversation {conv_id[:8]}... vector (first 10): {vec[:10].tolist()}, non-zero: {np.count_nonzero(vec)}")
+        
         similarities = cosine_similarity_batch(user_vector, conversation_vectors)
+        
+        # Log similarities
+        logger.info("Similarity scores:")
+        for conv_id, sim in zip(conversation_ids, similarities):
+            status = "PASS" if sim >= request.minSimilarity else "FAIL"
+            logger.info(f"  {conv_id[:8]}... : {sim:.4f} ({status}, threshold={request.minSimilarity})")
         
         results = []
         for conv_id, sim in zip(conversation_ids, similarities):
@@ -80,6 +106,9 @@ async def recommend_study_groups(request: RecommendationRequest):
         
         processing_time = (time.time() - start_time) * 1000
         
+        logger.info(f"Returning {len(top_results)} recommendations")
+        logger.info("=" * 50)
+        
         return RecommendationResponse(
             recommendations=top_results,
             totalProcessed=len(conversation_vectors),
@@ -87,8 +116,10 @@ async def recommend_study_groups(request: RecommendationRequest):
         )
     
     except Exception as e:
+        logger.error(f"Error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
