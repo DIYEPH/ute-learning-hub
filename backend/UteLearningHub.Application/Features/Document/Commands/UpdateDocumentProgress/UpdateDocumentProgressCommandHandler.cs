@@ -50,8 +50,8 @@ public class UpdateDocumentProgressCommandHandler : IRequestHandler<UpdateDocume
         // Lấy DocumentFile để kiểm tra review status và TotalPages
         var documentFile = await _documentRepository.GetDocumentFileByIdAsync(documentFileId, disableTracking: true, cancellationToken);
         
-        // Check file-level review status
-        if (!isAdmin && documentFile != null && documentFile.ReviewStatus != Domain.Constaints.Enums.ReviewStatus.Approved)
+        // Check file-level status
+        if (!isAdmin && documentFile != null && documentFile.Status != Domain.Constaints.Enums.ContentStatus.Approved)
             throw new NotFoundException("Document file not found");
 
         // Kiểm tra visibility

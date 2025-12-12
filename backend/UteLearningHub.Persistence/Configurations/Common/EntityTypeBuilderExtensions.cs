@@ -13,15 +13,7 @@ public static class EntityTypeBuilderExtensions
         builder.Property(u => u.UpdatedById).HasColumnName("CapNhatBoi");
         return builder;
     }
-    public static EntityTypeBuilder<TEntity> ApplyReview<TEntity>(this EntityTypeBuilder<TEntity> builder)
-        where TEntity : class, IReviewable
-    {
-        builder.Property(u => u.ReviewedById).HasColumnName("DuyetBoi");
-        builder.Property(u => u.ReviewNote).HasColumnName("NoiDungDuyet");
-        builder.Property(u => u.ReviewedAt).HasColumnName("NgayDuyet");
-        builder.Property(u => u.ReviewStatus).HasColumnName("TrangThaiDuyet");
-        return builder;
-    }
+
     public static EntityTypeBuilder<TEntity> ApplySoftDelete<TEntity>(this EntityTypeBuilder<TEntity> builder)
         where TEntity : class, ISoftDelete
     {
@@ -30,6 +22,7 @@ public static class EntityTypeBuilderExtensions
         builder.Property(u => u.DeletedById).HasColumnName("BiXoaBoi");
         return builder;
     }
+
     public static EntityTypeBuilder<TEntity> ApplyTrack<TEntity>(this EntityTypeBuilder<TEntity> builder)
     where TEntity : class, ITrackable
     {
@@ -39,3 +32,4 @@ public static class EntityTypeBuilderExtensions
         return builder;
     }
 }
+

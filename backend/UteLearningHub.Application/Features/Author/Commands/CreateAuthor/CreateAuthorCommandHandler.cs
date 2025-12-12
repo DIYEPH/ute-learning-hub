@@ -45,7 +45,7 @@ public class CreateAuthorCommandHandler : IRequestHandler<CreateAuthorCommand, A
             Id = Guid.NewGuid(),
             FullName = request.FullName,
             Description = request.Description ?? string.Empty,
-            ReviewStatus = ReviewStatus.Approved,
+            Status = ContentStatus.Approved,
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };

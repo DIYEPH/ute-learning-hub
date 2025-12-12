@@ -93,7 +93,7 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
             var isMember = currentUserId.HasValue && c.Members.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
             var hasPendingRequest = currentUserId.HasValue && c.ConversationJoinRequests.Any(r =>
                 r.CreatedById == currentUserId.Value &&
-                r.ReviewStatus == Domain.Constaints.Enums.ReviewStatus.PendingReview &&
+                r.Status == Domain.Constaints.Enums.ContentStatus.PendingReview &&
                 !r.IsDeleted);
 
             // Calculate unread count for current user

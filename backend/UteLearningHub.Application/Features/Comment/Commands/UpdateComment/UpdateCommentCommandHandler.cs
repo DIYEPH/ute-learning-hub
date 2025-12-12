@@ -68,7 +68,7 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
             AuthorName = author?.FullName ?? "Unknown",
             AuthorAvatarUrl = author?.AvatarUrl,
             CreatedById = comment.CreatedById,
-            ReviewStatus = comment.ReviewStatus,
+            Status = comment.Status,
             ReplyCount = replyCount,
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt

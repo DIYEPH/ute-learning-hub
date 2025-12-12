@@ -31,7 +31,7 @@ public class GetSubjectByIdHandler : IRequestHandler<GetSubjectByIdQuery, Subjec
             throw new NotFoundException($"Subject with id {request.Id} not found");
 
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
-        if (!isAdmin && subject.ReviewStatus != ReviewStatus.Approved)
+        if (!isAdmin && subject.Status != ContentStatus.Approved)
             throw new NotFoundException($"Subject with id {request.Id} not found");
 
         var documentCount = await _subjectRepository.GetQueryableSet()

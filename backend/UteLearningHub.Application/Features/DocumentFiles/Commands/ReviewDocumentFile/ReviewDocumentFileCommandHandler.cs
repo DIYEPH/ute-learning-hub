@@ -1,9 +1,7 @@
 using MediatR;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
-using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
-using UteLearningHub.Domain.Entities.Base;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 
@@ -14,18 +12,15 @@ public class ReviewDocumentFileCommandHandler : IRequestHandler<ReviewDocumentFi
     private readonly IDocumentRepository _documentRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
-    private readonly IDateTimeProvider _dateTimeProvider;
 
     public ReviewDocumentFileCommandHandler(
         IDocumentRepository documentRepository,
         ICurrentUserService currentUserService,
-        IUserService userService,
-        IDateTimeProvider dateTimeProvider)
+        IUserService userService)
     {
         _documentRepository = documentRepository;
         _currentUserService = currentUserService;
         _userService = userService;
-        _dateTimeProvider = dateTimeProvider;
     }
 
     public async Task<Unit> Handle(ReviewDocumentFileCommand request, CancellationToken cancellationToken)
@@ -43,7 +38,7 @@ public class ReviewDocumentFileCommandHandler : IRequestHandler<ReviewDocumentFi
                        (trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator);
 
         if (!canReview)
-            throw new UnauthorizedException("Only administrators or users with high trust level can review document files");
+            throw new UnauthorizedException("Only administrators or moderators can review document files");
 
         var documentFile = await _documentRepository.GetDocumentFileByIdAsync(
             request.DocumentFileId, 
@@ -53,14 +48,12 @@ public class ReviewDocumentFileCommandHandler : IRequestHandler<ReviewDocumentFi
         if (documentFile == null || documentFile.IsDeleted)
             throw new NotFoundException($"Document file with id {request.DocumentFileId} not found");
 
-        documentFile.MarkAsReviewed(
-            request.ReviewStatus,
-            userId,
-            _dateTimeProvider.OffsetNow,
-            request.ReviewNote);
+        // Simple status update
+        documentFile.Status = request.Status;
 
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;
     }
 }
+

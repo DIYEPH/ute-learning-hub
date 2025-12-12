@@ -35,7 +35,7 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
             throw new NotFoundException($"Document with id {request.Id} not found");
 
         // Non-admin users can only see documents with at least 1 approved file
-        var hasApprovedFile = document.Files.Any(f => f.ReviewStatus == ReviewStatus.Approved);
+        var hasApprovedFile = document.Files.Any(f => f.Status == ContentStatus.Approved);
         if (!isAdmin && !hasApprovedFile)
             throw new NotFoundException($"Document with id {request.Id} not found");
 

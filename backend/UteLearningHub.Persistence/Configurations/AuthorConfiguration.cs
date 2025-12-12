@@ -16,11 +16,12 @@ public class AuthorConfiguration : IEntityTypeConfiguration<Author>
 
         builder.Property(u => u.FullName).HasColumnName("TenTacGia");
         builder.Property(u => u.Description).HasColumnName("MoTa");
+        builder.Property(u => u.Status).HasColumnName("TrangThai");
 
         builder.ApplySoftDelete<Author>()
             .ApplyTrack<Author>()
-            .ApplyAudit<Author>()
-            .ApplyReview<Author>();
+            .ApplyAudit<Author>();
+
     }
 }
 

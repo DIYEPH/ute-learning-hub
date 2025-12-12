@@ -35,7 +35,7 @@ public class GetAuthorsHandler : IRequestHandler<GetAuthorsQuery, PagedResponse<
         // Only show approved authors for non-admin users
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
         if (!isAdmin)
-            query = query.Where(a => a.ReviewStatus == ReviewStatus.Approved);
+            query = query.Where(a => a.Status == ContentStatus.Approved);
 
         // Order by name
         query = query.OrderBy(a => a.FullName);

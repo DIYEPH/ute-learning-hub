@@ -18,7 +18,6 @@ public class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(u => u.TypeId).HasColumnName("LoaiTaiLieuId");
         builder.Property(u => u.Description).HasColumnName("MoTa");
         builder.Property(u => u.NormalizedName).HasColumnName("TenChuanHoa");
-        builder.Property(u => u.IsDownload).HasColumnName("CoDuocTai");
         builder.Property(u => u.Visibility).HasColumnName("CoHienThi");
         builder.Property(u => u.CoverFileId).HasColumnName("TepBiaId");
 

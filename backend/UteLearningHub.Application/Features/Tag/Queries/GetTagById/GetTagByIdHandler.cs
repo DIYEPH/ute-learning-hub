@@ -28,7 +28,7 @@ public class GetTagByIdHandler : IRequestHandler<GetTagByIdQuery, TagDetailDto>
             throw new NotFoundException($"Tag with id {request.Id} not found");
 
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
-        if (!isAdmin && tag.ReviewStatus != ReviewStatus.Approved)
+        if (!isAdmin && tag.Status != ContentStatus.Approved)
             throw new NotFoundException($"Tag with id {request.Id} not found");
 
         var documentCount = await _tagRepository.GetDocumentCountAsync(request.Id, cancellationToken);

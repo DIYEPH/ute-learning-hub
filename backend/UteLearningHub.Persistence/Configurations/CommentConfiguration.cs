@@ -18,21 +18,17 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
         builder.Property(u => u.ParentId).HasColumnName("PhanTuChaId");
         builder.Property(u => u.DocumentFileId).HasColumnName("TaiLieu_TepId");
         builder.Property(u => u.Content).HasColumnName("NoiDung");
+        builder.Property(u => u.Status).HasColumnName("TrangThai");
 
         builder.ApplySoftDelete<Comment>()
             .ApplyTrack<Comment>()
-            .ApplyAudit<Comment>()
-            .ApplyReview<Comment>();
+            .ApplyAudit<Comment>();
 
         builder.HasOne<AppUser>()
             .WithMany(u => u.Comments)
             .HasForeignKey(u => u.CreatedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne<AppUser>()
-            .WithMany(u => u.ReviewedComments)
-            .HasForeignKey(u => u.ReviewedById)
-            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne<Comment>()
             .WithMany(u => u.Childrens)

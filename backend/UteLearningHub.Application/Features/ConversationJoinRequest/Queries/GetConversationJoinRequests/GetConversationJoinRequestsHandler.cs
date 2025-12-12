@@ -82,8 +82,8 @@ public class GetConversationJoinRequestsHandler : IRequestHandler<GetConversatio
         if (request.CreatedById.HasValue)
             query = query.Where(r => r.CreatedById == request.CreatedById.Value);
 
-        if (request.ReviewStatus.HasValue)
-            query = query.Where(r => r.ReviewStatus == request.ReviewStatus.Value);
+        if (request.Status.HasValue)
+            query = query.Where(r => r.Status == request.Status.Value);
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
@@ -128,9 +128,8 @@ public class GetConversationJoinRequestsHandler : IRequestHandler<GetConversatio
                 ? requester.AvatarUrl
                 : null,
             CreatedById = r.CreatedById,
-            ReviewStatus = r.ReviewStatus,
+            Status = r.Status,
             ReviewNote = r.ReviewNote,
-            ReviewedAt = r.ReviewedAt,
             CreatedAt = r.CreatedAt
         }).ToList();
 

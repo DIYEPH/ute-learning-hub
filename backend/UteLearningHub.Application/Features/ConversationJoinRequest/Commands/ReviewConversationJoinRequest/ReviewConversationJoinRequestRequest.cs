@@ -5,6 +5,7 @@ namespace UteLearningHub.Application.Features.ConversationJoinRequest.Commands.R
 public record ReviewConversationJoinRequestRequest
 {
     public Guid JoinRequestId { get; init; }
-    public ReviewStatus ReviewStatus { get; init; }
+    public ContentStatus Status { get; init; }
     public string? ReviewNote { get; init; }
 }
+

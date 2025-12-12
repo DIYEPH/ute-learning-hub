@@ -50,7 +50,7 @@ public class GetSubjectsHandler : IRequestHandler<GetSubjectsQuery, PagedRespons
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
         if (!isAdmin)
         {
-            query = query.Where(s => s.ReviewStatus == ReviewStatus.Approved);
+            query = query.Where(s => s.Status == ContentStatus.Approved);
         }
 
         // Order by name

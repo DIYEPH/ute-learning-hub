@@ -14,14 +14,18 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
 
         builder.HasKey(u => u.Id);
 
-        builder.Property(u => u.DocumentId).HasColumnName("TaiLieuId");
+        builder.Property(u => u.DocumentFileId).HasColumnName("TaiLieu_TepId");
         builder.Property(u => u.CommentId).HasColumnName("BinhLuanId");
         builder.Property(u => u.Content).HasColumnName("NoiDung");
+        builder.Property(u => u.Status).HasColumnName("TrangThai");
+        builder.Property(u => u.ReviewedById).HasColumnName("DuyetBoiId");
+        builder.Property(u => u.ReviewedAt).HasColumnName("DuyetLuc");
+        builder.Property(u => u.ReviewNote).HasColumnName("GhiChuDuyet");
 
         builder.ApplySoftDelete<Report>()
             .ApplyTrack<Report>()
-            .ApplyAudit<Report>()
-            .ApplyReview<Report>();
+            .ApplyAudit<Report>();
+
 
         builder.HasOne<AppUser>()
             .WithMany(u => u.Reports)
@@ -33,9 +37,9 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
             .HasForeignKey(u => u.ReviewedById)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(u => u.Document)
+        builder.HasOne(u => u.DocumentFile)
             .WithMany(u => u.Reports)
-            .HasForeignKey(u => u.DocumentId)
+            .HasForeignKey(u => u.DocumentFileId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(u => u.Comment)

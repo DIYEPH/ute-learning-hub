@@ -11,8 +11,8 @@ public record ConversationJoinRequestDto
     public string RequesterName { get; init; } = default!;
     public string? RequesterAvatarUrl { get; init; }
     public Guid CreatedById { get; init; }
-    public ReviewStatus ReviewStatus { get; init; }
+    public ContentStatus Status { get; init; }
     public string? ReviewNote { get; init; }
-    public DateTimeOffset? ReviewedAt { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
 }
+

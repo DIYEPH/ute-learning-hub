@@ -420,7 +420,7 @@ public class DataSeeder
                 SubjectCode = code,
                 CreatedById = adminUser.Id,
                 CreatedAt = DateTimeOffset.UtcNow,
-                ReviewStatus = ReviewStatus.Approved
+                Status = ContentStatus.Approved
             };
             subjects.Add(subject);
 

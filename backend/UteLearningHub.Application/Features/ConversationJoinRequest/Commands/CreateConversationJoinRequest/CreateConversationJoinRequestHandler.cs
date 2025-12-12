@@ -61,7 +61,7 @@ public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConver
         var existingRequest = await _conversationRepository.GetJoinRequestsQueryable()
             .Where(r => r.ConversationId == request.ConversationId
                      && r.CreatedById == userId
-                     && r.ReviewStatus == ReviewStatus.PendingReview
+                     && r.Status == ContentStatus.PendingReview
                      && !r.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -74,7 +74,7 @@ public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConver
             Id = Guid.NewGuid(),
             ConversationId = request.ConversationId,
             Content = request.Content,
-            ReviewStatus = ReviewStatus.PendingReview,
+            Status = ContentStatus.PendingReview,
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
@@ -111,9 +111,8 @@ public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConver
             RequesterName = requester.FullName,
             RequesterAvatarUrl = requester.AvatarUrl,
             CreatedById = joinRequest.CreatedById,
-            ReviewStatus = joinRequest.ReviewStatus,
+            Status = joinRequest.Status,
             ReviewNote = joinRequest.ReviewNote,
-            ReviewedAt = joinRequest.ReviewedAt,
             CreatedAt = joinRequest.CreatedAt
         };
     }

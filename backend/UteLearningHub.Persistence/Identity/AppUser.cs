@@ -28,7 +28,6 @@ public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
     public ICollection<Document> Documents { get; set; } = [];
     public ICollection<DocumentReview> DocumentReviews { get; set; } = [];
     public ICollection<Comment> Comments { get; set; } = [];
-    public ICollection<Comment> ReviewedComments { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
     public ICollection<Report> ReviewedReports { get; set; } = [];
     public ICollection<Message> Messages { get; set; } = [];

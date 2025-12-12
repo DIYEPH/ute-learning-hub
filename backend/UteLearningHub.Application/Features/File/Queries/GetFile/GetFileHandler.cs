@@ -47,7 +47,7 @@ public class GetFileHandler : IRequestHandler<GetFileQuery, GetFileResponse>
             var documentFile = await _documentRepository.GetDocumentFileByIdAsync(request.FileId, disableTracking: true, cancellationToken);
             
             // Non-admin users can only access approved files
-            if (!isAdmin && documentFile != null && documentFile.ReviewStatus != ReviewStatus.Approved)
+            if (!isAdmin && documentFile != null && documentFile.Status != ContentStatus.Approved)
                 throw new NotFoundException("File not found");
 
             // Kiểm tra visibility

@@ -208,27 +208,15 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("CoDaXoa");
 
-                    b.Property<string>("ReviewNote")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("NoiDungDuyet");
-
-                    b.Property<int>("ReviewStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("TrangThaiDuyet");
-
-                    b.Property<DateTimeOffset?>("ReviewedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayDuyet");
-
-                    b.Property<Guid?>("ReviewedById")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("DuyetBoi");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("TrangThai");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset")
@@ -282,27 +270,15 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("PhanTuChaId");
 
-                    b.Property<string>("ReviewNote")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("NoiDungDuyet");
-
-                    b.Property<int>("ReviewStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("TrangThaiDuyet");
-
-                    b.Property<DateTimeOffset?>("ReviewedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayDuyet");
-
-                    b.Property<Guid?>("ReviewedById")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("DuyetBoi");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("TrangThai");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset")
@@ -319,8 +295,6 @@ namespace UteLearningHub.Persistence.Migrations
                     b.HasIndex("DocumentFileId");
 
                     b.HasIndex("ParentId");
-
-                    b.HasIndex("ReviewedById");
 
                     b.ToTable("BinhLuan", (string)null);
                 });
@@ -444,25 +418,21 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<string>("ReviewNote")
                         .HasColumnType("nvarchar(max)")
-                        .HasColumnName("NoiDungDuyet");
-
-                    b.Property<int>("ReviewStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("TrangThaiDuyet");
-
-                    b.Property<DateTimeOffset?>("ReviewedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayDuyet");
+                        .HasColumnName("GhiChuDuyet");
 
                     b.Property<Guid?>("ReviewedById")
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("DuyetBoi");
+                        .HasColumnName("DuyetBoiId");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("TrangThai");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset")
@@ -632,10 +602,6 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("CoDaXoa");
 
-                    b.Property<bool>("IsDownload")
-                        .HasColumnType("bit")
-                        .HasColumnName("CoDuocTai");
-
                     b.Property<string>("NormalizedName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -747,27 +713,15 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ThuTu");
 
-                    b.Property<string>("ReviewNote")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("NoiDungDuyet");
-
-                    b.Property<int>("ReviewStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("TrangThaiDuyet");
-
-                    b.Property<DateTimeOffset?>("ReviewedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayDuyet");
-
-                    b.Property<Guid?>("ReviewedById")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("DuyetBoi");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("TrangThai");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)")
@@ -1434,9 +1388,9 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("BiXoaBoi");
 
-                    b.Property<Guid?>("DocumentId")
+                    b.Property<Guid?>("DocumentFileId")
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("TaiLieuId");
+                        .HasColumnName("TaiLieu_TepId");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit")
@@ -1444,25 +1398,25 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<string>("ReviewNote")
                         .HasColumnType("nvarchar(max)")
-                        .HasColumnName("NoiDungDuyet");
-
-                    b.Property<int>("ReviewStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("TrangThaiDuyet");
+                        .HasColumnName("GhiChuDuyet");
 
                     b.Property<DateTimeOffset?>("ReviewedAt")
                         .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayDuyet");
+                        .HasColumnName("DuyetLuc");
 
                     b.Property<Guid?>("ReviewedById")
                         .HasColumnType("uniqueidentifier")
-                        .HasColumnName("DuyetBoi");
+                        .HasColumnName("DuyetBoiId");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("TrangThai");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset")
@@ -1478,7 +1432,7 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.HasIndex("DocumentId");
+                    b.HasIndex("DocumentFileId");
 
                     b.HasIndex("ReviewedById");
 
@@ -1511,27 +1465,15 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("CoDaXoa");
 
-                    b.Property<string>("ReviewNote")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("NoiDungDuyet");
-
-                    b.Property<int>("ReviewStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("TrangThaiDuyet");
-
-                    b.Property<DateTimeOffset?>("ReviewedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayDuyet");
-
-                    b.Property<Guid?>("ReviewedById")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("DuyetBoi");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("TrangThai");
 
                     b.Property<string>("SubjectCode")
                         .IsRequired()
@@ -1617,27 +1559,15 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("CoDaXoa");
 
-                    b.Property<string>("ReviewNote")
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("NoiDungDuyet");
-
-                    b.Property<int>("ReviewStatus")
-                        .HasColumnType("int")
-                        .HasColumnName("TrangThaiDuyet");
-
-                    b.Property<DateTimeOffset?>("ReviewedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("NgayDuyet");
-
-                    b.Property<Guid?>("ReviewedById")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("DuyetBoi");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int")
+                        .HasColumnName("TrangThai");
 
                     b.Property<string>("TagName")
                         .IsRequired()
@@ -1896,7 +1826,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion")
                         .HasColumnName("PhienBanHang");
@@ -1906,8 +1835,10 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnName("MaBaoMat");
 
                     b.Property<int>("TrustLever")
+                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("int")
-                        .HasColumnName("CapDoXacThuc");
+                        .HasColumnName("CapDoXacThuc")
+                        .HasComputedColumnSql("\r\n                CASE \r\n                    WHEN [DiemXacThuc] < 0 THEN 0\r\n                    WHEN [DiemXacThuc] < 5 THEN 1\r\n                    WHEN [DiemXacThuc] < 40 THEN 2\r\n                    WHEN [DiemXacThuc] < 100 THEN 3\r\n                    WHEN [DiemXacThuc] < 200 THEN 4\r\n                    ELSE 5\r\n                END", true);
 
                     b.Property<int>("TrustScore")
                         .HasColumnType("int")
@@ -2009,11 +1940,6 @@ namespace UteLearningHub.Persistence.Migrations
                     b.HasOne("UteLearningHub.Domain.Entities.Comment", null)
                         .WithMany("Childrens")
                         .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("UteLearningHub.Persistence.Identity.AppUser", null)
-                        .WithMany("ReviewedComments")
-                        .HasForeignKey("ReviewedById")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("DocumentFile");
@@ -2319,9 +2245,9 @@ namespace UteLearningHub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("UteLearningHub.Domain.Entities.Document", "Document")
+                    b.HasOne("UteLearningHub.Domain.Entities.DocumentFile", "DocumentFile")
                         .WithMany("Reports")
-                        .HasForeignKey("DocumentId")
+                        .HasForeignKey("DocumentFileId")
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("UteLearningHub.Persistence.Identity.AppUser", null)
@@ -2331,7 +2257,7 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Navigation("Comment");
 
-                    b.Navigation("Document");
+                    b.Navigation("DocumentFile");
                 });
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.Subject", b =>
@@ -2438,8 +2364,6 @@ namespace UteLearningHub.Persistence.Migrations
 
                     b.Navigation("DocumentTags");
 
-                    b.Navigation("Reports");
-
                     b.Navigation("Reviews");
 
                     b.Navigation("UserProgresses");
@@ -2448,6 +2372,8 @@ namespace UteLearningHub.Persistence.Migrations
             modelBuilder.Entity("UteLearningHub.Domain.Entities.DocumentFile", b =>
                 {
                     b.Navigation("Comments");
+
+                    b.Navigation("Reports");
                 });
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.Faculty", b =>
@@ -2517,8 +2443,6 @@ namespace UteLearningHub.Persistence.Migrations
                     b.Navigation("ReceivedNotifications");
 
                     b.Navigation("Reports");
-
-                    b.Navigation("ReviewedComments");
 
                     b.Navigation("ReviewedReports");
 

@@ -114,7 +114,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                     {
                         Id = Guid.NewGuid(),
                         TagName = titleCaseName,
-                        ReviewStatus = ReviewStatus.Approved,
+                        Status = ContentStatus.Approved,
                         CreatedById = userId,
                         CreatedAt = _dateTimeProvider.OffsetNow
                     };
@@ -159,7 +159,7 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
                         Id = Guid.NewGuid(),
                         FullName = normalizedName,
                         Description = authorInput.Description ?? string.Empty,
-                        ReviewStatus = ReviewStatus.Approved,
+                        Status = ContentStatus.Approved,
                         CreatedById = userId,
                         CreatedAt = _dateTimeProvider.OffsetNow
                     };
@@ -170,11 +170,6 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             }
         }
 
-        var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
-        var reviewStatus = (trustLevel.HasValue && trustLevel.Value >= TrustLever.Newbie)
-            ? ReviewStatus.Approved
-            : ReviewStatus.PendingReview;
-
         var document = new DomainDocument
         {
             Id = Guid.NewGuid(),
@@ -183,7 +178,6 @@ public class CreateDocumentCommandHandler : IRequestHandler<CreateDocumentComman
             Description = request.Description,
             SubjectId = request.SubjectId,
             TypeId = request.TypeId,
-            IsDownload = request.IsDownload,
             Visibility = request.Visibility,
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow

@@ -21,11 +21,12 @@ public class DocumentFileConfiguration : IEntityTypeConfiguration<DocumentFile>
         builder.Property(u => u.IsPrimary).HasColumnName("LaChinh");
         builder.Property(u => u.Order).HasColumnName("ThuTu");
         builder.Property(u => u.CoverFileId).HasColumnName("TepBiaId");
+        builder.Property(u => u.Status).HasColumnName("TrangThai");
 
         builder.ApplySoftDelete<DocumentFile>()
             .ApplyTrack<DocumentFile>()
-            .ApplyAudit<DocumentFile>()
-            .ApplyReview<DocumentFile>();
+            .ApplyAudit<DocumentFile>();
+
 
         builder.HasOne(u => u.Document)
             .WithMany(u => u.DocumentFiles)

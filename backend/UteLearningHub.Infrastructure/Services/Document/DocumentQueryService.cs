@@ -25,7 +25,6 @@ public class DocumentQueryService : IDocumentQueryService
                 Id = d.Id,
                 DocumentName = d.DocumentName,
                 Description = d.Description,
-                IsDownload = d.IsDownload,
                 Visibility = d.Visibility,
                 CoverFileId = d.CoverFileId,
                 Subject = d.Subject != null ? new SubjectDto
@@ -77,10 +76,7 @@ public class DocumentQueryService : IDocumentQueryService
                         IsPrimary = df.IsPrimary,
                         TotalPages = df.TotalPages,
                         CoverFileId = df.CoverFileId,
-                        ReviewStatus = df.ReviewStatus,
-                        ReviewedById = df.ReviewedById,
-                        ReviewedAt = df.ReviewedAt,
-                        ReviewNote = df.ReviewNote,
+                        Status = df.Status,
                         CommentCount = df.Comments.Count(c => !c.IsDeleted),
                         UsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.Useful),
                         NotUsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.NotUseful)

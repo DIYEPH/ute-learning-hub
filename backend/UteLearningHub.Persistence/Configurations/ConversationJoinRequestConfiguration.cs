@@ -16,11 +16,14 @@ public class ConversationJoinRequestConfiguration : IEntityTypeConfiguration<Con
         builder.HasKey(e => e.Id);
         builder.Property(u => u.ConversationId).HasColumnName("CuocTroChuyenId");
         builder.Property(u => u.Content).HasColumnName("NoiDung");
+        builder.Property(u => u.Status).HasColumnName("TrangThai");
+        builder.Property(u => u.ReviewedById).HasColumnName("DuyetBoiId");
+        builder.Property(u => u.ReviewNote).HasColumnName("GhiChuDuyet");
 
         builder.ApplySoftDelete<ConversationJoinRequest>()
             .ApplyTrack<ConversationJoinRequest>()
-            .ApplyAudit<ConversationJoinRequest>()
-            .ApplyReview<ConversationJoinRequest>();
+            .ApplyAudit<ConversationJoinRequest>();
+
 
         builder.HasOne<AppUser>()
             .WithMany(u => u.SentJoinRequests)

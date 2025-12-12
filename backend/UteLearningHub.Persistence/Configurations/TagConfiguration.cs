@@ -15,11 +15,12 @@ public class TagConfiguration : IEntityTypeConfiguration<Tag>
         builder.HasKey(u => u.Id);
 
         builder.Property(u => u.TagName).HasColumnName("TenTag");
+        builder.Property(u => u.Status).HasColumnName("TrangThai");
 
         builder.ApplySoftDelete<Tag>()
             .ApplyTrack<Tag>()
-            .ApplyAudit<Tag>()
-            .ApplyReview<Tag>();
+            .ApplyAudit<Tag>();
+
 
         builder.HasOne<AppUser>()
             .WithMany(u => u.Tags)

@@ -12,8 +12,9 @@ public record CommentDto
     public string AuthorName { get; init; } = default!;
     public string? AuthorAvatarUrl { get; init; }
     public Guid CreatedById { get; init; }
-    public ReviewStatus ReviewStatus { get; init; }
+    public ContentStatus Status { get; init; }
     public int ReplyCount { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; init; }
 }
+

@@ -19,7 +19,7 @@ public class AuthorQueryService : IAuthorQueryService
     {
         return await _dbContext.Authors
             .AsNoTracking()
-            .Where(a => a.Id == id && !a.IsDeleted && a.ReviewStatus == ReviewStatus.Approved)
+            .Where(a => a.Id == id && !a.IsDeleted && a.Status == ContentStatus.Approved)
             .Select(a => new AuthorDetailDto
             {
                 Id = a.Id,

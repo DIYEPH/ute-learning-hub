@@ -106,7 +106,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
                     {
                         Id = Guid.NewGuid(),
                         TagName = titleCaseName,
-                        ReviewStatus = ReviewStatus.Approved,
+                        Status = ContentStatus.Approved,
                         CreatedById = userId,
                         CreatedAt = _dateTimeProvider.OffsetNow
                     };

@@ -44,7 +44,7 @@ public class CreateTagCommandHandler : IRequestHandler<CreateTagCommand, TagDeta
         {
             Id = Guid.NewGuid(),
             TagName = request.TagName,
-            ReviewStatus = ReviewStatus.Approved,
+            Status = ContentStatus.Approved,
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };

@@ -50,14 +50,14 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, PagedResponse<
             .AsNoTracking();
 
         // Filters
-        if (request.DocumentId.HasValue)
-            query = query.Where(r => r.DocumentId == request.DocumentId.Value);
+        if (request.DocumentFileId.HasValue)
+            query = query.Where(r => r.DocumentFileId == request.DocumentFileId.Value);
 
         if (request.CommentId.HasValue)
             query = query.Where(r => r.CommentId == request.CommentId.Value);
 
-        if (request.ReviewStatus.HasValue)
-            query = query.Where(r => r.ReviewStatus == request.ReviewStatus.Value);
+        if (request.Status.HasValue)
+            query = query.Where(r => r.Status == request.Status.Value);
 
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
@@ -82,7 +82,7 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, PagedResponse<
         var reportDtos = reports.Select(r => new ReportDto
         {
             Id = r.Id,
-            DocumentId = r.DocumentId,
+            DocumentFileId = r.DocumentFileId,
             CommentId = r.CommentId,
             Content = r.Content,
             ReporterName = authorInfo.TryGetValue(r.CreatedById, out var reporter)
@@ -92,7 +92,7 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, PagedResponse<
                 ? reporterInfo.AvatarUrl
                 : null,
             CreatedById = r.CreatedById,
-            ReviewStatus = r.ReviewStatus,
+            Status = r.Status,
             CreatedAt = r.CreatedAt
         }).ToList();
 

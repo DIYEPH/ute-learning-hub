@@ -78,7 +78,7 @@ public class CreateSubjectCommandHandler : IRequestHandler<CreateSubjectCommand,
             Id = Guid.NewGuid(),
             SubjectName = request.SubjectName,
             SubjectCode = request.SubjectCode,
-            ReviewStatus = ReviewStatus.Approved,
+            Status = ContentStatus.Approved,
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };

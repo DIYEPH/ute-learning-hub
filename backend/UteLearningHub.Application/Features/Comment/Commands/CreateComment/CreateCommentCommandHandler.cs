@@ -64,7 +64,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
             DocumentFileId = request.DocumentFileId,
             ParentId = request.ParentId,
             Content = request.Content,
-            ReviewStatus = ReviewStatus.Approved, // Comments are auto-approved, or can be PendingReview
+            Status = ContentStatus.Approved, // Comments are auto-approved
             CreatedById = userId,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
@@ -86,7 +86,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
             AuthorName = author?.FullName ?? "Unknown",
             AuthorAvatarUrl = author?.AvatarUrl,
             CreatedById = comment.CreatedById,
-            ReviewStatus = comment.ReviewStatus,
+            Status = comment.Status,
             ReplyCount = 0,
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt

@@ -40,7 +40,7 @@ public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQue
         // Only show approved comments for public users, admin có thể xem tất cả
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
         if (!isAdmin)
-            query = query.Where(c => c.ReviewStatus == ReviewStatus.Approved);
+            query = query.Where(c => c.Status == ContentStatus.Approved);
 
         if (request.ParentId.HasValue)
             query = query.OrderByDescending(c => c.CreatedAt);
@@ -60,7 +60,7 @@ public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQue
                 ParentId = c.ParentId,
                 Content = c.Content,
                 CreatedById = c.CreatedById,
-                ReviewStatus = c.ReviewStatus,
+                Status = c.Status,
                 ReplyCount = c.Childrens.Count,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
@@ -86,7 +86,7 @@ public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQue
                 ? authorInfoValue.AvatarUrl
                 : null,
             CreatedById = c.CreatedById,
-            ReviewStatus = c.ReviewStatus,
+            Status = c.Status,
             ReplyCount = c.ReplyCount,
             CreatedAt = c.CreatedAt,
             UpdatedAt = c.UpdatedAt

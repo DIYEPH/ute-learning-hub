@@ -119,18 +119,18 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
 
         var createDocumentSetting = await _systemSettingService.GetIntAsync(SystemName.CreateDocument, 0, cancellationToken);
         
-        ReviewStatus reviewStatus;
+        ContentStatus status;
         var trustLevel = await _userService.GetTrustLevelAsync(userId,cancellationToken);
         if (isAdmin)
-            reviewStatus = ReviewStatus.Approved;
+            status = ContentStatus.Approved;
         else if (createDocumentSetting == 0)
-            reviewStatus = ReviewStatus.Approved;
+            status = ContentStatus.Approved;
         else if (createDocumentSetting == 1)
-            reviewStatus = (trustLevel == TrustLever.TrustedMember || trustLevel == TrustLever.Moderator || trustLevel == TrustLever.Master)
-                ? ReviewStatus.Approved
-                : ReviewStatus.PendingReview;
+            status = (trustLevel == TrustLever.TrustedMember || trustLevel == TrustLever.Moderator || trustLevel == TrustLever.Master)
+                ? ContentStatus.Approved
+                : ContentStatus.PendingReview;
         else
-            reviewStatus = ReviewStatus.PendingReview;
+            status = ContentStatus.PendingReview;
 
         var fileOrder = request.Order ?? nextOrder;
         var defaultTitle = string.IsNullOrWhiteSpace(request.Title) 
@@ -149,42 +149,49 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
             CreatedById = userId,
             UpdatedById = null,
             CoverFileId = coverFileId,
-            ReviewStatus = reviewStatus
+            Status = status
         };
 
         await _documentRepository.AddDocumentFileAsync(chapter, cancellationToken);
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        //⭐ Fire-and-forget: Award trust score and trigger vector update via events
-        _ = Task.Run(async () =>
+        // Award trust score for adding document file
+        try
         {
-            try
-            {
-                await _trustScoreService.AddTrustScoreAsync(
-                    userId, 
-                    TrustScoreConstants.GetActionPoints("CreateDocument"), 
-                    "Thêm chương/file tài liệu", 
-                    cancellationToken);
-                
-                // ⭐ Publish event to trigger vector update
-                await _mediator.Publish(new UserActivityEvent
-                {
-                    UserId = userId,
-                    ActivityType = "DocumentFileUploaded",
-                    Metadata = new Dictionary<string, object>
-                    {
-                        { "DocumentId", request.DocumentId },
-                        { "FileId", request.FileId }
-                    }
-                }, cancellationToken);
-            }
-            catch
-            {
-                // Ignore errors in background tasks
-            }
-        });
+            await _trustScoreService.AddTrustScoreAsync(
+                userId, 
+                TrustScoreConstants.GetActionPoints("CreateDocument"), 
+                "Thêm chương/file tài liệu", 
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            // Log but don't fail the request if trust score update fails
+            System.Diagnostics.Debug.WriteLine($"Failed to update trust score: {ex.Message}");
+        }
 
+        // Get updated document details
         var result = await _documentQueryService.GetDetailByIdAsync(request.DocumentId, cancellationToken);
+
+        // Publish event to trigger vector update (fire-and-forget is OK for events that don't use DbContext directly)
+        try
+        {
+            await _mediator.Publish(new UserActivityEvent
+            {
+                UserId = userId,
+                ActivityType = "DocumentFileUploaded",
+                Metadata = new Dictionary<string, object>
+                {
+                    { "DocumentId", request.DocumentId },
+                    { "FileId", request.FileId }
+                }
+            }, cancellationToken);
+        }
+        catch
+        {
+            // Ignore errors in event publishing
+        }
+
         return result ?? throw new NotFoundException($"Document with id {request.DocumentId} not found after update");
     }
 }

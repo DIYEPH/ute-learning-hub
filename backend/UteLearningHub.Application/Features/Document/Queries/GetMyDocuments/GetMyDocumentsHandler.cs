@@ -55,9 +55,6 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
         if (request.Visibility.HasValue)
             query = query.Where(d => d.Visibility == request.Visibility.Value);
 
-        if (request.IsDownload.HasValue)
-            query = query.Where(d => d.IsDownload == request.IsDownload.Value);
-
         // Sorting
         query = request.SortBy?.ToLower() switch
         {
@@ -108,7 +105,6 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                 Id = d.Id,
                 DocumentName = d.DocumentName,
                 Description = d.Description,
-                IsDownload = d.IsDownload,
                 Visibility = d.Visibility,
                 Subject = d.Subject != null
                     ? new SubjectDto
@@ -164,7 +160,6 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
             Id = d.Id,
             DocumentName = d.DocumentName,
             Description = d.Description,
-            IsDownload = d.IsDownload,
             Visibility = d.Visibility,
             Subject = d.Subject,
             Type = d.Type,

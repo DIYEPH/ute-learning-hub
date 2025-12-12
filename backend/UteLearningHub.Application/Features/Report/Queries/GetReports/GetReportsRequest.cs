@@ -5,8 +5,8 @@ namespace UteLearningHub.Application.Features.Report.Queries.GetReports;
 
 public record GetReportsRequest : PagedRequest
 {
-    public Guid? DocumentId { get; init; }
+    public Guid? DocumentFileId { get; init; }
     public Guid? CommentId { get; init; }
-    public ReviewStatus? ReviewStatus { get; init; }
+    public ContentStatus? Status { get; init; }
     public string? SearchTerm { get; init; }
 }

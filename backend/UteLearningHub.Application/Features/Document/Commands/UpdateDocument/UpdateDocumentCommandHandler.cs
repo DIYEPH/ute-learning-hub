@@ -95,9 +95,6 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
             document.TypeId = request.TypeId.Value;
         }
 
-        if (request.IsDownload.HasValue)
-            document.IsDownload = request.IsDownload.Value;
-
         if (request.Visibility.HasValue)
             document.Visibility = request.Visibility.Value;
 

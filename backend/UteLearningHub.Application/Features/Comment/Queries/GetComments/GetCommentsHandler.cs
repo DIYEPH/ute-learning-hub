@@ -40,7 +40,7 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
         // Only show approved comments for public users, admin can see all
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
         if (!isAdmin)
-            query = query.Where(c => c.ReviewStatus == ReviewStatus.Approved);
+            query = query.Where(c => c.Status == ContentStatus.Approved);
 
         // Order by newest first
         query = query.OrderByDescending(c => c.CreatedAt);
@@ -58,7 +58,7 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
                 ParentId = c.ParentId,
                 Content = c.Content,
                 CreatedById = c.CreatedById,
-                ReviewStatus = c.ReviewStatus,
+                Status = c.Status,
                 ReplyCount = c.Childrens.Count,
                 CreatedAt = c.CreatedAt,
                 UpdatedAt = c.UpdatedAt
@@ -84,7 +84,7 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
                 ? authorInfoValue.AvatarUrl
                 : null,
             CreatedById = c.CreatedById,
-            ReviewStatus = c.ReviewStatus,
+            Status = c.Status,
             ReplyCount = c.ReplyCount,
             CreatedAt = c.CreatedAt,
             UpdatedAt = c.UpdatedAt

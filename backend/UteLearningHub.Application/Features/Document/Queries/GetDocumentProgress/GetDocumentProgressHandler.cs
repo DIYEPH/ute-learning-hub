@@ -43,9 +43,9 @@ public class GetDocumentProgressHandler : IRequestHandler<GetDocumentProgressQue
 
         var isAdmin = _currentUserService.IsInRole("Admin");
 
-        // Check file-level review status
+        // Check file-level status
         var documentFile = await _documentRepository.GetDocumentFileByIdAsync(documentFileId, disableTracking: true, cancellationToken);
-        if (!isAdmin && documentFile != null && documentFile.ReviewStatus != Domain.Constaints.Enums.ReviewStatus.Approved)
+        if (!isAdmin && documentFile != null && documentFile.Status != Domain.Constaints.Enums.ContentStatus.Approved)
             throw new NotFoundException("Document file not found");
 
         // Kiểm tra visibility

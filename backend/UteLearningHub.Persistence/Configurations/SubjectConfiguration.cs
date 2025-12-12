@@ -16,11 +16,12 @@ public class SubjectConfiguration : IEntityTypeConfiguration<Subject>
 
         builder.Property(u => u.SubjectName).HasColumnName("TenMonHoc");
         builder.Property(u => u.SubjectCode).HasColumnName("MaMonHoc");
+        builder.Property(u => u.Status).HasColumnName("TrangThai");
 
         builder.ApplySoftDelete<Subject>()
             .ApplyTrack<Subject>()
-            .ApplyAudit<Subject>()
-            .ApplyReview<Subject>();
+            .ApplyAudit<Subject>();
+
 
         builder.HasOne<AppUser>()
             .WithMany(u => u.Subjects)

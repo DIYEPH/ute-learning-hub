@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UteLearningHub.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateRowVersion : Migration
+    public partial class DeleteReviewable : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -113,10 +113,7 @@ namespace UteLearningHub.Persistence.Migrations
                     MoTa = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DuyetBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
+                    TrangThai = table.Column<int>(type: "int", nullable: false),
                     PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -203,15 +200,15 @@ namespace UteLearningHub.Persistence.Migrations
                     HoVaTen = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DiemXacThuc = table.Column<int>(type: "int", nullable: false),
                     CoGoiY = table.Column<bool>(type: "bit", nullable: false),
-                    CapDoXacThuc = table.Column<int>(type: "int", nullable: false),
+                    CapDoXacThuc = table.Column<int>(type: "int", nullable: false, computedColumnSql: "\r\n                CASE \r\n                    WHEN [DiemXacThuc] < 0 THEN 0\r\n                    WHEN [DiemXacThuc] < 5 THEN 1\r\n                    WHEN [DiemXacThuc] < 40 THEN 2\r\n                    WHEN [DiemXacThuc] < 100 THEN 3\r\n                    WHEN [DiemXacThuc] < 200 THEN 4\r\n                    ELSE 5\r\n                END", stored: true),
                     GioiTinh = table.Column<int>(type: "int", nullable: false),
-                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: false),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     LanDangNhapGanNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CoDaXoa = table.Column<bool>(type: "bit", nullable: false),
                     NgayXoa = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     BiXoaBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     TenDangNhap = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     TenDangNhapChuanHoa = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -289,10 +286,7 @@ namespace UteLearningHub.Persistence.Migrations
                     MaMonHoc = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DuyetBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
+                    TrangThai = table.Column<int>(type: "int", nullable: false),
                     PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -413,10 +407,7 @@ namespace UteLearningHub.Persistence.Migrations
                     TenTag = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DuyetBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
+                    TrangThai = table.Column<int>(type: "int", nullable: false),
                     PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -541,7 +532,6 @@ namespace UteLearningHub.Persistence.Migrations
                     MoTa = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DocumentName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TenChuanHoa = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CoDuocTai = table.Column<bool>(type: "bit", nullable: false),
                     CoHienThi = table.Column<int>(type: "int", nullable: false),
                     TepBiaId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -749,10 +739,9 @@ namespace UteLearningHub.Persistence.Migrations
                     NoiDung = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DuyetBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
+                    TrangThai = table.Column<int>(type: "int", nullable: false),
+                    DuyetBoiId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    GhiChuDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -814,12 +803,9 @@ namespace UteLearningHub.Persistence.Migrations
                     LaChinh = table.Column<bool>(type: "bit", nullable: false),
                     ThuTu = table.Column<int>(type: "int", nullable: false),
                     TepBiaId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    TrangThai = table.Column<int>(type: "int", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DuyetBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
                     PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -906,12 +892,9 @@ namespace UteLearningHub.Persistence.Migrations
                     TaiLieu_TepId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     PhanTuChaId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     NoiDung = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TrangThai = table.Column<int>(type: "int", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DuyetBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
                     PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -926,12 +909,6 @@ namespace UteLearningHub.Persistence.Migrations
                         name: "FK_BinhLuan_BinhLuan_PhanTuChaId",
                         column: x => x.PhanTuChaId,
                         principalTable: "BinhLuan",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_BinhLuan_NguoiDung_DuyetBoi",
-                        column: x => x.DuyetBoi,
-                        principalTable: "NguoiDung",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
@@ -1022,15 +999,15 @@ namespace UteLearningHub.Persistence.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TaiLieuId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    TaiLieu_TepId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     BinhLuanId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     NoiDung = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DuyetBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    NoiDungDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NgayDuyet = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    TrangThaiDuyet = table.Column<int>(type: "int", nullable: false),
+                    TrangThai = table.Column<int>(type: "int", nullable: false),
+                    DuyetBoiId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    DuyetLuc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    GhiChuDuyet = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PhienBanHang = table.Column<byte[]>(type: "rowversion", rowVersion: true, nullable: true),
                     NgayTao = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     NgayCapNhat = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -1048,8 +1025,8 @@ namespace UteLearningHub.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_BaoCao_NguoiDung_DuyetBoi",
-                        column: x => x.DuyetBoi,
+                        name: "FK_BaoCao_NguoiDung_DuyetBoiId",
+                        column: x => x.DuyetBoiId,
                         principalTable: "NguoiDung",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
@@ -1060,9 +1037,9 @@ namespace UteLearningHub.Persistence.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_BaoCao_TaiLieu_TaiLieuId",
-                        column: x => x.TaiLieuId,
-                        principalTable: "TaiLieu",
+                        name: "FK_BaoCao_TaiLieu_Tep_TaiLieu_TepId",
+                        column: x => x.TaiLieu_TepId,
+                        principalTable: "TaiLieu_Tep",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
@@ -1073,24 +1050,19 @@ namespace UteLearningHub.Persistence.Migrations
                 column: "BinhLuanId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BaoCao_DuyetBoi",
+                name: "IX_BaoCao_DuyetBoiId",
                 table: "BaoCao",
-                column: "DuyetBoi");
+                column: "DuyetBoiId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BaoCao_TaiLieuId",
+                name: "IX_BaoCao_TaiLieu_TepId",
                 table: "BaoCao",
-                column: "TaiLieuId");
+                column: "TaiLieu_TepId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BaoCao_TaoBoi",
                 table: "BaoCao",
                 column: "TaoBoi");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BinhLuan_DuyetBoi",
-                table: "BinhLuan",
-                column: "DuyetBoi");
 
             migrationBuilder.CreateIndex(
                 name: "IX_BinhLuan_PhanTuChaId",

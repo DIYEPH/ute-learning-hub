@@ -7,7 +7,6 @@ namespace UteLearningHub.Application.Common.Dtos
         public Guid Id { get; init; }
         public string DocumentName { get; init; } = default!;
         public string Description { get; init; } = default!;
-        public bool IsDownload { get; init; }
         public VisibilityStatus Visibility { get; init; }
         public SubjectDto? Subject { get; init; }
         public TypeDto Type { get; init; } = default!;

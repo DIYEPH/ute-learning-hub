@@ -10,9 +10,9 @@ public record GetMyDocumentsRequest : PagedRequest
     public Guid? TagId { get; init; }
     public string? SearchTerm { get; init; }
     public VisibilityStatus? Visibility { get; init; }
-    public ReviewStatus? ReviewStatus { get; init; }
-    public bool? IsDownload { get; init; }
+    public ContentStatus? FileStatus { get; init; }
     public string? SortBy { get; init; } // "name", "createdAt", "authorName"
     public bool SortDescending { get; init; } = true;
 }
+
 

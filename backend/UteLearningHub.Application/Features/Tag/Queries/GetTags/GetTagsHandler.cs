@@ -40,7 +40,7 @@ public class GetTagsHandler : IRequestHandler<GetTagsQuery, PagedResponse<TagDto
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
         if (!isAdmin)
         {
-            query = query.Where(t => t.ReviewStatus == ReviewStatus.Approved);
+            query = query.Where(t => t.Status == ContentStatus.Approved);
         }
 
         // Order by name

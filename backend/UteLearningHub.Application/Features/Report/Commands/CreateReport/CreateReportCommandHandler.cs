@@ -2,13 +2,12 @@ using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Comment;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Application.Services.TrustScore;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
-using ReportDomain = UteLearningHub.Domain.Entities.Report;
+using ReportEntity = UteLearningHub.Domain.Entities.Report;
 
 namespace UteLearningHub.Application.Features.Report.Commands.CreateReport;
 
@@ -19,7 +18,6 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
     private readonly ICommentRepository _commentRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly ICommentService _commentService;
-    private readonly ITrustScoreService _trustScoreService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IUserService _userService;
 
@@ -29,7 +27,6 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
         ICommentRepository commentRepository,
         ICurrentUserService currentUserService,
         ICommentService commentService,
-        ITrustScoreService trustScoreService,
         IDateTimeProvider dateTimeProvider,
         IUserService userService)
     {
@@ -38,7 +35,6 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
         _commentRepository = commentRepository;
         _currentUserService = currentUserService;
         _commentService = commentService;
-        _trustScoreService = trustScoreService;
         _dateTimeProvider = dateTimeProvider;
         _userService = userService;
     }
@@ -49,49 +45,49 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
             throw new UnauthorizedException("You must be authenticated to create reports");
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+        var now = _dateTimeProvider.OffsetNow;
 
         var isAdmin = _currentUserService.IsInRole("Admin");
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
 
-        var canCreateReport = isAdmin ||
-                       (trustLevel.HasValue && trustLevel.Value >= TrustLever.Newbie);
-
+        var canCreateReport = isAdmin || (trustLevel.HasValue && trustLevel.Value >= TrustLever.Newbie);
         if (!canCreateReport)
-            throw new UnauthorizedException("Only administrators or users with high trust level can create reports");
+            throw new UnauthorizedException("Only administrators or users with Newbie+ trust level can create reports");
 
+        // Validate: must have either DocumentFileId or CommentId, but not both
+        if (!request.DocumentFileId.HasValue && !request.CommentId.HasValue)
+            throw new BadRequestException("Either DocumentFileId or CommentId must be provided");
 
-        // Validate: must have either DocumentId or CommentId, but not both
-        if (!request.DocumentId.HasValue && !request.CommentId.HasValue)
-            throw new BadRequestException("Either DocumentId or CommentId must be provided");
+        if (request.DocumentFileId.HasValue && request.CommentId.HasValue)
+            throw new BadRequestException("Cannot report both document file and comment at the same time");
 
-        if (request.DocumentId.HasValue && request.CommentId.HasValue)
-            throw new BadRequestException("Cannot report both document and comment at the same time");
-
-        // Validate document or comment exists
-        if (request.DocumentId.HasValue)
+        // Validate document file or comment exists
+        if (request.DocumentFileId.HasValue)
         {
-            var document = await _documentRepository.GetByIdAsync(request.DocumentId.Value, disableTracking: true, cancellationToken);
-            if (document == null || document.IsDeleted)
-                throw new NotFoundException($"Document with id {request.DocumentId.Value} not found");
+            var documentFile = await _documentRepository.GetDocumentFileByIdAsync(
+                request.DocumentFileId.Value, disableTracking: true, cancellationToken);
+            if (documentFile == null || documentFile.IsDeleted)
+                throw new NotFoundException($"DocumentFile with id {request.DocumentFileId.Value} not found");
         }
 
         if (request.CommentId.HasValue)
         {
-            var comment = await _commentRepository.GetByIdAsync(request.CommentId.Value, disableTracking: true, cancellationToken);
+            var comment = await _commentRepository.GetByIdAsync(
+                request.CommentId.Value, disableTracking: true, cancellationToken);
             if (comment == null || comment.IsDeleted)
                 throw new NotFoundException($"Comment with id {request.CommentId.Value} not found");
         }
 
-        // Create report
-        var report = new ReportDomain
+        // Create report - always PendingReview, admin/moderator will review
+        var report = new ReportEntity
         {
             Id = Guid.NewGuid(),
-            DocumentId = request.DocumentId,
+            DocumentFileId = request.DocumentFileId,
             CommentId = request.CommentId,
             Content = request.Content,
-            ReviewStatus = ReviewStatus.PendingReview,
+            Status = ContentStatus.PendingReview,
             CreatedById = userId,
-            CreatedAt = _dateTimeProvider.OffsetNow
+            CreatedAt = now
         };
 
         await _reportRepository.AddAsync(report, cancellationToken);
@@ -104,14 +100,16 @@ public class CreateReportCommandHandler : IRequestHandler<CreateReportCommand, R
         return new ReportDto
         {
             Id = report.Id,
-            DocumentId = report.DocumentId,
+            DocumentFileId = report.DocumentFileId,
             CommentId = report.CommentId,
             Content = report.Content,
             ReporterName = reporter?.FullName ?? "Unknown",
             ReporterAvatarUrl = reporter?.AvatarUrl,
             CreatedById = report.CreatedById,
-            ReviewStatus = report.ReviewStatus,
+            Status = report.Status,
             CreatedAt = report.CreatedAt
         };
     }
 }
+
+

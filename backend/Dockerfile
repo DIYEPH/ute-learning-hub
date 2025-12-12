@@ -12,6 +12,7 @@ COPY UteLearningHub.Infrastructure/UteLearningHub.Infrastructure.csproj UteLearn
 COPY UteLearningHub.Persistence/UteLearningHub.Persistence.csproj UteLearningHub.Persistence/
 COPY UteLearningHub.Domain/UteLearningHub.Domain.csproj UteLearningHub.Domain/
 COPY UteLearningHub.CrossCuttingConcerns/UteLearningHub.CrossCuttingConcerns.csproj UteLearningHub.CrossCuttingConcerns/
+COPY UteLearningHub.UnitTest/UteLearningHub.UnitTest.csproj UteLearningHub.UnitTest/
 
 # Restore dependencies
 RUN dotnet restore UteLearningHub.sln

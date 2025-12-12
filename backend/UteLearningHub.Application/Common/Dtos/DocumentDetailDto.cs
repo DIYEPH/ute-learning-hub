@@ -7,7 +7,6 @@ public record DocumentDetailDto
     public Guid Id { get; init; }
     public string DocumentName { get; init; } = default!;
     public string Description { get; init; } = default!;
-    public bool IsDownload { get; init; }
     public VisibilityStatus Visibility { get; init; }
     public SubjectDto? Subject { get; init; }
     public TypeDto Type { get; init; } = default!;
@@ -34,12 +33,7 @@ public record DocumentFileDto
     public bool IsPrimary { get; init; }
     public int? TotalPages { get; init; }
     public Guid? CoverFileId { get; init; }
-
-    // Review properties
-    public ReviewStatus ReviewStatus { get; init; }
-    public Guid? ReviewedById { get; init; }
-    public DateTimeOffset? ReviewedAt { get; init; }
-    public string? ReviewNote { get; init; }
+    public ContentStatus Status { get; init; }
 
     // Thống kê theo từng DocumentFile
     public int CommentCount { get; init; }
@@ -49,4 +43,5 @@ public record DocumentFileDto
     // Progress tracking
     public DocumentProgressDto? Progress { get; init; }
 }
+
 

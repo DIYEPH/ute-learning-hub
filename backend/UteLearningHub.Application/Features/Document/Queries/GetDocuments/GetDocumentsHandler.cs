@@ -40,8 +40,8 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
         if (request.TypeId.HasValue)
             query = query.Where(d => d.TypeId == request.TypeId.Value);
 
-        if (request.TagId.HasValue)
-            query = query.Where(d => d.DocumentTags.Any(dt => dt.TagId == request.TagId.Value));
+        if (request.TagIds != null && request.TagIds.Count > 0)
+            query = query.Where(d => d.DocumentTags.Any(dt => request.TagIds.Contains(dt.TagId)));
 
         if (request.MajorId.HasValue)
             query = query.Where(d => d.Subject != null && d.Subject.SubjectMajors.Any(sm => sm.MajorId == request.MajorId.Value));
@@ -60,16 +60,13 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
         if (request.Visibility.HasValue)
             query = query.Where(d => d.Visibility == request.Visibility.Value);
 
-        if (request.IsDownload.HasValue)
-            query = query.Where(d => d.IsDownload == request.IsDownload.Value);
-
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
         var isAuthenticated = _currentUserService.IsAuthenticated;
 
         // Non-admin users can only see documents with at least 1 approved file
         if (!isAdmin)
         {
-            query = query.Where(d => d.DocumentFiles.Any(f => !f.IsDeleted && f.ReviewStatus == ReviewStatus.Approved));
+            query = query.Where(d => d.DocumentFiles.Any(f => !f.IsDeleted && f.Status == ContentStatus.Approved));
         }
 
         if (!request.Visibility.HasValue)
@@ -106,7 +103,6 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        // Apply pagination
         // Chỉ hiển thị tài liệu đã có ít nhất 1 file chương
         query = query.Where(d => d.DocumentFiles.Any());
 
@@ -145,7 +141,6 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
                 Id = d.Id,
                 DocumentName = d.DocumentName,
                 Description = d.Description,
-                IsDownload = d.IsDownload,
                 Visibility = d.Visibility,
                 Subject = d.Subject != null ? new SubjectDto
                 {
@@ -197,7 +192,6 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             Id = d.Id,
             DocumentName = d.DocumentName,
             Description = d.Description,
-            IsDownload = d.IsDownload,
             Visibility = d.Visibility,
             Subject = d.Subject,
             Type = d.Type,

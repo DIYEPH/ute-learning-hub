@@ -68,14 +68,13 @@ public class ReviewConversationJoinRequestHandler : IRequestHandler<ReviewConver
             throw new UnauthorizedException("Only administrators, conversation owners, or deputies can review join requests");
 
         // Update review information
-        joinRequest.ReviewStatus = request.ReviewStatus;
+        joinRequest.Status = request.Status;
         joinRequest.ReviewedById = userId;
-        joinRequest.ReviewedAt = _dateTimeProvider.OffsetNow;
         joinRequest.ReviewNote = request.ReviewNote;
 
         // If approved, add user to conversation members
         var approvedAndAdded = false;
-        if (request.ReviewStatus == ReviewStatus.Approved)
+        if (request.Status == ContentStatus.Approved)
         {
             // Check if user is already a member
             var isMember = await _conversationRepository.GetQueryableSet()
