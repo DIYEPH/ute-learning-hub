@@ -115,7 +115,7 @@ export function ImageUpload({
                         <img
                             src={preview}
                             alt="Preview"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                         />
                     </div>
                     {/* Overlay with actions */}

@@ -224,7 +224,7 @@ export function CreateConversationModal({
 
           <div>
             <Label htmlFor="tagIds">
-              Thẻ <span className="text-red-500">*</span>
+              Chủ đề <span className="text-red-500">*</span>
             </Label>
             <TagPicker
               options={tags

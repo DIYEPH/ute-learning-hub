@@ -8,13 +8,6 @@ import { useDebounce } from "@/src/hooks/use-debounce";
 import { getApiNotification, getApiUser } from "@/src/api/database/sdk.gen";
 import type { CreateNotificationCommand, UpdateNotificationRequest, NotificationDto, UserDto } from "@/src/api/database/types.gen";
 import { AlertCircle, Loader2 } from "lucide-react";
-// (Auto-generated types like Message, Comment, Document, UserAction, Conversation are excluded)
-const NotificationTypes = [
-    { value: 0, label: "System" },
-    { value: 6, label: "Event" },
-    { value: 7, label: "Announcement" },
-];
-
 // NotificationPriorityType enum
 const PriorityTypes = [
     { value: 0, label: "Low" },
@@ -55,7 +48,7 @@ export function NotificationForm({
         link: null,
         isGlobal: true,
         expiredAt: null,
-        notificationType: 0,
+        notificationType: 7, // Default to AdminNote
         notificationPriorityType: 1,
         recipientIds: [],
     });
@@ -290,46 +283,24 @@ export function NotificationForm({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* NotificationType */}
-                    <div>
-                        <Label htmlFor="notificationType">{t("form.type")}</Label>
-                        <select
-                            id="notificationType"
-                            value={formData.notificationType ?? 0}
-                            onChange={(e) =>
-                                setFormData((prev) => ({ ...prev, notificationType: parseInt(e.target.value) }))
-                            }
-                            disabled={isDisabled}
-                            className="mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            {NotificationTypes.map((type) => (
-                                <option key={type.value} value={type.value}>
-                                    {type.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Priority */}
-                    <div>
-                        <Label htmlFor="priority">{t("form.priority")}</Label>
-                        <select
-                            id="priority"
-                            value={formData.notificationPriorityType ?? 1}
-                            onChange={(e) =>
-                                setFormData((prev) => ({ ...prev, notificationPriorityType: parseInt(e.target.value) }))
-                            }
-                            disabled={isDisabled}
-                            className="mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                            {PriorityTypes.map((type) => (
-                                <option key={type.value} value={type.value}>
-                                    {type.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                {/* Priority */}
+                <div>
+                    <Label htmlFor="priority">{t("form.priority")}</Label>
+                    <select
+                        id="priority"
+                        value={formData.notificationPriorityType ?? 1}
+                        onChange={(e) =>
+                            setFormData((prev) => ({ ...prev, notificationPriorityType: parseInt(e.target.value) }))
+                        }
+                        disabled={isDisabled}
+                        className="mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        {PriorityTypes.map((type) => (
+                            <option key={type.value} value={type.value}>
+                                {type.label}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 {/* IsGlobal - Only show when creating */}

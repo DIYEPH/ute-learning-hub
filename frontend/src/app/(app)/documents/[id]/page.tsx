@@ -4,15 +4,17 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, FileText, Edit } from "lucide-react";
 
-import { getApiDocumentById } from "@/src/api/database/sdk.gen";
-import type { DocumentDetailDto } from "@/src/api/database/types.gen";
+import { getApiDocumentById, deleteApiDocumentByDocumentIdFilesByFileId, putApiDocumentByDocumentIdFilesByFileId } from "@/src/api/database/sdk.gen";
+import type { DocumentDetailDto, DocumentFileDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { EditDocumentModal } from "@/src/components/documents/edit-document-modal";
+import { EditDocumentFileModal } from "@/src/components/documents/edit-document-file-modal";
 import { DocumentFileUpload } from "@/src/components/documents/document-file-upload";
 import { DocumentFileList } from "@/src/components/documents/document-file-list";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
+import { useNotification } from "@/src/components/providers/notification-provider";
 
 export default function DocumentDetailPage() {
   const params = useParams<{ id: string }>();
@@ -24,7 +26,10 @@ export default function DocumentDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showEditFileModal, setShowEditFileModal] = useState(false);
+  const [editingFile, setEditingFile] = useState<DocumentFileDto | null>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const { success: notifySuccess, error: notifyError } = useNotification();
 
   // Check if current user is the owner
   const isOwner = profile?.id && data?.createdById && profile.id === data.createdById;
@@ -83,6 +88,53 @@ export default function DocumentDetailPage() {
       }
     } catch (err) {
       console.error("Error refreshing data:", err);
+    }
+  };
+
+  const handleEditFile = (file: DocumentFileDto) => {
+    setEditingFile(file);
+    setShowEditFileModal(true);
+  };
+
+  const handleDeleteFile = async (fileId: string) => {
+    if (!documentId || !confirm("Bạn có chắc muốn xóa chương/file này?")) return;
+    try {
+      await deleteApiDocumentByDocumentIdFilesByFileId({
+        path: { documentId, fileId },
+      });
+      notifySuccess("Đã xóa file thành công");
+      await refreshData();
+    } catch (err: any) {
+      notifyError(err?.message || "Không thể xóa file");
+    }
+  };
+
+  const handleReorder = async (reorderedFiles: DocumentFileDto[]) => {
+    if (!documentId) return;
+
+    // Optimistic update
+    setData(prev => prev ? { ...prev, files: reorderedFiles } : prev);
+
+    // Update each file's order in the backend
+    try {
+      await Promise.all(
+        reorderedFiles.map((file, index) =>
+          file.id
+            ? putApiDocumentByDocumentIdFilesByFileId({
+              path: { documentId, fileId: file.id },
+              body: {
+                documentId,
+                documentFileId: file.id,
+                order: index,
+              },
+            })
+            : Promise.resolve()
+        )
+      );
+      notifySuccess("Đã cập nhật thứ tự các chương");
+    } catch (err: any) {
+      notifyError(err?.message || "Không thể cập nhật thứ tự");
+      await refreshData(); // Revert on error
     }
   };
 
@@ -262,17 +314,36 @@ export default function DocumentDetailPage() {
             </div>
           </div>
           <div className="p-4">
-            <DocumentFileList files={files} document={doc} />
+            <DocumentFileList
+              files={files}
+              document={doc}
+              onEdit={handleEditFile}
+              onDelete={handleDeleteFile}
+              onReorder={handleReorder}
+            />
           </div>
         </div>
       </div>
 
-      {/* Modal chỉnh sửa document */}
       {data && (
         <EditDocumentModal
           open={showEditModal}
           onOpenChange={setShowEditModal}
           document={data}
+          onSuccess={refreshData}
+        />
+      )}
+
+      {/* Modal chỉnh sửa file */}
+      {editingFile && documentId && (
+        <EditDocumentFileModal
+          open={showEditFileModal}
+          onOpenChange={(open: boolean) => {
+            setShowEditFileModal(open);
+            if (!open) setEditingFile(null);
+          }}
+          documentId={documentId}
+          file={editingFile}
           onSuccess={refreshData}
         />
       )}

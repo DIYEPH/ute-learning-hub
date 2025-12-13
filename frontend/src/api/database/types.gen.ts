@@ -7,9 +7,6 @@ export type ClientOptions = {
 export type AddDocumentFileCommand = {
     documentId?: string;
     title?: string | null;
-    order?: number | null;
-    isPrimary?: boolean;
-    totalPages?: number | null;
     fileId?: string;
     coverFileId?: string | null;
 };
@@ -305,7 +302,6 @@ export type DocumentFileDto = {
     mimeType?: string;
     title?: string | null;
     order?: number | null;
-    isPrimary?: boolean;
     totalPages?: number | null;
     coverFileId?: string | null;
     status?: ContentStatus;
@@ -501,8 +497,6 @@ export type NotificationType = number;
 export type NullableOfConversationStatus = number | null;
 
 export type NullableOfConversationVisibility = number | null;
-
-export type NullableOfConversitionType = number | null;
 
 export type NullableOfGender = number | null;
 
@@ -805,7 +799,6 @@ export type UpdateConversationCommand = {
     conversationName?: string | null;
     tagIds?: Array<string> | null;
     tagNames?: Array<string> | null;
-    conversationType?: NullableOfConversitionType;
     visibility?: NullableOfConversationVisibility;
     conversationStatus?: NullableOfConversationStatus;
     subjectId?: string | null;
@@ -832,7 +825,6 @@ export type UpdateDocumentFileCommand = {
     documentFileId?: string;
     title?: string | null;
     order?: number | null;
-    isPrimary?: boolean | null;
     coverFileId?: string | null;
 };
 
@@ -1511,7 +1503,6 @@ export type GetApiConversationJoinRequestData = {
         ConversationId?: string;
         CreatedById?: string;
         Status?: string;
-        SearchTerm?: string;
         Page?: number;
         PageSize?: number;
         Skip?: number;

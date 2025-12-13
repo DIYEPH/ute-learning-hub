@@ -4,19 +4,6 @@ import { useTranslations } from "next-intl";
 import { BaseTable, BaseTableColumn } from "@/src/components/admin/tables/base-table";
 import type { NotificationDto } from "@/src/api/database/types.gen";
 import { Badge } from "@/src/components/ui/badge";
-
-// NotificationType enum mapping
-const NotificationTypeLabels: Record<number, string> = {
-    0: "System",
-    1: "Message",
-    2: "Comment",
-    3: "Document",
-    4: "UserAction",
-    5: "Conversation",
-    6: "Event",
-    7: "Announcement",
-};
-
 // NotificationPriorityType enum mapping
 const PriorityLabels: Record<number, string> = {
     0: "Low",
@@ -74,17 +61,6 @@ export function NotificationTable({
             sortable: true,
             render: (notification) => (
                 <div className="font-medium text-foreground">{notification.title}</div>
-            ),
-        },
-        {
-            key: "notificationType",
-            header: t("table.type"),
-            className: "min-w-[100px]",
-            sortable: true,
-            render: (notification) => (
-                <Badge variant="outline">
-                    {NotificationTypeLabels[notification.notificationType ?? 0]}
-                </Badge>
             ),
         },
         {

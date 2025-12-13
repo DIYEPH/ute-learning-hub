@@ -97,9 +97,8 @@ export default function ConversationsPage() {
       const query: any = {
         Page: pageNum,
         PageSize: PAGE_SIZE,
-        // Chỉ hiện nhóm (Group) và công khai (Public) trong trang tìm kiếm
+
         ConversationType: 1, // 1 = Group
-        Visibility: 1, // 1 = Public
       };
 
       if (searchTerm.trim()) {
@@ -232,7 +231,7 @@ export default function ConversationsPage() {
               onChange={(e) => setTagId(e.target.value === "all" ? null : e.target.value)}
               className="w-full  border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <option value="all">Tất cả thẻ</option>
+              <option value="all">Tất cả chủ đề</option>
               {tags
                 .filter((t): t is TagDto & { id: string } => !!t?.id)
                 .map((tag) => (

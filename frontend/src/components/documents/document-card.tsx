@@ -132,14 +132,14 @@ export function DocumentCard({
           <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-700">
             {usefulCount !== undefined && (
               <div className="flex items-center gap-1" title="Hữu ích">
-                <ThumbsUp className={`h-3 w-3 flex-shrink-0 ${usefulCount > 0 ? 'text-emerald-600 dark:text-emerald-400 fill-emerald-600 dark:fill-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} />
-                <span className={`font-medium ${usefulCount > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>{usefulCount}</span>
+                <ThumbsUp className="h-3 w-3 flex-shrink-0 text-slate-400 dark:text-slate-500" />
+                <span className="font-medium text-slate-500 dark:text-slate-400">{usefulCount}</span>
               </div>
             )}
             {notUsefulCount !== undefined && (
               <div className="flex items-center gap-1" title="Không hữu ích">
-                <ThumbsDown className={`h-3 w-3 flex-shrink-0 ${notUsefulCount > 0 ? 'text-red-600 dark:text-red-400 fill-red-600 dark:fill-red-400' : 'text-slate-400 dark:text-slate-500'}`} />
-                <span className={`font-medium ${notUsefulCount > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-500 dark:text-slate-400'}`}>{notUsefulCount}</span>
+                <ThumbsDown className="h-3 w-3 flex-shrink-0 text-slate-400 dark:text-slate-500" />
+                <span className="font-medium text-slate-500 dark:text-slate-400">{notUsefulCount}</span>
               </div>
             )}
             {commentCount !== undefined && (

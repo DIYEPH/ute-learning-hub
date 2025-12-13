@@ -1,6 +1,6 @@
 "use client";
 
-import { ThumbsUp, ThumbsDown, MessageSquare, FileText, MoreVertical, Flag } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, FileText, MoreVertical, Flag, Pencil, Trash2 } from "lucide-react";
 import type { DocumentFileDto } from "@/src/api/database/types.gen";
 import { getFileUrlById } from "@/src/lib/file-url";
 import {
@@ -15,16 +15,43 @@ interface DocumentFileItemProps {
   file: DocumentFileDto;
   index: number;
   documentName?: string;
+  isOwner?: boolean;
+  onEdit?: (file: DocumentFileDto) => void;
+  onDelete?: (fileId: string) => void;
   onReport?: (fileId: string) => void;
 }
 
-export function DocumentFileItem({ file, index, documentName, onReport }: DocumentFileItemProps) {
+export function DocumentFileItem({
+  file,
+  index,
+  documentName,
+  isOwner = false,
+  onEdit,
+  onDelete,
+  onReport,
+}: DocumentFileItemProps) {
   const coverUrl = getFileUrlById(file.coverFileId);
   const fileSize = file.fileSize ? `${(file.fileSize / 1024 / 1024).toFixed(2)} MB` : "";
   const title = file.title || `${documentName || "Tài liệu"} (${index + 1})`;
   const useful = file.usefulCount ?? 0;
   const notUseful = file.notUsefulCount ?? 0;
   const commentCount = file.commentCount ?? 0;
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onEdit) {
+      onEdit(file);
+    }
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (file.id && onDelete) {
+      onDelete(file.id);
+    }
+  };
 
   const handleReport = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,6 +60,9 @@ export function DocumentFileItem({ file, index, documentName, onReport }: Docume
       onReport(file.id);
     }
   };
+
+  // Check if menu has any items to show
+  const hasMenuItems = isOwner || (!isOwner && onReport);
 
   return (
     <div className="flex gap-3 p-3 border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 hover:border-sky-400 hover:shadow-md transition-all cursor-pointer ">
@@ -77,25 +107,42 @@ export function DocumentFileItem({ file, index, documentName, onReport }: Docume
       </div>
 
       {/* Dropdown Menu */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 flex-shrink-0"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <MoreVertical className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleReport} className="text-red-600 focus:text-red-600">
-            <Flag className="h-4 w-4 mr-2" />
-            Báo cáo
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      {hasMenuItems && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild onClick={(e) => e.preventDefault()}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 flex-shrink-0"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {/* Owner actions */}
+            {isOwner && onEdit && (
+              <DropdownMenuItem onClick={handleEdit}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Chỉnh sửa
+              </DropdownMenuItem>
+            )}
+            {isOwner && onDelete && (
+              <DropdownMenuItem onClick={handleDelete} className="text-red-600 focus:text-red-600">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Xóa
+              </DropdownMenuItem>
+            )}
+            {/* Report - only for non-owner */}
+            {!isOwner && onReport && (
+              <DropdownMenuItem onClick={handleReport} className="text-red-600 focus:text-red-600">
+                <Flag className="h-4 w-4 mr-2" />
+                Báo cáo
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 }
-

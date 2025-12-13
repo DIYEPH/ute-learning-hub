@@ -44,9 +44,8 @@ export default function NotificationsManagementPage() {
     const [selectedNotification, setSelectedNotification] = useState<NotificationDto | null>(null);
     const [formLoading, setFormLoading] = useState(false);
     const [deleteAllModalOpen, setDeleteAllModalOpen] = useState(false);
-    const [typeFilter, setTypeFilter] = useState<string | null>(null);
     const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
-    const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
+    const [deletedFilter, setDeletedFilter] = useState<string | null>("false"); // Default to active items
 
     const loadNotifications = useCallback(async () => {
         try {
@@ -69,11 +68,6 @@ export default function NotificationsManagementPage() {
                     );
                 }
 
-                // Filter by type
-                if (typeFilter) {
-                    items = items.filter((item) => item.notificationType === parseInt(typeFilter));
-                }
-
                 // Filter by priority
                 if (priorityFilter) {
                     items = items.filter((item) => item.notificationPriorityType === parseInt(priorityFilter));
@@ -85,7 +79,7 @@ export default function NotificationsManagementPage() {
         } catch (err) {
             console.error("Error loading notifications:", err);
         }
-    }, [fetchNotifications, searchTerm, typeFilter, priorityFilter, page, pageSize]);
+    }, [fetchNotifications, searchTerm, priorityFilter, deletedFilter, page, pageSize]);
 
     useEffect(() => {
         loadNotifications();
@@ -177,9 +171,8 @@ export default function NotificationsManagementPage() {
 
     const handleReset = () => {
         setSearchTerm("");
-        setTypeFilter(null);
         setPriorityFilter(null);
-        setDeletedFilter(null);
+        setDeletedFilter("false"); // Keep default to active items
         setSortKey(null);
         setSortDirection(null);
         setPage(1);
@@ -202,9 +195,7 @@ export default function NotificationsManagementPage() {
     };
 
     const handleFilterChange = (key: string, value: string | null) => {
-        if (key === "type") {
-            setTypeFilter(value);
-        } else if (key === "priority") {
+        if (key === "priority") {
             setPriorityFilter(value);
         } else if (key === "deleted") {
             setDeletedFilter(value);
@@ -244,17 +235,6 @@ export default function NotificationsManagementPage() {
                     placeholder={t("searchPlaceholder")}
                     filters={[
                         {
-                            key: "type",
-                            label: t("filter.type"),
-                            type: "select",
-                            value: typeFilter,
-                            options: [
-                                { value: "0", label: "System" },
-                                { value: "6", label: "Event" },
-                                { value: "7", label: "Announcement" },
-                            ],
-                        },
-                        {
                             key: "priority",
                             label: t("filter.priority"),
                             type: "select",
@@ -288,6 +268,12 @@ export default function NotificationsManagementPage() {
                 </div>
             )}
 
+            {notifications.length > 0 && (
+                <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+                    {t("foundCount", { count: totalCount })}
+                </div>
+            )}
+
             {/* Table */}
             <div className="mt-4">
                 <NotificationTable
@@ -303,15 +289,15 @@ export default function NotificationsManagementPage() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-                <Pagination
-                    currentPage={page}
-                    totalPages={totalPages}
-                    totalItems={totalCount}
-                    pageSize={pageSize}
-                    onPageChange={setPage}
-                />
-            )}
+            <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={totalCount}
+                pageSize={pageSize}
+                onPageChange={setPage}
+                loading={loading}
+                className="mt-4"
+            />
 
             {/* Create Modal */}
             <CreateModal

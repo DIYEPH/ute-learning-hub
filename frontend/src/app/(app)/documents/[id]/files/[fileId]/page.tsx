@@ -143,11 +143,6 @@ export default function DocumentFileDetailPage() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          {file.isPrimary && (
-            <Badge variant="outline" className="border-amber-300 text-amber-700 text-[10px] py-0 h-5">
-              Chính
-            </Badge>
-          )}
           {doc.subject?.subjectName && (
             <Badge variant="outline" className="border-emerald-200 text-emerald-700 text-[10px] py-0 h-5 hidden md:inline-flex">
               {doc.subject.subjectName}

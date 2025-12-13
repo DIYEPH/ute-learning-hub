@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
-import { ArrowLeft, Send, Loader2, Paperclip, List, Settings, FolderOpen, X, Image as ImageIcon } from "lucide-react";
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { ArrowLeft, Send, Loader2, Paperclip, List, Settings, FolderOpen, X, Image as ImageIcon, UserPlus } from "lucide-react";
 // import { format } from "date-fns";
 // import { vi } from "date-fns/locale";
 
@@ -20,6 +20,7 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { EditConversationSidebar } from "@/src/components/conversations/edit-conversation-sidebar";
+import { JoinRequestSidebar } from "@/src/components/conversations/join-request-sidebar";
 import { ConversationFilesSidebar } from "@/src/components/conversations/conversation-files-sidebar";
 import { MessageItem } from "@/src/components/conversations/message-item";
 import { PinnedMessagesSection } from "@/src/components/conversations/pinned-messages-section";
@@ -48,11 +49,22 @@ export function ConversationDetail({
   const [error, setError] = useState<string | null>(null);
   const [showEditSidebar, setShowEditSidebar] = useState(false);
   const [showFilesSidebar, setShowFilesSidebar] = useState(false);
+  const [showJoinRequestSidebar, setShowJoinRequestSidebar] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Check if current user is owner or deputy
+  const isOwnerOrDeputy = useMemo(() => {
+    if (!conversation?.members || !profile?.id) return false;
+    const currentMember = conversation.members.find(m => m.userId === profile.id);
+    return currentMember?.roleType === 2 || currentMember?.roleType === 1; // Owner = 2, Deputy = 1
+  }, [conversation?.members, profile?.id]);
+
+  // Check if conversation is private
+  const isPrivate = conversation?.visibility === 0;
 
   // SignalR integration
   const {
@@ -390,6 +402,18 @@ export function ConversationDetail({
             >
               <FolderOpen className="h-4 w-4" />
             </Button>
+            {/* Join Requests Button - Only for private groups and owner/deputy */}
+            {isPrivate && isOwnerOrDeputy && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowJoinRequestSidebar(true)}
+                className="h-8 w-8 p-0"
+                title="Yêu cầu tham gia"
+              >
+                <UserPlus className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -641,6 +665,17 @@ export function ConversationDetail({
         open={showFilesSidebar}
         onClose={() => setShowFilesSidebar(false)}
         messages={messages}
+      />
+
+      {/* Join Requests Sidebar */}
+      <JoinRequestSidebar
+        open={showJoinRequestSidebar}
+        onClose={() => setShowJoinRequestSidebar(false)}
+        conversationId={conversationId}
+        conversationName={conversation.conversationName || "Cuộc trò chuyện"}
+        onSuccess={() => {
+          void fetchConversation();
+        }}
       />
     </div>
   );

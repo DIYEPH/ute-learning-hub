@@ -137,11 +137,6 @@ export function DocumentDetailModal({
                                                 {file.totalPages && ` • ${file.totalPages} ${t("detailModal.pages")}`}
                                             </div>
                                         </div>
-                                        {file.isPrimary && (
-                                            <Badge variant="default" className="text-xs">
-                                                {t("detailModal.primary")}
-                                            </Badge>
-                                        )}
                                     </div>
                                 ))}
                                 {(!document.files || document.files.length === 0) && (

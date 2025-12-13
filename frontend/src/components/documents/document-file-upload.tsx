@@ -4,11 +4,15 @@ import { useState } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
-import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
+import { Loader2, Upload, X, Image as ImageIcon, AlertCircle } from "lucide-react";
 import { useFileUpload } from "@/src/hooks/use-file-upload";
 import { postApiDocumentByIdFiles } from "@/src/api/database/sdk.gen";
 import type { AddDocumentFileCommand } from "@/src/api/database/types.gen";
 import { useNotification } from "@/src/components/providers/notification-provider";
+
+// File size limit: 100MB (matches backend)
+const MAX_FILE_SIZE_MB = 100;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 interface DocumentFileUploadProps {
   documentId: string;
@@ -24,6 +28,7 @@ export function DocumentFileUpload({
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
   const { uploadFile } = useFileUpload();
   const { success: notifySuccess, error: notifyError } = useNotification();
 
@@ -65,9 +70,6 @@ export function DocumentFileUpload({
         fileId: mainFile.id,
         coverFileId: coverFileId ?? null,
         title: uploadTitle.trim() || null,
-        isPrimary: false,
-        order: null,
-        totalPages: null,
       };
 
       await postApiDocumentByIdFiles({
@@ -114,6 +116,13 @@ export function DocumentFileUpload({
             accept=".pdf,image/*"
             onChange={(e) => {
               const file = e.target.files?.[0] || null;
+              if (file && file.size > MAX_FILE_SIZE_BYTES) {
+                setFileSizeError(`File quá lớn! Giới hạn ${MAX_FILE_SIZE_MB}MB, file của bạn ${(file.size / 1024 / 1024).toFixed(1)}MB`);
+                setSelectedFile(null);
+                e.target.value = "";
+                return;
+              }
+              setFileSizeError(null);
               setSelectedFile(file);
             }}
             className="hidden"
@@ -123,11 +132,18 @@ export function DocumentFileUpload({
           <label
             htmlFor="upload-file"
             className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-xs transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              } ${fileSizeError ? "border-red-300 bg-red-50 dark:bg-red-950/30" : ""}`}
           >
             <Upload size={14} />
             <span className="truncate">{selectedFile ? selectedFile.name : "Chọn file"}</span>
           </label>
+          <p className="mt-0.5 text-[10px] text-slate-400">Tối đa {MAX_FILE_SIZE_MB}MB</p>
+          {fileSizeError && (
+            <p className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+              <AlertCircle size={12} />
+              {fileSizeError}
+            </p>
+          )}
         </div>
 
         {/* Title input */}
@@ -176,7 +192,7 @@ export function DocumentFileUpload({
           <img
             src={coverPreview}
             alt="Preview"
-            className="h-16 w-auto object-cover rounded border border-slate-200 dark:border-slate-700"
+            className="h-16 w-auto object-contain rounded border border-slate-200 dark:border-slate-700"
           />
           <button
             type="button"

@@ -136,7 +136,7 @@ export function EditDocumentModal({
       (!formData.tagIds || formData.tagIds.length === 0) &&
       (!formData.tagNames || formData.tagNames.length === 0)
     ) {
-      setError("Vui lòng chọn hoặc thêm ít nhất 1 tag");
+      setError("Vui lòng chọn hoặc thêm ít nhất 1 chủ đề");
       return;
     }
 

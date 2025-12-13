@@ -1531,13 +1531,6 @@
             }
           },
           {
-            "name": "SearchTerm",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "Page",
             "in": "query",
             "schema": {
@@ -5174,19 +5167,6 @@
             "type": "string",
             "nullable": true
           },
-          "order": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "isPrimary": {
-            "type": "boolean"
-          },
-          "totalPages": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
           "fileId": {
             "type": "string",
             "format": "uuid"
@@ -6116,9 +6096,6 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
-          },
-          "isPrimary": {
-            "type": "boolean"
           },
           "totalPages": {
             "type": "integer",
@@ -7706,10 +7683,6 @@
           "order": {
             "type": "integer",
             "format": "int32",
-            "nullable": true
-          },
-          "isPrimary": {
-            "type": "boolean",
             "nullable": true
           },
           "coverFileId": {

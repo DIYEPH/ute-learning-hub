@@ -48,7 +48,7 @@
     "searchSubject": "Tìm môn học...",
     "noSubjectFilter": "Chưa phân loại",
     "noSubjectFound": "Không tìm thấy môn học",
-    "tags": "Thẻ",
+    "tags": "Chủ đề",
     "author": "Tác giả",
     "searchAuthor": "Tìm tác giả...",
     "noAuthorFound": "Không tìm thấy tác giả",
@@ -104,7 +104,7 @@
     "author": "Tác giả",
     "subject": "Môn học",
     "type": "Loại",
-    "tags": "Thẻ",
+    "tags": "Chủ đề",
     "visibility": "Hiển thị",
     "download": "Tải xuống",
     "view": "Xem",
@@ -160,7 +160,7 @@
       "faculties": "Quản lý Khoa",
       "majors": "Quản lý Ngành",
       "types": "Quản lý Loại tài liệu",
-      "tags": "Quản lý Thẻ",
+      "tags": "Quản lý Chủ đề",
       "notifications": "Quản lý thông báo",
       "conversations": "Quản lý cuộc trò chuyện",
       "statistics": "Thống kê",
@@ -261,7 +261,7 @@
         "selectSubject": "Chọn môn học",
         "type": "Loại tài liệu",
         "selectType": "Chọn loại",
-        "tags": "Thẻ",
+        "tags": "Chủ đề",
         "visibility": "Hiển thị",
         "selectVisibility": "Chọn hiển thị",
         "isDownload": "Cho phép tải xuống"
@@ -565,6 +565,7 @@
       "addNew": "Thêm thông báo",
       "searchPlaceholder": "Tìm kiếm thông báo...",
       "items": "thông báo",
+      "foundCount": "Tìm thấy {count} thông báo",
       "table": {
         "title": "Tiêu đề",
         "type": "Loại",
@@ -698,36 +699,36 @@
       }
     },
     "tags": {
-      "title": "Quản lý Thẻ",
-      "createTitle": "Thêm thẻ",
-      "editTitle": "Sửa thẻ",
-      "foundCount": "Tìm thấy {count} thẻ",
-      "searchPlaceholder": "Tìm kiếm theo tên thẻ...",
+      "title": "Quản lý Chủ đề",
+      "createTitle": "Thêm chủ đề",
+      "editTitle": "Sửa chủ đề",
+      "foundCount": "Tìm thấy {count} chủ đề",
+      "searchPlaceholder": "Tìm kiếm theo tên chủ đề...",
       "form": {
-        "tagName": "Tên thẻ",
-        "tagNamePlaceholder": "Nhập tên thẻ...",
-        "duplicateWarning": "Tên thẻ này đã tồn tại!",
-        "similarTags": "Thẻ tương tự"
+        "tagName": "Tên chủ đề",
+        "tagNamePlaceholder": "Nhập tên chủ đề...",
+        "duplicateWarning": "Tên chủ đề này đã tồn tại!",
+        "similarTags": "Chủ đề tương tự"
       },
       "table": {
         "loading": "Đang tải...",
         "noData": "Không có dữ liệu",
-        "tagName": "Tên thẻ",
+        "tagName": "Tên chủ đề",
         "edit": "Sửa",
         "delete": "Xóa",
         "selectedCount": "{count} mục đã chọn",
         "deleteSelected": "Xóa đã chọn"
       },
       "deleteAll": "Xóa tất cả",
-      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} thẻ không?",
+      "deleteAllConfirm": "Bạn có chắc chắn muốn xóa {count} chủ đề không?",
       "notifications": {
-        "createSuccess": "Đã thêm thẻ thành công!",
-        "createError": "Không thể thêm thẻ",
-        "updateSuccess": "Đã cập nhật thẻ thành công!",
-        "updateError": "Không thể cập nhật thẻ",
-        "deleteSuccess": "Đã xóa thẻ thành công!",
-        "deleteError": "Không thể xóa thẻ",
-        "bulkDeleteSuccess": "Đã xóa {count} thẻ thành công!"
+        "createSuccess": "Đã thêm chủ đề thành công!",
+        "createError": "Không thể thêm chủ đề",
+        "updateSuccess": "Đã cập nhật chủ đề thành công!",
+        "updateError": "Không thể cập nhật chủ đề",
+        "deleteSuccess": "Đã xóa chủ đề thành công!",
+        "deleteError": "Không thể xóa chủ đề",
+        "bulkDeleteSuccess": "Đã xóa {count} chủ đề thành công!"
       },
       "filter": {
         "deleted": "Trạng thái",

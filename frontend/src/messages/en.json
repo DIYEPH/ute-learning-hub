@@ -531,6 +531,7 @@
       "addNew": "Add Notification",
       "searchPlaceholder": "Search notifications...",
       "items": "notifications",
+      "foundCount": "Found {count} notifications",
       "table": {
         "title": "Title",
         "type": "Type",

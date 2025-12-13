@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
 import { Button } from "@/src/components/ui/button";
 import { postApiConversationJoinRequest, postApiConversationByIdJoin } from "@/src/api/database/sdk.gen";
 import { useNotification } from "@/src/components/providers/notification-provider";
+import { JoinRequestModal } from "@/src/components/conversations/join-request-modal";
 
 interface ConversationCardProps {
   conversation: ConversationDto;
@@ -22,6 +23,7 @@ export function ConversationCard({
   const router = useRouter();
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showJoinModal, setShowJoinModal] = useState(false);
   const { error: notifyError, success: notifySuccess } = useNotification();
 
   const isPrivate = conversation.visibility === 0; // 0 = Private
@@ -33,43 +35,50 @@ export function ConversationCard({
 
     if (!conversation.id) return;
 
+    if (isPrivate) {
+      // Private: show join request modal
+      setShowJoinModal(true);
+      return;
+    }
+
+    // Public: join directly
     setJoining(true);
     setError(null);
 
     try {
-      if (isPrivate) {
-        // Private: use join request
-        await postApiConversationJoinRequest<true>({
-          body: {
-            conversationId: conversation.id,
-            content: "",
-          },
-          throwOnError: true,
-        });
-        notifySuccess("Đã gửi yêu cầu tham gia nhóm");
-        onJoinSuccess?.();
-      } else {
-        // Public: join directly
-        await postApiConversationByIdJoin<true>({
-          path: {
-            id: conversation.id,
-          },
-          throwOnError: true,
-        });
-        notifySuccess("Tham gia nhóm thành công");
-        onJoinSuccess?.();
-        router.push(`/chat?id=${conversation.id}`);
-      }
+      await postApiConversationByIdJoin<true>({
+        path: {
+          id: conversation.id,
+        },
+        throwOnError: true,
+      });
+      notifySuccess("Tham gia nhóm thành công");
+      onJoinSuccess?.();
+      router.push(`/chat?id=${conversation.id}`);
     } catch (err: any) {
       const message =
         err?.response?.data?.message ||
         err?.message ||
-        (isPrivate ? "Không thể gửi yêu cầu tham gia" : "Không thể tham gia nhóm");
+        "Không thể tham gia nhóm";
       setError(message);
       notifyError(message);
     } finally {
       setJoining(false);
     }
+  };
+
+  const handleJoinRequest = async (content: string) => {
+    if (!conversation.id) return;
+
+    await postApiConversationJoinRequest<true>({
+      body: {
+        conversationId: conversation.id,
+        content: content || undefined,
+      },
+      throwOnError: true,
+    });
+    notifySuccess("Đã gửi yêu cầu tham gia nhóm");
+    onJoinSuccess?.();
   };
 
   const handleCardClick = () => {
@@ -215,6 +224,14 @@ export function ConversationCard({
           )}
         </div>
       </div>
+
+      {/* Join Request Modal for private groups */}
+      <JoinRequestModal
+        open={showJoinModal}
+        onClose={() => setShowJoinModal(false)}
+        conversationName={conversation.conversationName || "Cuộc trò chuyện"}
+        onSubmit={handleJoinRequest}
+      />
     </div>
   );
 }

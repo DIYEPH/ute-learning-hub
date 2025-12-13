@@ -124,13 +124,11 @@ export default function RecentPage() {
                         return (
                             <Link
                                 key={`${item.documentId}-${item.documentFileId}`}
-                                href={item.documentFileId
-                                    ? `/documents/${item.documentId}/files/${item.documentFileId}`
-                                    : `/documents/${item.documentId}`}
-                                className="flex items-center gap-4 p-4  border border-slate-200 bg-white hover:border-sky-300 hover:shadow-sm transition-all dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600"
+                                href={`/documents/${item.documentId}`}
+                                className="flex items-center gap-4 p-4 border border-slate-200 bg-white hover:border-sky-300 hover:shadow-sm transition-all dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600"
                             >
                                 {/* Thumbnail */}
-                                <div className="flex-shrink-0 w-16 h-16  bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center">
+                                <div className="flex-shrink-0 w-16 h-16 bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center">
                                     {coverUrl ? (
                                         <img
                                             src={coverUrl}
@@ -172,9 +170,24 @@ export default function RecentPage() {
                                     )}
                                 </div>
 
-                                {/* Time */}
-                                <div className="flex-shrink-0 text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                                    {formatRelativeTime(item.lastAccessedAt)}
+                                {/* Time & Continue reading */}
+                                <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                                    <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                        {formatRelativeTime(item.lastAccessedAt)}
+                                    </span>
+                                    {item.documentFileId && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            asChild
+                                            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                                            className="text-xs h-7 px-2"
+                                        >
+                                            <Link href={`/documents/${item.documentId}/files/${item.documentFileId}`}>
+                                                Đọc tiếp
+                                            </Link>
+                                        </Button>
+                                    )}
                                 </div>
                             </Link>
                         );

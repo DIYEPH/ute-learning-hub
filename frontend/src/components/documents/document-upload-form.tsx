@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
-import { Upload, X } from "lucide-react";
+import { Upload, X, AlertCircle, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useTypes } from "@/src/hooks/use-types";
-import { getApiTag, getApiAuthor } from "@/src/api/database/sdk.gen";
+import { useDebounce } from "@/src/hooks/use-debounce";
+import { getApiTag, getApiAuthor, getApiDocument } from "@/src/api/database/sdk.gen";
 import type {
   SubjectDto2,
   TypeDto,
@@ -16,6 +17,7 @@ import type {
   CreateDocumentCommand,
   AuthorListDto,
   AuthorInput,
+  DocumentDto,
 } from "@/src/api/database/types.gen";
 import { TagPicker } from "@/src/components/ui/tag-picker";
 import { AuthorPicker } from "@/src/components/ui/author-picker";
@@ -32,8 +34,6 @@ export type DocumentUploadFormData = {
   tagIds?: ApiDocumentBody["tagIds"];
   tagNames?: ApiDocumentBody["tagNames"];
   visibility?: number;
-  // File không bắt buộc - nếu không có file thì không tạo document
-  file?: File | null;
   coverFile?: File | null;
 };
 
@@ -62,7 +62,6 @@ export function DocumentUploadForm({
     tagIds: [],
     tagNames: [],
     visibility: 2,
-    file: null,
     coverFile: null,
   });
 
@@ -71,6 +70,12 @@ export function DocumentUploadForm({
   const [tags, setTags] = useState<TagDto[]>([]);
   const [authors, setAuthors] = useState<AuthorListDto[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
+
+  // Debounce search for similar documents
+  const [searching, setSearching] = useState(false);
+  const [similarDocuments, setSimilarDocuments] = useState<DocumentDto[]>([]);
+  const [isDuplicate, setIsDuplicate] = useState(false);
+  const debouncedDocumentName = useDebounce(formData.documentName || "", 400);
 
   useEffect(() => {
     if (initialData) {
@@ -103,6 +108,38 @@ export function DocumentUploadForm({
     loadData();
   }, [fetchSubjects, fetchTypes]);
 
+  // Search for similar documents when name changes
+  const searchDocuments = useCallback(async (searchTerm: string) => {
+    if (!searchTerm.trim() || searchTerm.length < 3) {
+      setSimilarDocuments([]);
+      setIsDuplicate(false);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      const response = await getApiDocument({ query: { Page: 1, PageSize: 20 } });
+      const data = (response as unknown as { data: { items?: DocumentDto[] } })?.data || response as { items?: DocumentDto[] };
+      const items = (data?.items || []).filter(
+        (item) => item.documentName?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
+      setSimilarDocuments(items.slice(0, 5)); // Show max 5 similar
+      setIsDuplicate(items.some(
+        (item) => item.documentName?.toLowerCase() === searchTerm.toLowerCase()
+      ));
+    } catch (err) {
+      console.error("Error searching documents:", err);
+    } finally {
+      setSearching(false);
+    }
+  }, []);
+
+  // Trigger search when debounced name changes
+  useEffect(() => {
+    searchDocuments(debouncedDocumentName);
+  }, [debouncedDocumentName, searchDocuments]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFileError(null);
@@ -126,7 +163,7 @@ export function DocumentUploadForm({
       (!formData.tagIds || formData.tagIds.length === 0) &&
       (!formData.tagNames || formData.tagNames.length === 0)
     ) {
-      setFileError("Vui lòng chọn hoặc thêm ít nhất 1 tag");
+      setFileError("Vui lòng chọn hoặc thêm ít nhất 1 chủ đề");
       return;
     }
 
@@ -159,16 +196,43 @@ export function DocumentUploadForm({
           <Label htmlFor="documentName">
             {t("documentName")} <span className="text-red-500">*</span>
           </Label>
-          <Input
-            id="documentName"
-            value={formData.documentName || ""}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, documentName: e.target.value }))
-            }
-            required
-            disabled={isDisabled}
-            className="mt-1"
-          />
+          <div className="relative">
+            <Input
+              id="documentName"
+              value={formData.documentName || ""}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, documentName: e.target.value }))
+              }
+              required
+              disabled={isDisabled}
+              className="mt-1"
+            />
+            {searching && (
+              <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-slate-400" />
+            )}
+          </div>
+
+          {/* Duplicate warning */}
+          {isDuplicate && (
+            <div className="mt-2 flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400">
+              <AlertCircle className="h-4 w-4" />
+              <span>Tài liệu có tên tương tự đã tồn tại!</span>
+            </div>
+          )}
+
+          {/* Similar documents */}
+          {similarDocuments.length > 0 && !isDuplicate && (
+            <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+              <span className="font-medium">Tài liệu tương tự:</span>
+              <ul className="mt-1 space-y-0.5">
+                {similarDocuments.map((doc) => (
+                  <li key={doc.id} className="truncate">
+                    • {doc.documentName}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
         <div>
           <Label htmlFor="description">
