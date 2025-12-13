@@ -372,6 +372,10 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("CapNhatBoi");
 
+                    b.Property<int>("Visibility")
+                        .HasColumnType("int")
+                        .HasColumnName("CheDo");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");

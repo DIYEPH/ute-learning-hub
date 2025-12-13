@@ -64,6 +64,7 @@ public class GetConversationByIdHandler : IRequestHandler<GetConversationByIdQue
                 })
                 .ToList(),
             ConversationType = conversation.ConversationType,
+            Visibility = conversation.Visibility,
             ConversationStatus = conversation.ConversationStatus,
             IsSuggestedByAI = conversation.IsSuggestedByAI,
             IsAllowMemberPin = conversation.IsAllowMemberPin,

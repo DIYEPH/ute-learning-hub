@@ -49,6 +49,9 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
         if (request.ConversationType.HasValue)
             query = query.Where(c => c.ConversationType == request.ConversationType.Value);
 
+        if (request.Visibility.HasValue)
+            query = query.Where(c => c.Visibility == request.Visibility.Value);
+
         if (request.ConversationStatus.HasValue)
             query = query.Where(c => c.ConversationStatus == request.ConversationStatus.Value);
 
@@ -134,6 +137,7 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
                     })
                     .ToList(),
                 ConversationType = c.ConversationType,
+                Visibility = c.Visibility,
                 ConversationStatus = c.ConversationStatus,
                 IsSuggestedByAI = c.IsSuggestedByAI,
                 IsAllowMemberPin = c.IsAllowMemberPin,

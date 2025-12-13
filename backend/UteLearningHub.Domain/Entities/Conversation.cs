@@ -12,6 +12,7 @@ public class Conversation : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditabl
     public bool IsSuggestedByAI { get; set; }
     public bool IsAllowMemberPin { get; set; }
     public ConversitionType ConversationType { get; set; }
+    public ConversationVisibility Visibility { get; set; } = ConversationVisibility.Public;
     public ConversationStatus ConversationStatus { get; set; } = ConversationStatus.Active;
     public Subject Subject { get; set; } = default!;
     public ICollection<ConversationTag> ConversationTags { get; set; } = [];

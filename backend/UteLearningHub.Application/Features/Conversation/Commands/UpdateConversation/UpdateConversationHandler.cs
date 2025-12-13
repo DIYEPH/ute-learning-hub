@@ -74,6 +74,9 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         if (request.ConversationType.HasValue)
             conversation.ConversationType = request.ConversationType.Value;
 
+        if (request.Visibility.HasValue)
+            conversation.Visibility = request.Visibility.Value;
+
         if (request.ConversationStatus.HasValue)
             conversation.ConversationStatus = request.ConversationStatus.Value;
 

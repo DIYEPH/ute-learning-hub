@@ -10,6 +10,7 @@ using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 using DomainFile = UteLearningHub.Domain.Entities.File;
+using DomainAuthor = UteLearningHub.Domain.Entities.Author;
 
 namespace UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 
@@ -20,6 +21,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
     private readonly ISubjectRepository _subjectRepository;
     private readonly ITypeRepository _typeRepository;
     private readonly ITagRepository _tagRepository;
+    private readonly IAuthorRepository _authorRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
@@ -31,6 +33,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         ISubjectRepository subjectRepository,
         ITypeRepository typeRepository,
         ITagRepository tagRepository,
+        IAuthorRepository authorRepository,
         ICurrentUserService currentUserService,
         IUserService userService,
         IDateTimeProvider dateTimeProvider,
@@ -41,6 +44,7 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
         _subjectRepository = subjectRepository;
         _typeRepository = typeRepository;
         _tagRepository = tagRepository;
+        _authorRepository = authorRepository;
         _currentUserService = currentUserService;
         _userService = userService;
         _dateTimeProvider = dateTimeProvider;
@@ -116,6 +120,55 @@ public class UpdateDocumentCommandHandler : IRequestHandler<UpdateDocumentComman
                         DocumentId = document.Id,
                         TagId = tag.Id
                     });
+                }
+            }
+        }
+
+        // Handle AuthorIds update
+        if (request.AuthorIds != null)
+        {
+            document.DocumentAuthors.Clear();
+
+            if (request.AuthorIds.Any())
+            {
+                var authors = await _authorRepository.GetByIdsAsync(request.AuthorIds, cancellationToken: cancellationToken);
+
+                if (authors.Count != request.AuthorIds.Count)
+                    throw new NotFoundException("One or more authors not found");
+
+                foreach (var author in authors)
+                {
+                    document.DocumentAuthors.Add(new DocumentAuthor
+                    {
+                        DocumentId = document.Id,
+                        AuthorId = author.Id
+                    });
+                }
+            }
+
+            // Create and add new authors
+            if (request.Authors != null && request.Authors.Any())
+            {
+                foreach (var authorInput in request.Authors)
+                {
+                    if (!string.IsNullOrWhiteSpace(authorInput.FullName))
+                    {
+                        var newAuthor = new DomainAuthor
+                        {
+                            Id = Guid.NewGuid(),
+                            FullName = authorInput.FullName,
+                            Description = authorInput.Description ?? string.Empty,
+                            CreatedById = userId
+                        };
+
+                        await _authorRepository.AddAsync(newAuthor, cancellationToken);
+
+                        document.DocumentAuthors.Add(new DocumentAuthor
+                        {
+                            DocumentId = document.Id,
+                            AuthorId = newAuthor.Id
+                        });
+                    }
                 }
             }
         }

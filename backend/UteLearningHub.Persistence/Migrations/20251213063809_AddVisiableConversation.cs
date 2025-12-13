@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UteLearningHub.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class DeleteReviewable : Migration
+    public partial class AddVisiableConversation : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -471,6 +471,7 @@ namespace UteLearningHub.Persistence.Migrations
                     CoDuocTaoBoiAI = table.Column<bool>(type: "bit", nullable: false),
                     CoChoThanhVienGhimTinNhan = table.Column<bool>(type: "bit", nullable: false),
                     LoaiCuocTroChuyen = table.Column<int>(type: "int", nullable: false),
+                    CheDo = table.Column<int>(type: "int", nullable: false),
                     TrangThai = table.Column<int>(type: "int", nullable: false),
                     TaoBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CapNhatBoi = table.Column<Guid>(type: "uniqueidentifier", nullable: true),

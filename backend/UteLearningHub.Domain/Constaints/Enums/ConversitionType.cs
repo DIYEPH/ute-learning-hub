@@ -3,6 +3,5 @@
 public enum ConversitionType
 {
     Private,
-    Group,
-    AI
+    Group
 }

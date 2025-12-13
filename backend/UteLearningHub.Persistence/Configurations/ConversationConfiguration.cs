@@ -22,6 +22,7 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
         builder.Property(u => u.IsSuggestedByAI).HasColumnName("CoDuocTaoBoiAI");
         builder.Property(u => u.IsAllowMemberPin).HasColumnName("CoChoThanhVienGhimTinNhan");
         builder.Property(u => u.ConversationType).HasColumnName("LoaiCuocTroChuyen");
+        builder.Property(u => u.Visibility).HasColumnName("CheDo");
         builder.Property(u => u.ConversationStatus).HasColumnName("TrangThai");
 
         builder.ApplySoftDelete<Conversation>()

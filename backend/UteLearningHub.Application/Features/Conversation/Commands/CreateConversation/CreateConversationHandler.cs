@@ -126,6 +126,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
             ConversationName = request.ConversationName,
             AvatarUrl = request.AvatarUrl,
             ConversationType = request.ConversationType,
+            Visibility = request.Visibility,
             ConversationStatus = ConversationStatus.Active,
             SubjectId = request.SubjectId,
             IsSuggestedByAI = request.IsSuggestedByAI,

@@ -8,6 +8,7 @@ public record CreateConversationRequest
     public IList<Guid>? TagIds { get; init; }
     public IList<string>? TagNames { get; init; }
     public ConversitionType ConversationType { get; init; }
+    public ConversationVisibility Visibility { get; init; } = ConversationVisibility.Public;
     public Guid? SubjectId { get; init; }
     public bool IsSuggestedByAI { get; init; } = false;
     public bool IsAllowMemberPin { get; init; } = true;

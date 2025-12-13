@@ -12,8 +12,8 @@ using UteLearningHub.Persistence;
 namespace UteLearningHub.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251212170327_DeleteReviewable")]
-    partial class DeleteReviewable
+    [Migration("20251213063809_AddVisiableConversation")]
+    partial class AddVisiableConversation
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -374,6 +374,10 @@ namespace UteLearningHub.Persistence.Migrations
                     b.Property<Guid?>("UpdatedById")
                         .HasColumnType("uniqueidentifier")
                         .HasColumnName("CapNhatBoi");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("int")
+                        .HasColumnName("CheDo");
 
                     b.HasKey("Id");
 
