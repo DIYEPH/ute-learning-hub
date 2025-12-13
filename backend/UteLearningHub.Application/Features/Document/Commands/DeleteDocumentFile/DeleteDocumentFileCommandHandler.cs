@@ -1,6 +1,7 @@
 using MediatR;
 using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.TrustScore;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
@@ -17,19 +18,22 @@ public class DeleteDocumentFileCommandHandler : IRequestHandler<DeleteDocumentFi
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ITrustScoreService _trustScoreService;
 
     public DeleteDocumentFileCommandHandler(
         IDocumentRepository documentRepository,
         IFileUsageService fileUsageService,
         ICurrentUserService currentUserService,
         IUserService userService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        ITrustScoreService trustScoreService)
     {
         _documentRepository = documentRepository;
         _fileUsageService = fileUsageService;
         _currentUserService = currentUserService;
         _userService = userService;
         _dateTimeProvider = dateTimeProvider;
+        _trustScoreService = trustScoreService;
     }
 
     public async Task Handle(DeleteDocumentFileCommand request, CancellationToken cancellationToken)
@@ -60,7 +64,18 @@ public class DeleteDocumentFileCommandHandler : IRequestHandler<DeleteDocumentFi
         if (fileEntity == null)
             throw new NotFoundException($"Document file with id {request.DocumentFileId} not found in this document");
 
+        // Revert all trust points associated with this document file
+        await _trustScoreService.RevertTrustScoreByEntityAsync(fileEntity.Id, cancellationToken);
+
         fileEntity.MarkAsDeleted(userId, _dateTimeProvider.OffsetNow);
+
+        // Check if this was the only non-deleted file of the document
+        var remainingFiles = document.DocumentFiles.Count(df => !df.IsDeleted && df.Id != request.DocumentFileId);
+        if (remainingFiles == 0)
+        {
+            // No other non-deleted files, delete the parent document too
+            document.MarkAsDeleted(userId, _dateTimeProvider.OffsetNow);
+        }
 
         await _documentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 

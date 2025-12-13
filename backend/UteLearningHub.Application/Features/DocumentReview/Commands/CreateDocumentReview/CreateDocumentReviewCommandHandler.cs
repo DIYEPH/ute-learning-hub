@@ -76,13 +76,13 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
                         {
                             // Was liked → undo like = -points
                             var points = -TrustScoreConstants.GetActionPoints("DocumentLiked");
-                            await _trustScoreService!.AddTrustScoreAsync(documentCreatorId!.Value, points, "Hủy like document", cancellationToken);
+                            await _trustScoreService!.AddTrustScoreAsync(documentCreatorId!.Value, points, "Hủy like document", request.DocumentFileId, cancellationToken);
                         }
                         else if (oldType == DocumentReviewType.NotUseful)
                         {
                             // Was disliked → undo dislike = +points (hoàn lại điểm bị trừ)
                             var points = -TrustScoreConstants.GetActionPoints("DocumentUnliked");
-                            await _trustScoreService!.AddTrustScoreAsync(documentCreatorId!.Value, points, "Hủy dislike document", cancellationToken);
+                            await _trustScoreService!.AddTrustScoreAsync(documentCreatorId!.Value, points, "Hủy dislike document", request.DocumentFileId, cancellationToken);
                         }
                     }
                     catch { }
@@ -146,6 +146,7 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
                                 documentCreatorId!.Value,
                                 -TrustScoreConstants.GetActionPoints("DocumentLiked"),
                                 "Đổi từ like sang dislike - hoàn điểm like",
+                                request.DocumentFileId,
                                 cancellationToken);
                         }
                         else if (oldReviewType.Value == DocumentReviewType.NotUseful)
@@ -155,6 +156,7 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
                                 documentCreatorId!.Value,
                                 -TrustScoreConstants.GetActionPoints("DocumentUnliked"),
                                 "Đổi từ dislike sang like - hoàn điểm dislike",
+                                request.DocumentFileId,
                                 cancellationToken);
                         }
                     }
@@ -166,6 +168,7 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
                             documentCreatorId!.Value,
                             TrustScoreConstants.GetActionPoints("DocumentLiked"),
                             "Document được like",
+                            request.DocumentFileId,
                             cancellationToken);
                     }
                     else if (request.DocumentReviewType == DocumentReviewType.NotUseful)
@@ -174,6 +177,7 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
                             documentCreatorId!.Value,
                             TrustScoreConstants.GetActionPoints("DocumentUnliked"),
                             "Document bị dislike",
+                            request.DocumentFileId,
                             cancellationToken);
                     }
                 }

@@ -158,7 +158,8 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
             await _trustScoreService.AddTrustScoreAsync(
                 userId, 
                 TrustScoreConstants.GetActionPoints("CreateDocument"), 
-                "Thêm chương/file tài liệu", 
+                "Thêm chương/file tài liệu",
+                chapter.Id, // Pass document file ID as entityId
                 cancellationToken);
         }
         catch (Exception ex)

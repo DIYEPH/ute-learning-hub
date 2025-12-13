@@ -168,6 +168,7 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
                     report.CreatedById,
                     points,
                     $"Báo cáo được duyệt (+{points}đ)",
+                    null,
                     cancellationToken);
 
                 await CreateNotificationAsync(

@@ -29,6 +29,6 @@ public class ManageTrustScoreCommandHandler : IRequestHandler<ManageTrustScoreCo
         if (!isAdmin)
             throw new UnauthorizedException("Only administrators can manage trust score");
 
-        return await _userService.UpdateTrustScoreAsync(request.UserId, request.TrustScore, request.Reason, cancellationToken);
+        return await _userService.UpdateTrustScoreAsync(request.UserId, request.TrustScore, request.Reason,null, cancellationToken);
     }
 }

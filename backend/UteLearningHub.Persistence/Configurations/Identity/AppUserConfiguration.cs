@@ -25,12 +25,11 @@ public class AppUserConfiguration : IEntityTypeConfiguration<AppUser>
             .HasColumnName("CapDoXacThuc")
             .HasComputedColumnSql(@"
                 CASE 
-                    WHEN [DiemXacThuc] < 0 THEN 0
-                    WHEN [DiemXacThuc] < 5 THEN 1
-                    WHEN [DiemXacThuc] < 40 THEN 2
-                    WHEN [DiemXacThuc] < 100 THEN 3
-                    WHEN [DiemXacThuc] < 200 THEN 4
-                    ELSE 5
+                    WHEN [DiemXacThuc] < 5 THEN 0
+                    WHEN [DiemXacThuc] < 15 THEN 1
+                    WHEN [DiemXacThuc] < 60 THEN 2
+                    WHEN [DiemXacThuc] < 120 THEN 3
+                    ELSE 4
                 END", stored: true);
         
         builder.Property(u => u.LastLoginAt).HasColumnName("LanDangNhapGanNhat");

@@ -18,6 +18,6 @@ public interface IUserService
     Task<UserDto> UpdateUserAsync(Guid userId, UpdateUserRequest request, CancellationToken cancellationToken = default);
     Task BanUserAsync(Guid userId, DateTimeOffset? banUntil, CancellationToken cancellationToken = default);
     Task UnbanUserAsync(Guid userId, CancellationToken cancellationToken = default);
-    Task<UserDto> UpdateTrustScoreAsync(Guid userId, int trustScore, string? reason, CancellationToken cancellationToken = default);
+    Task<UserDto> UpdateTrustScoreAsync(Guid userId, int trustScore, string? reason, Guid? entityId = null, CancellationToken cancellationToken = default);
     Task<IList<UserTrustHistoryDto>> GetUserTrustHistoryAsync(Guid userId, CancellationToken cancellationToken = default);
 }

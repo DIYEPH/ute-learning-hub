@@ -21,15 +21,15 @@ public class GetUserTrustHistoryHandler : IRequestHandler<GetUserTrustHistoryQue
 
     public async Task<IList<UserTrustHistoryDto>> Handle(GetUserTrustHistoryQuery request, CancellationToken cancellationToken)
     {
-        // Only admin can view user trust history
         if (!_currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to view user trust history");
 
         var isAdmin = _currentUserService.IsInRole("Admin");
-        if (!isAdmin)
-            throw new UnauthorizedException("Only administrators can view user trust history");
+        var isOwnHistory = _currentUserService.UserId == request.UserId;
+        
+        if (!isAdmin && !isOwnHistory)
+            throw new UnauthorizedException("You can only view your own trust history");
 
-        // Verify user exists
         var user = await _userService.GetUserByIdAsync(request.UserId, cancellationToken);
         if (user == null)
             throw new NotFoundException($"User with id {request.UserId} not found");

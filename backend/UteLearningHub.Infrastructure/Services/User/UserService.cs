@@ -433,7 +433,7 @@ public class UserService : IUserService
         await _userManager.UpdateAsync(user);
     }
 
-    public async Task<UserDto> UpdateTrustScoreAsync(Guid userId, int trustScore, string? reason, CancellationToken cancellationToken = default)
+    public async Task<UserDto> UpdateTrustScoreAsync(Guid userId, int trustScore, string? reason, Guid? entityId = null, CancellationToken cancellationToken = default)
     {
         var user = await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
@@ -455,7 +455,10 @@ public class UserService : IUserService
                 Id = Guid.NewGuid(),
                 UserId = userId,
                 Score = trustScore - oldTrustScore, // Delta score
+                OldScore = oldTrustScore,
+                NewScore = trustScore,
                 Reason = reason,
+                EntityId = entityId,
                 CreatedAt = _dateTimeProvider.OffsetNow
             };
             _dbContext.UserTrustHistories.Add(trustHistory);
@@ -496,6 +499,8 @@ public class UserService : IUserService
                 Id = h.Id,
                 UserId = h.UserId,
                 Score = h.Score,
+                OldScore = h.OldScore,
+                NewScore = h.NewScore,
                 Reason = h.Reason,
                 CreatedAt = h.CreatedAt
             })

@@ -77,7 +77,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("{id}/trust-history")]
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public async Task<ActionResult<IList<UserTrustHistoryDto>>> GetUserTrustHistory(Guid id)
     {
         var query = new GetUserTrustHistoryQuery { UserId = id };
