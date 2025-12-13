@@ -1,5 +1,4 @@
 import { AdminLayout } from "@/src/components/admin/admin-layout";
-import { NotificationProvider } from "@/src/components/ui/notification-center";
 
 export default function Layout({
   children,
@@ -8,9 +7,9 @@ export default function Layout({
 }) {
   return (
     <AdminLayout>
-      <NotificationProvider>
-        {children}
-      </NotificationProvider>
+      {children}
     </AdminLayout>
   );
 }
+
+

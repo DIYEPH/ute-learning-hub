@@ -34,8 +34,13 @@ export const authEvents = {
 };
 
 // ============ Axios Configuration ============
+// Use empty string for relative paths (via nginx), fallback to direct backend only if undefined
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL !== undefined
+  ? process.env.NEXT_PUBLIC_API_URL
+  : 'https://localhost:7080';
+
 client.setConfig({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7080',
+  baseURL: apiBaseUrl,
 });
 
 if (typeof window !== 'undefined') {

@@ -29,7 +29,8 @@ export function UserMenu() {
     try {
       await handleLogout();
       dropdown.closeDropdown();
-      router.refresh();
+      // Full page reload và redirect về homepage để clear all cached data
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -54,9 +55,9 @@ export function UserMenu() {
           aria-label="User menu"
         >
           <Avatar className="h-9 w-9">
-            <AvatarImage 
-              src={profile?.avatarUrl || undefined} 
-              alt={profile?.fullName || 'User'} 
+            <AvatarImage
+              src={profile?.avatarUrl || undefined}
+              alt={profile?.fullName || 'User'}
             />
             <AvatarFallback className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
               {profile?.fullName ? (
@@ -95,4 +96,5 @@ export function UserMenu() {
     </DropdownMenu>
   );
 }
+
 

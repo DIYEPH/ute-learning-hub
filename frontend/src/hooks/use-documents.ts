@@ -6,15 +6,15 @@ import {
     getApiDocumentById,
     putApiDocumentById,
     deleteApiDocumentById,
-    postApiDocumentByIdReview,
+    postApiDocumentFilesByFileIdReview,
 } from "@/src/api/database/sdk.gen";
 import type {
     DocumentDto,
     DocumentDetailDto,
     GetApiDocumentData,
     UpdateDocumentCommand,
-    ReviewDocumentCommand,
 } from "@/src/api/database/types.gen";
+import type { ReviewDocumentFileCommand } from "@/src/components/admin/documents/review-modal";
 import { useCrud } from "./use-crud";
 
 interface PagedResponse<T> {
@@ -64,12 +64,12 @@ export function useDocuments() {
         []
     );
 
-    // Review document (approve/reject)
-    const reviewDocument = useCallback(
-        async (command: ReviewDocumentCommand): Promise<boolean> => {
+    // Review document file (approve/reject)
+    const reviewDocumentFile = useCallback(
+        async (command: ReviewDocumentFileCommand & { fileId: string }): Promise<boolean> => {
             try {
-                await postApiDocumentByIdReview({
-                    path: { id: command.documentId || "" },
+                await postApiDocumentFilesByFileIdReview({
+                    path: { fileId: command.fileId },
                     body: command,
                 });
                 return true;
@@ -86,7 +86,7 @@ export function useDocuments() {
         fetchDocumentById,
         updateDocument: crud.updateItem,
         deleteDocument: crud.deleteItem,
-        reviewDocument,
+        reviewDocumentFile,
 
         // State
         items: crud.items,

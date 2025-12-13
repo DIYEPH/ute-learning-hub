@@ -12,16 +12,22 @@ import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { EditDocumentModal } from "@/src/components/documents/edit-document-modal";
 import { DocumentFileUpload } from "@/src/components/documents/document-file-upload";
 import { DocumentFileList } from "@/src/components/documents/document-file-list";
+import { useUserProfile } from "@/src/hooks/use-user-profile";
 
 export default function DocumentDetailPage() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const documentId = params?.id;
+  const { profile } = useUserProfile();
 
   const [data, setData] = useState<DocumentDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+
+  // Check if current user is the owner
+  const isOwner = profile?.id && data?.createdById && profile.id === data.createdById;
 
   useEffect(() => {
     if (!documentId) return;
@@ -110,7 +116,7 @@ export default function DocumentDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Quay lại
         </Button>
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <div className=" border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
           {error}
         </div>
       </div>
@@ -143,118 +149,121 @@ export default function DocumentDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Quay lại
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowEditModal(true)}
-          className="inline-flex items-center gap-1"
-        >
-          <Edit className="h-4 w-4" />
-          Sửa thông tin
-        </Button>
+        {isOwner && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowEditModal(true)}
+            className="inline-flex items-center gap-1"
+          >
+            <Edit className="h-4 w-4" />
+            Sửa thông tin
+          </Button>
+        )}
       </div>
 
       {/* Thông tin document + upload + danh sách file */}
-      <div className="grid gap-4 lg:gap-6 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)] items-start">
-        {/* Bên trái: thông tin + upload */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <div className="space-y-3">
-            <div>
+      <div className="flex flex-col gap-4">
+        {/* Thông tin document - 2 column layout */}
+        <div className=" border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+          <div className="grid gap-4 md:grid-cols-2">
+            {/* Left: Title, Author, Type badges */}
+            <div className="space-y-2">
               <h1 className="text-xl font-semibold text-foreground">
                 {doc.documentName ?? "Tài liệu"}
               </h1>
               {authors.length > 0 && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-xs text-muted-foreground">
                   Tác giả:{" "}
                   <span className="font-medium">
                     {authors.map((a) => a.fullName).join(", ")}
                   </span>
                 </p>
               )}
-            </div>
-
-            <div className="flex flex-wrap gap-2 text-xs">
-              {doc.type?.typeName && (
-                <Badge variant="outline" className="border-sky-200 text-sky-700">
-                  {doc.type.typeName}
-                </Badge>
-              )}
-              {doc.subject?.subjectName && (
-                <Badge
-                  variant="outline"
-                  className="border-emerald-200 text-emerald-700"
-                >
-                  {doc.subject.subjectName}
-                </Badge>
-              )}
-              {doc.visibility === 0 && (
-                <Badge
-                  variant="outline"
-                  className="border-blue-200 text-blue-700"
-                >
-                  Công khai
-                </Badge>
-              )}
-              {doc.visibility === 1 && (
-                <Badge
-                  variant="outline"
-                  className="border-slate-200 text-slate-700"
-                >
-                  Riêng tư
-                </Badge>
-              )}
-              {doc.visibility === 2 && (
-                <Badge
-                  variant="outline"
-                  className="border-amber-200 text-amber-700"
-                >
-                  Nội bộ
-                </Badge>
-              )}
-            </div>
-
-            {tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {tags.map((tag) => (
-                  <Badge
-                    key={tag.id}
-                    variant="secondary"
-                    className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 text-[11px]"
-                  >
-                    #{tag.tagName}
+                {doc.type?.typeName && (
+                  <Badge variant="outline" className="border-sky-200 text-sky-700">
+                    {doc.type.typeName}
                   </Badge>
-                ))}
+                )}
+                {doc.visibility === 0 && (
+                  <Badge variant="outline" className="border-blue-200 text-blue-700">
+                    Công khai
+                  </Badge>
+                )}
+                {doc.visibility === 1 && (
+                  <Badge variant="outline" className="border-slate-200 text-slate-700">
+                    Riêng tư
+                  </Badge>
+                )}
+                {doc.visibility === 2 && (
+                  <Badge variant="outline" className="border-amber-200 text-amber-700">
+                    Nội bộ
+                  </Badge>
+                )}
               </div>
-            )}
+            </div>
 
-            {doc.description && (
-              <div className="space-y-1">
-                <h2 className="text-xs font-semibold text-foreground">Mô tả</h2>
-                <ScrollArea className="max-h-40 rounded-md border bg-slate-50 p-3 text-xs text-slate-700 dark:bg-slate-900 dark:text-slate-200">
-                  {doc.description}
-                </ScrollArea>
-              </div>
-            )}
+            {/* Right: Tags, Description */}
+            <div className="space-y-2">
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {tags.map((tag) => (
+                    <Badge
+                      key={tag.id}
+                      variant="secondary"
+                      className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 text-[11px]"
+                    >
+                      #{tag.tagName}
+                    </Badge>
+                  ))}
+                </div>
+              )}
 
-            {/* Form upload chương/file - nằm trong cùng card */}
-            <DocumentFileUpload
-              documentId={documentId}
-              onUploadSuccess={refreshData}
-            />
+              {doc.description && (
+                <div>
+                  <h2 className="text-xs font-semibold text-foreground mb-1">Mô tả</h2>
+                  <p
+                    className={`text-sm text-muted-foreground whitespace-pre-wrap ${!showFullDescription ? "line-clamp-2" : ""
+                      }`}
+                  >
+                    {doc.description}
+                  </p>
+                  {doc.description.length > 100 && (
+                    <button
+                      onClick={() => setShowFullDescription(!showFullDescription)}
+                      className="text-xs text-sky-600 hover:text-sky-700 mt-1"
+                    >
+                      {showFullDescription ? "Thu gọn" : "Xem thêm"}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* Form upload - full width below */}
+          {isOwner && (
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+              <DocumentFileUpload
+                documentId={documentId}
+                onUploadSuccess={refreshData}
+              />
+            </div>
+          )}
         </div>
 
-        {/* Bên phải: danh sách chương/file */}
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 flex flex-col max-h-[calc(100vh-220px)]">
+        {/* Danh sách chương/file */}
+        <div className=" border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
           <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700 flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <FileText className="h-4 w-4" />
               <span>Chương / file ({files.length})</span>
             </div>
           </div>
-          <ScrollArea className="flex-1 px-4 py-3">
+          <div className="p-4">
             <DocumentFileList files={files} document={doc} />
-          </ScrollArea>
+          </div>
         </div>
       </div>
 

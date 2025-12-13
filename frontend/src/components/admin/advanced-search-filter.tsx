@@ -39,11 +39,11 @@ export function AdvancedSearchFilter({
 }: AdvancedSearchFilterProps) {
   const t = useTranslations("common");
   const [internalShowAdvanced, setInternalShowAdvanced] = useState(false);
-  
-  const showAdvanced = controlledShowAdvanced !== undefined 
-    ? controlledShowAdvanced 
+
+  const showAdvanced = controlledShowAdvanced !== undefined
+    ? controlledShowAdvanced
     : internalShowAdvanced;
-  
+
   const setShowAdvanced = (value: boolean) => {
     if (onToggleAdvanced) {
       onToggleAdvanced(value);
@@ -112,7 +112,7 @@ export function AdvancedSearchFilter({
       </form>
 
       {showAdvanced && filters.length > 0 && (
-        <div className="p-4 border rounded-lg bg-slate-50 dark:bg-slate-900 space-y-3">
+        <div className="p-4 border  bg-slate-50 dark:bg-slate-900 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">{t("advancedFilters")}</h3>
             <Button
@@ -134,7 +134,7 @@ export function AdvancedSearchFilter({
                   <select
                     value={(filter.value as string) || ""}
                     onChange={(e) => onFilterChange?.(filter.key, e.target.value || null)}
-                    className="w-full h-9 rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full h-9  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <option value="">{t("all")}</option>
                     {filter.options
@@ -167,7 +167,7 @@ export function AdvancedSearchFilter({
                       onFilterChange?.(filter.key, selectedValues);
                     }}
                     size={5}
-                    className="w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    className="w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {filter.options?.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -181,7 +181,7 @@ export function AdvancedSearchFilter({
                     type="text"
                     value={(filter.value as string) || ""}
                     onChange={(e) => onFilterChange?.(filter.key, e.target.value || null)}
-                    className="w-full h-9 rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    className="w-full h-9  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   />
                 )}
               </div>

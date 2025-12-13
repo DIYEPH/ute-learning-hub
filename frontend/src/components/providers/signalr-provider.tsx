@@ -17,7 +17,6 @@ import {
 } from "@microsoft/signalr";
 import type { MessageDto } from "@/src/api/database/types.gen";
 
-// Types for SignalR events
 interface MessageDeletedData {
     messageId: string;
     conversationId: string;
@@ -34,7 +33,6 @@ interface UserTypingData {
     isTyping: boolean;
 }
 
-// Callback types
 type MessageCallback = (message: MessageDto) => void;
 type MessageDeletedCallback = (data: MessageDeletedData) => void;
 type UserStatusCallback = (data: UserStatusData) => void;
@@ -362,3 +360,4 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
         <SignalRContext.Provider value={value}>{children}</SignalRContext.Provider>
     );
 }
+

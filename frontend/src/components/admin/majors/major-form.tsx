@@ -129,7 +129,7 @@ export function MajorForm({
             }
             required
             disabled={isDisabled}
-            className="mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="">{t("form.selectFaculty")}</option>
             {faculties
@@ -172,7 +172,7 @@ export function MajorForm({
 
           {/* Matching majors list */}
           {matchingMajors.length > 0 && !isDuplicate && (
-            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800  border border-slate-200 dark:border-slate-700">
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
                 {t("form.similarMajors")}:
               </p>
@@ -203,3 +203,4 @@ export function MajorForm({
     </form>
   );
 }
+

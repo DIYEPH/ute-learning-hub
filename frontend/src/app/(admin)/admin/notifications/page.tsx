@@ -6,7 +6,7 @@ import { Pagination } from "@/src/components/ui/pagination";
 import { Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useNotifications } from "@/src/hooks/use-notifications";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 import { NotificationTable } from "@/src/components/admin/notifications/notification-table";
 import { NotificationForm } from "@/src/components/admin/notifications/notification-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
@@ -283,7 +283,7 @@ export default function NotificationsManagementPage() {
 
             {/* Error display */}
             {error && (
-                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 ">
                     <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
             )}
@@ -396,3 +396,5 @@ export default function NotificationsManagementPage() {
         </div>
     );
 }
+
+

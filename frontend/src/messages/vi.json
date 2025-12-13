@@ -1,9 +1,9 @@
 {
-    "common": {
-      "welcome": "Chào mừng đến với UTE Learning Hub",
-      "login": "Đăng nhập",
-      "logout": "Đăng xuất",
-      "loggingOut": "Đang đăng xuất...",
+  "common": {
+    "welcome": "Chào mừng đến với UTE Learning Hub",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "loggingOut": "Đang đăng xuất...",
     "dashboard": "Bảng điều khiển",
     "search": "Tìm kiếm",
     "searchPlaceholder": "Tìm kiếm tài liệu",
@@ -32,10 +32,39 @@
     "themeDark": "Tối",
     "themeSystem": "Hệ thống",
     "or": "Hoặc"
-    },
-    "nav": {
-      "home": "Trang chủ",
-      "documents": "Tài liệu",
+  },
+  "home": {
+    "welcome": "Chào mừng đến với UTE Learning Hub",
+    "description": "Khám phá tài liệu học tập từ cộng đồng sinh viên",
+    "recentlyViewed": "Đã xem gần đây",
+    "latestDocuments": "Tài liệu mới nhất",
+    "viewMore": "Xem thêm",
+    "noDocuments": "Chưa có tài liệu nào"
+  },
+  "search": {
+    "filters": "Bộ lọc",
+    "clearAll": "Xóa tất cả",
+    "subject": "Môn học",
+    "searchSubject": "Tìm môn học...",
+    "noSubjectFilter": "Chưa phân loại",
+    "noSubjectFound": "Không tìm thấy môn học",
+    "tags": "Thẻ",
+    "author": "Tác giả",
+    "searchAuthor": "Tìm tác giả...",
+    "noAuthorFound": "Không tìm thấy tác giả",
+    "typeToSearch": "Gõ để tìm thêm...",
+    "type": "Loại tài liệu",
+    "searchPlaceholder": "Tìm kiếm tài liệu...",
+    "activeFilters": "Đang lọc",
+    "searching": "Đang tìm kiếm...",
+    "resultsCount": "{count} kết quả",
+    "noResults": "Không tìm thấy tài liệu nào",
+    "loadMore": "Tải thêm"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "search": "Tìm kiếm",
+    "documents": "Tài liệu",
     "groups": "Nhóm học",
     "myLibrary": "Thư viện của tôi",
     "aiNotes": "Ghi chú AI",
@@ -257,11 +286,7 @@
         "visibility": "Hiển thị",
         "private": "Riêng tư",
         "public": "Công khai",
-        "reviewStatus": "Trạng thái duyệt",
-        "pending": "Chờ duyệt",
-        "hidden": "Ẩn",
-        "approved": "Đã duyệt",
-        "rejected": "Bị từ chối",
+        "fileStatus": "Trạng thái file",
         "deleted": "Trạng thái",
         "activeItems": "Đang hoạt động",
         "deletedItems": "Đã xóa"
@@ -716,7 +741,46 @@
     },
     "reports": {
       "title": "Quản lý báo cáo",
-      "description": "Xem và xử lý các báo cáo"
+      "description": "Xem và xử lý các báo cáo vi phạm",
+      "searchPlaceholder": "Tìm kiếm theo nội dung báo cáo...",
+      "foundCount": "Tìm thấy {count} mục báo cáo",
+      "type": {
+        "documentFile": "File tài liệu",
+        "comment": "Bình luận"
+      },
+      "filter": {
+        "status": "Trạng thái",
+        "type": "Loại nội dung",
+        "pending": "Chờ xử lý",
+        "handled": "Đã xử lý",
+        "hidden": "Đã ẩn"
+      },
+      "table": {
+        "loading": "Đang tải...",
+        "noData": "Không có báo cáo nào",
+        "target": "Nội dung bị báo cáo",
+        "reportCount": "Số lượng báo cáo",
+        "latestContent": "Nội dung mới nhất",
+        "reporter": "Người báo cáo",
+        "status": "Trạng thái",
+        "createdAt": "Thời gian",
+        "actions": "Thao tác",
+        "view": "Xem chi tiết"
+      },
+      "detailModal": {
+        "title": "Chi tiết báo cáo",
+        "reports": "Danh sách báo cáo",
+        "noContent": "Không có nội dung",
+        "close": "Đóng",
+        "hideContent": "Ẩn nội dung",
+        "markHandled": "Đã xử lý"
+      },
+      "notifications": {
+        "approveSuccess": "Đã xử lý báo cáo thành công!",
+        "approveError": "Không thể xử lý báo cáo",
+        "hideSuccess": "Đã ẩn nội dung thành công!",
+        "hideError": "Không thể ẩn nội dung"
+      }
     },
     "settings": {
       "title": "Cài đặt hệ thống",

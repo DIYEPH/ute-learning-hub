@@ -226,7 +226,7 @@ export function NotificationForm({
 
                     {/* Matching notifications list */}
                     {matchingNotifications.length > 0 && !isDuplicate && (
-                        <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+                        <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800  border border-slate-200 dark:border-slate-700">
                             <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
                                 {t("form.similarNotifications")}:
                             </p>
@@ -252,7 +252,7 @@ export function NotificationForm({
                         }
                         required
                         disabled={isDisabled}
-                        className="mt-1 flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="mt-1 flex min-h-[80px] w-full  border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         rows={3}
                         placeholder={t("form.contentPlaceholder")}
                     />
@@ -301,7 +301,7 @@ export function NotificationForm({
                                 setFormData((prev) => ({ ...prev, notificationType: parseInt(e.target.value) }))
                             }
                             disabled={isDisabled}
-                            className="mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                            className="mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {NotificationTypes.map((type) => (
                                 <option key={type.value} value={type.value}>
@@ -321,7 +321,7 @@ export function NotificationForm({
                                 setFormData((prev) => ({ ...prev, notificationPriorityType: parseInt(e.target.value) }))
                             }
                             disabled={isDisabled}
-                            className="mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                            className="mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {PriorityTypes.map((type) => (
                                 <option key={type.value} value={type.value}>
@@ -361,7 +361,7 @@ export function NotificationForm({
                                 {t("form.loadingUsers")}
                             </div>
                         ) : (
-                            <div className="mt-2 max-h-48 overflow-y-auto border border-input rounded-md p-2 space-y-2">
+                            <div className="mt-2 max-h-48 overflow-y-auto border border-input  p-2 space-y-2">
                                 {users.map((user) => (
                                     <div key={user.id} className="flex items-center space-x-2">
                                         <input
@@ -392,3 +392,4 @@ export function NotificationForm({
         </form>
     );
 }
+

@@ -21,3 +21,4 @@ export function AppFooter({ className }: AppFooterProps) {
     </footer>
   );
 }
+

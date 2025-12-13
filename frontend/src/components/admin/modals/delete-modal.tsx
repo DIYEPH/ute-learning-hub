@@ -1,10 +1,8 @@
 "use client";
 
-import { ReactNode } from "react";
-import { BaseModal, BaseModalProps } from "./base-modal";
+import { BaseModal } from "./base-modal";
 import { Button } from "@/src/components/ui/button";
 import { useTranslations } from "next-intl";
-import { AlertTriangle } from "lucide-react";
 
 export interface DeleteModalProps {
   open: boolean;
@@ -19,18 +17,7 @@ export interface DeleteModalProps {
   loading?: boolean;
 }
 
-export function DeleteModal({
-  open,
-  onOpenChange,
-  title,
-  description,
-  itemName,
-  onConfirm,
-  onCancel,
-  confirmLabel,
-  cancelLabel,
-  loading = false,
-}: DeleteModalProps) {
+export function DeleteModal({open, onOpenChange, title, description, itemName, onConfirm, onCancel, confirmLabel, cancelLabel, loading = false}: DeleteModalProps) {
   const t = useTranslations("common");
 
   const handleConfirm = async () => {
@@ -38,19 +25,16 @@ export function DeleteModal({
   };
 
   const handleCancel = () => {
-    if (onCancel) {
+    if (onCancel) 
       onCancel();
-    } else {
+    else 
       onOpenChange(false);
-    }
   };
 
   const defaultTitle = title || t("delete");
   const defaultDescription =
     description ||
-    (itemName
-      ? `Bạn có chắc chắn muốn xóa "${itemName}"? Hành động này không thể hoàn tác.`
-      : "Bạn có chắc chắn muốn xóa? Hành động này không thể hoàn tác.");
+    (itemName ? `Chắc chắn muốn xóa "${itemName}"? Hành động này không thể hoàn tác.` : "Chắc chắn muốn xóa? Hành động này không thể hoàn tác."); 
 
   const footer = (
     <>
@@ -86,4 +70,3 @@ export function DeleteModal({
     </BaseModal>
   );
 }
-

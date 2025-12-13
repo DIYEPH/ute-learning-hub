@@ -11,7 +11,7 @@ interface AuthDialogProps {
 export default function AuthDialog({open, onOpenChange, title, children}: AuthDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md rounded-xl p-6">
+            <DialogContent className="max-w-md  p-6">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                 </DialogHeader>
@@ -20,3 +20,4 @@ export default function AuthDialog({open, onOpenChange, title, children}: AuthDi
         </Dialog>
     );
 }
+

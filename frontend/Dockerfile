@@ -2,45 +2,34 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Build args for environment variables (baked at build time)
+ARG NEXT_PUBLIC_API_URL=""
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-# Install dependencies
+COPY package*.json ./
 RUN npm ci
 
-# Copy source code
 COPY . .
-
-# Build the application
 RUN npm run build
 
-# Production stage
+# Production stage - standalone (optimized, smaller image)
 FROM node:20-alpine AS production
 WORKDIR /app
 
-# Install wget for healthcheck
-RUN apk add --no-cache wget
-
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production
-
-# Copy built application from build stage
-COPY --from=build /app/.next ./.next
+# Copy standalone output (includes node_modules and server)
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./.next/static
 COPY --from=build /app/public ./public
-COPY --from=build /app/next.config.ts ./
-COPY --from=build /app/src/i18n ./src/i18n
-COPY --from=build /app/next-env.d.ts ./
 
-# Expose port
+# Copy i18n runtime files (not included in standalone)
+COPY --from=build /app/src/messages ./src/messages
+COPY --from=build /app/src/i18n ./src/i18n
+
 EXPOSE 3000
 
-# Set environment variable
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Start the application
-CMD ["npm", "start"]
-
+# Start standalone server (not npm start)
+CMD ["node", "server.js"]

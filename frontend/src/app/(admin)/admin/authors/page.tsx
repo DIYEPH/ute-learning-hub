@@ -6,7 +6,7 @@ import { Pagination } from "@/src/components/ui/pagination";
 import { Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useAuthors } from "@/src/hooks/use-authors";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 import { AuthorTable } from "@/src/components/admin/authors/author-table";
 import { AuthorForm } from "@/src/components/admin/authors/author-form";
 import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
@@ -191,7 +191,7 @@ export default function AuthorsManagementPage() {
             </div>
 
             {error && (
-                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 ">
                     <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
             )}
@@ -221,18 +221,7 @@ export default function AuthorsManagementPage() {
                     enableClientSort={true}
                 />
             </div>
-
-            <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                totalItems={totalCount}
-                pageSize={pageSize}
-                onPageChange={setPage}
-                loading={loading}
-                className="mt-4"
-            />
-
-            {/* Create Modal */}
+            <Pagination currentPage={page} totalPages={totalPages} totalItems={totalCount} pageSize={pageSize} onPageChange={setPage} loading={loading} className="mt-4"/>
             <CreateModal
                 open={createModalOpen}
                 onOpenChange={setCreateModalOpen}
@@ -251,7 +240,6 @@ export default function AuthorsManagementPage() {
                 />
             </CreateModal>
 
-            {/* Edit Modal */}
             <EditModal
                 open={editModalOpen}
                 onOpenChange={(open) => {
@@ -274,7 +262,6 @@ export default function AuthorsManagementPage() {
                 />
             </EditModal>
 
-            {/* Delete Modal */}
             <DeleteModal
                 open={deleteModalOpen}
                 onOpenChange={(open) => {
@@ -288,7 +275,6 @@ export default function AuthorsManagementPage() {
                 itemName={selectedAuthor?.fullName || ""}
             />
 
-            {/* Delete All Modal */}
             <DeleteModal
                 open={deleteAllModalOpen}
                 onOpenChange={setDeleteAllModalOpen}
@@ -301,3 +287,4 @@ export default function AuthorsManagementPage() {
         </div>
     );
 }
+

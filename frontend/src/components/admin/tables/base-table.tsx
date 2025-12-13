@@ -82,7 +82,7 @@ export function BaseTable<T extends { id?: string }>({
   const handleSort = (columnKey: string, columnSortKey?: string) => {
     const key = columnSortKey || columnKey;
     let newDirection: SortDirection = "asc";
-    
+
     if (sortKey === key) {
       if (sortDirection === "asc") {
         newDirection = "desc";
@@ -148,23 +148,23 @@ export function BaseTable<T extends { id?: string }>({
         }
         return value;
       });
-      
+
       const aValue = getValue(a, sortKey);
       const bValue = getValue(b, sortKey);
-      
+
       if (aValue === null || aValue === undefined) return 1;
       if (bValue === null || bValue === undefined) return -1;
-      
+
       if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc' 
+        return sortDirection === 'asc'
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
-      
+
       if (typeof aValue === 'number' && typeof bValue === 'number') {
         return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
       }
-      
+
       return sortDirection === 'asc'
         ? String(aValue).localeCompare(String(bValue))
         : String(bValue).localeCompare(String(aValue));
@@ -232,7 +232,7 @@ export function BaseTable<T extends { id?: string }>({
                 const isSorted = sortKey === columnSortKey;
                 const isAsc = isSorted && sortDirection === "asc";
                 const isDesc = isSorted && sortDirection === "desc";
-                
+
                 return (
                   <TableHead key={column.key} className={column.className}>
                     <div className="flex items-center gap-2">
@@ -322,4 +322,5 @@ export function BaseTable<T extends { id?: string }>({
     </div>
   );
 }
+
 

@@ -106,8 +106,7 @@ export default function ChatPage() {
         {/* Header */}
         <div className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <MessageCircle className="h-5 w-5" />
+            <h1 className="text-lg font-semibold text-foreground">
               Trò chuyện
             </h1>
             <Button
@@ -182,4 +181,5 @@ export default function ChatPage() {
     </div>
   );
 }
+
 

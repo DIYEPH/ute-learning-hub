@@ -164,7 +164,7 @@ export function FacultyForm({
 
           {/* Matching faculties list */}
           {matchingFaculties.length > 0 && !isDuplicate && (
-            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800  border border-slate-200 dark:border-slate-700">
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
                 {t("form.similarFaculties")}:
               </p>
@@ -277,3 +277,4 @@ export function FacultyForm({
     </form>
   );
 }
+

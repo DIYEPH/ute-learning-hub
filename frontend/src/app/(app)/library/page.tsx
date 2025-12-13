@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, RefreshCcw } from "lucide-react";
 
 import { getApiDocumentMy } from "@/src/api/database/sdk.gen";
-import type {
-  DocumentDto,
-  PagedResponseOfDocumentDto,
-} from "@/src/api/database/types.gen";
+import type { DocumentDto, PagedResponseOfDocumentDto } from "@/src/api/database/types.gen";
 import { DocumentCard } from "@/src/components/documents/document-card";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
@@ -38,16 +35,11 @@ export default function LibraryPage() {
     void fetchDocuments(1, debouncedSearch, false);
   }, [debouncedSearch]);
 
-  const fetchDocuments = async (
-    pageNumber: number,
-    query: string,
-    append: boolean
-  ) => {
-    if (append) {
+  const fetchDocuments = async (pageNumber: number, query: string, append: boolean) => {
+    if (append) 
       setIsLoadingMore(true);
-    } else {
+    else 
       setIsLoading(true);
-    }
     setError(null);
 
     try {
@@ -59,8 +51,7 @@ export default function LibraryPage() {
         },
       });
 
-      const payload = (response.data ??
-        response) as PagedResponseOfDocumentDto | undefined;
+      const payload = (response.data ?? response) as PagedResponseOfDocumentDto | undefined;
       const items = payload?.items ?? [];
 
       setDocuments((prev) =>
@@ -69,29 +60,23 @@ export default function LibraryPage() {
       setPage(pageNumber);
       setHasNextPage(Boolean(payload?.hasNextPage));
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Không thể tải danh sách tài liệu";
+      const message = err?.response?.data?.message || err?.message || "Không thể tải danh sách tài liệu";
       setError(message);
     } finally {
-      if (append) {
+      if (append) 
         setIsLoadingMore(false);
-      } else {
+      else 
         setIsLoading(false);
-      }
     }
   };
 
   const handleLoadMore = () => {
-    if (hasNextPage && !isLoadingMore) {
+    if (hasNextPage && !isLoadingMore) 
       void fetchDocuments(page + 1, debouncedSearch, true);
-    }
   };
 
-  const handleRetry = () => {
+  const handleRetry = () => 
     void fetchDocuments(1, debouncedSearch, false);
-  };
 
   const showSkeleton = isLoading && documents.length === 0;
 
@@ -115,9 +100,7 @@ export default function LibraryPage() {
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Thư viện của tôi</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Những tài liệu bạn đã chia sẻ. Tìm kiếm hoặc chỉnh sửa tại đây.
-          </p>
+          <p className="text-sm text-slate-500 dark:text-slate-400">Những tài liệu bạn đã chia sẻ. Tìm kiếm hoặc chỉnh sửa tại đây.</p>
         </div>
         <div className="w-full md:w-80">
           <Input
@@ -129,7 +112,7 @@ export default function LibraryPage() {
       </div>
 
       {error && (
-        <div className="flex items-center justify-between rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <div className="flex items-center justify-between  border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
           <span>{error}</span>
           <button
             type="button"
@@ -147,7 +130,7 @@ export default function LibraryPage() {
           <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
         </div>
       ) : documents.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
+        <div className=" border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
           <h2 className="text-lg font-semibold text-foreground">
             Chưa có tài liệu nào
           </h2>
@@ -193,5 +176,6 @@ export default function LibraryPage() {
     </div>
   );
 }
+
 
 

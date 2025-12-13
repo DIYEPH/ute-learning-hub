@@ -132,7 +132,7 @@ export function ConversationFilesSidebar({
                           href={imageUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group relative aspect-square rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-sky-500 transition-colors"
+                          className="group relative aspect-square  overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-sky-500 transition-colors"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -166,9 +166,9 @@ export function ConversationFilesSidebar({
                           href={fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
+                          className="flex items-center gap-3 p-3  border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
                         >
-                          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                          <div className="flex-shrink-0 w-10 h-10  bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                             <File className="h-5 w-5 text-slate-600 dark:text-slate-400" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -221,4 +221,6 @@ export function ConversationFilesSidebar({
     </>
   );
 }
+
+
 

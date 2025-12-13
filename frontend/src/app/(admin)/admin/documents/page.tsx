@@ -6,20 +6,18 @@ import { Pagination } from "@/src/components/ui/pagination";
 import { Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useDocuments } from "@/src/hooks/use-documents";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 import { DocumentTable } from "@/src/components/admin/documents/document-table";
 import { DocumentForm } from "@/src/components/admin/documents/document-form";
-import { DocumentDetailModal } from "@/src/components/admin/documents/document-detail-modal";
-import { ReviewModal } from "@/src/components/admin/documents/review-modal";
 import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { EditModal } from "@/src/components/admin/modals/edit-modal";
 import { AdvancedSearchFilter } from "@/src/components/admin/advanced-search-filter";
-import type { DocumentDto, UpdateDocumentCommand, ReviewDocumentCommand } from "@/src/api/database/types.gen";
+import type { DocumentDto, UpdateDocumentCommand } from "@/src/api/database/types.gen";
 
 export default function DocumentsManagementPage() {
     const t = useTranslations("admin.documents");
     const notification = useNotification();
-    const { fetchDocuments, updateDocument, deleteDocument, reviewDocument, loading, error } = useDocuments();
+    const { fetchDocuments, updateDocument, deleteDocument, loading, error } = useDocuments();
 
     const [documents, setDocuments] = useState<DocumentDto[]>([]);
     const [totalCount, setTotalCount] = useState(0);
@@ -27,15 +25,12 @@ export default function DocumentsManagementPage() {
     const [pageSize] = useState(10);
     const [searchTerm, setSearchTerm] = useState("");
     const [visibilityFilter, setVisibilityFilter] = useState<string | null>(null);
-    const [reviewStatusFilter, setReviewStatusFilter] = useState<string | null>(null);
     const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
     const [sortKey, setSortKey] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
-    const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [reviewModalOpen, setReviewModalOpen] = useState(false);
     const [deleteAllModalOpen, setDeleteAllModalOpen] = useState(false);
     const [selectedDocument, setSelectedDocument] = useState<DocumentDto | null>(null);
     const [formLoading, setFormLoading] = useState(false);
@@ -56,7 +51,7 @@ export default function DocumentsManagementPage() {
         } catch (err) {
             console.error("Error loading documents:", err);
         }
-    }, [fetchDocuments, searchTerm, visibilityFilter, reviewStatusFilter, deletedFilter, page, pageSize]);
+    }, [fetchDocuments, searchTerm, visibilityFilter, deletedFilter, page, pageSize]);
 
     useEffect(() => {
         loadDocuments();
@@ -74,26 +69,6 @@ export default function DocumentsManagementPage() {
         } catch (err) {
             console.error("Error updating document:", err);
             notification.error(t("notifications.updateError"));
-        } finally {
-            setFormLoading(false);
-        }
-    };
-
-    const handleReview = async (command: ReviewDocumentCommand) => {
-        setFormLoading(true);
-        try {
-            const success = await reviewDocument(command);
-            if (success) {
-                await loadDocuments();
-                setReviewModalOpen(false);
-                setSelectedDocument(null);
-                notification.success(t("notifications.reviewSuccess"));
-            } else {
-                notification.error(t("notifications.reviewError"));
-            }
-        } catch (err) {
-            console.error("Error reviewing document:", err);
-            notification.error(t("notifications.reviewError"));
         } finally {
             setFormLoading(false);
         }
@@ -150,7 +125,6 @@ export default function DocumentsManagementPage() {
     const handleReset = () => {
         setSearchTerm("");
         setVisibilityFilter(null);
-        setReviewStatusFilter(null);
         setDeletedFilter(null);
         setSortKey(null);
         setSortDirection(null);
@@ -160,8 +134,6 @@ export default function DocumentsManagementPage() {
     const handleFilterChange = (key: string, value: string | null) => {
         if (key === "visibility") {
             setVisibilityFilter(value);
-        } else if (key === "reviewStatus") {
-            setReviewStatusFilter(value);
         } else if (key === "deleted") {
             setDeletedFilter(value);
         }
@@ -212,18 +184,6 @@ export default function DocumentsManagementPage() {
                             ],
                         },
                         {
-                            key: "reviewStatus",
-                            label: t("filter.reviewStatus"),
-                            type: "select",
-                            value: reviewStatusFilter,
-                            options: [
-                                { value: "0", label: t("filter.pending") },
-                                { value: "1", label: t("filter.hidden") },
-                                { value: "2", label: t("filter.approved") },
-                                { value: "3", label: t("filter.rejected") },
-                            ],
-                        },
-                        {
                             key: "deleted",
                             label: t("filter.deleted"),
                             type: "select",
@@ -240,7 +200,7 @@ export default function DocumentsManagementPage() {
             </div>
 
             {error && (
-                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 ">
                     <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
             )}
@@ -255,10 +215,6 @@ export default function DocumentsManagementPage() {
                 <DocumentTable
                     documents={documents}
                     loading={loading}
-                    onViewDetail={(doc) => {
-                        setSelectedDocument(doc);
-                        setDetailModalOpen(true);
-                    }}
                     onEdit={(doc) => {
                         setSelectedDocument(doc);
                         setEditModalOpen(true);
@@ -266,10 +222,6 @@ export default function DocumentsManagementPage() {
                     onDelete={(doc) => {
                         setSelectedDocument(doc);
                         setDeleteModalOpen(true);
-                    }}
-                    onReview={(doc) => {
-                        setSelectedDocument(doc);
-                        setReviewModalOpen(true);
                     }}
                     onBulkDelete={handleBulkDelete}
                     onSort={handleSort}
@@ -287,16 +239,6 @@ export default function DocumentsManagementPage() {
                 onPageChange={setPage}
                 loading={loading}
                 className="mt-4"
-            />
-
-            {/* Detail Modal */}
-            <DocumentDetailModal
-                open={detailModalOpen}
-                onOpenChange={(open) => {
-                    setDetailModalOpen(open);
-                    if (!open) setSelectedDocument(null);
-                }}
-                documentId={selectedDocument?.id || null}
             />
 
             {/* Edit Modal */}
@@ -322,19 +264,6 @@ export default function DocumentsManagementPage() {
                     loading={formLoading}
                 />
             </EditModal>
-
-            {/* Review Modal */}
-            <ReviewModal
-                open={reviewModalOpen}
-                onOpenChange={(open) => {
-                    setReviewModalOpen(open);
-                    if (!open) setSelectedDocument(null);
-                }}
-                documentId={selectedDocument?.id || null}
-                documentName={selectedDocument?.documentName || ""}
-                onSubmit={handleReview}
-                loading={formLoading}
-            />
 
             {/* Delete Modal */}
             <DeleteModal
@@ -363,3 +292,5 @@ export default function DocumentsManagementPage() {
         </div>
     );
 }
+
+

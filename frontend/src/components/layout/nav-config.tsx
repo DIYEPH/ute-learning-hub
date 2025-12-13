@@ -16,3 +16,4 @@ export const MAIN_NAV_CONFIG = [
   //{ labelKey: "nav.askAI", href: "/ask-ai", icon: Brain, requiresAuth: true },
   { labelKey: "nav.recent", href: "/recent", icon: Clock, requiresAuth: true },
 ] as const;
+

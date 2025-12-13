@@ -33,7 +33,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       router.push('/');
       return;
     }
-    
+
   }, [isAuthenticated, isAdmin, isLoading, router, isChecking, authReady]);
 
   if (isChecking || !authReady || isLoading) {

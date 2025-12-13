@@ -46,7 +46,6 @@ export default function UploadDocumentPage() {
           data.tagIds && data.tagIds.length > 0 ? data.tagIds : null,
         tagNames:
           data.tagNames && data.tagNames.length > 0 ? data.tagNames : null,
-        isDownload: data.isDownload ?? true,
         visibility: (data.visibility as any) ?? 0,
         coverFileId,
       };
@@ -112,3 +111,4 @@ export default function UploadDocumentPage() {
     </div>
   );
 }
+

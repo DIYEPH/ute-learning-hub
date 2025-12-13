@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 
 type Theme = "light" | "dark" | "system";
 
@@ -12,6 +12,20 @@ interface ThemeProviderContextType {
 
 const ThemeProviderContext = createContext<ThemeProviderContextType | undefined>(undefined);
 
+function resolveTheme(theme: Theme): "light" | "dark" {
+  if (theme === "system") {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  return theme;
+}
+
+function applyTheme(resolved: "light" | "dark") {
+  const root = document.documentElement;
+  root.classList.remove("light", "dark");
+  root.classList.add(resolved);
+  root.setAttribute("data-theme", resolved);
+}
+
 export function ThemeProvider({
   children,
   defaultTheme = "system",
@@ -21,95 +35,54 @@ export function ThemeProvider({
   defaultTheme?: Theme;
   storageKey?: string;
 }) {
-  const [theme, setTheme] = useState<Theme>(defaultTheme);
+  const [theme, setThemeState] = useState<Theme>(defaultTheme);
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
   const [mounted, setMounted] = useState(false);
 
+  // Initialize on mount
   useEffect(() => {
-    // Chỉ chạy ở client side
     if (typeof window === 'undefined') return;
 
-    // Lấy theme từ localStorage hoặc dùng default
     const stored = localStorage.getItem(storageKey) as Theme | null;
-    const initialTheme = (stored && ["light", "dark", "system"].includes(stored)) 
-      ? stored 
+    const initialTheme = (stored && ["light", "dark", "system"].includes(stored))
+      ? stored
       : defaultTheme;
-    
-    setTheme(initialTheme);
-    setMounted(true);
 
-    // Set initial theme ngay lập tức để tránh flash
-    const root = window.document.documentElement;
-    let resolved: "light" | "dark";
-    
-    if (initialTheme === "system") {
-      resolved = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-    } else {
-      resolved = initialTheme;
-    }
-    
-    root.classList.remove("light", "dark");
-    root.classList.add(resolved);
-    root.setAttribute("data-theme", resolved);
+    const resolved = resolveTheme(initialTheme);
+    applyTheme(resolved);
     setResolvedTheme(resolved);
+    setThemeState(initialTheme);
+    setMounted(true);
   }, [storageKey, defaultTheme]);
 
-  useEffect(() => {
-    if (!mounted || typeof window === 'undefined') return;
+  // Handle theme changes (after mount)
+  const setTheme = useCallback((newTheme: Theme) => {
+    if (typeof window === 'undefined') return;
 
-    const root = window.document.documentElement;
-    root.classList.remove("light", "dark");
-
-    let resolved: "light" | "dark";
-
-    if (theme === "system") {
-      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light";
-      resolved = systemTheme;
-    } else {
-      resolved = theme;
-    }
-
+    localStorage.setItem(storageKey, newTheme);
+    const resolved = resolveTheme(newTheme);
+    applyTheme(resolved);
     setResolvedTheme(resolved);
-    root.classList.add(resolved);
-    root.setAttribute("data-theme", resolved);
-  }, [theme, mounted]);
+    setThemeState(newTheme);
+  }, [storageKey]);
 
-  // Lắng nghe thay đổi system preference
+  // Listen for system theme changes
   useEffect(() => {
     if (theme !== "system" || !mounted || typeof window === 'undefined') return;
 
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
-      const root = window.document.documentElement;
-      root.classList.remove("light", "dark");
       const resolved = mediaQuery.matches ? "dark" : "light";
+      applyTheme(resolved);
       setResolvedTheme(resolved);
-      root.classList.add(resolved);
-      root.setAttribute("data-theme", resolved);
     };
 
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme, mounted]);
 
-  const value = {
-    theme,
-    setTheme: (newTheme: Theme) => {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(storageKey, newTheme);
-      }
-      setTheme(newTheme);
-    },
-    resolvedTheme,
-  };
-
-  // Luôn provide context, ngay cả khi chưa mounted
   return (
-    <ThemeProviderContext.Provider value={value}>
+    <ThemeProviderContext.Provider value={{ theme, setTheme, resolvedTheme }}>
       {children}
     </ThemeProviderContext.Provider>
   );
@@ -122,4 +95,5 @@ export function useTheme() {
   }
   return context;
 }
+
 

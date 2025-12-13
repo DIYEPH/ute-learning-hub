@@ -31,7 +31,7 @@ export function RecommendationCard({ recommendation }: RecommendationCardProps) 
 
     return (
         <div
-            className="min-w-[240px] max-w-[280px] flex-shrink-0 rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 shadow-sm transition-all hover:shadow-md hover:border-sky-300 cursor-pointer dark:border-slate-700 dark:from-slate-900 dark:to-slate-800"
+            className="min-w-[240px] max-w-[280px] flex-shrink-0  border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-4 shadow-sm transition-all hover:shadow-md hover:border-sky-300 cursor-pointer dark:border-slate-700 dark:from-slate-900 dark:to-slate-800"
             onClick={handleClick}
         >
             <div className="flex items-start gap-3">
@@ -95,3 +95,5 @@ export function RecommendationCard({ recommendation }: RecommendationCardProps) 
         </div>
     );
 }
+
+

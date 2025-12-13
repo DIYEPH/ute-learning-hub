@@ -6,7 +6,7 @@ import { Pagination } from "@/src/components/ui/pagination";
 import { Plus, Upload, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useFaculties } from "@/src/hooks/use-faculties";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 import { FacultyTable } from "@/src/components/admin/faculties/faculty-table";
 import { FacultyForm } from "@/src/components/admin/faculties/faculty-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
@@ -138,9 +138,6 @@ export default function FacultiesManagementPage() {
   const handleImport = async (file: File) => {
     setImportLoading(true);
     try {
-      // TODO: Implement import logic
-      console.log("Import file:", file);
-      // For now, just close the modal
       setImportModalOpen(false);
       await loadFaculties();
     } catch (err) {
@@ -352,3 +349,5 @@ export default function FacultiesManagementPage() {
     </div>
   );
 }
+
+

@@ -8,10 +8,11 @@ import { Input } from "@/src/components/ui/input";
 import { Loader2, X, Upload } from "lucide-react";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useTypes } from "@/src/hooks/use-types";
-import { getApiTag } from "@/src/api/database/sdk.gen";
-import type { DocumentDetailDto, SubjectDto2, TypeDto, TagDto, PutApiDocumentByIdData } from "@/src/api/database/types.gen";
-import { getBearerToken } from "@/src/api/client";
-import axios from "axios";
+import { getApiTag, getApiAuthor, putApiDocumentById } from "@/src/api/database/sdk.gen";
+import type { DocumentDetailDto, SubjectDto2, TypeDto, TagDto, PutApiDocumentByIdData, AuthorListDto, AuthorInput } from "@/src/api/database/types.gen";
+import { TagPicker } from "@/src/components/ui/tag-picker";
+import { AuthorPicker } from "@/src/components/ui/author-picker";
+import { getFileUrlById } from "@/src/lib/file-url";
 
 type UpdateDocumentBody = PutApiDocumentByIdData["body"];
 
@@ -43,7 +44,8 @@ export function EditDocumentModal({
     typeId?: string | null;
     tagIds?: string[];
     tagNames?: string[];
-    isDownload?: boolean;
+    authorIds?: string[];
+    newAuthors?: AuthorInput[];
     visibility?: number;
     coverFile?: File | null;
   }>({
@@ -53,7 +55,8 @@ export function EditDocumentModal({
     typeId: document.type?.id || null,
     tagIds: document.tags?.map((t) => t.id || "").filter(Boolean) || [],
     tagNames: [],
-    isDownload: document.isDownload ?? true,
+    authorIds: document.authors?.map((a) => a.id || "").filter(Boolean) || [],
+    newAuthors: [],
     visibility: document.visibility ?? 2,
     coverFile: null,
   });
@@ -61,7 +64,7 @@ export function EditDocumentModal({
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
   const [types, setTypes] = useState<TypeDto[]>([]);
   const [tags, setTags] = useState<TagDto[]>([]);
-  const [newTagInput, setNewTagInput] = useState("");
+  const [authors, setAuthors] = useState<AuthorListDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,7 +77,8 @@ export function EditDocumentModal({
         typeId: document.type?.id || null,
         tagIds: document.tags?.map((t) => t.id || "").filter(Boolean) || [],
         tagNames: [],
-        isDownload: document.isDownload ?? true,
+        authorIds: document.authors?.map((a) => a.id || "").filter(Boolean) || [],
+        newAuthors: [],
         visibility: document.visibility ?? 2,
         coverFile: null,
       });
@@ -85,10 +89,13 @@ export function EditDocumentModal({
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [subjectsRes, typesRes, tagsRes] = await Promise.all([
+        const [subjectsRes, typesRes, tagsRes, authorsRes] = await Promise.all([
           fetchSubjects({ Page: 1, PageSize: 1000 }),
           fetchTypes({ Page: 1, PageSize: 1000 }),
           getApiTag({ query: { Page: 1, PageSize: 1000 } }).then(
+            (res: any) => res?.data || res
+          ),
+          getApiAuthor({ query: { Page: 1, PageSize: 1000 } }).then(
             (res: any) => res?.data || res
           ),
         ]);
@@ -96,6 +103,7 @@ export function EditDocumentModal({
         if (subjectsRes?.items) setSubjects(subjectsRes.items);
         if (typesRes?.items) setTypes(typesRes.items);
         if (tagsRes?.items) setTags(tagsRes.items);
+        if (authorsRes?.items) setAuthors(authorsRes.items);
       } catch (err) {
         console.error("Error loading data:", err);
       }
@@ -135,50 +143,28 @@ export function EditDocumentModal({
     setLoading(true);
 
     try {
-      const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7080";
-      const token = getBearerToken();
-
-      const formDataToSend = new FormData();
-      formDataToSend.append("Id", document.id || "");
-      formDataToSend.append("DocumentName", formData.documentName);
-      formDataToSend.append("Description", formData.description);
-
-      if (formData.coverFile) {
-        formDataToSend.append("CoverFile", formData.coverFile);
-      }
-
-      if (formData.subjectId) {
-        formDataToSend.append("SubjectId", formData.subjectId);
-      }
-      if (formData.typeId) {
-        formDataToSend.append("TypeId", formData.typeId);
-      }
-
-      if (formData.tagIds && formData.tagIds.length > 0) {
-        formData.tagIds.forEach((tagId) => {
-          formDataToSend.append("TagIds", tagId);
-        });
-      }
-
-      formDataToSend.append("IsDownload", (formData.isDownload ?? true).toString());
-      formDataToSend.append("Visibility", (formData.visibility ?? 0).toString());
-
-      await axios.put(
-        `${apiBaseUrl}/api/Document/${document.id}`,
-        formDataToSend,
-        {
-          headers: {
-            ...(token && { Authorization: token }),
-          },
-        }
-      );
+      await putApiDocumentById({
+        path: { id: document.id! },
+        body: {
+          id: document.id,
+          documentName: formData.documentName,
+          description: formData.description,
+          subjectId: formData.subjectId,
+          typeId: formData.typeId,
+          tagIds: formData.tagIds && formData.tagIds.length > 0 ? formData.tagIds : null,
+          authorIds: formData.authorIds && formData.authorIds.length > 0 ? formData.authorIds : null,
+          authors: formData.newAuthors && formData.newAuthors.length > 0 ? formData.newAuthors : null,
+          visibility: formData.visibility,
+        },
+        throwOnError: true,
+      });
 
       onSuccess?.();
       onOpenChange(false);
     } catch (err: any) {
       const errorMessage =
         err?.response?.data?.message ||
-        err?.response?.data ||
+        err?.error?.message ||
         err?.message ||
         "Không thể cập nhật tài liệu";
       setError(errorMessage);
@@ -187,52 +173,10 @@ export function EditDocumentModal({
     }
   };
 
-  const handleAddTag = () => {
-    const tagName = newTagInput.trim();
-    if (!tagName) return;
-
-    const existingTag = tags.find(
-      (tag) => tag.tagName?.toLowerCase() === tagName.toLowerCase() && tag.id
-    );
-
-    if (existingTag && existingTag.id) {
-      const tagId = existingTag.id;
-      if (!formData.tagIds?.includes(tagId)) {
-        setFormData((prev) => ({
-          ...prev,
-          tagIds: [...(prev.tagIds || []), tagId],
-        }));
-      }
-    } else {
-      if (!formData.tagNames?.some((n) => n.toLowerCase() === tagName.toLowerCase())) {
-        setFormData((prev) => ({
-          ...prev,
-          tagNames: [...(prev.tagNames || []), tagName],
-        }));
-      }
-    }
-
-    setNewTagInput("");
-  };
-
-  const handleRemoveTag = (tagIdOrName: string, isName: boolean) => {
-    if (isName) {
-      setFormData((prev) => ({
-        ...prev,
-        tagNames: (prev.tagNames || []).filter((name) => name !== tagIdOrName),
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        tagIds: (prev.tagIds || []).filter((id) => id !== tagIdOrName),
-      }));
-    }
-  };
-
   const selectClassName =
-    "mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+    "mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
   const textareaClassName =
-    "mt-1 flex w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+    "mt-1 flex w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -337,6 +281,27 @@ export function EditDocumentModal({
             </div>
             <div>
               <Label htmlFor="edit-coverFile">Ảnh bìa (Tùy chọn)</Label>
+              {/* Hiển thị ảnh bìa hiện tại */}
+              {(formData.coverFile || document.coverFileId) && (
+                <div className="mt-2 relative inline-block">
+                  <img
+                    src={formData.coverFile
+                      ? URL.createObjectURL(formData.coverFile)
+                      : getFileUrlById(document.coverFileId || "")}
+                    alt="Cover preview"
+                    className="max-w-[200px] h-auto border border-input object-contain"
+                  />
+                  {formData.coverFile && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, coverFile: null }))}
+                      className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-0.5"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              )}
               <input
                 type="file"
                 accept="image/*"
@@ -350,134 +315,82 @@ export function EditDocumentModal({
               />
               <label
                 htmlFor="edit-coverFile"
-                className={`mt-1 flex items-center gap-2 px-4 py-2 border-2 border-dashed rounded-md cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ${loading ? "opacity-50 cursor-not-allowed" : ""
+                className={`mt-1 flex items-center gap-2 px-4 py-2 border-2 border-dashed cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ${loading ? "opacity-50 cursor-not-allowed" : ""
                   }`}
               >
                 <Upload size={16} />
                 <span className="text-sm">
-                  {formData.coverFile ? formData.coverFile.name : "Chọn ảnh bìa"}
+                  {formData.coverFile ? "Thay đổi ảnh" : (document.coverFileId ? "Thay đổi ảnh bìa" : "Chọn ảnh bìa")}
                 </span>
               </label>
             </div>
           </div>
 
-          {/* Hiển thị tác giả (chỉ đọc) */}
-          {document.authors && document.authors.length > 0 && (
-            <div>
-              <Label>Tác giả</Label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {document.authors.map((author) => (
-                  <div
-                    key={author.id}
-                    className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-md text-sm"
-                  >
-                    {author.fullName}
-                  </div>
-                ))}
-              </div>
-              <p className="mt-1 text-xs text-slate-500">
-                Để thay đổi tác giả, vui lòng tạo tài liệu mới
-              </p>
-            </div>
-          )}
+          {/* Tác giả (có thể chỉnh sửa) */}
+          <div>
+            <Label>Tác giả (Tùy chọn)</Label>
+            <AuthorPicker
+              options={authors
+                .filter((a): a is AuthorListDto & { id: string } => !!a?.id)
+                .map((author) => ({
+                  value: author.id,
+                  label: author.fullName || "",
+                  description: author.description,
+                }))}
+              selected={formData.authorIds || []}
+              onChange={(values) => {
+                setFormData((prev) => ({ ...prev, authorIds: values }));
+              }}
+              onAddNew={(author) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  newAuthors: [...(prev.newAuthors || []), author],
+                }));
+              }}
+              newAuthors={formData.newAuthors || []}
+              onRemoveNewAuthor={(index) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  newAuthors: (prev.newAuthors || []).filter((_, i) => i !== index),
+                }));
+              }}
+              disabled={loading}
+              className="mt-2"
+            />
+          </div>
 
 
           <div>
             <Label htmlFor="edit-tagIds">
               Tags <span className="text-red-500">*</span>
             </Label>
-            <select
-              id="edit-tagIds"
-              multiple
-              value={formData.tagIds || []}
-              onChange={(e) => {
-                const selectedOptions = Array.from(e.target.selectedOptions);
-                const selectedIds = selectedOptions.map((option) => option.value);
-                setFormData((prev) => ({ ...prev, tagIds: selectedIds }));
+            <TagPicker
+              options={tags
+                .filter((tag): tag is TagDto & { id: string } => !!tag?.id)
+                .map((tag) => ({
+                  value: tag.id,
+                  label: tag.tagName || "",
+                }))}
+              selected={formData.tagIds || []}
+              onChange={(values) => {
+                setFormData((prev) => ({ ...prev, tagIds: values }));
+              }}
+              onAddNew={(tagName) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  tagNames: [...(prev.tagNames || []), tagName],
+                }));
+              }}
+              newTags={formData.tagNames || []}
+              onRemoveNewTag={(tagName) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  tagNames: prev.tagNames?.filter((t) => t !== tagName) || [],
+                }));
               }}
               disabled={loading}
-              size={5}
-              className={selectClassName}
-            >
-              {tags
-                .filter((tag): tag is TagDto & { id: string } => !!tag?.id)
-                .map((tag) => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.tagName}
-                  </option>
-                ))}
-            </select>
-            <p className="mt-1 text-xs text-slate-500">
-              Giữ Ctrl/Cmd để chọn nhiều thẻ
-            </p>
-
-            <div className="mt-2 flex gap-2">
-              <Input
-                type="text"
-                placeholder="Nhập tên tag mới"
-                value={newTagInput}
-                onChange={(e) => setNewTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddTag();
-                  }
-                }}
-                disabled={loading}
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                onClick={handleAddTag}
-                disabled={loading || !newTagInput.trim()}
-                size="sm"
-              >
-                Thêm
-              </Button>
-            </div>
-
-            {((formData.tagIds?.length || 0) > 0 ||
-              (formData.tagNames?.length || 0) > 0) && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {formData.tagIds?.map((tagId) => {
-                    const tag = tags.find((t) => t.id === tagId);
-                    if (!tag) return null;
-                    return (
-                      <div
-                        key={tagId}
-                        className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
-                      >
-                        <span>{tag.tagName}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveTag(tagId, false)}
-                          disabled={loading}
-                          className="text-blue-600 dark:text-blue-400"
-                        >
-                          <X size={14} />
-                        </button>
-                      </div>
-                    );
-                  })}
-                  {formData.tagNames?.map((tagName) => (
-                    <div
-                      key={tagName}
-                      className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
-                    >
-                      <span>{tagName}</span>
-                      <span className="text-xs text-green-600">(mới)</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveTag(tagName, true)}
-                        disabled={loading}
-                        className="text-green-600 dark:text-green-400"
-                      >
-                        <X size={14} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              className="mt-2"
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -499,21 +412,6 @@ export function EditDocumentModal({
                 <option value={1}>Riêng tư</option>
                 <option value={2}>Nội bộ</option>
               </select>
-            </div>
-            <div>
-              <Label htmlFor="edit-isDownload" className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="edit-isDownload"
-                  checked={formData.isDownload ?? true}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, isDownload: e.target.checked }))
-                  }
-                  disabled={loading}
-                  className="rounded"
-                />
-                <span>Cho phép tải xuống</span>
-              </Label>
             </div>
           </div>
 
@@ -542,4 +440,5 @@ export function EditDocumentModal({
     </Dialog>
   );
 }
+
 

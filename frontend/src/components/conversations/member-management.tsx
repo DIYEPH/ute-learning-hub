@@ -48,7 +48,7 @@ export function MemberManagement({ conversation, onSuccess }: MemberManagementPr
           {conversation.members.map((member) => (
             <div
               key={member.id}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="flex items-center gap-3 p-2  hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <Avatar className="h-8 w-8">
                 <AvatarImage src={member.userAvatarUrl || undefined} />
@@ -116,7 +116,7 @@ export function MemberManagement({ conversation, onSuccess }: MemberManagementPr
           return (
             <div
               key={member.id}
-              className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="flex items-center gap-3 p-2  hover:bg-slate-50 dark:hover:bg-slate-800"
             >
               <Avatar className="h-8 w-8">
                 <AvatarImage src={member.userAvatarUrl || undefined} />
@@ -178,4 +178,6 @@ export function MemberManagement({ conversation, onSuccess }: MemberManagementPr
     </div>
   );
 }
+
+
 

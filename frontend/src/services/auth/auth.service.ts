@@ -9,7 +9,7 @@ import type { LoginResponse, LoginWithMicrosoftResponse } from '@/src/api/databa
 const getMsalConfig = () => ({
     auth: {
         clientId: process.env.NEXT_PUBLIC_MICROSOFT_CLIENT_ID || '',
-        authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_MICROSOFT_TENANT_ID || 'common'}`,
+        authority: `https://login.microsoftonline.com/${process.env.NEXT_PUBLIC_MICROSOFT_TENANT_ID}`,
         redirectUri: typeof window !== 'undefined' ? window.location.origin : '',
     },
     cache: {

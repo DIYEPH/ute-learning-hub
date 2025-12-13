@@ -7,11 +7,12 @@ const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
+  output: 'standalone',  // Optimized for Docker deployment
   async rewrites() {
     if (NEXT_PUBLIC_API_URL.startsWith('/')) {
       return [];
     }
-    
+
     return [
       {
         source: "/api/:path*",

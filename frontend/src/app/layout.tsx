@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
 import { ThemeProvider } from '@/src/components/providers/theme-provider';
+import { NotificationProvider } from '@/src/components/providers/notification-provider';
+import { SignalRProvider } from '@/src/components/providers/signalr-provider';
 import "./globals.css";
 
 const geistSans = Geist({
@@ -33,10 +35,15 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider>
           <NextIntlClientProvider messages={messages}>
-            {children}
+            <SignalRProvider>
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
+            </SignalRProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>
     </html>
   );
 }
+

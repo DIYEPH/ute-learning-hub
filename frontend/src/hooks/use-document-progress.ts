@@ -22,6 +22,12 @@ interface UseDocumentProgressReturn {
     saveProgress: () => Promise<void>;
 }
 
+// Check if user is authenticated
+function isAuthenticated(): boolean {
+    if (typeof window === "undefined") return false;
+    return !!localStorage.getItem("access_token");
+}
+
 export function useDocumentProgress({
     fileId,
     documentId,
@@ -36,9 +42,15 @@ export function useDocumentProgress({
     const lastSavedPageRef = useRef(1);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Load initial progress
+    // Load initial progress (only for authenticated users)
     useEffect(() => {
         const loadProgress = async () => {
+            // Skip if not authenticated
+            if (!isAuthenticated()) {
+                setIsLoading(false);
+                return;
+            }
+
             try {
                 setIsLoading(true);
                 const response = await getApiDocumentFilesByFileIdProgress({
@@ -62,8 +74,10 @@ export function useDocumentProgress({
         }
     }, [fileId]);
 
-    // Save progress function
+    // Save progress function (only for authenticated users)
     const saveProgress = useCallback(async () => {
+        // Skip if not authenticated
+        if (!isAuthenticated()) return;
         if (currentPage === lastSavedPageRef.current) return;
 
         try {

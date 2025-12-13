@@ -12,22 +12,28 @@ import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
 import { CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import type { ReviewDocumentCommand } from "@/src/api/database/types.gen";
+
+// Local type matching backend ReviewDocumentFileRequest
+export interface ReviewDocumentFileCommand {
+    documentFileId?: string;
+    status: number; // ContentStatus enum: 0=PendingReview, 1=Approved, 2=Hidden
+    reviewNote?: string | null;
+}
 
 interface ReviewModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    documentId: string | null;
-    documentName: string;
-    onSubmit: (command: ReviewDocumentCommand) => void | Promise<void>;
+    documentFileId: string | null;
+    documentFileName: string;
+    onSubmit: (command: ReviewDocumentFileCommand) => void | Promise<void>;
     loading?: boolean;
 }
 
 export function ReviewModal({
     open,
     onOpenChange,
-    documentId,
-    documentName,
+    documentFileId,
+    documentFileName,
     onSubmit,
     loading,
 }: ReviewModalProps) {
@@ -36,11 +42,11 @@ export function ReviewModal({
     const [selectedStatus, setSelectedStatus] = useState<number | null>(null);
 
     const handleSubmit = async (status: number) => {
-        if (!documentId) return;
+        if (!documentFileId) return;
         setSelectedStatus(status);
         await onSubmit({
-            documentId,
-            reviewStatus: status,
+            documentFileId,
+            status: status,
             reviewNote: reviewNote || null,
         });
         setReviewNote("");
@@ -64,8 +70,8 @@ export function ReviewModal({
                     <div className="text-sm text-slate-600 dark:text-slate-400">
                         {t("reviewModal.description")}
                     </div>
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                        <span className="font-medium">{documentName}</span>
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 ">
+                        <span className="font-medium">{documentFileName}</span>
                     </div>
 
                     <div>
@@ -76,7 +82,7 @@ export function ReviewModal({
                             onChange={(e) => setReviewNote(e.target.value)}
                             disabled={loading}
                             rows={3}
-                            className="mt-1 flex w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
+                            className="mt-1 flex w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-none"
                             placeholder={t("reviewModal.notePlaceholder")}
                         />
                     </div>
@@ -92,10 +98,10 @@ export function ReviewModal({
                     </Button>
                     <Button
                         variant="destructive"
-                        onClick={() => handleSubmit(3)} // Rejected = 3
+                        onClick={() => handleSubmit(2)} // Hidden = 2
                         disabled={loading}
                     >
-                        {loading && selectedStatus === 3 ? (
+                        {loading && selectedStatus === 2 ? (
                             <Loader2 size={16} className="mr-1 animate-spin" />
                         ) : (
                             <XCircle size={16} className="mr-1" />
@@ -103,11 +109,11 @@ export function ReviewModal({
                         {t("reviewModal.reject")}
                     </Button>
                     <Button
-                        onClick={() => handleSubmit(2)} // Approved = 2
+                        onClick={() => handleSubmit(1)} // Approved = 1
                         disabled={loading}
                         className="bg-green-600 hover:bg-green-700"
                     >
-                        {loading && selectedStatus === 2 ? (
+                        {loading && selectedStatus === 1 ? (
                             <Loader2 size={16} className="mr-1 animate-spin" />
                         ) : (
                             <CheckCircle size={16} className="mr-1" />
@@ -119,3 +125,4 @@ export function ReviewModal({
         </Dialog>
     );
 }
+

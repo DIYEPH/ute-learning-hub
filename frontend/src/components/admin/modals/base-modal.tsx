@@ -1,16 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/src/components/ui/dialog";
-import { Button } from "@/src/components/ui/button";
-import { useTranslations } from "next-intl";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/src/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 export interface BaseModalProps {
@@ -24,16 +15,7 @@ export interface BaseModalProps {
   showCloseButton?: boolean;
 }
 
-export function BaseModal({
-  open,
-  onOpenChange,
-  title,
-  description,
-  children,
-  footer,
-  size = "md",
-  showCloseButton = true,
-}: BaseModalProps) {
+export function BaseModal({open, onOpenChange, title, description, children, footer, size = "md", showCloseButton = true}: BaseModalProps) {
   const sizeClasses = {
     sm: "sm:max-w-md",
     md: "sm:max-w-lg",
@@ -57,4 +39,3 @@ export function BaseModal({
     </Dialog>
   );
 }
-

@@ -7,7 +7,7 @@ import { Plus, Upload, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useMajors } from "@/src/hooks/use-majors";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 import { SubjectTable } from "@/src/components/admin/subjects/subject-table";
 import { SubjectForm } from "@/src/components/admin/subjects/subject-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
@@ -392,4 +392,6 @@ export default function SubjectsManagementPage() {
     </div>
   );
 }
+
+
 

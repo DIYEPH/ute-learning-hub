@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
 import { putApiAccountProfile, getApiUserByIdTrustHistory } from "@/src/api/database/sdk.gen";
 import type { UpdateProfileCommand, MajorDto2, UserTrustHistoryDto } from "@/src/api/database/types.gen";
 import { Input } from "@/src/components/ui/input";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 import { getFileUrlById } from "@/src/lib/file-url";
 
 const ProfilePage = () => {
@@ -180,7 +180,7 @@ const ProfilePage = () => {
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-semibold text-foreground">Hồ sơ</h1>
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <div className=" border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
           {!profile
             ? "Không thể tải thông tin hồ sơ. Vui lòng đăng nhập lại."
             : error}
@@ -273,7 +273,7 @@ const ProfilePage = () => {
       {/* Một cột chính: chỉnh sửa + lịch sử điểm + lối tắt */}
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900"
+        className="space-y-6  border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900"
       >
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground">
@@ -292,12 +292,12 @@ const ProfilePage = () => {
         </div>
 
         {saveError && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-2 text-xs text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+          <div className=" border border-red-200 bg-red-50 p-2 text-xs text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
             {saveError}
           </div>
         )}
         {saveSuccess && (
-          <div className="rounded-md border border-emerald-200 bg-emerald-50 p-2 text-xs text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
+          <div className=" border border-emerald-200 bg-emerald-50 p-2 text-xs text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-300">
             Đã lưu hồ sơ thành công.
           </div>
         )}
@@ -322,7 +322,7 @@ const ProfilePage = () => {
               Giới tính
             </label>
             <select
-              className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              className="mt-1 h-9 w-full  border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               value={form.gender ?? ""}
               onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
                 const raw = event.target.value;
@@ -351,7 +351,7 @@ const ProfilePage = () => {
               handleChange("introduction", event.target.value)
             }
             placeholder="Giới thiệu ngắn gọn về bản thân bạn..."
-            className="mt-1 min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-1 min-h-[80px] w-full  border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           />
         </div>
 
@@ -360,7 +360,7 @@ const ProfilePage = () => {
             Ngành học
           </label>
           <select
-            className="mt-1 h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-1 h-9 w-full  border border-input bg-background px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             value={form.majorId ?? ""}
             onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
               handleChange(
@@ -381,7 +381,7 @@ const ProfilePage = () => {
           </select>
         </div>
         {/* Lịch sử điểm tin cậy */}
-        <div className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
+        <div className="space-y-2  border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300">
           <h2 className="text-sm font-semibold text-foreground">
             Lịch sử điểm tin cậy
           </h2>

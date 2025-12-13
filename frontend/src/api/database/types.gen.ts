@@ -61,17 +61,20 @@ export type CommentDto = {
     authorName?: string;
     authorAvatarUrl?: string | null;
     createdById?: string;
-    reviewStatus?: ReviewStatus;
+    status?: ContentStatus;
     replyCount?: number;
     createdAt?: string;
     updatedAt?: string | null;
 };
+
+export type ContentStatus = number;
 
 export type ConversationDetailDto = {
     id?: string;
     conversationName?: string;
     tags?: Array<TagDto>;
     conversationType?: ConversitionType;
+    visibility?: ConversationVisibility;
     conversationStatus?: ConversationStatus;
     isSuggestedByAI?: boolean;
     isAllowMemberPin?: boolean;
@@ -90,6 +93,7 @@ export type ConversationDto = {
     conversationName?: string;
     tags?: Array<TagDto>;
     conversationType?: ConversitionType;
+    visibility?: ConversationVisibility;
     conversationStatus?: ConversationStatus;
     isSuggestedByAI?: boolean;
     isAllowMemberPin?: boolean;
@@ -113,9 +117,8 @@ export type ConversationJoinRequestDto = {
     requesterName?: string;
     requesterAvatarUrl?: string | null;
     createdById?: string;
-    reviewStatus?: ReviewStatus;
+    status?: ContentStatus;
     reviewNote?: string | null;
-    reviewedAt?: string | null;
     createdAt?: string;
 };
 
@@ -145,6 +148,8 @@ export type ConversationRecommendationDto = {
 
 export type ConversationStatus = number;
 
+export type ConversationVisibility = number;
+
 export type ConversitionType = number;
 
 export type CreateAuthorCommand = {
@@ -163,6 +168,7 @@ export type CreateConversationCommand = {
     tagIds?: Array<string> | null;
     tagNames?: Array<string> | null;
     conversationType?: ConversitionType;
+    visibility?: ConversationVisibility;
     subjectId?: string | null;
     isSuggestedByAI?: boolean;
     isAllowMemberPin?: boolean;
@@ -183,7 +189,6 @@ export type CreateDocumentCommand = {
     tagNames?: Array<string> | null;
     authorIds?: Array<string> | null;
     authors?: Array<AuthorInput> | null;
-    isDownload?: boolean;
     visibility?: VisibilityStatus;
     coverFileId?: string | null;
 };
@@ -237,7 +242,7 @@ export type CreateNotificationCommand = {
 };
 
 export type CreateReportCommand = {
-    documentId?: string | null;
+    documentFileId?: string | null;
     commentId?: string | null;
     content?: string;
 };
@@ -260,7 +265,6 @@ export type DocumentDetailDto = {
     id?: string;
     documentName?: string;
     description?: string;
-    isDownload?: boolean;
     visibility?: VisibilityStatus;
     subject?: SubjectDto;
     type?: TypeDto;
@@ -280,7 +284,6 @@ export type DocumentDto = {
     id?: string;
     documentName?: string;
     description?: string;
-    isDownload?: boolean;
     visibility?: VisibilityStatus;
     subject?: SubjectDto;
     type?: TypeDto;
@@ -305,10 +308,7 @@ export type DocumentFileDto = {
     isPrimary?: boolean;
     totalPages?: number | null;
     coverFileId?: string | null;
-    reviewStatus?: ReviewStatus;
-    reviewedById?: string | null;
-    reviewedAt?: string | null;
-    reviewNote?: string | null;
+    status?: ContentStatus;
     commentCount?: number;
     usefulCount?: number;
     notUsefulCount?: number;
@@ -499,6 +499,8 @@ export type NotificationPriorityType = number;
 export type NotificationType = number;
 
 export type NullableOfConversationStatus = number | null;
+
+export type NullableOfConversationVisibility = number | null;
 
 export type NullableOfConversitionType = number | null;
 
@@ -702,13 +704,13 @@ export type RefreshTokenResponse = {
 
 export type ReportDto = {
     id?: string;
-    documentId?: string | null;
+    documentFileId?: string | null;
     commentId?: string | null;
     content?: string;
     reporterName?: string;
     reporterAvatarUrl?: string | null;
     createdById?: string;
-    reviewStatus?: ReviewStatus;
+    status?: ContentStatus;
     createdAt?: string;
 };
 
@@ -720,23 +722,20 @@ export type ResetPasswordCommand = {
 
 export type ReviewConversationJoinRequestCommand = {
     joinRequestId?: string;
-    reviewStatus?: ReviewStatus;
+    status?: ContentStatus;
     reviewNote?: string | null;
 };
 
 export type ReviewDocumentFileCommand = {
     documentFileId?: string;
-    reviewStatus?: ReviewStatus;
-    reviewNote?: string | null;
+    status?: ContentStatus;
 };
 
 export type ReviewReportCommand = {
     reportId?: string;
-    reviewStatus?: ReviewStatus;
+    status?: ContentStatus;
     reviewNote?: string | null;
 };
-
-export type ReviewStatus = number;
 
 export type SubjectDetailDto = {
     id?: string;
@@ -807,6 +806,7 @@ export type UpdateConversationCommand = {
     tagIds?: Array<string> | null;
     tagNames?: Array<string> | null;
     conversationType?: NullableOfConversitionType;
+    visibility?: NullableOfConversationVisibility;
     conversationStatus?: NullableOfConversationStatus;
     subjectId?: string | null;
     isAllowMemberPin?: boolean | null;
@@ -820,7 +820,8 @@ export type UpdateDocumentCommand = {
     subjectId?: string | null;
     typeId?: string | null;
     tagIds?: Array<string> | null;
-    isDownload?: boolean | null;
+    authorIds?: Array<string> | null;
+    authors?: Array<AuthorInput> | null;
     visibility?: NullableOfVisibilityStatus;
     fileIdsToRemove?: Array<string> | null;
     coverFileId?: string | null;
@@ -1322,6 +1323,7 @@ export type GetApiConversationData = {
         SubjectId?: string;
         TagId?: string;
         ConversationType?: string;
+        Visibility?: string;
         ConversationStatus?: string;
         CreatedById?: string;
         MemberId?: string;
@@ -1508,7 +1510,7 @@ export type GetApiConversationJoinRequestData = {
     query?: {
         ConversationId?: string;
         CreatedById?: string;
-        ReviewStatus?: string;
+        Status?: string;
         SearchTerm?: string;
         Page?: number;
         PageSize?: number;
@@ -1565,12 +1567,11 @@ export type GetApiDocumentData = {
     query?: {
         SubjectId?: string;
         TypeId?: string;
-        TagId?: string;
+        TagIds?: Array<string>;
         MajorId?: string;
         AuthorId?: string;
         SearchTerm?: string;
         Visibility?: string;
-        IsDownload?: boolean;
         SortBy?: string;
         SortDescending?: boolean;
         IsDeleted?: boolean;
@@ -1616,8 +1617,7 @@ export type GetApiDocumentMyData = {
         TagId?: string;
         SearchTerm?: string;
         Visibility?: string;
-        ReviewStatus?: string;
-        IsDownload?: boolean;
+        FileStatus?: string;
         SortBy?: string;
         SortDescending?: boolean;
         Page?: number;
@@ -2027,6 +2027,20 @@ export type GetApiFileByIdResponses = {
     200: unknown;
 };
 
+export type GetApiHealthData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/Health';
+};
+
+export type GetApiHealthResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type GetApiMajorData = {
     body?: never;
     path?: never;
@@ -2357,9 +2371,9 @@ export type GetApiReportData = {
     body?: never;
     path?: never;
     query?: {
-        DocumentId?: string;
+        DocumentFileId?: string;
         CommentId?: string;
-        ReviewStatus?: string;
+        Status?: string;
         SearchTerm?: string;
         Page?: number;
         PageSize?: number;

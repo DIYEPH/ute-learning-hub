@@ -161,7 +161,7 @@ export function SubjectForm({
 
           {/* Matching subjects list */}
           {matchingSubjects.length > 0 && !isDuplicate && (
-            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-700">
+            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800  border border-slate-200 dark:border-slate-700">
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
                 {t("form.similarSubjects")}:
               </p>
@@ -197,7 +197,7 @@ export function SubjectForm({
             onChange={handleMajorChange}
             disabled={isDisabled}
             size={5}
-            className="mt-1 flex w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="mt-1 flex w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             {majors
               .filter((major): major is MajorDto2 & { id: string } => !!major?.id)
@@ -216,3 +216,4 @@ export function SubjectForm({
     </form>
   );
 }
+

@@ -972,6 +972,13 @@
             }
           },
           {
+            "name": "Visibility",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "ConversationStatus",
             "in": "query",
             "schema": {
@@ -1517,7 +1524,7 @@
             }
           },
           {
-            "name": "ReviewStatus",
+            "name": "Status",
             "in": "query",
             "schema": {
               "type": "string"
@@ -1653,11 +1660,14 @@
             }
           },
           {
-            "name": "TagId",
+            "name": "TagIds",
             "in": "query",
             "schema": {
-              "type": "string",
-              "format": "uuid"
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
             }
           },
           {
@@ -1688,13 +1698,6 @@
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "IsDownload",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
             }
           },
           {
@@ -1867,17 +1870,10 @@
             }
           },
           {
-            "name": "ReviewStatus",
+            "name": "FileStatus",
             "in": "query",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "IsDownload",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
             }
           },
           {
@@ -2980,6 +2976,18 @@
         }
       }
     },
+    "/api/Health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/Major": {
       "get": {
         "tags": [
@@ -3897,7 +3905,7 @@
         ],
         "parameters": [
           {
-            "name": "DocumentId",
+            "name": "DocumentFileId",
             "in": "query",
             "schema": {
               "type": "string",
@@ -3913,7 +3921,7 @@
             }
           },
           {
-            "name": "ReviewStatus",
+            "name": "Status",
             "in": "query",
             "schema": {
               "type": "string"
@@ -5318,8 +5326,8 @@
             "type": "string",
             "format": "uuid"
           },
-          "reviewStatus": {
-            "$ref": "#/components/schemas/ReviewStatus"
+          "status": {
+            "$ref": "#/components/schemas/ContentStatus"
           },
           "replyCount": {
             "type": "integer",
@@ -5335,6 +5343,9 @@
             "nullable": true
           }
         }
+      },
+      "ContentStatus": {
+        "type": "integer"
       },
       "ConversationDetailDto": {
         "type": "object",
@@ -5354,6 +5365,9 @@
           },
           "conversationType": {
             "$ref": "#/components/schemas/ConversitionType"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/ConversationVisibility"
           },
           "conversationStatus": {
             "$ref": "#/components/schemas/ConversationStatus"
@@ -5419,6 +5433,9 @@
           },
           "conversationType": {
             "$ref": "#/components/schemas/ConversitionType"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/ConversationVisibility"
           },
           "conversationStatus": {
             "$ref": "#/components/schemas/ConversationStatus"
@@ -5500,16 +5517,11 @@
             "type": "string",
             "format": "uuid"
           },
-          "reviewStatus": {
-            "$ref": "#/components/schemas/ReviewStatus"
+          "status": {
+            "$ref": "#/components/schemas/ContentStatus"
           },
           "reviewNote": {
             "type": "string",
-            "nullable": true
-          },
-          "reviewedAt": {
-            "type": "string",
-            "format": "date-time",
             "nullable": true
           },
           "createdAt": {
@@ -5595,6 +5607,9 @@
       "ConversationStatus": {
         "type": "integer"
       },
+      "ConversationVisibility": {
+        "type": "integer"
+      },
       "ConversitionType": {
         "type": "integer"
       },
@@ -5650,6 +5665,9 @@
           },
           "conversationType": {
             "$ref": "#/components/schemas/ConversitionType"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/ConversationVisibility"
           },
           "subjectId": {
             "type": "string",
@@ -5727,9 +5745,6 @@
               "$ref": "#/components/schemas/AuthorInput"
             },
             "nullable": true
-          },
-          "isDownload": {
-            "type": "boolean"
           },
           "visibility": {
             "$ref": "#/components/schemas/VisibilityStatus"
@@ -5889,7 +5904,7 @@
       "CreateReportCommand": {
         "type": "object",
         "properties": {
-          "documentId": {
+          "documentFileId": {
             "type": "string",
             "format": "uuid",
             "nullable": true
@@ -5950,9 +5965,6 @@
           },
           "description": {
             "type": "string"
-          },
-          "isDownload": {
-            "type": "boolean"
           },
           "visibility": {
             "$ref": "#/components/schemas/VisibilityStatus"
@@ -6025,9 +6037,6 @@
           },
           "description": {
             "type": "string"
-          },
-          "isDownload": {
-            "type": "boolean"
           },
           "visibility": {
             "$ref": "#/components/schemas/VisibilityStatus"
@@ -6121,22 +6130,8 @@
             "format": "uuid",
             "nullable": true
           },
-          "reviewStatus": {
-            "$ref": "#/components/schemas/ReviewStatus"
-          },
-          "reviewedById": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "reviewedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "reviewNote": {
-            "type": "string",
-            "nullable": true
+          "status": {
+            "$ref": "#/components/schemas/ContentStatus"
           },
           "commentCount": {
             "type": "integer",
@@ -6687,7 +6682,7 @@
         "type": "integer",
         "nullable": true
       },
-      "NullableOfConversitionType": {
+      "NullableOfConversationVisibility": {
         "type": "integer",
         "nullable": true
       },
@@ -7324,7 +7319,7 @@
             "type": "string",
             "format": "uuid"
           },
-          "documentId": {
+          "documentFileId": {
             "type": "string",
             "format": "uuid",
             "nullable": true
@@ -7348,8 +7343,8 @@
             "type": "string",
             "format": "uuid"
           },
-          "reviewStatus": {
-            "$ref": "#/components/schemas/ReviewStatus"
+          "status": {
+            "$ref": "#/components/schemas/ContentStatus"
           },
           "createdAt": {
             "type": "string",
@@ -7378,8 +7373,8 @@
             "type": "string",
             "format": "uuid"
           },
-          "reviewStatus": {
-            "$ref": "#/components/schemas/ReviewStatus"
+          "status": {
+            "$ref": "#/components/schemas/ContentStatus"
           },
           "reviewNote": {
             "type": "string",
@@ -7394,12 +7389,8 @@
             "type": "string",
             "format": "uuid"
           },
-          "reviewStatus": {
-            "$ref": "#/components/schemas/ReviewStatus"
-          },
-          "reviewNote": {
-            "type": "string",
-            "nullable": true
+          "status": {
+            "$ref": "#/components/schemas/ContentStatus"
           }
         }
       },
@@ -7410,17 +7401,14 @@
             "type": "string",
             "format": "uuid"
           },
-          "reviewStatus": {
-            "$ref": "#/components/schemas/ReviewStatus"
+          "status": {
+            "$ref": "#/components/schemas/ContentStatus"
           },
           "reviewNote": {
             "type": "string",
             "nullable": true
           }
         }
-      },
-      "ReviewStatus": {
-        "type": "integer"
       },
       "SubjectDetailDto": {
         "type": "object",
@@ -7613,8 +7601,8 @@
             },
             "nullable": true
           },
-          "conversationType": {
-            "$ref": "#/components/schemas/NullableOfConversitionType"
+          "visibility": {
+            "$ref": "#/components/schemas/NullableOfConversationVisibility"
           },
           "conversationStatus": {
             "$ref": "#/components/schemas/NullableOfConversationStatus"
@@ -7667,8 +7655,19 @@
             },
             "nullable": true
           },
-          "isDownload": {
-            "type": "boolean",
+          "authorIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "authors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuthorInput"
+            },
             "nullable": true
           },
           "visibility": {
@@ -8147,6 +8146,9 @@
     },
     {
       "name": "File"
+    },
+    {
+      "name": "Health"
     },
     {
       "name": "Major"

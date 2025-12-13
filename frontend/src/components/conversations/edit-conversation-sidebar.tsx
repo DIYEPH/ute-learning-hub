@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSubjects } from "@/src/hooks/use-subjects";
@@ -13,6 +13,7 @@ import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { MemberManagement } from "@/src/components/conversations/member-management";
+import { TagPicker } from "@/src/components/ui/tag-picker";
 
 interface EditConversationSidebarProps {
   open: boolean;
@@ -43,7 +44,7 @@ export function EditConversationSidebar({
     conversationName: conversation?.conversationName || null,
     tagIds: null,
     tagNames: null,
-    conversationType: conversation?.conversationType ?? null,
+    visibility: conversation?.visibility ?? null,
     conversationStatus: null,
     subjectId: conversation?.subject?.id || null,
     isAllowMemberPin: conversation?.isAllowMemberPin ?? null,
@@ -52,7 +53,7 @@ export function EditConversationSidebar({
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
   const [tags, setTags] = useState<TagDto[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [newTagInput, setNewTagInput] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -66,13 +67,12 @@ export function EditConversationSidebar({
         conversationName: conversation.conversationName || null,
         tagIds: null,
         tagNames: null,
-        conversationType: conversation.conversationType ?? null,
+        visibility: conversation.visibility ?? null,
         conversationStatus: null,
         subjectId: conversation.subject?.id || null,
         isAllowMemberPin: conversation.isAllowMemberPin ?? null,
       });
       setSelectedTagIds(currentTagIds);
-      setNewTagInput("");
       setError(null);
     }
   }, [open, conversation]);
@@ -115,7 +115,7 @@ export function EditConversationSidebar({
       return;
     }
 
-    if (selectedTagIds.length === 0 && (formData.tagNames?.length ?? 0) === 0 && !newTagInput.trim()) {
+    if (selectedTagIds.length === 0 && (formData.tagNames?.length ?? 0) === 0) {
       setError("Cuộc trò chuyện phải có ít nhất một thẻ");
       return;
     }
@@ -124,16 +124,13 @@ export function EditConversationSidebar({
 
     try {
       const tagNamesToSubmit = [...(formData.tagNames || [])];
-      if (newTagInput.trim()) {
-        tagNamesToSubmit.push(newTagInput.trim());
-      }
 
       const submitData: UpdateConversationCommand = {
         id: conversation.id,
         conversationName: formData.conversationName || null,
         tagIds: selectedTagIds.length > 0 ? selectedTagIds : null,
         tagNames: tagNamesToSubmit.length > 0 ? tagNamesToSubmit : null,
-        conversationType: formData.conversationType ?? null,
+        visibility: formData.visibility ?? null,
         subjectId: formData.subjectId || null,
         isAllowMemberPin: formData.isAllowMemberPin ?? null,
       };
@@ -255,227 +252,205 @@ export function EditConversationSidebar({
           <ScrollArea className="flex-1 min-h-0">
             <div className="p-4">
               <form onSubmit={handleSubmit} className="space-y-4">
-              {error && (
-                <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded">
-                  {error}
-                </div>
-              )}
+                {error && (
+                  <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded">
+                    {error}
+                  </div>
+                )}
 
-              <div>
-                <Label htmlFor="conversationName">
-                  Tên cuộc trò chuyện <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="conversationName"
-                  value={formData.conversationName || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      conversationName: e.target.value || null,
-                    }))
-                  }
-                  required
-                  disabled={loading}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="tagIds">
-                  Thẻ <span className="text-red-500">*</span>
-                </Label>
-                <select
-                  id="tagIds"
-                  multiple
-                  value={selectedTagIds}
-                  onChange={(e) => {
-                    const values = Array.from(e.target.selectedOptions, (option) => option.value);
-                    setSelectedTagIds(values);
-                    setFormData((prev) => ({ ...prev, tagIds: values }));
-                  }}
-                  disabled={loading}
-                  size={5}
-                  className="mt-1 flex h-auto w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {tags
-                    .filter((tag): tag is TagDto & { id: string } => !!tag?.id)
-                    .map((tag) => (
-                      <option key={tag.id} value={tag.id}>
-                        {tag.tagName}
-                      </option>
-                    ))}
-                </select>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  Giữ Ctrl/Cmd để chọn nhiều thẻ
-                </p>
-
-                {/* Input để thêm tag mới */}
-                <div className="mt-2 flex gap-2">
-                  <Input
-                    type="text"
-                    placeholder="Nhập tên tag mới"
-                    value={newTagInput}
-                    onChange={(e) => setNewTagInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newTagInput.trim()) {
-                        e.preventDefault();
-                        setFormData((prev) => ({
-                          ...prev,
-                          tagNames: [...(prev.tagNames || []), newTagInput.trim()],
-                        }));
-                        setNewTagInput("");
-                      }
+                {/* Avatar nhóm */}
+                <div>
+                  <Label>Ảnh đại diện nhóm</Label>
+                  {/* Hiển thị avatar hiện tại */}
+                  {(avatarFile || conversation?.avatarUrl) && (
+                    <div className="mt-2 relative inline-block">
+                      <img
+                        src={avatarFile
+                          ? URL.createObjectURL(avatarFile)
+                          : conversation?.avatarUrl || ""}
+                        alt="Avatar"
+                        className="w-20 h-20 object-cover border border-input"
+                      />
+                      {avatarFile && (
+                        <button
+                          type="button"
+                          onClick={() => setAvatarFile(null)}
+                          className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-0.5"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setAvatarFile(file);
                     }}
+                    className="hidden"
+                    id="edit-avatar"
+                    disabled={loading || !isOwnerOrDeputy}
+                  />
+                  <label
+                    htmlFor="edit-avatar"
+                    className={`mt-2 flex items-center gap-2 px-3 py-2 text-sm border-2 border-dashed cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 w-fit ${(loading || !isOwnerOrDeputy) ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    <Upload size={14} />
+                    <span>{avatarFile ? "Đổi ảnh" : (conversation?.avatarUrl ? "Đổi avatar" : "Chọn avatar")}</span>
+                  </label>
+                </div>
+
+                <div>
+                  <Label htmlFor="conversationName">
+                    Tên cuộc trò chuyện <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="conversationName"
+                    value={formData.conversationName || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        conversationName: e.target.value || null,
+                      }))
+                    }
+                    required
                     disabled={loading}
-                    className="flex-1"
+                    className="mt-1"
                   />
                 </div>
 
-                {/* Hiển thị tags đã chọn */}
-                {(selectedTagIds.length > 0 || (formData.tagNames?.length ?? 0) > 0) && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {selectedTagIds.map((tagId) => {
-                      const tag = tags.find((t) => t.id === tagId);
-                      return tag ? (
-                        <span
-                          key={tagId}
-                          className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-1 text-xs text-sky-700 dark:bg-sky-900 dark:text-sky-300"
-                        >
-                          {tag.tagName}
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newIds = selectedTagIds.filter((id) => id !== tagId);
-                              setSelectedTagIds(newIds);
-                              setFormData((prev) => ({ ...prev, tagIds: newIds }));
-                            }}
-                            className="hover:text-sky-900"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </span>
-                      ) : null;
-                    })}
-                    {formData.tagNames?.map((tagName, idx) => (
-                      <span
-                        key={`new-${idx}`}
-                        className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
+                <div>
+                  <Label htmlFor="tagIds">
+                    Thẻ <span className="text-red-500">*</span>
+                  </Label>
+                  <TagPicker
+                    options={tags
+                      .filter((tag): tag is TagDto & { id: string } => !!tag?.id)
+                      .map((tag) => ({
+                        value: tag.id,
+                        label: tag.tagName || "",
+                      }))}
+                    selected={selectedTagIds}
+                    onChange={(values) => {
+                      setSelectedTagIds(values);
+                      setFormData((prev) => ({ ...prev, tagIds: values }));
+                    }}
+                    onAddNew={(tagName) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        tagNames: [...(prev.tagNames || []), tagName],
+                      }));
+                    }}
+                    newTags={formData.tagNames || []}
+                    onRemoveNewTag={(tagName) => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        tagNames: prev.tagNames?.filter((t) => t !== tagName) || [],
+                      }));
+                    }}
+                    disabled={loading}
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="subjectId">Môn học (tùy chọn)</Label>
+                  <select
+                    id="subjectId"
+                    value={formData.subjectId || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        subjectId: e.target.value || null,
+                      }))
+                    }
+                    disabled={loading || loadingSubjects}
+                    className="mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="">Chọn môn học</option>
+                    {subjects
+                      .filter((s): s is SubjectDto2 & { id: string } => !!s?.id)
+                      .map((subject) => (
+                        <option key={subject.id} value={subject.id}>
+                          {subject.subjectName || ""} ({subject.subjectCode || ""})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+
+                {isOwnerOrDeputy && (
+                  <>
+                    <div>
+                      <Label htmlFor="conversationType">
+                        Loại nhóm <span className="text-red-500">*</span>
+                      </Label>
+                      <select
+                        id="conversationType"
+                        value={formData.conversationType ?? ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            conversationType: e.target.value ? parseInt(e.target.value) : null,
+                          }))
+                        }
+                        required
+                        disabled={loading}
+                        className="mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                       >
-                        {tagName}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFormData((prev) => ({
-                              ...prev,
-                              tagNames: prev.tagNames?.filter((_, i) => i !== idx) || [],
-                            }));
-                          }}
-                          className="hover:text-emerald-900"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </span>
-                    ))}
-                  </div>
+                        <option value="">Chọn loại nhóm</option>
+                        <option value="0">Riêng tư</option>
+                        <option value="1">Công khai</option>
+                        <option value="2">AI</option>
+                      </select>
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        Riêng tư: Cần yêu cầu tham gia. Công khai: Ai cũng có thể tham gia.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="isAllowMemberPin"
+                        checked={formData.isAllowMemberPin ?? false}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            isAllowMemberPin: e.target.checked,
+                          }))
+                        }
+                        disabled={loading}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <Label htmlFor="isAllowMemberPin" className="cursor-pointer">
+                        Cho phép thành viên ghim tin nhắn
+                      </Label>
+                    </div>
+                  </>
                 )}
-              </div>
 
-              <div>
-                <Label htmlFor="subjectId">Môn học (tùy chọn)</Label>
-                <select
-                  id="subjectId"
-                  value={formData.subjectId || ""}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      subjectId: e.target.value || null,
-                    }))
-                  }
-                  disabled={loading || loadingSubjects}
-                  className="mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">Chọn môn học</option>
-                  {subjects
-                    .filter((s): s is SubjectDto2 & { id: string } => !!s?.id)
-                    .map((subject) => (
-                      <option key={subject.id} value={subject.id}>
-                        {subject.subjectName || ""} ({subject.subjectCode || ""})
-                      </option>
-                    ))}
-                </select>
-              </div>
-
-              {isOwnerOrDeputy && (
-                <>
-                  <div>
-                    <Label htmlFor="conversationType">
-                      Loại nhóm <span className="text-red-500">*</span>
-                    </Label>
-                    <select
-                      id="conversationType"
-                      value={formData.conversationType ?? ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          conversationType: e.target.value ? parseInt(e.target.value) : null,
-                        }))
-                      }
-                      required
-                      disabled={loading}
-                      className="mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      <option value="">Chọn loại nhóm</option>
-                      <option value="0">Riêng tư</option>
-                      <option value="1">Công khai</option>
-                      <option value="2">AI</option>
-                    </select>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      Riêng tư: Cần yêu cầu tham gia. Công khai: Ai cũng có thể tham gia.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="isAllowMemberPin"
-                      checked={formData.isAllowMemberPin ?? false}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          isAllowMemberPin: e.target.checked,
-                        }))
-                      }
-                      disabled={loading}
-                      className="h-4 w-4 rounded border-gray-300"
-                    />
-                    <Label htmlFor="isAllowMemberPin" className="cursor-pointer">
-                      Cho phép thành viên ghim tin nhắn
-                    </Label>
-                  </div>
-                </>
-              )}
-
-              <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={onClose}
-                  disabled={loading || leaving}
-                  className="flex-1"
-                >
-                  Hủy
-                </Button>
-                <Button type="submit" disabled={loading || leaving} className="flex-1">
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Đang cập nhật...
-                    </>
-                  ) : (
-                    "Cập nhật"
-                  )}
-                </Button>
-              </div>
+                <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onClose}
+                    disabled={loading || leaving}
+                    className="flex-1"
+                  >
+                    Hủy
+                  </Button>
+                  <Button type="submit" disabled={loading || leaving} className="flex-1">
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Đang cập nhật...
+                      </>
+                    ) : (
+                      "Cập nhật"
+                    )}
+                  </Button>
+                </div>
               </form>
 
               {/* Member Management Section */}
@@ -530,4 +505,6 @@ export function EditConversationSidebar({
     </>
   );
 }
+
+
 

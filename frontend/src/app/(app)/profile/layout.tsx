@@ -7,3 +7,4 @@ export default function ProfileLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
+

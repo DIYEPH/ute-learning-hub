@@ -99,12 +99,6 @@ export function DocumentDetailModal({
                                     <Calendar size={14} />
                                     {formatDate(document.createdAt)}
                                 </span>
-                                {document.isDownload && (
-                                    <span className="flex items-center gap-1">
-                                        <Download size={14} />
-                                        {t("detailModal.downloadable")}
-                                    </span>
-                                )}
                             </div>
                         </div>
 
@@ -131,7 +125,7 @@ export function DocumentDetailModal({
                                 {document.files?.map((file: DocumentFileDto) => (
                                     <div
                                         key={file.id}
-                                        className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg"
+                                        className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 "
                                     >
                                         <FileText size={20} className="text-slate-400" />
                                         <div className="flex-1 min-w-0">
@@ -167,3 +161,4 @@ export function DocumentDetailModal({
         </Dialog>
     );
 }
+

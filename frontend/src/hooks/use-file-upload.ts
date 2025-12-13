@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import { postApiFile } from "@/src/api/database/sdk.gen";
 import type { FileDto } from "@/src/api/database/types.gen";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 
 export interface UploadedFile extends FileDto { }
 

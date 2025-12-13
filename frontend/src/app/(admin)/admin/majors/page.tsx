@@ -7,7 +7,7 @@ import { Plus, Upload, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMajors } from "@/src/hooks/use-majors";
 import { useFaculties } from "@/src/hooks/use-faculties";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 import { MajorTable } from "@/src/components/admin/majors/major-table";
 import { MajorForm } from "@/src/components/admin/majors/major-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
@@ -392,4 +392,6 @@ export default function MajorsManagementPage() {
     </div>
   );
 }
+
+
 

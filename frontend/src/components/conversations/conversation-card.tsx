@@ -8,7 +8,7 @@ import type { ConversationDto } from "@/src/api/database/types.gen";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 import { Button } from "@/src/components/ui/button";
 import { postApiConversationJoinRequest, postApiConversationByIdJoin } from "@/src/api/database/sdk.gen";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 
 interface ConversationCardProps {
   conversation: ConversationDto;
@@ -24,8 +24,7 @@ export function ConversationCard({
   const [error, setError] = useState<string | null>(null);
   const { error: notifyError, success: notifySuccess } = useNotification();
 
-  // ConversitionType enum: 0 = Private, 1 = Group (Public), 2 = AI
-  const isPrivate = conversation.conversationType === 0; // 0 = Private
+  const isPrivate = conversation.visibility === 0; // 0 = Private
   const isMember = conversation.isCurrentUserMember ?? false;
   const hasPendingRequest = conversation.hasPendingJoinRequest ?? false;
 
@@ -83,7 +82,7 @@ export function ConversationCard({
   return (
     <div
       className={cn(
-        "rounded-lg border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-900",
+        " border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-900",
         isMember && "cursor-pointer"
       )}
       onClick={handleCardClick}
@@ -219,4 +218,6 @@ export function ConversationCard({
     </div>
   );
 }
+
+
 

@@ -24,7 +24,6 @@ export interface DocumentFormData {
     type?: { id?: string } | null;
     tagIds?: string[] | null;
     tags?: { id?: string }[] | null;
-    isDownload?: boolean | null;
     visibility?: number | null;
 }
 
@@ -49,7 +48,6 @@ export function DocumentForm({
         subjectId: null,
         typeId: null,
         tagIds: null,
-        isDownload: false,
         visibility: 0,
     });
     const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
@@ -90,7 +88,6 @@ export function DocumentForm({
             subjectId: formData.subjectId || undefined,
             typeId: formData.typeId || undefined,
             tagIds: formData.tagIds || undefined,
-            isDownload: formData.isDownload ?? undefined,
             visibility: formData.visibility ?? undefined,
         };
         await onSubmit(command);
@@ -107,7 +104,7 @@ export function DocumentForm({
     };
 
     const isDisabled = loading || loadingSubjects || loadingTags;
-    const selectClassName = "mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+    const selectClassName = "mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
     return (
         <form id="document-form" onSubmit={handleSubmit} className="space-y-4">
@@ -137,7 +134,7 @@ export function DocumentForm({
                         }
                         disabled={isDisabled}
                         rows={3}
-                        className="mt-1 flex w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
+                        className="mt-1 flex w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
                         placeholder={t("form.descriptionPlaceholder")}
                     />
                 </div>
@@ -194,8 +191,8 @@ export function DocumentForm({
                             <label
                                 key={tag.id}
                                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm cursor-pointer transition-colors ${formData.tagIds?.includes(tag.id || "")
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                    ? "bg-primary text-primary-foreground"
+                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
                                     }`}
                             >
                                 <input
@@ -210,22 +207,8 @@ export function DocumentForm({
                         ))}
                     </div>
                 </div>
-
-                <div className="flex items-center">
-                    <label className="flex items-center gap-2">
-                        <input
-                            type="checkbox"
-                            checked={formData.isDownload ?? false}
-                            onChange={(e) =>
-                                setFormData((prev) => ({ ...prev, isDownload: e.target.checked }))
-                            }
-                            disabled={isDisabled}
-                            className="cursor-pointer"
-                        />
-                        <span className="text-sm">{t("form.isDownload")}</span>
-                    </label>
-                </div>
             </div>
         </form>
     );
 }
+

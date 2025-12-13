@@ -91,8 +91,7 @@ export default function RecentPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-semibold text-foreground flex items-center gap-2">
-                    <Clock className="h-6 w-6" />
+                <h1 className="text-2xl font-semibold text-foreground">
                     Gần đây
                 </h1>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -101,7 +100,7 @@ export default function RecentPage() {
             </div>
 
             {error && (
-                <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+                <div className=" border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
                     {error}
                 </div>
             )}
@@ -111,14 +110,8 @@ export default function RecentPage() {
                     <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
                 </div>
             ) : items.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
-                    <Clock className="h-12 w-12 mx-auto text-slate-400 mb-4" />
-                    <h2 className="text-lg font-semibold text-foreground">
-                        Chưa có lịch sử đọc
-                    </h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                        Bắt đầu đọc tài liệu để xem lịch sử tại đây
-                    </p>
+                <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                    <p>Chưa có lịch sử đọc</p>
                 </div>
             ) : (
                 <div className="space-y-3">
@@ -134,15 +127,15 @@ export default function RecentPage() {
                                 href={item.documentFileId
                                     ? `/documents/${item.documentId}/files/${item.documentFileId}`
                                     : `/documents/${item.documentId}`}
-                                className="flex items-center gap-4 p-4 rounded-lg border border-slate-200 bg-white hover:border-sky-300 hover:shadow-sm transition-all dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600"
+                                className="flex items-center gap-4 p-4  border border-slate-200 bg-white hover:border-sky-300 hover:shadow-sm transition-all dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600"
                             >
                                 {/* Thumbnail */}
-                                <div className="flex-shrink-0 w-16 h-16 rounded-md bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center">
+                                <div className="flex-shrink-0 w-16 h-16  bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center">
                                     {coverUrl ? (
                                         <img
                                             src={coverUrl}
                                             alt={item.documentName}
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-full object-contain"
                                         />
                                     ) : (
                                         <FileText className="h-8 w-8 text-slate-400" />
@@ -207,3 +200,4 @@ export default function RecentPage() {
         </div>
     );
 }
+

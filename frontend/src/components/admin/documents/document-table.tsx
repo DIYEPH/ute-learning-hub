@@ -1,26 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { BaseTable, BaseTableColumn } from "@/src/components/admin/tables/base-table";
-import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
-import { Eye, CheckCircle } from "lucide-react";
+import { Eye } from "lucide-react";
 import type { DocumentDto } from "@/src/api/database/types.gen";
-
-// ReviewStatus enum mapping: PendingReview=0, Hidden=1, Approved=2, Rejected=3
-const ReviewStatusLabels: Record<number, string> = {
-    0: "Chờ duyệt",
-    1: "Ẩn",
-    2: "Đã duyệt",
-    3: "Bị từ chối",
-};
-
-const ReviewStatusColors: Record<number, string> = {
-    0: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
-    1: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-    2: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-    3: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
-};
 
 // VisibilityStatus enum mapping
 const VisibilityLabels: Record<number, string> = {
@@ -30,10 +15,8 @@ const VisibilityLabels: Record<number, string> = {
 
 interface DocumentTableProps {
     documents: DocumentDto[];
-    onViewDetail?: (document: DocumentDto) => void;
     onEdit?: (document: DocumentDto) => void;
     onDelete?: (document: DocumentDto) => void;
-    onReview?: (document: DocumentDto) => void;
     onBulkDelete?: (ids: string[]) => void | Promise<void>;
     loading?: boolean;
     onSort?: (sortKey: string, direction: "asc" | "desc" | null) => void;
@@ -44,10 +27,8 @@ interface DocumentTableProps {
 
 export function DocumentTable({
     documents,
-    onViewDetail,
     onEdit,
     onDelete,
-    onReview,
     onBulkDelete,
     loading,
     onSort,
@@ -104,17 +85,7 @@ export function DocumentTable({
                 </span>
             ),
         },
-        {
-            key: "reviewStatus",
-            header: t("table.reviewStatus"),
-            className: "min-w-[100px]",
-            sortable: true,
-            render: (doc) => (
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${ReviewStatusColors[doc.reviewStatus ?? 0]}`}>
-                    {ReviewStatusLabels[doc.reviewStatus ?? 0]}
-                </span>
-            ),
-        },
+
         {
             key: "fileCount",
             header: t("table.fileCount"),
@@ -137,39 +108,21 @@ export function DocumentTable({
         },
     ];
 
-    // Add quick actions column if needed
-    if (onViewDetail || onReview) {
-        columns.push({
-            key: "quickActions",
-            header: "",
-            className: "min-w-[80px]",
-            render: (doc) => (
-                <div className="flex items-center gap-1">
-                    {onViewDetail && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onViewDetail(doc)}
-                            title={t("table.viewDetail")}
-                        >
-                            <Eye size={16} />
-                        </Button>
-                    )}
-                    {onReview && doc.reviewStatus === 0 && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onReview(doc)}
-                            title={t("table.review")}
-                            className="text-amber-600 hover:text-amber-700"
-                        >
-                            <CheckCircle size={16} />
-                        </Button>
-                    )}
-                </div>
-            ),
-        });
-    }
+    // Add view detail link
+    columns.push({
+        key: "quickActions",
+        header: "",
+        className: "min-w-[50px]",
+        render: (doc) => (
+            <Link
+                href={`/documents/${doc.id}`}
+                className="inline-flex items-center justify-center h-8 w-8 text-slate-600 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                title={t("table.viewDetail")}
+            >
+                <Eye size={16} />
+            </Link>
+        ),
+    });
 
     return (
         <BaseTable
@@ -192,4 +145,3 @@ export function DocumentTable({
         />
     );
 }
-

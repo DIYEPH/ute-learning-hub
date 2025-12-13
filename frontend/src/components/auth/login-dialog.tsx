@@ -41,8 +41,8 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                 setEmailOrUsername('');
                 setPassword('');
 
-                // Reload page để update auth state
-                router.refresh();
+                // Full page reload để update auth state
+                window.location.reload();
             }
         } catch (error) {
             // Error đã được handle trong hook
@@ -57,10 +57,8 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                 // Đóng dialog sau khi login thành công
                 onOpenChange(false);
 
-                // Reload page để update auth state
-                router.refresh();
-
-
+                // Full page reload để update auth state
+                window.location.reload();
             }
         } catch (error) {
             // Error đã được handle trong hook
@@ -72,7 +70,7 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         <AuthDialog open={open} onOpenChange={onOpenChange} title={t('loginTitle')}>
             <form onSubmit={handleEmailPasswordSubmit} className="space-y-4">
                 {error && (
-                    <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded-md border border-red-200 dark:border-red-800">
+                    <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950  border border-red-200 dark:border-red-800">
                         {error}
                     </div>
                 )}
@@ -135,3 +133,5 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         </AuthDialog>
     );
 }
+
+

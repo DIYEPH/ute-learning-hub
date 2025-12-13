@@ -10,7 +10,6 @@ import { useFaculties } from "@/src/hooks/use-faculties";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { UserTable } from "@/src/components/admin/users/user-table";
 import { UserForm } from "@/src/components/admin/users/user-form";
-import { UserImportForm } from "@/src/components/admin/users/user-import-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
 import { EditModal } from "@/src/components/admin/modals/edit-modal";
 import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
@@ -19,7 +18,6 @@ import { BanModal } from "@/src/components/admin/modals/ban-modal";
 import { AdvancedSearchFilter, type FilterOption } from "@/src/components/admin/advanced-search-filter";
 import type { UserDto, UpdateUserCommand, MajorDto2, FacultyDto2 } from "@/src/api/database/types.gen";
 import { useTranslations } from "next-intl";
-import { Users } from "lucide-react";
 
 export default function UsersManagementPage() {
   const t = useTranslations("admin.users");
@@ -487,9 +485,11 @@ export default function UsersManagementPage() {
         onImport={handleImport}
         loading={formLoading}
         size="lg"
-      >
-        <UserImportForm onImport={handleImport} loading={formLoading} />
-      </ImportModal>
+        templateContent={`Email,FullName,Username,Password,MajorCode,Gender`}
+        templateFileName="user_import_template.csv"
+        helpText="Chấp nhận: CSV, Excel (.csv, .xlsx, .xls)"
+        requiredColumns="Bắt buộc: Email, FullName,Password"
+      />
 
       <BanModal
         open={banModalOpen}
@@ -504,4 +504,6 @@ export default function UsersManagementPage() {
     </div>
   );
 }
+
+
 

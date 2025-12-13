@@ -52,12 +52,12 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
       const majorId = initialData.majorId || initialData.major?.id || null;
       // Extract facultyId from initialData.major.faculty.id
       const facultyId = initialData.major?.faculty?.id || null;
-      
+
       setFormData({
         ...initialData,
         majorId: majorId,
       });
-      
+
       // Set selectedFacultyId from major.faculty.id if available
       if (facultyId) {
         setSelectedFacultyId(facultyId);
@@ -103,22 +103,22 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
           Page: 1,
           PageSize: 1000,
         });
-        
+
         if (allMajorsResponse?.items) {
           // Filter majors by selected faculty if one is selected
           const filteredMajors = selectedFacultyId
             ? allMajorsResponse.items.filter((m) => m.faculty?.id === selectedFacultyId)
             : allMajorsResponse.items;
-          
+
           setMajors(filteredMajors);
-          
+
           // Reset majorId if selected faculty changed and current major doesn't belong to it
           // Only do this if user manually changed faculty (not during initial load)
           if (selectedFacultyId && formData.majorId) {
             const major = filteredMajors.find((m) => m.id === formData.majorId);
             if (!major || major.faculty?.id !== selectedFacultyId) {
               setFormData((prev) => ({ ...prev, majorId: null }));
-      }
+            }
           }
         }
       } catch (err) {
@@ -130,7 +130,7 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Map gender string to enum number: Other = 0, Male = 1, Female = 2
     let genderValue: number | null | undefined = undefined;
     if (formData.gender) {
@@ -143,7 +143,7 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
     } else {
       genderValue = null;
     }
-    
+
     const command: UpdateUserCommand = {
       fullName: formData.fullName || undefined,
       email: formData.email || undefined,
@@ -174,7 +174,7 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
   };
 
   const isDisabled = loading || loadingMajors || loadingFaculties;
-  const selectClassName = "mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+  const selectClassName = "mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <form id="user-form" onSubmit={handleSubmit} className="space-y-4">
@@ -291,7 +291,7 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
             }
             disabled={isDisabled}
             rows={4}
-            className="mt-1 flex w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
+            className="mt-1 flex w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 resize-y"
           />
         </div>
 
@@ -354,3 +354,4 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
     </form>
   );
 }
+

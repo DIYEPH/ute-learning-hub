@@ -10,6 +10,7 @@ import { ThemeSwitcher } from "./theme-switcher";
 import type { NavItem } from "./nav-config";
 import MobileSidebar from "./app-mobile-sidebar";
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import LoginDialog from "../auth/login-dialog";
 import { Search } from "lucide-react";
 import { useAuthState } from "@/src/hooks/use-auth-state";
@@ -26,7 +27,20 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
   const t = useTranslations('common');
   const tCommon = useTranslations('common');
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+
+  // Sync search input with URL query param
+  const [searchValue, setSearchValue] = useState(searchParams.get("q") || "");
   const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
+
+  // Update searchValue when URL changes (e.g., when navigating to /search?q=...)
+  useEffect(() => {
+    if (pathname === "/search") {
+      setSearchValue(searchParams.get("q") || "");
+    }
+  }, [pathname, searchParams]);
 
   // Nếu trước đó bị 401, interceptor sẽ set flag auth_show_login,
   // header sẽ tự mở modal login khi load lại trang.
@@ -39,6 +53,18 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
       setOpen(true);
     }
   }, []);
+
+  const handleSearch = () => {
+    if (searchValue.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchValue.trim())}`);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   return (
     <header className="h-16 border-b bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex items-center px-4 gap-4">
@@ -68,10 +94,10 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
           prefixIcon={Search}
           placeholder={tCommon('searchPlaceholder')}
           className="rounded-full"
-          onPrefixClick={() => {
-            // Handle search action
-            console.log('Search clicked');
-          }}
+          value={searchValue}
+          onChange={(e) => setSearchValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onPrefixClick={handleSearch}
         />
       </div>
 

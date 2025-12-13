@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from 'next-intl';
-import { ScrollArea} from "../ui/scroll-area"
+import { ScrollArea } from "../ui/scroll-area"
 import { Button } from "../ui/button";
 import { Avatar, AvatarFallback } from "../ui/avatar"
 import type { NavItem } from "./nav-config";
@@ -35,7 +35,7 @@ export function AppSidebar({ navItems, activePath }: SidebarProps) {
 
           <Link href="/documents/upload">
             <Button className="w-full rounded-full mt-2">{t('new-document')}</Button>
-          </Link> 
+          </Link>
 
           {/* Nav */}
           <nav className="mt-4 space-y-1 text-sm">
@@ -45,11 +45,10 @@ export function AppSidebar({ navItems, activePath }: SidebarProps) {
               return (
                 <Link key={item.href} href={item.href}>
                   <button
-                    className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors ${
-                      isActive
+                    className={`flex w-full items-center gap-3  px-3 py-2 text-left transition-colors ${isActive
                         ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
                         : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    }`}
+                      }`}
                   >
                     <span className="shrink-0">
                       <Icon size={18} />
@@ -65,3 +64,4 @@ export function AppSidebar({ navItems, activePath }: SidebarProps) {
     </aside>
   );
 }
+

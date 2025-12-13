@@ -8,7 +8,7 @@ import { Loader2, Upload, X, Image as ImageIcon } from "lucide-react";
 import { useFileUpload } from "@/src/hooks/use-file-upload";
 import { postApiDocumentByIdFiles } from "@/src/api/database/sdk.gen";
 import type { AddDocumentFileCommand } from "@/src/api/database/types.gen";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 
 interface DocumentFileUploadProps {
   documentId: string;
@@ -97,12 +97,14 @@ export function DocumentFileUpload({
   };
 
   return (
-    <div className="border-t border-slate-200 bg-white pt-3 dark:border-slate-700 dark:bg-slate-900">
-      <h3 className="text-xs font-semibold text-foreground mb-2">
+    <div>
+      <h3 className="text-xs font-semibold text-foreground mb-3">
         Thêm chương/file
       </h3>
 
-      <div className="space-y-2">
+      {/* 3-column grid layout */}
+      <div className="grid gap-3 md:grid-cols-3 mb-3">
+        {/* File selection */}
         <div>
           <Label className="text-[11px]">
             Tệp chương/file <span className="text-red-500">*</span>
@@ -120,14 +122,15 @@ export function DocumentFileUpload({
           />
           <label
             htmlFor="upload-file"
-            className={`mt-1 flex items-center gap-2 px-2 py-1.5 border border-dashed rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-[11px] transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""
+            className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-xs transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""
               }`}
           >
-            <Upload size={12} />
+            <Upload size={14} />
             <span className="truncate">{selectedFile ? selectedFile.name : "Chọn file"}</span>
           </label>
         </div>
 
+        {/* Title input */}
         <div>
           <Label className="text-[11px]">Tiêu đề (tùy chọn)</Label>
           <Input
@@ -135,11 +138,12 @@ export function DocumentFileUpload({
             value={uploadTitle}
             onChange={(e) => setUploadTitle(e.target.value)}
             placeholder="Chương I, Chương 1..."
-            className="mt-1 h-7 text-[11px]"
+            className="mt-1 h-9 text-xs"
             disabled={uploading}
           />
         </div>
 
+        {/* Cover image selection */}
         <div>
           <Label className="text-[11px]">Ảnh bìa (tùy chọn)</Label>
           <input
@@ -155,50 +159,54 @@ export function DocumentFileUpload({
           />
           <label
             htmlFor="upload-cover"
-            className={`mt-1 flex items-center gap-2 px-2 py-1.5 border border-dashed rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-[11px] transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""
+            className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-xs transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""
               }`}
           >
-            <ImageIcon size={12} />
+            <ImageIcon size={14} />
             <span className="truncate">
               {selectedCoverFile ? selectedCoverFile.name : "Chọn ảnh bìa"}
             </span>
           </label>
-          {coverPreview && (
-            <div className="mt-1.5 relative">
-              <img
-                src={coverPreview}
-                alt="Preview"
-                className="w-full h-20 object-cover rounded border border-slate-200 dark:border-slate-700"
-              />
-              <button
-                type="button"
-                onClick={() => handleCoverFileChange(null)}
-                disabled={uploading}
-                className="absolute top-0.5 right-0.5 p-0.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                title="Xóa ảnh"
-              >
-                <X size={10} />
-              </button>
-            </div>
-          )}
         </div>
-
-        <Button
-          onClick={handleUpload}
-          disabled={!selectedFile || uploading}
-          size="sm"
-          className="w-full h-7 text-xs"
-        >
-          {uploading ? (
-            <>
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-              Đang upload...
-            </>
-          ) : (
-            "Upload"
-          )}
-        </Button>
       </div>
+
+      {/* Cover preview */}
+      {coverPreview && (
+        <div className="mb-3 relative inline-block">
+          <img
+            src={coverPreview}
+            alt="Preview"
+            className="h-16 w-auto object-cover rounded border border-slate-200 dark:border-slate-700"
+          />
+          <button
+            type="button"
+            onClick={() => handleCoverFileChange(null)}
+            disabled={uploading}
+            className="absolute -top-1 -right-1 p-0.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+            title="Xóa ảnh"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      )}
+
+      {/* Upload button */}
+      <Button
+        onClick={handleUpload}
+        disabled={!selectedFile || uploading}
+        size="sm"
+        className="w-full h-9"
+      >
+        {uploading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Đang upload...
+          </>
+        ) : (
+          "Upload"
+        )}
+      </Button>
     </div>
   );
 }
+

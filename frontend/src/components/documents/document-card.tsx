@@ -75,7 +75,7 @@ export function DocumentCard({
             <img
               src={thumbnailUrl}
               alt={title}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
             />
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center gap-1 text-slate-500 px-2 text-center leading-snug">
@@ -176,5 +176,6 @@ function normalizeMimeType(mimeType?: string) {
   if (lower.includes("text")) return "TXT";
   return mimeType.split("/").pop()?.toUpperCase() ?? "FILE";
 }
+
 
 

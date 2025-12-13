@@ -38,21 +38,21 @@ export function FacultyTable({
       render: (faculty) => (
         <>
           {faculty.logo ? (
-                  <div className="relative h-10 w-10">
-                    <img
+            <div className="relative h-10 w-10">
+              <img
                 src={faculty.logo}
-                      alt={faculty.facultyName || "Logo"}
-                      className="h-10 w-10 object-contain rounded"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  </div>
-                ) : (
+                alt={faculty.facultyName || "Logo"}
+                className="h-10 w-10 object-contain rounded"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = "none";
+                }}
+              />
+            </div>
+          ) : (
             <div className="h-10 w-10 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center text-xs text-slate-400">
-                    -
-                  </div>
-                )}
+              -
+            </div>
+          )}
         </>
       ),
     },
@@ -97,3 +97,4 @@ export function FacultyTable({
     />
   );
 }
+

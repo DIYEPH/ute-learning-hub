@@ -14,7 +14,7 @@ function getToken(): string | undefined {
  */
 export function getFileUrlById(fileId: string | undefined | null): string {
   if (!fileId) return "";
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7080";
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "https://localhost:7080";
   const baseUrl = `${apiBaseUrl}/api/File/${fileId}`;
 
   // Append token if available (for iframe/img that can't use Authorization header)

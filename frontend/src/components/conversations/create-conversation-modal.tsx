@@ -12,6 +12,7 @@ import type { CreateConversationCommand, SubjectDto2, TagDto } from "@/src/api/d
 import { useFileUpload } from "@/src/hooks/use-file-upload";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 import { getFileUrlById } from "@/src/lib/file-url";
+import { TagPicker } from "@/src/components/ui/tag-picker";
 
 interface CreateConversationModalProps {
   open: boolean;
@@ -31,7 +32,8 @@ export function CreateConversationModal({
     conversationName: "",
     tagIds: [],
     tagNames: [],
-    conversationType: 1,
+    conversationType: 1, // 1 = Group (nhóm nhiều người)
+    visibility: 1, // 1 = Public (công khai)
     subjectId: null,
     isSuggestedByAI: false,
     isAllowMemberPin: false,
@@ -40,7 +42,6 @@ export function CreateConversationModal({
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
   const [tags, setTags] = useState<TagDto[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
-  const [newTagInput, setNewTagInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [avatarFileInput, setAvatarFileInput] = useState<HTMLInputElement | null>(null);
@@ -53,13 +54,13 @@ export function CreateConversationModal({
         conversationName: "",
         tagIds: [],
         tagNames: [],
-        conversationType: 1,
+        conversationType: 1, // 1 = Group
+        visibility: 1, // 1 = Public
         subjectId: null,
         isSuggestedByAI: false,
         isAllowMemberPin: false,
       });
       setSelectedTagIds([]);
-      setNewTagInput("");
       setError(null);
       setAvatarFile(null);
       setAvatarPreview(null);
@@ -99,7 +100,7 @@ export function CreateConversationModal({
       return;
     }
 
-    if (selectedTagIds.length === 0 && (formData.tagNames?.length ?? 0) === 0 && !newTagInput.trim()) {
+    if (selectedTagIds.length === 0 && (formData.tagNames?.length ?? 0) === 0) {
       setError("Cuộc trò chuyện phải có ít nhất một thẻ");
       return;
     }
@@ -108,9 +109,6 @@ export function CreateConversationModal({
 
     try {
       const tagNamesToSubmit = [...(formData.tagNames || [])];
-      if (newTagInput.trim()) {
-        tagNamesToSubmit.push(newTagInput.trim());
-      }
 
       // Upload avatar nếu có
       let avatarUrl: string | undefined;
@@ -228,117 +226,34 @@ export function CreateConversationModal({
             <Label htmlFor="tagIds">
               Thẻ <span className="text-red-500">*</span>
             </Label>
-            <select
-              id="tagIds"
-              multiple
-              value={selectedTagIds}
-              onChange={(e) => {
-                const values = Array.from(e.target.selectedOptions, (option) => option.value);
+            <TagPicker
+              options={tags
+                .filter((tag): tag is TagDto & { id: string } => !!tag?.id)
+                .map((tag) => ({
+                  value: tag.id,
+                  label: tag.tagName || "",
+                }))}
+              selected={selectedTagIds}
+              onChange={(values) => {
                 setSelectedTagIds(values);
                 setFormData((prev) => ({ ...prev, tagIds: values }));
               }}
+              onAddNew={(tagName) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  tagNames: [...(prev.tagNames || []), tagName],
+                }));
+              }}
+              newTags={formData.tagNames || []}
+              onRemoveNewTag={(tagName) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  tagNames: prev.tagNames?.filter((t) => t !== tagName) || [],
+                }));
+              }}
               disabled={loading}
-              size={5}
-              className="mt-1 flex h-auto w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {tags
-                .filter((tag): tag is TagDto & { id: string } => !!tag?.id)
-                .map((tag) => (
-                  <option key={tag.id} value={tag.id}>
-                    {tag.tagName}
-                  </option>
-                ))}
-            </select>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Giữ Ctrl/Cmd để chọn nhiều thẻ
-            </p>
-
-            {/* Input để thêm tag mới */}
-            <div className="mt-2 flex gap-2">
-              <Input
-                type="text"
-                placeholder="Nhập tên tag mới"
-                value={newTagInput}
-                onChange={(e) => setNewTagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && newTagInput.trim()) {
-                    e.preventDefault();
-                    setFormData((prev) => ({
-                      ...prev,
-                      tagNames: [...(prev.tagNames || []), newTagInput.trim()],
-                    }));
-                    setNewTagInput("");
-                  }
-                }}
-                disabled={loading}
-                className="flex-1"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={loading || !newTagInput.trim()}
-                onClick={() => {
-                  const value = newTagInput.trim();
-                  if (!value) return;
-                  setFormData((prev) => ({
-                    ...prev,
-                    tagNames: [...(prev.tagNames || []), value],
-                  }));
-                  setNewTagInput("");
-                }}
-              >
-                Thêm tag
-              </Button>
-            </div>
-
-            {/* Hiển thị tags đã chọn */}
-            {(selectedTagIds.length > 0 || (formData.tagNames?.length ?? 0) > 0) && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {selectedTagIds.map((tagId) => {
-                  const tag = tags.find((t) => t.id === tagId);
-                  return tag ? (
-                    <span
-                      key={tagId}
-                      className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-1 text-xs text-sky-700 dark:bg-sky-900 dark:text-sky-300"
-                    >
-                      {tag.tagName}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const newIds = selectedTagIds.filter((id) => id !== tagId);
-                          setSelectedTagIds(newIds);
-                          setFormData((prev) => ({ ...prev, tagIds: newIds }));
-                        }}
-                        className="hover:text-sky-900"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ) : null;
-                })}
-                {formData.tagNames?.map((tagName, idx) => (
-                  <span
-                    key={`new-${idx}`}
-                    className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-1 text-xs text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
-                  >
-                    {tagName}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          tagNames: prev.tagNames?.filter((_, i) => i !== idx) || [],
-                        }));
-                      }}
-                      className="hover:text-emerald-900"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+              className="mt-2"
+            />
           </div>
 
           <div>
@@ -353,7 +268,7 @@ export function CreateConversationModal({
                 }))
               }
               disabled={loading || loadingSubjects}
-              className="mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="">Chọn môn học</option>
               {subjects
@@ -367,18 +282,18 @@ export function CreateConversationModal({
           </div>
 
           <div>
-            <Label htmlFor="conversationType">Loại cuộc trò chuyện</Label>
+            <Label htmlFor="visibility">Chế độ hiển thị</Label>
             <select
-              id="conversationType"
-              value={formData.conversationType ?? 0}
+              id="visibility"
+              value={formData.visibility ?? 1}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  conversationType: parseInt(e.target.value, 10),
+                  visibility: parseInt(e.target.value, 10),
                 }))
               }
               disabled={loading}
-              className="mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value={0}>Riêng tư</option>
               <option value={1}>Công khai</option>
@@ -410,4 +325,6 @@ export function CreateConversationModal({
     </Dialog>
   );
 }
+
+
 

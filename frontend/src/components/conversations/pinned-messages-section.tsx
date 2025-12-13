@@ -50,19 +50,13 @@ export function PinnedMessagesSection({
 
   return (
     <div className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-      <div className="px-4 py-3">
-        <div className="flex items-center gap-2 mb-3">
-          <MessageCircle className="h-4 w-4 text-slate-600 dark:text-slate-400" />
-          <span className="text-sm font-medium text-slate-900 dark:text-slate-100">
-            Tin nhắn
-          </span>
-        </div>
+      <div className="px-4">
 
         <div className="space-y-2">
           {visibleMessages.map((message) => (
             <div
               key={message.id}
-              className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group relative"
+              className="flex items-start gap-3 p-2.5  hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group relative"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 mb-1">
@@ -134,4 +128,6 @@ export function PinnedMessagesSection({
     </div>
   );
 }
+
+
 

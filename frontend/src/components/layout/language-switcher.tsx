@@ -18,7 +18,7 @@ export function LanguageSwitcher() {
   const switchLocale = (newLocale: string) => {
     // Store locale preference in cookie
     document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
-    
+
     // Reload page to apply new locale
     window.location.reload();
   };
@@ -48,3 +48,4 @@ export function LanguageSwitcher() {
     </DropdownMenu>
   );
 }
+

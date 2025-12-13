@@ -6,7 +6,7 @@ import { Pagination } from "@/src/components/ui/pagination";
 import { Plus, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useTags, CreateTagCommand, UpdateTagCommand } from "@/src/hooks/use-tags";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 import { TagTable } from "@/src/components/admin/tags/tag-table";
 import { TagForm } from "@/src/components/admin/tags/tag-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
@@ -310,3 +310,5 @@ export default function TagsManagementPage() {
         </div>
     );
 }
+
+

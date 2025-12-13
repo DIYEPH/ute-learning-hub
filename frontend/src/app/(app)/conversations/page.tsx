@@ -20,8 +20,6 @@ import type { SubjectDto2 } from "@/src/api/database/types.gen";
 
 const PAGE_SIZE = 20;
 
-type ConversationType = "all" | "0" | "1"; // 0 = Public (Group), 1 = Private
-
 export default function ConversationsPage() {
   const router = useRouter();
   const { fetchSubjects } = useSubjects();
@@ -36,7 +34,6 @@ export default function ConversationsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [subjectId, setSubjectId] = useState<string | null>(null);
   const [tagId, setTagId] = useState<string | null>(null);
-  const [conversationType, setConversationType] = useState<ConversationType>("all");
 
   // Options for filters
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
@@ -55,7 +52,7 @@ export default function ConversationsPage() {
     setPage(1);
     setConversations([]);
     void fetchConversations(1, true);
-  }, [searchTerm, subjectId, tagId, conversationType]);
+  }, [searchTerm, subjectId, tagId]);
 
   const loadFilterOptions = async () => {
     try {
@@ -100,6 +97,9 @@ export default function ConversationsPage() {
       const query: any = {
         Page: pageNum,
         PageSize: PAGE_SIZE,
+        // Chỉ hiện nhóm (Group) và công khai (Public) trong trang tìm kiếm
+        ConversationType: 1, // 1 = Group
+        Visibility: 1, // 1 = Public
       };
 
       if (searchTerm.trim()) {
@@ -114,9 +114,7 @@ export default function ConversationsPage() {
         query.TagId = tagId;
       }
 
-      if (conversationType !== "all") {
-        query.ConversationType = parseInt(conversationType);
-      }
+      // conversationType filter removed - always Group
 
       const response = await getApiConversation({ query });
 
@@ -157,19 +155,18 @@ export default function ConversationsPage() {
     setSearchTerm("");
     setSubjectId(null);
     setTagId(null);
-    setConversationType("all");
   };
 
   const hasActiveFilters =
-    searchTerm.trim() || subjectId || tagId || conversationType !== "all";
+    searchTerm.trim() || subjectId || tagId;
 
   return (
-    <div className="container mx-auto p-4 md:p-6 max-w-7xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-foreground mb-2">
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold text-foreground">
           Khám phá cuộc trò chuyện
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
           Tìm và tham gia các cuộc trò chuyện công khai hoặc xin tham gia các nhóm riêng tư
         </p>
       </div>
@@ -215,7 +212,7 @@ export default function ConversationsPage() {
             <select
               value={subjectId || "all"}
               onChange={(e) => setSubjectId(e.target.value === "all" ? null : e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full  border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="all">Tất cả môn học</option>
               {subjects
@@ -233,7 +230,7 @@ export default function ConversationsPage() {
             <select
               value={tagId || "all"}
               onChange={(e) => setTagId(e.target.value === "all" ? null : e.target.value)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full  border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="all">Tất cả thẻ</option>
               {tags
@@ -243,19 +240,6 @@ export default function ConversationsPage() {
                     {tag.tagName}
                   </option>
                 ))}
-            </select>
-          </div>
-
-          {/* Type Filter */}
-          <div className="w-full md:w-[180px]">
-            <select
-              value={conversationType}
-              onChange={(e) => setConversationType(e.target.value as ConversationType)}
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              <option value="all">Tất cả</option>
-              <option value="0">Công khai</option>
-              <option value="1">Riêng tư</option>
             </select>
           </div>
 
@@ -331,4 +315,5 @@ export default function ConversationsPage() {
     </div>
   );
 }
+
 

@@ -18,9 +18,8 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const t = useTranslations();
-  const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
+  const { authenticated: isAuthenticated} = useAuthState();
 
-  // Generate nav items with translations and filter by auth
   const navItems: NavItem[] = MAIN_NAV_CONFIG
     .filter(item => !item.requiresAuth || isAuthenticated)
     .map(item => ({
@@ -58,4 +57,5 @@ export function AppShell({ children }: AppShellProps) {
     </div>
   );
 }
+
 

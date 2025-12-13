@@ -101,7 +101,7 @@ export default function DocumentFileDetailPage() {
           <ArrowLeft className="h-4 w-4" />
           Quay lại
         </Button>
-        <div className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <div className=" border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
           {error}
         </div>
       </div>
@@ -156,15 +156,6 @@ export default function DocumentFileDetailPage() {
           <span className="text-[10px] text-slate-500 hidden lg:inline">
             {fileSize}{file.totalPages && ` • ${file.totalPages} trang`}
           </span>
-          <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBackToDocument}
-            className="text-[11px] h-7 px-2"
-          >
-            Xem tài liệu
-          </Button>
           <Button
             variant={showComments ? "secondary" : "ghost"}
             size="icon"

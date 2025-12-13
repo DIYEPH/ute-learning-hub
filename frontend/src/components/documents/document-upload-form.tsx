@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
-import { Upload, X, Plus } from "lucide-react";
+import { Upload, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useTypes } from "@/src/hooks/use-types";
@@ -17,6 +17,9 @@ import type {
   AuthorListDto,
   AuthorInput,
 } from "@/src/api/database/types.gen";
+import { TagPicker } from "@/src/components/ui/tag-picker";
+import { AuthorPicker } from "@/src/components/ui/author-picker";
+import { ImageUpload } from "@/src/components/ui/image-upload";
 
 type ApiDocumentBody = CreateDocumentCommand;
 export type DocumentUploadFormData = {
@@ -28,7 +31,6 @@ export type DocumentUploadFormData = {
   typeId?: ApiDocumentBody["typeId"] | null;
   tagIds?: ApiDocumentBody["tagIds"];
   tagNames?: ApiDocumentBody["tagNames"];
-  isDownload?: ApiDocumentBody["isDownload"];
   visibility?: number;
   // File không bắt buộc - nếu không có file thì không tạo document
   file?: File | null;
@@ -59,7 +61,6 @@ export function DocumentUploadForm({
     typeId: null,
     tagIds: [],
     tagNames: [],
-    isDownload: true,
     visibility: 2,
     file: null,
     coverFile: null,
@@ -70,12 +71,6 @@ export function DocumentUploadForm({
   const [tags, setTags] = useState<TagDto[]>([]);
   const [authors, setAuthors] = useState<AuthorListDto[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [newTagInput, setNewTagInput] = useState("");
-
-  // State cho thêm author mới
-  const [showNewAuthorForm, setShowNewAuthorForm] = useState(false);
-  const [newAuthorName, setNewAuthorName] = useState("");
-  const [newAuthorDescription, setNewAuthorDescription] = useState("");
 
   useEffect(() => {
     if (initialData) {
@@ -141,69 +136,11 @@ export function DocumentUploadForm({
     await onSubmit(formData);
   };
 
-
-  // chọn tag có sẵn (multi-select)
-  const handleTagChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(e.target.selectedOptions);
-    const selectedIds = selectedOptions.map((option) => option.value);
-    setFormData((prev) => ({ ...prev, tagIds: selectedIds }));
-  };
-
-  // thêm tag mới (nếu đã tồn tại thì tự động gắn vào tagIds)
-  const handleAddNewTag = () => {
-    const tagName = newTagInput.trim();
-    if (!tagName) return;
-
-    const existingTag = tags.find(
-      (tag) => tag.tagName?.toLowerCase() === tagName.toLowerCase() && tag.id
-    );
-
-    if (existingTag && existingTag.id) {
-      const tagId = existingTag.id;
-      if (!formData.tagIds?.includes(tagId)) {
-        setFormData((prev) => ({
-          ...prev,
-          tagIds: [...(prev.tagIds || []), tagId],
-        }));
-      }
-    } else {
-      if (!formData.tagNames?.some((n) => n.toLowerCase() === tagName.toLowerCase())) {
-        setFormData((prev) => ({
-          ...prev,
-          tagNames: [...(prev.tagNames || []), tagName],
-        }));
-      }
-    }
-
-    setNewTagInput("");
-  };
-
-  const handleTagInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddNewTag();
-    }
-  };
-
-  const handleRemoveTag = (tagIdOrName: string, isName: boolean) => {
-    if (isName) {
-      setFormData((prev) => ({
-        ...prev,
-        tagNames: (prev.tagNames || []).filter((name) => name !== tagIdOrName),
-      }));
-    } else {
-      setFormData((prev) => ({
-        ...prev,
-        tagIds: (prev.tagIds || []).filter((id) => id !== tagIdOrName),
-      }));
-    }
-  };
-
   const isDisabled = loading || loadingSubjects || loadingTypes;
   const selectClassName =
-    "mt-1 flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+    "mt-1 flex h-9 w-full  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
   const textareaClassName =
-    "mt-1 flex w-full rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
+    "mt-1 flex w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <form
@@ -251,175 +188,37 @@ export function DocumentUploadForm({
         </div>
       </div>
 
-      {/* Author section - riêng biệt */}
+      {/* Author section */}
       <div>
         <Label htmlFor="authors">{t("author")} (Tùy chọn)</Label>
-
-        {/* Multi-select cho authors có sẵn */}
-        <select
-          id="authors"
-          multiple
-          value={formData.authorIds || []}
-          onChange={(e) => {
-            const selectedOptions = Array.from(e.target.selectedOptions);
-            const selectedIds = selectedOptions.map((option) => option.value);
-            setFormData((prev) => ({ ...prev, authorIds: selectedIds }));
+        <AuthorPicker
+          options={authors
+            .filter((a): a is AuthorListDto & { id: string } => !!a?.id)
+            .map((author) => ({
+              value: author.id,
+              label: author.fullName || "",
+              description: author.description,
+            }))}
+          selected={formData.authorIds || []}
+          onChange={(values) => {
+            setFormData((prev) => ({ ...prev, authorIds: values }));
+          }}
+          onAddNew={(author) => {
+            setFormData((prev) => ({
+              ...prev,
+              authors: [...(prev.authors || []), author],
+            }));
+          }}
+          newAuthors={formData.authors || []}
+          onRemoveNewAuthor={(index) => {
+            setFormData((prev) => ({
+              ...prev,
+              authors: (prev.authors || []).filter((_, i) => i !== index),
+            }));
           }}
           disabled={isDisabled}
-          size={4}
-          className={selectClassName}
-        >
-          {authors
-            .filter((a): a is AuthorListDto & { id: string } => !!a?.id)
-            .map((author) => (
-              <option key={author.id} value={author.id}>
-                {author.fullName}
-              </option>
-            ))}
-        </select>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          Giữ Ctrl/Cmd để chọn nhiều tác giả
-        </p>
-
-        {/* Nút thêm tác giả mới */}
-        {!showNewAuthorForm && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowNewAuthorForm(true)}
-            disabled={isDisabled}
-            className="mt-2"
-          >
-            <Plus size={16} className="mr-1" /> Thêm tác giả mới
-          </Button>
-        )}
-
-        {/* Form thêm tác giả mới */}
-        {showNewAuthorForm && (
-          <div className="mt-2 p-3 border rounded-md bg-slate-50 dark:bg-slate-800">
-            <div className="space-y-2">
-              <div>
-                <Label htmlFor="newAuthorName" className="text-sm">Tên tác giả *</Label>
-                <Input
-                  id="newAuthorName"
-                  value={newAuthorName}
-                  onChange={(e) => setNewAuthorName(e.target.value)}
-                  placeholder="Nhập tên tác giả"
-                  disabled={isDisabled}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="newAuthorDescription" className="text-sm">Mô tả</Label>
-                <textarea
-                  id="newAuthorDescription"
-                  value={newAuthorDescription}
-                  onChange={(e) => setNewAuthorDescription(e.target.value)}
-                  placeholder="VD: Giảng viên CNTT, Tiến sĩ..."
-                  disabled={isDisabled}
-                  rows={2}
-                  className={textareaClassName}
-                />
-              </div>
-              <div className="flex gap-2 mt-2">
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => {
-                    if (newAuthorName.trim()) {
-                      const newAuthor: AuthorInput = {
-                        fullName: newAuthorName.trim(),
-                        description: newAuthorDescription.trim() || undefined,
-                      };
-                      setFormData((prev) => ({
-                        ...prev,
-                        authors: [...(prev.authors || []), newAuthor],
-                      }));
-                      setNewAuthorName("");
-                      setNewAuthorDescription("");
-                      setShowNewAuthorForm(false);
-                    }
-                  }}
-                  disabled={isDisabled || !newAuthorName.trim()}
-                >
-                  Thêm
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setShowNewAuthorForm(false);
-                    setNewAuthorName("");
-                    setNewAuthorDescription("");
-                  }}
-                  disabled={isDisabled}
-                >
-                  Hủy
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Hiển thị authors đã chọn */}
-        {((formData.authorIds?.length || 0) > 0 ||
-          (formData.authors?.length || 0) > 0) && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {/* Authors từ authorIds (có sẵn) */}
-              {formData.authorIds?.map((authorId) => {
-                const author = authors.find((a) => a.id === authorId);
-                if (!author) return null;
-                return (
-                  <div
-                    key={authorId}
-                    className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
-                  >
-                    <span>{author.fullName}</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorIds: (prev.authorIds || []).filter((id) => id !== authorId),
-                        }));
-                      }}
-                      disabled={isDisabled}
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                );
-              })}
-              {/* Authors từ authors (mới thêm) */}
-              {formData.authors?.map((author, index) => (
-                <div
-                  key={`new-author-${index}`}
-                  className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
-                >
-                  <span>{author.fullName}</span>
-                  <span className="text-xs text-green-600 dark:text-green-400">
-                    (mới)
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFormData((prev) => ({
-                        ...prev,
-                        authors: (prev.authors || []).filter((_, i) => i !== index),
-                      }));
-                    }}
-                    disabled={isDisabled}
-                    className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+          className="mt-2"
+        />
       </div>
 
       <div className="space-y-3 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -481,136 +280,45 @@ export function DocumentUploadForm({
         <Label htmlFor="tagIds">
           {t("tags")} <span className="text-red-500">*</span>
         </Label>
-        <select
-          id="tagIds"
-          multiple
-          value={formData.tagIds || []}
-          onChange={handleTagChange}
-          disabled={isDisabled}
-          size={5}
-          className={selectClassName}
-        >
-          {tags
+        <TagPicker
+          options={tags
             .filter((tag): tag is TagDto & { id: string } => !!tag?.id)
-            .map((tag) => (
-              <option key={tag.id} value={tag.id}>
-                {tag.tagName}
-              </option>
-            ))}
-        </select>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          Giữ Ctrl/Cmd để chọn nhiều thẻ
-        </p>
-
-        {/* Input để thêm tag mới */}
-        <div className="mt-2 flex gap-2">
-          <Input
-            type="text"
-            placeholder="Nhập tên tag mới và nhấn Enter"
-            value={newTagInput}
-            onChange={(e) => setNewTagInput(e.target.value)}
-            onKeyDown={handleTagInputKeyDown}
-            disabled={isDisabled}
-            className="flex-1"
-          />
-          <Button
-            type="button"
-            onClick={handleAddNewTag}
-            disabled={isDisabled || !newTagInput.trim()}
-            size="sm"
-          >
-            Thêm
-          </Button>
-        </div>
-
-        {/* Hiển thị tags đã chọn */}
-        {((formData.tagIds?.length || 0) > 0 ||
-          (formData.tagNames?.length || 0) > 0) && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {/* Tags từ tagIds (tag có sẵn) */}
-              {formData.tagIds?.map((tagId) => {
-                const tag = tags.find((t) => t.id === tagId);
-                if (!tag) return null;
-                return (
-                  <div
-                    key={tagId}
-                    className="flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900 rounded-md text-sm"
-                  >
-                    <span>{tag.tagName}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveTag(tagId, false)}
-                      disabled={isDisabled}
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                );
-              })}
-              {/* Tags từ tagNames (tag mới) */}
-              {formData.tagNames?.map((tagName) => (
-                <div
-                  key={tagName}
-                  className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900 rounded-md text-sm"
-                >
-                  <span>{tagName}</span>
-                  <span className="text-xs text-green-600 dark:text-green-400">
-                    (mới)
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tagName, true)}
-                    disabled={isDisabled}
-                    className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-200"
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+            .map((tag) => ({
+              value: tag.id,
+              label: tag.tagName || "",
+            }))}
+          selected={formData.tagIds || []}
+          onChange={(values) => {
+            setFormData((prev) => ({ ...prev, tagIds: values }));
+          }}
+          onAddNew={(tagName) => {
+            setFormData((prev) => ({
+              ...prev,
+              tagNames: [...(prev.tagNames || []), tagName],
+            }));
+          }}
+          newTags={formData.tagNames || []}
+          onRemoveNewTag={(tagName) => {
+            setFormData((prev) => ({
+              ...prev,
+              tagNames: prev.tagNames?.filter((t) => t !== tagName) || [],
+            }));
+          }}
+          disabled={isDisabled}
+          className="mt-2"
+        />
       </div>
 
       <div>
-        <Label htmlFor="coverFile">Ảnh bìa tài liệu (Tùy chọn)</Label>
-        <input
-          type="file"
-          id="coverFile"
-          accept="image/*"
-          onChange={(e) => {
-            const selectedFile = e.target.files?.[0] || null;
-            setFormData((prev) => ({ ...prev, coverFile: selectedFile }));
-          }}
-          className="hidden"
+        <Label>Ảnh bìa tài liệu (Tùy chọn)</Label>
+        <ImageUpload
+          value={formData.coverFile}
+          onChange={(file) => setFormData((prev) => ({ ...prev, coverFile: file }))}
           disabled={isDisabled}
+          aspectRatio="cover"
+          placeholder="Chọn ảnh bìa"
+          className="mt-2"
         />
-        <label
-          htmlFor="coverFile"
-          className={`mt-1 flex items-center gap-2 px-4 py-3 border-2 border-dashed rounded-md transition-colors ${isDisabled
-            ? "border-slate-200 dark:border-slate-700 opacity-50 cursor-not-allowed"
-            : "border-slate-300 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800"
-            }`}
-        >
-          <Upload size={20} />
-          <span className="text-sm">
-            {formData.coverFile ? formData.coverFile.name : "Chọn ảnh bìa"}
-          </span>
-        </label>
-        {formData.coverFile && (
-          <div className="mt-2 flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 rounded-md">
-            <span className="text-sm">{formData.coverFile.name}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setFormData((prev) => ({ ...prev, coverFile: null }))}
-              disabled={isDisabled}
-            >
-              <X size={16} />
-            </Button>
-          </div>
-        )}
       </div>
 
 
@@ -636,3 +344,4 @@ export function DocumentUploadForm({
     </form >
   );
 }
+

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { MessageCircle, ThumbsDown, ThumbsUp } from "lucide-react";
-import { useNotification } from "@/src/components/ui/notification-center";
+import { useNotification } from "@/src/components/providers/notification-provider";
 import { useAuthState } from "@/src/hooks/use-auth-state";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { Button } from "@/src/components/ui/button";
@@ -190,7 +190,7 @@ export function DocumentFileCommentsPanel({
             type="button"
             disabled={!ready || !authenticated}
             onClick={() => handleReview(DocumentReviewType.Useful)}
-            className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-[11px] hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-1  border border-slate-200 px-2 py-1 text-[11px] hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
             title="Đánh dấu hữu ích"
           >
             <ThumbsUp className="h-3.5 w-3.5" />
@@ -200,7 +200,7 @@ export function DocumentFileCommentsPanel({
             type="button"
             disabled={!ready || !authenticated}
             onClick={() => handleReview(DocumentReviewType.NotUseful)}
-            className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-[11px] hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-1  border border-slate-200 px-2 py-1 text-[11px] hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
             title="Đánh dấu không hữu ích"
           >
             <ThumbsDown className="h-3.5 w-3.5" />
@@ -220,7 +220,7 @@ export function DocumentFileCommentsPanel({
               {comments.map((c) => (
                 <div
                   key={c.id}
-                  className="rounded-md border border-slate-200 bg-slate-50 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-900"
+                  className=" border border-slate-200 bg-slate-50 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-900"
                 >
                   <div className="flex items-center justify-between mb-1.5">
                     <div className="flex items-center gap-2 min-w-0">
@@ -280,7 +280,7 @@ export function DocumentFileCommentsPanel({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Nhập bình luận của bạn..."
                 rows={3}
-                className="w-full resize-none rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-foreground shadow-sm outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                className="w-full resize-none  border border-slate-300 bg-white px-3 py-2 text-sm text-foreground shadow-sm outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               />
               <div className="flex justify-end">
                 <Button
@@ -298,5 +298,6 @@ export function DocumentFileCommentsPanel({
     </div>
   );
 }
+
 
 
