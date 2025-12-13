@@ -51,6 +51,7 @@ public class UpdateNotificationCommandHandler : IRequestHandler<UpdateNotificati
         notification.UpdatedAt = _dateTimeProvider.OffsetNow;
 
         await _notificationRepository.UpdateAsync(notification, cancellationToken);
+        await _notificationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return new NotificationDto
         {
