@@ -69,4 +69,9 @@ public class ConversationRepository : Repository<Conversation, Guid>, IConversat
         _dbContext.ConversationMembers.Update(member);
         await Task.CompletedTask;
     }
+
+    public async Task AddJoinRequestAsync(ConversationJoinRequest joinRequest, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.Set<ConversationJoinRequest>().AddAsync(joinRequest, cancellationToken);
+    }
 }

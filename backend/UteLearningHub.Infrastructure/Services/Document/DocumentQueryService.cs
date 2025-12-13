@@ -73,7 +73,6 @@ public class DocumentQueryService : IDocumentQueryService
                         MimeType = df.File.MimeType,
                         Title = df.Title,
                         Order = df.Order,
-                        IsPrimary = df.IsPrimary,
                         TotalPages = df.TotalPages,
                         CoverFileId = df.CoverFileId,
                         Status = df.Status,

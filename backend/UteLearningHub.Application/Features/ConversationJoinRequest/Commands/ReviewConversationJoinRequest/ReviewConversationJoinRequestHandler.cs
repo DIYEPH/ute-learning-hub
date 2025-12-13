@@ -80,16 +80,7 @@ public class ReviewConversationJoinRequestHandler : IRequestHandler<ReviewConver
 
             if (!isMember)
             {
-                // Load conversation with members
-                var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
-                    joinRequest.ConversationId,
-                    disableTracking: false,
-                    cancellationToken);
-
-                if (conversation == null)
-                    throw new NotFoundException($"Conversation with id {joinRequest.ConversationId} not found");
-
-                // Add user as member
+                // Add user as member directly (avoid navigation property to prevent concurrency issues)
                 var member = new DomainConversationMember
                 {
                     Id = Guid.NewGuid(),
@@ -100,8 +91,7 @@ public class ReviewConversationJoinRequestHandler : IRequestHandler<ReviewConver
                     CreatedAt = _dateTimeProvider.OffsetNow
                 };
 
-                conversation.Members.Add(member);
-                await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+                await _conversationRepository.AddMemberAsync(member, cancellationToken);
                 approvedAndAdded = true;
             }
         }

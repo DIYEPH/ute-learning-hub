@@ -76,13 +76,6 @@ public class GetConversationJoinRequestsHandler : IRequestHandler<GetConversatio
         if (request.Status.HasValue)
             query = query.Where(r => r.Status == request.Status.Value);
 
-        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-        {
-            var searchTerm = request.SearchTerm.ToLower();
-            query = query.Where(r => r.Content.ToLower().Contains(searchTerm)
-                                  || r.Conversation.ConversationName.ToLower().Contains(searchTerm));
-        }
-
         // Order by newest first
         query = query.OrderByDescending(r => r.CreatedAt);
 

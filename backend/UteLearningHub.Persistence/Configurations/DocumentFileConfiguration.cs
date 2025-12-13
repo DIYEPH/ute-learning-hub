@@ -18,7 +18,6 @@ public class DocumentFileConfiguration : IEntityTypeConfiguration<DocumentFile>
         builder.Property(u => u.FileId).HasColumnName("TepDinhKemId");
         builder.Property(u => u.Title).HasColumnName("TieuDe");
         builder.Property(u => u.TotalPages).HasColumnName("TongSoTrang");
-        builder.Property(u => u.IsPrimary).HasColumnName("LaChinh");
         builder.Property(u => u.Order).HasColumnName("ThuTu");
         builder.Property(u => u.CoverFileId).HasColumnName("TepBiaId");
         builder.Property(u => u.Status).HasColumnName("TrangThai");

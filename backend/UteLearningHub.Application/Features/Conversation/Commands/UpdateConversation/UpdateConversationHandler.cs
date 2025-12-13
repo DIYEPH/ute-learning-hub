@@ -148,6 +148,8 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
                     });
                 }
             }
+            else
+                throw new BadRequestException("Cuộc trò chuyện phải có ít nhất một chủ đề");
         }
 
         conversation.UpdatedById = userId;

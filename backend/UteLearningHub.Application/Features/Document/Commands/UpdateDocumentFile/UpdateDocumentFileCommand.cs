@@ -10,7 +10,6 @@ public record UpdateDocumentFileCommand : IRequest<DocumentDetailDto>
 
     public string? Title { get; init; }
     public int? Order { get; init; }
-    public bool? IsPrimary { get; init; }
     public Guid? CoverFileId { get; init; }
 }
 

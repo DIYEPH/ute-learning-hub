@@ -70,9 +70,6 @@ public class UpdateDocumentFileCommandHandler : IRequestHandler<UpdateDocumentFi
         if (request.Order.HasValue)
             fileEntity.Order = request.Order.Value;
 
-        if (request.IsPrimary.HasValue)
-            fileEntity.IsPrimary = request.IsPrimary.Value;
-
         Domain.Entities.File? oldCoverFile = null;
 
         if (request.CoverFileId.HasValue)

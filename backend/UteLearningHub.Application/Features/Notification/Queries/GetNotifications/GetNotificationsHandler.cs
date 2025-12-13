@@ -29,14 +29,16 @@ public class GetNotificationsHandler : IRequestHandler<GetNotificationsQuery, Pa
 
         IQueryable<NotificationDto> projectedQuery;
 
-        if (isAdmin)
+        // Admin uses admin query only when viewing from admin panel (IsDeleted filter provided)
+        // For notification menu (personal view), admin uses same query as regular users
+        if (isAdmin && request.IsDeleted.HasValue)
         {
-            // Admin: query directly from Notification table
+            // Admin viewing from admin panel: query all notifications
             projectedQuery = GetAdminNotificationsQuery(request);
         }
         else
         {
-            // Regular user: query via NotificationRecipient
+            // Regular user OR admin viewing personal notifications: query via NotificationRecipient
             projectedQuery = GetUserNotificationsQuery(request);
         }
 

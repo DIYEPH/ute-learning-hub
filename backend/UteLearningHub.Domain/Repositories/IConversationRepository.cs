@@ -11,4 +11,5 @@ public interface IConversationRepository : IRepository<Conversation, Guid>
     Task RemoveMemberAsync(Guid conversationId, Guid userId, CancellationToken cancellationToken = default);
     Task<ConversationMember?> GetDeletedMemberAsync(Guid conversationId, Guid userId, CancellationToken cancellationToken = default);
     Task RestoreMemberAsync(ConversationMember member, CancellationToken cancellationToken = default);
+    Task AddJoinRequestAsync(ConversationJoinRequest joinRequest, CancellationToken cancellationToken = default);
 }

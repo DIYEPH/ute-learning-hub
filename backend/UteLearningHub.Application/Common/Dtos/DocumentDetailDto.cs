@@ -30,7 +30,6 @@ public record DocumentFileDto
     public string MimeType { get; init; } = default!;
     public string? Title { get; init; }
     public int? Order { get; init; }
-    public bool IsPrimary { get; init; }
     public int? TotalPages { get; init; }
     public Guid? CoverFileId { get; init; }
     public ContentStatus Status { get; init; }

@@ -79,13 +79,8 @@ public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConver
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        // Add through conversation's navigation property
-        conversation = await _conversationRepository.GetByIdWithDetailsAsync(request.ConversationId, disableTracking: false, cancellationToken);
-        if (conversation == null)
-            throw new NotFoundException($"Conversation with id {request.ConversationId} not found");
-
-        conversation.ConversationJoinRequests.Add(joinRequest);
-        await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+        // Add join request directly (avoid updating conversation to prevent concurrency issues)
+        await _conversationRepository.AddJoinRequestAsync(joinRequest, cancellationToken);
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         // Reload to get relationships

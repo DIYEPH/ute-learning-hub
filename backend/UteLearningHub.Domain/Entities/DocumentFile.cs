@@ -10,7 +10,6 @@ public class DocumentFile : SoftDeletableEntity<Guid>, IAuditable
 
     public string? Title { get; set; }
     public int? TotalPages { get; set; }
-    public bool IsPrimary { get; set; } = false;
     public int Order { get; set; } = 0;
 
     public Document Document { get; set; } = default!;

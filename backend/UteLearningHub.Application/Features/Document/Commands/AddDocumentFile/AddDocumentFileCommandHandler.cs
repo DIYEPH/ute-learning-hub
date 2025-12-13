@@ -93,27 +93,25 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
             ? document.DocumentFiles.Max(df => df.Order) + 1
             : 1;
 
-        int? totalPages = request.TotalPages;
-        if (!totalPages.HasValue)
+        // Calculate total pages from file
+        int? totalPages = null;
+        var file = await _fileRepository.GetByIdAsync(request.FileId, disableTracking: true, cancellationToken);
+        if (file != null)
         {
-            var file = await _fileRepository.GetByIdAsync(request.FileId, disableTracking: true, cancellationToken);
-            if (file != null)
+            try
             {
-                try
+                var fileStream = await _fileStorageService.GetFileAsync(file.FileUrl, cancellationToken);
+                if (fileStream != null)
                 {
-                    var fileStream = await _fileStorageService.GetFileAsync(file.FileUrl, cancellationToken);
-                    if (fileStream != null)
-                    {
-                        totalPages = await _documentPageCountService.GetPageCountAsync(
-                            fileStream,
-                            file.MimeType ?? "",
-                            cancellationToken);
-                    }
+                    totalPages = await _documentPageCountService.GetPageCountAsync(
+                        fileStream,
+                        file.MimeType ?? "",
+                        cancellationToken);
                 }
-                catch
-                {
-                    totalPages = null;
-                }
+            }
+            catch
+            {
+                totalPages = null;
             }
         }
 
@@ -132,7 +130,7 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
         else
             status = ContentStatus.PendingReview;
 
-        var fileOrder = request.Order ?? nextOrder;
+        var fileOrder = nextOrder;
         var defaultTitle = string.IsNullOrWhiteSpace(request.Title) 
             ? $"{document.DocumentName} ({fileOrder})" 
             : request.Title;
@@ -144,7 +142,6 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
             FileId = request.FileId,
             Title = defaultTitle,
             TotalPages = totalPages,
-            IsPrimary = request.IsPrimary,
             Order = fileOrder,
             CreatedById = userId,
             UpdatedById = null,

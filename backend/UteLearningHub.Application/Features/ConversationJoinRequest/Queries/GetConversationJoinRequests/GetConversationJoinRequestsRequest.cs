@@ -8,6 +8,5 @@ public record GetConversationJoinRequestsRequest : PagedRequest
     public Guid? ConversationId { get; init; }
     public Guid? CreatedById { get; init; }
     public ContentStatus? Status { get; init; }
-    public string? SearchTerm { get; init; }
 }
 
