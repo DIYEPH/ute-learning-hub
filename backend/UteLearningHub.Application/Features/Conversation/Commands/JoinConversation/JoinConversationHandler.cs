@@ -59,7 +59,8 @@ public class JoinConversationHandler : IRequestHandler<JoinConversationCommand, 
         if (isActiveMember)
             throw new BadRequestException("You are already a member of this conversation");
 
-        if (conversation.ConversationType == ConversitionType.Private)
+        // Private visibility = phải gửi yêu cầu tham gia, Public = tham gia trực tiếp
+        if (conversation.Visibility == ConversationVisibility.Private)
             throw new BadRequestException("Private conversations require a join request. Please use the join request endpoint.");
 
         var deletedMember = await _conversationRepository.GetDeletedMemberAsync(conversation.Id, userId, cancellationToken);

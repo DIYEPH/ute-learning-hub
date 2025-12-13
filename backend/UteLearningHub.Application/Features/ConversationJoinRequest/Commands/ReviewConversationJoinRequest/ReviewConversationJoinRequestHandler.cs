@@ -47,13 +47,11 @@ public class ReviewConversationJoinRequestHandler : IRequestHandler<ReviewConver
         if (joinRequest == null)
             throw new NotFoundException($"Join request with id {request.JoinRequestId} not found");
 
-        // Only Private conversations have join requests
-        if (joinRequest.Conversation.ConversationType != ConversitionType.Private)
+        // Only Private visibility conversations have join requests
+        if (joinRequest.Conversation.Visibility != ConversationVisibility.Private)
             throw new BadRequestException("Join requests are only available for private conversations");
 
-        // Check permission: Admin, Owner, or Deputy
-        var isAdmin = _currentUserService.IsInRole("Admin");
-
+        // Check permission: Only Owner or Deputy can review
         var isOwnerOrDeputy = await _conversationRepository.GetQueryableSet()
             .Where(c => c.Id == joinRequest.ConversationId)
             .SelectMany(c => c.Members)
@@ -62,10 +60,8 @@ public class ReviewConversationJoinRequestHandler : IRequestHandler<ReviewConver
                             m.ConversationMemberRoleType == ConversationMemberRoleType.Deputy)
                         && !m.IsDeleted, cancellationToken);
 
-        var canReview = isAdmin || isOwnerOrDeputy;
-
-        if (!canReview)
-            throw new UnauthorizedException("Only administrators, conversation owners, or deputies can review join requests");
+        if (!isOwnerOrDeputy)
+            throw new UnauthorizedException("Only conversation owners or deputies can review join requests");
 
         // Update review information
         joinRequest.Status = request.Status;

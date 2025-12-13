@@ -44,8 +44,8 @@ public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConver
         if (conversation.ConversationStatus != ConversationStatus.Active)
             throw new BadRequestException("Conversation is not active");
 
-        // Only Private conversations require join request
-        if (conversation.ConversationType != ConversitionType.Private)
+        // Only Private visibility conversations require join request
+        if (conversation.Visibility != ConversationVisibility.Private)
             throw new BadRequestException("Join requests are only available for private conversations");
 
         // Check if user is already a member

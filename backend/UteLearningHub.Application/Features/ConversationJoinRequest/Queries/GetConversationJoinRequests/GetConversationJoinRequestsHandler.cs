@@ -32,48 +32,39 @@ public class GetConversationJoinRequestsHandler : IRequestHandler<GetConversatio
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
         // Check permission: Admin or Owner of the conversation
-        var isAdmin = _currentUserService.IsInRole("Admin");
-
-        // Non-admin users must specify a ConversationId
-        if (!isAdmin && !request.ConversationId.HasValue)
+        // Must specify a ConversationId
+        if (!request.ConversationId.HasValue)
             throw new BadRequestException("ConversationId is required to view join requests");
 
-        // If filtering by conversation, check if user is owner
-        bool isOwner = false;
-        if (request.ConversationId.HasValue)
-        {
-            // Verify conversation exists and is Private
-            var conversation = await _conversationRepository.GetByIdAsync(
-                request.ConversationId.Value,
-                disableTracking: true,
-                cancellationToken);
+        // If filtering by conversation, check if user is owner or deputy
+        // Verify conversation exists and is Private
+        var conversation = await _conversationRepository.GetByIdAsync(
+            request.ConversationId.Value,
+            disableTracking: true,
+            cancellationToken);
 
-            if (conversation == null || conversation.IsDeleted)
-                throw new NotFoundException($"Conversation with id {request.ConversationId.Value} not found");
+        if (conversation == null || conversation.IsDeleted)
+            throw new NotFoundException($"Conversation with id {request.ConversationId.Value} not found");
 
-            if (conversation.ConversationType != ConversitionType.Private)
-                throw new BadRequestException("Join requests are only available for private conversations");
+        if (conversation.Visibility != ConversationVisibility.Private)
+            throw new BadRequestException("Join requests are only available for private conversations");
 
-            // Check if user is owner or deputy
-            if (!isAdmin)
-            {
-                isOwner = await _conversationRepository.GetQueryableSet()
-                    .Where(c => c.Id == request.ConversationId.Value)
-                    .SelectMany(c => c.Members)
-                    .AnyAsync(m => m.UserId == userId
-                                && (m.ConversationMemberRoleType == ConversationMemberRoleType.Owner ||
-                                    m.ConversationMemberRoleType == ConversationMemberRoleType.Deputy)
-                                && !m.IsDeleted, cancellationToken);
+        // Check if user is owner or deputy
+        var isOwnerOrDeputy = await _conversationRepository.GetQueryableSet()
+            .Where(c => c.Id == request.ConversationId.Value)
+            .SelectMany(c => c.Members)
+            .AnyAsync(m => m.UserId == userId
+                        && (m.ConversationMemberRoleType == ConversationMemberRoleType.Owner ||
+                            m.ConversationMemberRoleType == ConversationMemberRoleType.Deputy)
+                        && !m.IsDeleted, cancellationToken);
 
-                if (!isOwner)
-                    throw new UnauthorizedException("Only conversation owners or deputies can view join requests for this conversation");
-            }
-        }
+        if (!isOwnerOrDeputy)
+            throw new UnauthorizedException("Only conversation owners or deputies can view join requests for this conversation");
 
         var query = _conversationRepository.GetJoinRequestsQueryable()
             .Include(r => r.Conversation)
             .AsNoTracking()
-            .Where(r => !r.IsDeleted && r.Conversation.ConversationType == ConversitionType.Private); // Chỉ lấy Private conversations
+            .Where(r => !r.IsDeleted && r.Conversation.Visibility == ConversationVisibility.Private); // Chỉ lấy Private conversations
 
         // Filters
         if (request.ConversationId.HasValue)

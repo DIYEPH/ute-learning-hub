@@ -68,11 +68,9 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
 
         var previousAvatarUrl = conversation.AvatarUrl;
 
+
         if (!string.IsNullOrWhiteSpace(request.AvatarUrl))
             conversation.AvatarUrl = request.AvatarUrl;
-
-        if (request.ConversationType.HasValue)
-            conversation.ConversationType = request.ConversationType.Value;
 
         if (request.Visibility.HasValue)
             conversation.Visibility = request.Visibility.Value;

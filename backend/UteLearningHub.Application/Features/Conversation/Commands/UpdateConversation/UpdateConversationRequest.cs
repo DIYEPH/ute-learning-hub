@@ -8,7 +8,6 @@ public record UpdateConversationRequest
     public string? ConversationName { get; init; }
     public IList<Guid>? TagIds { get; init; }
     public IList<string>? TagNames { get; init; }
-    public ConversitionType? ConversationType { get; init; }
     public ConversationVisibility? Visibility { get; init; }
     public ConversationStatus? ConversationStatus { get; init; }
     public Guid? SubjectId { get; init; }
