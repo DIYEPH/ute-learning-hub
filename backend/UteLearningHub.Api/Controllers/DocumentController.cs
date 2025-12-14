@@ -6,6 +6,7 @@ using UteLearningHub.Application.Features.Document.Commands.AddDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
+using UteLearningHub.Application.Features.Document.Commands.ResubmitDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentProgress;
@@ -90,6 +91,20 @@ namespace UteLearningHub.Api.Controllers
         public async Task<IActionResult> DeleteDocumentFile(Guid documentId, Guid fileId)
         {
             var command = new DeleteDocumentFileCommand
+            {
+                DocumentId = documentId,
+                DocumentFileId = fileId
+            };
+
+            await _mediator.Send(command);
+            return NoContent();
+        }
+
+        [HttpPost("{documentId}/files/{fileId}/resubmit")]
+        [Authorize]
+        public async Task<IActionResult> ResubmitDocumentFile(Guid documentId, Guid fileId)
+        {
+            var command = new ResubmitDocumentFileCommand
             {
                 DocumentId = documentId,
                 DocumentFileId = fileId

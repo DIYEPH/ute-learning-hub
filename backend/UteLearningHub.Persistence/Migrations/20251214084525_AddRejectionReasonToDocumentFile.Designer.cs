@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UteLearningHub.Persistence;
 
@@ -11,9 +12,11 @@ using UteLearningHub.Persistence;
 namespace UteLearningHub.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251214084525_AddRejectionReasonToDocumentFile")]
+    partial class AddRejectionReasonToDocumentFile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -713,17 +716,9 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("int")
                         .HasColumnName("ThuTu");
 
-                    b.Property<string>("ReviewNote")
+                    b.Property<string>("RejectionReason")
                         .HasColumnType("nvarchar(max)")
-                        .HasColumnName("GhiChuDuyet");
-
-                    b.Property<DateTimeOffset?>("ReviewedAt")
-                        .HasColumnType("datetimeoffset")
-                        .HasColumnName("ThoiGianDuyet");
-
-                    b.Property<Guid?>("ReviewedById")
-                        .HasColumnType("uniqueidentifier")
-                        .HasColumnName("NguoiDuyetId");
+                        .HasColumnName("LyDoAn");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()

@@ -33,6 +33,11 @@ public record DocumentFileDto
     public int? TotalPages { get; init; }
     public Guid? CoverFileId { get; init; }
     public ContentStatus Status { get; init; }
+    
+    // Review info
+    public Guid? ReviewedById { get; init; }
+    public DateTimeOffset? ReviewedAt { get; init; }
+    public string? ReviewNote { get; init; }
 
     // Thống kê theo từng DocumentFile
     public int CommentCount { get; init; }

@@ -1,4 +1,5 @@
 using MediatR;
+using UteLearningHub.Application.Features.DocumentFiles.Commands.ReviewDocumentFile;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.TrustScore;
 using UteLearningHub.Application.Services.User;
@@ -24,6 +25,7 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
     private readonly IUserService _userService;
     private readonly ITrustScoreService _trustScoreService;
     private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly IMediator _mediator;
 
     public ReviewReportCommandHandler(
         IReportRepository reportRepository,
@@ -33,7 +35,8 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
         ICurrentUserService currentUserService,
         IUserService userService,
         ITrustScoreService trustScoreService,
-        IDateTimeProvider dateTimeProvider)
+        IDateTimeProvider dateTimeProvider,
+        IMediator mediator)
     {
         _reportRepository = reportRepository;
         _documentRepository = documentRepository;
@@ -43,6 +46,7 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
         _userService = userService;
         _trustScoreService = trustScoreService;
         _dateTimeProvider = dateTimeProvider;
+        _mediator = mediator;
     }
 
     public async Task<Unit> Handle(ReviewReportCommand request, CancellationToken cancellationToken)
@@ -93,15 +97,15 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
                 allReports.Add(related);
             }
 
-            // Hide the reported content (set Status = Hidden)
+            // Hide the reported content via ReviewDocumentFile command
             if (report.DocumentFileId.HasValue)
             {
-                var documentFile = await _documentRepository.GetDocumentFileByIdAsync(
-                    report.DocumentFileId.Value, disableTracking: false, cancellationToken);
-                if (documentFile != null)
+                await _mediator.Send(new ReviewDocumentFileCommand
                 {
-                    documentFile.Status = ContentStatus.Hidden;
-                }
+                    DocumentFileId = report.DocumentFileId.Value,
+                    Status = ContentStatus.Hidden,
+                    Reason = request.ReviewNote ?? "Bị ẩn do báo cáo vi phạm"
+                }, cancellationToken);
             }
             
             if (report.CommentId.HasValue)
@@ -120,7 +124,19 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
             // Process rewards and notifications (async)
             _ = ProcessRewardsAndNotificationsAsync(allReports, report.DocumentFile, report.Comment, now, cancellationToken);
         }
-
+        else if (request.Status == ContentStatus.Hidden) // Report rejected
+        {
+            await _reportRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+            
+            // Notify reporter
+            _ = CreateNotificationAsync(
+                report.CreatedById,
+                "Báo cáo không được chấp nhận",
+                request.ReviewNote ?? "Báo cáo của bạn đã được xem xét và không được chấp nhận.",
+                null,
+                now,
+                cancellationToken);
+        }
         else
         {
             await _reportRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
@@ -152,7 +168,7 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
             {
                 await CreateNotificationAsync(
                     contentOwnerId.Value,
-                    "⚠️ Nội dung của bạn bị báo cáo vi phạm",
+                    "Nội dung của bạn bị báo cáo vi phạm",
                     $"Nội dung \"{contentName}\" đã bị báo cáo và xác nhận vi phạm. Vui lòng kiểm tra và chỉnh sửa.",
                     documentFile != null ? $"/documents/{documentFile.DocumentId}" : null,
                     now,
@@ -173,7 +189,7 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
 
                 await CreateNotificationAsync(
                     report.CreatedById,
-                    "🎉 Báo cáo của bạn được duyệt!",
+                    "Báo cáo của bạn được duyệt!",
                     $"Cảm ơn bạn đã báo cáo vi phạm! Bạn được thưởng +{points} điểm uy tín.",
                     "/profile",
                     now,
@@ -185,7 +201,7 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
             {
                 await CreateNotificationAsync(
                     report.CreatedById,
-                    "📋 Báo cáo được ghi nhận",
+                    "Báo cáo được ghi nhận",
                     "Cảm ơn bạn đã báo cáo! Rất tiếc, đã có nhiều người báo cáo trước bạn nên bạn không nhận được điểm thưởng lần này.",
                     null,
                     now,

@@ -76,6 +76,9 @@ public class DocumentQueryService : IDocumentQueryService
                         TotalPages = df.TotalPages,
                         CoverFileId = df.CoverFileId,
                         Status = df.Status,
+                        ReviewedById = df.ReviewedById,
+                        ReviewedAt = df.ReviewedAt,
+                        ReviewNote = df.ReviewNote,
                         CommentCount = df.Comments.Count(c => !c.IsDeleted),
                         UsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.Useful),
                         NotUsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.NotUseful)

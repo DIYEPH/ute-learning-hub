@@ -28,15 +28,19 @@ public class GetDocumentByIdHandler : IRequestHandler<GetDocumentByIdQuery, Docu
     {
         var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
         var isAuthenticated = _currentUserService.IsAuthenticated;
+        var userId = _currentUserService.UserId;
 
         var document = await _documentQueryService.GetDetailByIdAsync(request.Id, cancellationToken);
         
         if (document == null)
             throw new NotFoundException($"Document with id {request.Id} not found");
 
-        // Non-admin users can only see documents with at least 1 approved file
+        var isOwner = isAuthenticated && userId.HasValue && document.CreatedById == userId.Value;
+
+        // Owner và Admin có thể xem document với mọi trạng thái file
+        // Non-owner/non-admin cần ít nhất 1 file đã được approved
         var hasApprovedFile = document.Files.Any(f => f.Status == ContentStatus.Approved);
-        if (!isAdmin && !hasApprovedFile)
+        if (!isAdmin && !isOwner && !hasApprovedFile)
             throw new NotFoundException($"Document with id {request.Id} not found");
 
         // Người chưa đăng nhập chỉ xem được tài liệu Public

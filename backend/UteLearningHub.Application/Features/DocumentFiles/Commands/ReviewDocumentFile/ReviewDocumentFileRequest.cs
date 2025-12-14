@@ -6,5 +6,6 @@ public record ReviewDocumentFileRequest
 {
     public Guid DocumentFileId { get; init; }
     public ContentStatus Status { get; init; }
+    public string? Reason { get; init; }  
 }
 

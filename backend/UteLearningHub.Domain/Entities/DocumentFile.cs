@@ -17,10 +17,15 @@ public class DocumentFile : SoftDeletableEntity<Guid>, IAuditable
     public Guid? CoverFileId { get; set; }
     public File? CoverFile { get; set; }
     public ContentStatus Status { get; set; } = ContentStatus.Approved;
+    
+    // Review info
+    public Guid? ReviewedById { get; set; }
+    public DateTimeOffset? ReviewedAt { get; set; }
+    public string? ReviewNote { get; set; }
+    
     public ICollection<Comment> Comments { get; set; } = [];
     public ICollection<Report> Reports { get; set; } = [];
 
     public Guid CreatedById { get; set; }
     public Guid? UpdatedById { get; set; }
 }
-

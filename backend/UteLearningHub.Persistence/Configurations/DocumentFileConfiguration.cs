@@ -21,6 +21,11 @@ public class DocumentFileConfiguration : IEntityTypeConfiguration<DocumentFile>
         builder.Property(u => u.Order).HasColumnName("ThuTu");
         builder.Property(u => u.CoverFileId).HasColumnName("TepBiaId");
         builder.Property(u => u.Status).HasColumnName("TrangThai");
+        
+        // Review info
+        builder.Property(u => u.ReviewedById).HasColumnName("NguoiDuyetId");
+        builder.Property(u => u.ReviewedAt).HasColumnName("ThoiGianDuyet");
+        builder.Property(u => u.ReviewNote).HasColumnName("GhiChuDuyet");
 
         builder.ApplySoftDelete<DocumentFile>()
             .ApplyTrack<DocumentFile>()
@@ -43,5 +48,3 @@ public class DocumentFileConfiguration : IEntityTypeConfiguration<DocumentFile>
             .OnDelete(DeleteBehavior.Restrict);
     }
 }
-
-
