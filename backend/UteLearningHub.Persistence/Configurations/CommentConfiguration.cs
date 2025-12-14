@@ -19,6 +19,11 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
         builder.Property(u => u.DocumentFileId).HasColumnName("TaiLieu_TepId");
         builder.Property(u => u.Content).HasColumnName("NoiDung");
         builder.Property(u => u.Status).HasColumnName("TrangThai");
+        
+        // Review info
+        builder.Property(u => u.ReviewedById).HasColumnName("NguoiDuyetId");
+        builder.Property(u => u.ReviewedAt).HasColumnName("ThoiGianDuyet");
+        builder.Property(u => u.ReviewNote).HasColumnName("GhiChuDuyet");
 
         builder.ApplySoftDelete<Comment>()
             .ApplyTrack<Comment>()

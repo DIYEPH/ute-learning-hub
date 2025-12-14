@@ -115,6 +115,9 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
                 if (comment != null)
                 {
                     comment.Status = ContentStatus.Hidden;
+                    comment.ReviewedById = userId;
+                    comment.ReviewedAt = now;
+                    comment.ReviewNote = request.ReviewNote ?? "Bị ẩn do báo cáo vi phạm";
                 }
             }
 
