@@ -65,8 +65,14 @@ export function AuthorForm({
     }, [checkNameExists, initialData?.id]);
 
     useEffect(() => {
+        // Skip search if the debounced value is the same as initial data (edit mode)
+        if (initialData?.fullName && debouncedName === initialData.fullName) {
+            setMatchingAuthors([]);
+            setIsDuplicate(false);
+            return;
+        }
         searchAuthors(debouncedName);
-    }, [debouncedName, searchAuthors]);
+    }, [debouncedName, searchAuthors, initialData?.fullName]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

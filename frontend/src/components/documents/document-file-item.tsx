@@ -1,6 +1,6 @@
 "use client";
 
-import { ThumbsUp, ThumbsDown, MessageSquare, FileText, MoreVertical, Flag, Pencil, Trash2 } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, FileText, MoreVertical, Flag, Pencil, Trash2, RefreshCw, Clock, CheckCircle, EyeOff } from "lucide-react";
 import type { DocumentFileDto } from "@/src/api/database/types.gen";
 import { getFileUrlById } from "@/src/lib/file-url";
 import {
@@ -10,6 +10,14 @@ import {
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu";
 import { Button } from "@/src/components/ui/button";
+import { Badge } from "@/src/components/ui/badge";
+
+// ContentStatus enum from backend
+const ContentStatus = {
+  PendingReview: 0,
+  Approved: 1,
+  Hidden: 2,
+} as const;
 
 interface DocumentFileItemProps {
   file: DocumentFileDto;
@@ -19,6 +27,7 @@ interface DocumentFileItemProps {
   onEdit?: (file: DocumentFileDto) => void;
   onDelete?: (fileId: string) => void;
   onReport?: (fileId: string) => void;
+  onResubmit?: (fileId: string) => void;
 }
 
 export function DocumentFileItem({
@@ -29,6 +38,7 @@ export function DocumentFileItem({
   onEdit,
   onDelete,
   onReport,
+  onResubmit,
 }: DocumentFileItemProps) {
   const coverUrl = getFileUrlById(file.coverFileId);
   const fileSize = file.fileSize ? `${(file.fileSize / 1024 / 1024).toFixed(2)} MB` : "";
@@ -61,6 +71,45 @@ export function DocumentFileItem({
     }
   };
 
+  const handleResubmit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (file.id && onResubmit) {
+      onResubmit(file.id);
+    }
+  };
+
+  // Get status badge for owner
+  const getStatusBadge = () => {
+    if (!isOwner) return null;
+
+    switch (file.status) {
+      case ContentStatus.PendingReview:
+        return (
+          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-300 text-[10px] gap-1">
+            {/* <Clock className="h-3 w-3" /> */}
+            Chờ duyệt
+          </Badge>
+        );
+      case ContentStatus.Approved:
+        return (
+          <Badge variant="outline" className="border-green-300 bg-green-50 text-green-700 dark:border-green-700 dark:bg-green-950 dark:text-green-300 text-[10px] gap-1">
+            {/* <CheckCircle className="h-3 w-3" /> */}
+            Đã duyệt
+          </Badge>
+        );
+      case ContentStatus.Hidden:
+        return (
+          <Badge variant="outline" className="border-red-300 bg-red-50 text-red-700 dark:border-red-700 dark:bg-red-950 dark:text-red-300 text-[10px] gap-1">
+            {/* <EyeOff className="h-3 w-3" /> */}
+            Bị ẩn
+          </Badge>
+        );
+      default:
+        return null;
+    }
+  };
+
   // Check if menu has any items to show
   const hasMenuItems = isOwner || (!isOwner && onReport);
 
@@ -81,9 +130,12 @@ export function DocumentFileItem({
 
       {/* Content */}
       <div className="flex-1 min-w-0 flex flex-col justify-center">
-        <h4 className="font-medium text-sm text-foreground line-clamp-1 leading-tight">
-          {title}
-        </h4>
+        <div className="flex items-center gap-2">
+          <h4 className="font-medium text-sm text-foreground line-clamp-1 leading-tight">
+            {title}
+          </h4>
+          {getStatusBadge()}
+        </div>
         <p className="text-xs text-muted-foreground mt-0.5">
           {fileSize}
           {file.totalPages && ` • ${file.totalPages} trang`}
@@ -120,11 +172,32 @@ export function DocumentFileItem({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {/* Xem lý do ẩn - hiển thị đầu tiên nếu file bị ẩn và có lý do */}
+            {isOwner && file.status === ContentStatus.Hidden && file.reviewNote && (
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  alert(`Lý do ẩn file:\n\n${file.reviewNote}`);
+                }}
+                className="text-amber-600 focus:text-amber-600"
+              >
+                <EyeOff className="h-4 w-4 mr-2" />
+                Xem lý do ẩn
+              </DropdownMenuItem>
+            )}
             {/* Owner actions */}
             {isOwner && onEdit && (
               <DropdownMenuItem onClick={handleEdit}>
                 <Pencil className="h-4 w-4 mr-2" />
                 Chỉnh sửa
+              </DropdownMenuItem>
+            )}
+            {/* Resubmit - only for owner when file is hidden */}
+            {isOwner && file.status === ContentStatus.Hidden && onResubmit && (
+              <DropdownMenuItem onClick={handleResubmit} className="text-blue-600 focus:text-blue-600">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Gửi duyệt lại
               </DropdownMenuItem>
             )}
             {isOwner && onDelete && (

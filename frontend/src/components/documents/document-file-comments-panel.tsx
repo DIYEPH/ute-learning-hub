@@ -1,11 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageCircle, ThumbsDown, ThumbsUp } from "lucide-react";
+import Link from "next/link";
+import { MessageCircle, ThumbsDown, ThumbsUp, MoreVertical, Flag } from "lucide-react";
 import { useNotification } from "@/src/components/providers/notification-provider";
 import { useAuthState } from "@/src/hooks/use-auth-state";
+import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { Button } from "@/src/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/src/components/ui/dropdown-menu";
+import { ReportModal } from "@/src/components/shared/report-modal";
 import {
   getApiComment,
   getApiDocumentById,
@@ -42,6 +51,7 @@ export function DocumentFileCommentsPanel({
   initialNotUsefulCount,
 }: DocumentFileCommentsPanelProps) {
   const { authenticated, ready } = useAuthState();
+  const { profile } = useUserProfile();
   const { success: notifySuccess, error: notifyError } = useNotification();
 
   const [comments, setComments] = useState<CommentDto[]>([]);
@@ -52,6 +62,10 @@ export function DocumentFileCommentsPanel({
   const [content, setContent] = useState("");
   const [localUseful, setLocalUseful] = useState(initialUsefulCount ?? 0);
   const [localNotUseful, setLocalNotUseful] = useState(initialNotUsefulCount ?? 0);
+
+  // Report modal state
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [reportingComment, setReportingComment] = useState<CommentDto | null>(null);
 
   useEffect(() => {
     setLocalUseful(initialUsefulCount ?? 0);
@@ -217,36 +231,63 @@ export function DocumentFileCommentsPanel({
             </p>
           ) : (
             <div className="space-y-3">
-              {comments.map((c) => (
-                <div
-                  key={c.id}
-                  className=" border border-slate-200 bg-slate-50 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-900"
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                      {c.authorAvatarUrl && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={c.authorAvatarUrl}
-                          alt={c.authorName}
-                          className="h-6 w-6 rounded-full object-cover"
-                        />
-                      )}
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-xs font-semibold text-foreground truncate">
-                          {c.authorName}
-                        </span>
-                        <span className="text-[10px] text-slate-400">
-                          {new Date(c.createdAt as any).toLocaleString()}
-                        </span>
+              {comments.map((c) => {
+                const isCommentOwner = profile?.id === c.createdById;
+                return (
+                  <div
+                    key={c.id}
+                    className=" border border-slate-200 bg-slate-50 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-900"
+                  >
+                    <div className="flex items-center justify-between mb-1.5">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <Link href={`/profile/${c.createdById}`} className="flex items-center gap-2 min-w-0 hover:opacity-80">
+                          {c.authorAvatarUrl && (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={c.authorAvatarUrl}
+                              alt={c.authorName}
+                              className="h-6 w-6 rounded-full object-cover"
+                            />
+                          )}
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs font-semibold text-foreground truncate hover:text-sky-600 dark:hover:text-sky-400">
+                              {c.authorName}
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {new Date(c.createdAt as any).toLocaleString()}
+                            </span>
+                          </div>
+                        </Link>
                       </div>
+                      {/* Dropdown menu - only for non-owners */}
+                      {authenticated && !isCommentOwner && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                              <MoreVertical className="h-3.5 w-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setReportingComment(c);
+                                setReportModalOpen(true);
+                              }}
+                              className="text-red-600 focus:text-red-600"
+                            >
+                              <Flag className="h-4 w-4 mr-2" />
+                              Báo cáo
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </div>
+                    <p className="text-[13px] text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-words">
+                      {c.content}
+                    </p>
                   </div>
-                  <p className="text-[13px] text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-words">
-                    {c.content}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
 
               {hasMore && (
                 <div className="flex justify-center pt-1">
@@ -295,6 +336,15 @@ export function DocumentFileCommentsPanel({
           )}
         </div>
       </div>
+
+      {/* Report Modal */}
+      <ReportModal
+        open={reportModalOpen}
+        onOpenChange={setReportModalOpen}
+        targetType="comment"
+        targetId={reportingComment?.id || ""}
+        targetTitle={reportingComment?.content?.substring(0, 50) || "Bình luận"}
+      />
     </div>
   );
 }

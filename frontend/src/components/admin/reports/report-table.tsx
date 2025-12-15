@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import {
@@ -26,8 +26,8 @@ interface ReportTableProps {
 
 const statusLabels: Record<number, { label: string; variant: "default" | "outline" | "secondary" | "destructive" }> = {
     0: { label: "Chờ xử lý", variant: "destructive" },
-    1: { label: "Đã xử lý", variant: "default" },
-    2: { label: "Đã ẩn", variant: "secondary" },
+    1: { label: "Đã duyệt", variant: "default" },
+    2: { label: "Từ chối", variant: "secondary" },
 };
 
 export function ReportTable({
@@ -76,18 +76,18 @@ export function ReportTable({
     }
 
     return (
-        <div className=" border">
+        <div className="border rounded overflow-x-auto">
             <Table>
                 <TableHeader>
                     <TableRow className="bg-slate-50 dark:bg-slate-800">
                         <TableHead className="w-10"></TableHead>
-                        <TableHead>{t("table.target")}</TableHead>
-                        <TableHead>{t("table.reportCount")}</TableHead>
-                        <TableHead>{t("table.latestContent")}</TableHead>
-                        <TableHead>{t("table.reporter")}</TableHead>
-                        <TableHead>{t("table.status")}</TableHead>
-                        <TableHead>{t("table.createdAt")}</TableHead>
-                        <TableHead className="text-right">{t("table.actions")}</TableHead>
+                        <TableHead className="min-w-[120px]">{t("table.target")}</TableHead>
+                        <TableHead className="min-w-[80px]">{t("table.reportCount")}</TableHead>
+                        <TableHead className="min-w-[200px]">{t("table.latestContent")}</TableHead>
+                        <TableHead className="min-w-[120px]">{t("table.reporter")}</TableHead>
+                        <TableHead className="min-w-[100px]">{t("table.status")}</TableHead>
+                        <TableHead className="min-w-[140px]">{t("table.createdAt")}</TableHead>
+                        <TableHead className="text-right min-w-[100px]">{t("table.actions")}</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -96,7 +96,7 @@ export function ReportTable({
                         const statusInfo = statusLabels[grouped.status] || statusLabels[0];
 
                         return (
-                            <>
+                            <Fragment key={grouped.key}>
                                 <TableRow key={grouped.key} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
                                     <TableCell>
                                         {grouped.reportCount > 1 && (
@@ -183,7 +183,7 @@ export function ReportTable({
                                         <TableCell></TableCell>
                                     </TableRow>
                                 ))}
-                            </>
+                            </Fragment>
                         );
                     })}
                 </TableBody>

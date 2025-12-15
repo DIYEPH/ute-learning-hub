@@ -57,7 +57,7 @@ export function EditDocumentModal({
     tagNames: [],
     authorIds: document.authors?.map((a) => a.id || "").filter(Boolean) || [],
     newAuthors: [],
-    visibility: document.visibility ?? 2,
+    visibility: document.visibility ?? 1,
     coverFile: null,
   });
 
@@ -79,7 +79,7 @@ export function EditDocumentModal({
         tagNames: [],
         authorIds: document.authors?.map((a) => a.id || "").filter(Boolean) || [],
         newAuthors: [],
-        visibility: document.visibility ?? 2,
+        visibility: document.visibility ?? 1,
         coverFile: null,
       });
       setError(null);
@@ -409,8 +409,7 @@ export function EditDocumentModal({
                 className={selectClassName}
               >
                 <option value={0}>Công khai</option>
-                <option value={1}>Riêng tư</option>
-                <option value={2}>Nội bộ</option>
+                <option value={1}>Nội bộ</option>
               </select>
             </div>
           </div>

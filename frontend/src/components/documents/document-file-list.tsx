@@ -4,9 +4,11 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { GripVertical } from "lucide-react";
 import type { DocumentFileDto, DocumentDetailDto } from "@/src/api/database/types.gen";
+import { postApiDocumentByDocumentIdFilesByFileIdResubmit } from "@/src/api/database/sdk.gen";
 import { DocumentFileItem } from "@/src/components/documents/document-file-item";
 import { ReportModal } from "@/src/components/shared/report-modal";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
+import { useNotification } from "@/src/components/providers/notification-provider";
 
 interface DocumentFileListProps {
   files: DocumentFileDto[];
@@ -14,6 +16,7 @@ interface DocumentFileListProps {
   onEdit?: (file: DocumentFileDto) => void;
   onDelete?: (fileId: string) => void;
   onReorder?: (files: DocumentFileDto[]) => void;
+  onRefresh?: () => void;
 }
 
 export function DocumentFileList({
@@ -22,9 +25,11 @@ export function DocumentFileList({
   onEdit,
   onDelete,
   onReorder,
+  onRefresh,
 }: DocumentFileListProps) {
   const documentId = doc.id;
   const { profile } = useUserProfile();
+  const { success: notifySuccess, error: notifyError } = useNotification();
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportingFile, setReportingFile] = useState<DocumentFileDto | null>(null);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -39,6 +44,20 @@ export function DocumentFileList({
     if (file) {
       setReportingFile(file);
       setReportModalOpen(true);
+    }
+  };
+
+  const handleResubmit = async (fileId: string) => {
+    if (!documentId) return;
+
+    try {
+      await postApiDocumentByDocumentIdFilesByFileIdResubmit({
+        path: { documentId, fileId },
+      });
+      notifySuccess("Đã gửi yêu cầu duyệt lại. Admin sẽ xem xét file của bạn.");
+      onRefresh?.();
+    } catch (err: any) {
+      notifyError(err?.message || "Không thể gửi yêu cầu duyệt lại");
     }
   };
 
@@ -105,6 +124,7 @@ export function DocumentFileList({
               onEdit={onEdit}
               onDelete={onDelete}
               onReport={handleReport}
+              onResubmit={handleResubmit}
             />
           );
 

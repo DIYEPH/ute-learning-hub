@@ -45,7 +45,7 @@ export default function NotificationsManagementPage() {
     const [formLoading, setFormLoading] = useState(false);
     const [deleteAllModalOpen, setDeleteAllModalOpen] = useState(false);
     const [priorityFilter, setPriorityFilter] = useState<string | null>(null);
-    const [deletedFilter, setDeletedFilter] = useState<string | null>("false"); // Default to active items
+    const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
 
     const loadNotifications = useCallback(async () => {
         try {
@@ -206,7 +206,7 @@ export default function NotificationsManagementPage() {
     const totalPages = Math.ceil(totalCount / pageSize);
 
     return (
-        <div className="p-4 md:p-6">
+        <div>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h1 className="text-xl md:text-2xl font-semibold text-foreground">{t("title")}</h1>
                 <div className="flex gap-2">

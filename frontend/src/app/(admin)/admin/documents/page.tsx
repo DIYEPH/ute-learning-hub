@@ -6,18 +6,24 @@ import { Pagination } from "@/src/components/ui/pagination";
 import { Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useDocuments } from "@/src/hooks/use-documents";
+import { useSubjects } from "@/src/hooks/use-subjects";
+import { useTypes } from "@/src/hooks/use-types";
+import { getApiAuthor, getApiTag } from "@/src/api/database/sdk.gen";
 import { useNotification } from "@/src/components/providers/notification-provider";
 import { DocumentTable } from "@/src/components/admin/documents/document-table";
 import { DocumentForm } from "@/src/components/admin/documents/document-form";
+import { DocumentDetailModal } from "@/src/components/admin/documents/document-detail-modal";
 import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { EditModal } from "@/src/components/admin/modals/edit-modal";
 import { AdvancedSearchFilter } from "@/src/components/admin/advanced-search-filter";
-import type { DocumentDto, UpdateDocumentCommand } from "@/src/api/database/types.gen";
+import type { DocumentDto, UpdateDocumentCommand, SubjectDto2, TypeDto, AuthorListDto, TagDto } from "@/src/api/database/types.gen";
 
 export default function DocumentsManagementPage() {
     const t = useTranslations("admin.documents");
     const notification = useNotification();
     const { fetchDocuments, updateDocument, deleteDocument, loading, error } = useDocuments();
+    const { fetchSubjects } = useSubjects();
+    const { fetchTypes } = useTypes();
 
     const [documents, setDocuments] = useState<DocumentDto[]>([]);
     const [totalCount, setTotalCount] = useState(0);
@@ -26,19 +32,52 @@ export default function DocumentsManagementPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [visibilityFilter, setVisibilityFilter] = useState<string | null>(null);
     const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
+    const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
+    const [typeFilter, setTypeFilter] = useState<string | null>(null);
+    const [authorFilter, setAuthorFilter] = useState<string | null>(null);
+    const [tagFilter, setTagFilter] = useState<string[]>([]);
     const [sortKey, setSortKey] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
+
+    // Filter options
+    const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
+    const [types, setTypes] = useState<TypeDto[]>([]);
+    const [authors, setAuthors] = useState<AuthorListDto[]>([]);
+    const [tags, setTags] = useState<TagDto[]>([]);
 
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [deleteAllModalOpen, setDeleteAllModalOpen] = useState(false);
+    const [detailModalOpen, setDetailModalOpen] = useState(false);
     const [selectedDocument, setSelectedDocument] = useState<DocumentDto | null>(null);
     const [formLoading, setFormLoading] = useState(false);
+
+    // Fetch filter options on mount
+    useEffect(() => {
+        const loadFilterOptions = async () => {
+            const [subjectsRes, typesRes, authorsRes, tagsRes] = await Promise.all([
+                fetchSubjects({ Page: 1, PageSize: 1000 }),
+                fetchTypes({ Page: 1, PageSize: 1000 }),
+                getApiAuthor({ query: { Page: 1, PageSize: 1000 } }).then((res: any) => res?.data || res),
+                getApiTag({ query: { Page: 1, PageSize: 1000 } }).then((res: any) => res?.data || res),
+            ]);
+            if (subjectsRes?.items) setSubjects(subjectsRes.items);
+            if (typesRes?.items) setTypes(typesRes.items);
+            if (authorsRes?.items) setAuthors(authorsRes.items);
+            if (tagsRes?.items) setTags(tagsRes.items);
+        };
+        loadFilterOptions();
+    }, [fetchSubjects, fetchTypes]);
 
     const loadDocuments = useCallback(async () => {
         try {
             const response = await fetchDocuments({
                 SearchTerm: searchTerm || undefined,
+                Visibility: visibilityFilter || undefined,
+                SubjectId: subjectFilter || undefined,
+                TypeId: typeFilter || undefined,
+                AuthorId: authorFilter || undefined,
+                TagIds: tagFilter.length > 0 ? tagFilter : undefined,
                 IsDeleted: deletedFilter === "true" ? true : deletedFilter === "false" ? false : undefined,
                 Page: page,
                 PageSize: pageSize,
@@ -51,7 +90,7 @@ export default function DocumentsManagementPage() {
         } catch (err) {
             console.error("Error loading documents:", err);
         }
-    }, [fetchDocuments, searchTerm, visibilityFilter, deletedFilter, page, pageSize]);
+    }, [fetchDocuments, searchTerm, visibilityFilter, subjectFilter, typeFilter, authorFilter, tagFilter, deletedFilter, page, pageSize]);
 
     useEffect(() => {
         loadDocuments();
@@ -126,17 +165,22 @@ export default function DocumentsManagementPage() {
         setSearchTerm("");
         setVisibilityFilter(null);
         setDeletedFilter(null);
+        setSubjectFilter(null);
+        setTypeFilter(null);
+        setAuthorFilter(null);
+        setTagFilter([]);
         setSortKey(null);
         setSortDirection(null);
         setPage(1);
     };
 
     const handleFilterChange = (key: string, value: string | null) => {
-        if (key === "visibility") {
-            setVisibilityFilter(value);
-        } else if (key === "deleted") {
-            setDeletedFilter(value);
-        }
+        if (key === "visibility") setVisibilityFilter(value);
+        else if (key === "deleted") setDeletedFilter(value);
+        else if (key === "subject") setSubjectFilter(value);
+        else if (key === "type") setTypeFilter(value);
+        else if (key === "author") setAuthorFilter(value);
+        else if (key === "tags") setTagFilter(Array.isArray(value) ? value : value ? [value] : []);
         setPage(1);
     };
 
@@ -148,7 +192,7 @@ export default function DocumentsManagementPage() {
     const totalPages = Math.ceil(totalCount / pageSize);
 
     return (
-        <div className="p-4 md:p-6">
+        <div>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h1 className="text-xl md:text-2xl font-semibold text-foreground">{t("title")}</h1>
                 <div className="flex gap-2">
@@ -174,13 +218,41 @@ export default function DocumentsManagementPage() {
                     placeholder={t("searchPlaceholder")}
                     filters={[
                         {
+                            key: "subject",
+                            label: t("filter.subject"),
+                            type: "select",
+                            value: subjectFilter,
+                            options: subjects.filter(s => s.id).map(s => ({ value: s.id!, label: `${s.subjectName} (${s.subjectCode})` })),
+                        },
+                        {
+                            key: "type",
+                            label: t("filter.type"),
+                            type: "select",
+                            value: typeFilter,
+                            options: types.filter(t => t.id).map(t => ({ value: t.id!, label: t.typeName || "" })),
+                        },
+                        {
+                            key: "author",
+                            label: t("filter.author"),
+                            type: "searchable",
+                            value: authorFilter,
+                            options: authors.filter(a => a.id).map(a => ({ value: a.id!, label: a.fullName || "" })),
+                        },
+                        {
+                            key: "tags",
+                            label: t("filter.tags"),
+                            type: "searchable-multiselect",
+                            value: tagFilter,
+                            options: tags.filter(tag => tag.id).map(tag => ({ value: tag.id!, label: tag.tagName || "" })),
+                        },
+                        {
                             key: "visibility",
                             label: t("filter.visibility"),
                             type: "select",
                             value: visibilityFilter,
                             options: [
-                                { value: "0", label: t("filter.private") },
-                                { value: "1", label: t("filter.public") },
+                                { value: "0", label: t("filter.public") },
+                                { value: "1", label: t("filter.internal") },
                             ],
                         },
                         {
@@ -215,6 +287,10 @@ export default function DocumentsManagementPage() {
                 <DocumentTable
                     documents={documents}
                     loading={loading}
+                    onViewDetail={(doc) => {
+                        setSelectedDocument(doc);
+                        setDetailModalOpen(true);
+                    }}
                     onEdit={(doc) => {
                         setSelectedDocument(doc);
                         setEditModalOpen(true);
@@ -288,6 +364,17 @@ export default function DocumentsManagementPage() {
                 description={t("deleteAllModal.description", { count: documents.length })}
                 loading={formLoading}
                 itemName={`${documents.length} ${t("items")}`}
+            />
+
+            {/* Document Detail Modal with Review */}
+            <DocumentDetailModal
+                open={detailModalOpen}
+                onOpenChange={(open) => {
+                    setDetailModalOpen(open);
+                    if (!open) setSelectedDocument(null);
+                }}
+                documentId={selectedDocument?.id || null}
+                onReviewSuccess={loadDocuments}
             />
         </div>
     );

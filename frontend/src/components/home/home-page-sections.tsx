@@ -2,76 +2,50 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { ChevronRight, BookOpen, Clock, TrendingUp } from "lucide-react";
-import { getApiDocument, getApiSubject, getApiDocumentReadingHistory } from "@/src/api/database/sdk.gen";
+import { ChevronRight, Loader2 } from "lucide-react";
+import { getApiDocumentHomepage, getApiDocumentReadingHistory } from "@/src/api/database/sdk.gen";
 import { DocumentCard } from "@/src/components/documents/document-card";
 import { ScrollArea, ScrollBar } from "@/src/components/ui/scroll-area";
-import type { DocumentDto, SubjectDto2, ReadingHistoryItemDto } from "@/src/api/database/types.gen";
+import type { HomepageDto, ReadingHistoryItemDto, DocumentDto, SubjectWithDocsDto } from "@/src/api/database/types.gen";
 import { useTranslations } from "next-intl";
+import { useAuthState } from "@/src/hooks/use-auth-state";
 
 interface PagedResponse<T> {
     items?: T[];
     totalCount?: number;
 }
 
-interface SubjectWithDocs {
-    subject: SubjectDto2;
-    documents: DocumentDto[];
-}
-
 export function HomePageSections() {
     const t = useTranslations("home");
-    const [subjectsWithDocs, setSubjectsWithDocs] = useState<SubjectWithDocs[]>([]);
+    const { authenticated: isAuthenticated } = useAuthState();
+    const [homepageData, setHomepageData] = useState<HomepageDto | null>(null);
     const [recentDocs, setRecentDocs] = useState<ReadingHistoryItemDto[]>([]);
-    const [latestDocs, setLatestDocs] = useState<DocumentDto[]>([]);
     const [loading, setLoading] = useState(true);
 
     const loadData = useCallback(async () => {
         setLoading(true);
         try {
-            // 1. Get subjects with document count
-            const subjectsRes = await getApiSubject({ query: { PageSize: 20 } });
-            const subjectsData = (subjectsRes as unknown as { data: PagedResponse<SubjectDto2> })?.data || subjectsRes as PagedResponse<SubjectDto2>;
-            const subjects = subjectsData.items || [];
+            const homepageRes = await getApiDocumentHomepage();
+            const homepage = (homepageRes as any)?.data || homepageRes as HomepageDto;
+            setHomepageData(homepage);
 
-            // 2. Get reading history for "Recent" section
-            try {
-                const historyRes = await getApiDocumentReadingHistory({ query: { PageSize: 8 } });
-                const historyData = (historyRes as unknown as { data: PagedResponse<ReadingHistoryItemDto> })?.data || historyRes as PagedResponse<ReadingHistoryItemDto>;
-                setRecentDocs(historyData.items || []);
-            } catch {
-                // Not logged in or no history
+            if (isAuthenticated) {
+                try {
+                    const historyRes = await getApiDocumentReadingHistory({ query: { PageSize: 8 } });
+                    const historyData = (historyRes as unknown as { data: PagedResponse<ReadingHistoryItemDto> })?.data || historyRes as PagedResponse<ReadingHistoryItemDto>;
+                    setRecentDocs(historyData.items || []);
+                } catch {
+                    setRecentDocs([]);
+                }
+            } else {
                 setRecentDocs([]);
             }
-
-            // 3. Get latest documents
-            const latestRes = await getApiDocument({ query: { PageSize: 12, SortBy: "createdAt", SortDescending: true } });
-            const latestData = (latestRes as unknown as { data: PagedResponse<DocumentDto> })?.data || latestRes as PagedResponse<DocumentDto>;
-            setLatestDocs(latestData.items || []);
-
-            // 4. Get documents for top 5 subjects
-            const topSubjects = subjects.slice(0, 5);
-            const subjectsWithDocsList: SubjectWithDocs[] = [];
-
-            for (const subject of topSubjects) {
-                if (!subject.id) continue;
-                const docsRes = await getApiDocument({ query: { SubjectId: subject.id, PageSize: 10 } });
-                const docsData = (docsRes as unknown as { data: PagedResponse<DocumentDto> })?.data || docsRes as PagedResponse<DocumentDto>;
-                if ((docsData.items?.length || 0) > 0) {
-                    subjectsWithDocsList.push({
-                        subject,
-                        documents: docsData.items || [],
-                    });
-                }
-            }
-
-            setSubjectsWithDocs(subjectsWithDocsList);
         } catch (err) {
             console.error("Error loading homepage data:", err);
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [isAuthenticated]);
 
     useEffect(() => {
         loadData();
@@ -79,95 +53,97 @@ export function HomePageSections() {
 
     if (loading) {
         return (
-            <div className="space-y-8 w-full">
-                {[1, 2, 3].map((i) => (
-                    <div key={i} className="animate-pulse">
-                        <div className="h-6 w-40 bg-slate-200 dark:bg-slate-700 rounded mb-4"></div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                            {[1, 2, 3, 4, 5, 6].map((j) => (
-                                <div key={j} className="aspect-[3/4] bg-slate-200 dark:bg-slate-700 rounded"></div>
-                            ))}
-                        </div>
-                    </div>
-                ))}
+            <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
             </div>
         );
     }
 
+    const latestDocs = homepageData?.latestDocuments || [];
+    const popularDocs = homepageData?.popularDocuments || [];
+    const topSubjects = homepageData?.topSubjects || [];
+
     return (
-        <div className="space-y-8">
-            {/* Recent Documents - Reading History */}
+        <div className="space-y-6">
+            {/* Đọc gần đây */}
             {recentDocs.length > 0 && (
-                <Section
-                    title={t("recentlyViewed")}
-                    icon={<Clock className="h-5 w-5 text-orange-500" />}
-                    href="/recent"
-                >
+                <Section title={t("recentlyViewed")} href="/recent">
                     <HorizontalScroll>
-                        {recentDocs.map((item) => (
+                        {recentDocs.map((item: ReadingHistoryItemDto) => (
                             <DocumentCard
                                 key={item.documentFileId || item.documentId}
                                 id={item.documentId}
                                 title={item.documentName || ""}
                                 subjectName={item.subjectName || undefined}
                                 thumbnailFileId={item.coverFileId}
-                                className="w-44 flex-shrink-0"
+                                className="w-40 flex-shrink-0"
                             />
                         ))}
                     </HorizontalScroll>
                 </Section>
             )}
 
-            {/* Latest Documents */}
+            {/* Được yêu thích */}
+            {popularDocs.length > 0 && (
+                <Section title="Được yêu thích" href="/search">
+                    <HorizontalScroll>
+                        {(popularDocs as DocumentDto[]).map((doc: DocumentDto) => (
+                            <DocumentCard
+                                key={doc.id}
+                                id={doc.id}
+                                title={doc.documentName || ""}
+                                subjectName={doc.subject?.subjectName || undefined}
+                                thumbnailFileId={doc.thumbnailFileId}
+                                tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
+                                fileCount={doc.fileCount}
+                                usefulCount={doc.usefulCount}
+                                className="w-40 flex-shrink-0"
+                            />
+                        ))}
+                    </HorizontalScroll>
+                </Section>
+            )}
+
+            {/* Mới nhất */}
             {latestDocs.length > 0 && (
-                <Section
-                    title={t("latestDocuments")}
-                    icon={<TrendingUp className="h-5 w-5 text-emerald-500" />}
-                    href="/library"
-                >
+                <Section title={t("latestDocuments")} href="/search">
                     <HorizontalScroll>
-                        {latestDocs.map((doc) => (
+                        {latestDocs.map((doc: DocumentDto) => (
                             <DocumentCard
                                 key={doc.id}
                                 id={doc.id}
                                 title={doc.documentName || ""}
                                 subjectName={doc.subject?.subjectName || undefined}
                                 thumbnailFileId={doc.thumbnailFileId}
-                                tags={doc.tags?.map((t) => t.tagName || "").filter(Boolean)}
+                                tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
                                 fileCount={doc.fileCount}
-                                commentCount={doc.commentCount}
                                 usefulCount={doc.usefulCount}
-                                notUsefulCount={doc.notUsefulCount}
-                                className="w-44 flex-shrink-0"
+                                className="w-40 flex-shrink-0"
                             />
                         ))}
                     </HorizontalScroll>
                 </Section>
             )}
 
-            {/* Documents by Subject */}
-            {subjectsWithDocs.map(({ subject, documents }) => (
+            {/* Theo môn học */}
+            {topSubjects.map((item: SubjectWithDocsDto) => (
                 <Section
-                    key={subject.id}
-                    title={subject.subjectName || ""}
-                    subtitle={subject.subjectCode}
-                    icon={<BookOpen className="h-5 w-5 text-sky-500" />}
-                    href={`/library?subjectId=${subject.id}`}
+                    key={item.subjectId}
+                    title={item.subjectName || ""}
+                    href={`/search?subject=${item.subjectId}`}
                 >
                     <HorizontalScroll>
-                        {documents.map((doc) => (
+                        {((item.documents || []) as DocumentDto[]).map((doc: DocumentDto) => (
                             <DocumentCard
                                 key={doc.id}
                                 id={doc.id}
                                 title={doc.documentName || ""}
                                 subjectName={doc.subject?.subjectName || undefined}
                                 thumbnailFileId={doc.thumbnailFileId}
-                                tags={doc.tags?.map((t) => t.tagName || "").filter(Boolean)}
+                                tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
                                 fileCount={doc.fileCount}
-                                commentCount={doc.commentCount}
                                 usefulCount={doc.usefulCount}
-                                notUsefulCount={doc.notUsefulCount}
-                                className="w-44 flex-shrink-0"
+                                className="w-40 flex-shrink-0"
                             />
                         ))}
                     </HorizontalScroll>
@@ -175,48 +151,25 @@ export function HomePageSections() {
             ))}
 
             {/* Empty state */}
-            {subjectsWithDocs.length === 0 && latestDocs.length === 0 && recentDocs.length === 0 && (
+            {topSubjects.length === 0 && latestDocs.length === 0 && popularDocs.length === 0 && (
                 <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                    <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p>{t("noDocuments")}</p>
+                    {t("noDocuments")}
                 </div>
             )}
         </div>
     );
 }
 
-interface SectionProps {
-    title: string;
-    subtitle?: string;
-    icon?: React.ReactNode;
-    href?: string;
-    children: React.ReactNode;
-}
-
-function Section({ title, subtitle, icon, href, children }: SectionProps) {
+function Section({ title, href, children }: { title: string; href?: string; children: React.ReactNode }) {
     const t = useTranslations("home");
-
     return (
         <section>
             <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                    {icon}
-                    <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                        {title}
-                    </h2>
-                    {subtitle && (
-                        <span className="text-sm text-slate-500 dark:text-slate-400">
-                            ({subtitle})
-                        </span>
-                    )}
-                </div>
+                <h2 className="text-base font-semibold text-foreground">{title}</h2>
                 {href && (
-                    <Link
-                        href={href}
-                        className="flex items-center gap-1 text-sm text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300"
-                    >
+                    <Link href={href} className="flex items-center gap-1 text-xs text-sky-600 hover:underline">
                         {t("viewMore")}
-                        <ChevronRight className="h-4 w-4" />
+                        <ChevronRight className="h-3 w-3" />
                     </Link>
                 )}
             </div>
@@ -228,11 +181,8 @@ function Section({ title, subtitle, icon, href, children }: SectionProps) {
 function HorizontalScroll({ children }: { children: React.ReactNode }) {
     return (
         <ScrollArea className="w-full whitespace-nowrap">
-            <div className="flex gap-3 pb-4">
-                {children}
-            </div>
+            <div className="flex gap-3 pb-2">{children}</div>
             <ScrollBar orientation="horizontal" />
         </ScrollArea>
     );
 }
-

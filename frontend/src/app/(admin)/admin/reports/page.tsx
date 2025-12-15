@@ -115,7 +115,7 @@ export default function ReportsManagementPage() {
     const totalPages = Math.ceil(totalCount / pageSize);
 
     return (
-        <div className="p-4 md:p-6">
+        <div>
             <div className="mb-6">
                 <h1 className="text-xl md:text-2xl font-semibold text-foreground">{t("title")}</h1>
             </div>
@@ -133,8 +133,8 @@ export default function ReportsManagementPage() {
                             value: statusFilter,
                             options: [
                                 { value: "0", label: t("filter.pending") },
-                                { value: "1", label: t("filter.handled") },
-                                { value: "2", label: t("filter.hidden") },
+                                { value: "1", label: t("filter.approved") },
+                                { value: "2", label: t("filter.rejected") },
                             ],
                         },
                         {

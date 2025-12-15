@@ -105,8 +105,14 @@ export function SubjectForm({
   }, [initialData?.id]);
 
   useEffect(() => {
+    // Skip search if the debounced value is the same as initial data (edit mode)
+    if (initialData?.subjectName && debouncedName === initialData.subjectName) {
+      setMatchingSubjects([]);
+      setIsDuplicate(false);
+      return;
+    }
     searchSubjects(debouncedName);
-  }, [debouncedName, searchSubjects]);
+  }, [debouncedName, searchSubjects, initialData?.subjectName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

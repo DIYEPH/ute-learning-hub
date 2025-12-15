@@ -100,8 +100,14 @@ export function MajorForm({
   }, [initialData?.id]);
 
   useEffect(() => {
+    // Skip search if the debounced value is the same as initial data (edit mode)
+    if (initialData?.majorName && debouncedName === initialData.majorName) {
+      setMatchingMajors([]);
+      setIsDuplicate(false);
+      return;
+    }
     searchMajors(debouncedName);
-  }, [debouncedName, searchMajors]);
+  }, [debouncedName, searchMajors, initialData?.majorName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

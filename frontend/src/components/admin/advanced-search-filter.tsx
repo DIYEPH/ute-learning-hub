@@ -5,11 +5,13 @@ import { InputWithIcon } from "@/src/components/ui/input-with-icon";
 import { Button } from "@/src/components/ui/button";
 import { Search, Filter, X, ChevronDown, ChevronUp } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { SearchableFilter } from "@/src/components/ui/searchable-filter";
+import { SearchableMultiFilter } from "@/src/components/ui/searchable-multi-filter";
 
 export interface FilterOption {
   key: string;
   label: string;
-  type: "select" | "multiselect" | "checkbox" | "text";
+  type: "select" | "multiselect" | "checkbox" | "text" | "searchable" | "searchable-multiselect";
   options?: { value: string; label: string }[];
   value?: string | string[] | boolean | null;
 }
@@ -61,7 +63,7 @@ export function AdvancedSearchFilter({
 
   const hasActiveFilters = filters.some((filter) => {
     if (filter.value === undefined || filter.value === null) return false;
-    if (filter.type === "multiselect") {
+    if (filter.type === "multiselect" || filter.type === "searchable-multiselect") {
       return Array.isArray(filter.value) && filter.value.length > 0;
     }
     if (filter.type === "checkbox") {
@@ -127,62 +129,80 @@ export function AdvancedSearchFilter({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filters.map((filter) => (
               <div key={filter.key}>
-                <label className="block text-sm font-medium text-foreground mb-1">
-                  {filter.label}
-                </label>
-                {filter.type === "select" && (
-                  <select
-                    value={(filter.value as string) || ""}
-                    onChange={(e) => onFilterChange?.(filter.key, e.target.value || null)}
-                    className="w-full h-9  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="">{t("all")}</option>
-                    {filter.options
-                      ?.filter((option) => option.value !== "") // Remove empty value option to avoid duplicate
-                      .map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                  </select>
-                )}
-                {filter.type === "checkbox" && (
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={filter.value === true}
-                      onChange={(e) => onFilterChange?.(filter.key, e.target.checked)}
-                      className="cursor-pointer"
-                    />
-                    <span className="text-sm text-foreground">{filter.label}</span>
-                  </label>
-                )}
-                {filter.type === "multiselect" && (
-                  <select
-                    multiple
-                    value={(filter.value as string[]) || []}
-                    onChange={(e) => {
-                      const selectedOptions = Array.from(e.target.selectedOptions);
-                      const selectedValues = selectedOptions.map((option) => option.value);
-                      onFilterChange?.(filter.key, selectedValues);
-                    }}
-                    size={5}
-                    className="w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {filter.options?.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                )}
-                {filter.type === "text" && (
-                  <input
-                    type="text"
-                    value={(filter.value as string) || ""}
-                    onChange={(e) => onFilterChange?.(filter.key, e.target.value || null)}
-                    className="w-full h-9  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                {filter.type === "searchable" ? (
+                  <SearchableFilter
+                    label={filter.label}
+                    options={filter.options || []}
+                    value={(filter.value as string) || null}
+                    onChange={(val) => onFilterChange?.(filter.key, val)}
                   />
+                ) : filter.type === "searchable-multiselect" ? (
+                  <SearchableMultiFilter
+                    label={filter.label}
+                    options={filter.options || []}
+                    value={(filter.value as string[]) || []}
+                    onChange={(val) => onFilterChange?.(filter.key, val)}
+                  />
+                ) : (
+                  <>
+                    <label className="block text-sm font-medium text-foreground mb-1">
+                      {filter.label}
+                    </label>
+                    {filter.type === "select" && (
+                      <select
+                        value={(filter.value as string) || ""}
+                        onChange={(e) => onFilterChange?.(filter.key, e.target.value || null)}
+                        className="w-full h-9  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="">{t("all")}</option>
+                        {filter.options
+                          ?.filter((option) => option.value !== "") // Remove empty value option to avoid duplicate
+                          .map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                      </select>
+                    )}
+                    {filter.type === "checkbox" && (
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={filter.value === true}
+                          onChange={(e) => onFilterChange?.(filter.key, e.target.checked)}
+                          className="cursor-pointer"
+                        />
+                        <span className="text-sm text-foreground">{filter.label}</span>
+                      </label>
+                    )}
+                    {filter.type === "multiselect" && (
+                      <select
+                        multiple
+                        value={(filter.value as string[]) || []}
+                        onChange={(e) => {
+                          const selectedOptions = Array.from(e.target.selectedOptions);
+                          const selectedValues = selectedOptions.map((option) => option.value);
+                          onFilterChange?.(filter.key, selectedValues);
+                        }}
+                        size={5}
+                        className="w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {filter.options?.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    {filter.type === "text" && (
+                      <input
+                        type="text"
+                        value={(filter.value as string) || ""}
+                        onChange={(e) => onFilterChange?.(filter.key, e.target.value || null)}
+                        className="w-full h-9  border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                      />
+                    )}
+                  </>
                 )}
               </div>
             ))}

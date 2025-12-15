@@ -179,6 +179,14 @@ export default function DocumentFileDetailPage() {
                 title={file.title || undefined}
                 className="h-full w-full"
               />
+            ) : file.mimeType?.startsWith("image/") ? (
+              <div className="h-full w-full flex items-center justify-center p-4 overflow-auto">
+                <img
+                  src={fileUrl}
+                  alt={file.title || "Image"}
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
             ) : (
               <iframe
                 src={fileUrl}

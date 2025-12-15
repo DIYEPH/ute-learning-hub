@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "https://localhost:7080"
+      "url": "https://localhost:7080/"
     }
   ],
   "paths": {
@@ -1680,6 +1680,14 @@
             }
           },
           {
+            "name": "CreatedById",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
             "name": "SearchTerm",
             "in": "query",
             "schema": {
@@ -1811,6 +1819,67 @@
               "text/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DocumentDetailDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Document/pending-files-count": {
+      "get": {
+        "tags": [
+          "Document"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Document/homepage": {
+      "get": {
+        "tags": [
+          "Document"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomepageDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomepageDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomepageDto"
                 }
               }
             }
@@ -2205,6 +2274,38 @@
         }
       },
       "delete": {
+        "tags": [
+          "Document"
+        ],
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Document/{documentId}/files/{fileId}/resubmit": {
+      "post": {
         "tags": [
           "Document"
         ],
@@ -5266,9 +5367,6 @@
         "properties": {
           "newUsername": {
             "type": "string"
-          },
-          "currentPassword": {
-            "type": "string"
           }
         }
       },
@@ -5994,6 +6092,14 @@
             "type": "string",
             "format": "uuid"
           },
+          "createdByName": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdByAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time"
@@ -6109,6 +6215,20 @@
           },
           "status": {
             "$ref": "#/components/schemas/ContentStatus"
+          },
+          "reviewedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "reviewedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "reviewNote": {
+            "type": "string",
+            "nullable": true
           },
           "commentCount": {
             "type": "integer",
@@ -6370,6 +6490,27 @@
             "items": {
               "type": "string",
               "format": "uuid"
+            }
+          }
+        }
+      },
+      "HomepageDto": {
+        "type": "object",
+        "properties": {
+          "latestDocuments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentDto"
+            }
+          },
+          "popularDocuments": {
+            "type": "array",
+            "items": { }
+          },
+          "topSubjects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SubjectWithDocsDto"
             }
           }
         }
@@ -7306,6 +7447,10 @@
             "format": "uuid",
             "nullable": true
           },
+          "targetUrl": {
+            "type": "string",
+            "nullable": true
+          },
           "content": {
             "type": "string"
           },
@@ -7368,6 +7513,10 @@
           },
           "status": {
             "$ref": "#/components/schemas/ContentStatus"
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -7452,6 +7601,26 @@
             "items": {
               "$ref": "#/components/schemas/MajorDto2"
             }
+          }
+        }
+      },
+      "SubjectWithDocsDto": {
+        "type": "object",
+        "properties": {
+          "subjectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "subjectName": {
+            "type": "string"
+          },
+          "subjectCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "documents": {
+            "type": "array",
+            "items": { }
           }
         }
       },
@@ -8064,8 +8233,26 @@
             "type": "number",
             "format": "double"
           },
+          "oldScore": {
+            "type": "number",
+            "format": "double"
+          },
+          "newScore": {
+            "type": "number",
+            "format": "double"
+          },
           "reason": {
             "type": "string"
+          },
+          "entityId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "entityType": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           },
           "createdAt": {
             "type": "string",

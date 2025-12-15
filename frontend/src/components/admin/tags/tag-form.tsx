@@ -76,8 +76,14 @@ export function TagForm({
     }, [initialData?.id]);
 
     useEffect(() => {
+        // Skip search if the debounced value is the same as initial data (edit mode)
+        if (initialData?.tagName && debouncedName === initialData.tagName) {
+            setMatchingTags([]);
+            setIsDuplicate(false);
+            return;
+        }
         searchTags(debouncedName);
-    }, [debouncedName, searchTags]);
+    }, [debouncedName, searchTags, initialData?.tagName]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

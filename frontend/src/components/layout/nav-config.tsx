@@ -4,10 +4,9 @@ export type NavItem = {
   label: string;
   href: string;
   icon: React.ComponentType<{ size?: number }>;
-  requiresAuth?: boolean; // Thêm flag này
+  requiresAuth?: boolean;
 };
 
-// Base nav config (without translations)
 export const MAIN_NAV_CONFIG = [
   { labelKey: "nav.home", href: "/", icon: Home, requiresAuth: false },
   { labelKey: "nav.myLibrary", href: "/library", icon: Library, requiresAuth: true },

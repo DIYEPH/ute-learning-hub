@@ -223,7 +223,7 @@ export default function MajorsManagementPage() {
     {
       key: "facultyId",
       label: t("form.faculty"),
-      type: "select",
+      type: "searchable",
       options: faculties
         .filter((f): f is FacultyDto2 & { id: string } => !!f?.id)
         .map((faculty) => ({
@@ -247,7 +247,7 @@ export default function MajorsManagementPage() {
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <div className="p-4 md:p-6">
+    <div>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-xl md:text-2xl font-semibold text-foreground">{t("title")}</h1>
         <div className="flex gap-2">

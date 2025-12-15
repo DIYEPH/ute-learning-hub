@@ -51,7 +51,7 @@ export default function SearchPage() {
     const [loadingMore, setLoadingMore] = useState(false);
 
     // Sidebar collapse state
-    const [showFilters, setShowFilters] = useState(true);
+    const [showFilters, setShowFilters] = useState(false);
     const [expandedSections, setExpandedSections] = useState({
         subject: true,
         tag: true,
@@ -178,19 +178,33 @@ export default function SearchPage() {
         setAuthorSearch("");
     };
 
-    const hasActiveFilters = debouncedSearch || selectedSubjectId || noSubject || selectedTagIds.length > 0 || selectedAuthorId || selectedTypeId;
+    const hasActiveFilters = selectedSubjectId || noSubject || selectedTagIds.length > 0 || selectedAuthorId || selectedTypeId;
 
     const toggleSection = (section: keyof typeof expandedSections) => {
         setExpandedSections((prev) => ({ ...prev, [section]: !prev[section] }));
     };
 
     return (
-        <div className="flex gap-6">
-            {/* Filter Sidebar */}
-            <aside className={`flex-shrink-0 transition-all ${showFilters ? "w-64" : "w-0 overflow-hidden"}`}>
+        <div className="flex flex-col lg:flex-row gap-6">
+            {/* Filter Sidebar - Hidden on mobile unless toggled */}
+            <aside className={`flex-shrink-0 transition-all ${showFilters
+                ? "fixed inset-0 z-40 bg-background lg:relative lg:inset-auto lg:z-auto lg:bg-transparent w-full lg:w-64 p-4 lg:p-0 overflow-auto"
+                : "hidden lg:block lg:w-64"
+                }`}>
                 <div className="sticky top-0 space-y-4">
                     <div className="flex items-center justify-between">
-                        <h2 className="font-semibold text-foreground">{t("filters")}</h2>
+                        <div className="flex items-center gap-2">
+                            {/* Close button for mobile - inline */}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowFilters(false)}
+                                className="lg:hidden -ml-2"
+                            >
+                                <X className="h-4 w-4" />
+                            </Button>
+                            <h2 className="font-semibold text-foreground">{t("filters")}</h2>
+                        </div>
                         {hasActiveFilters && (
                             <button onClick={clearFilters} className="text-xs text-sky-600 hover:underline">
                                 {t("clearAll")}
@@ -341,7 +355,7 @@ export default function SearchPage() {
             {/* Main Content */}
             <main className="flex-1 min-w-0 space-y-4">
                 {/* Filter Toggle for mobile */}
-                <div className="md:hidden">
+                <div className="lg:hidden">
                     <Button
                         variant="outline"
                         size="sm"

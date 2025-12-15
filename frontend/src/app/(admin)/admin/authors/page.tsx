@@ -151,7 +151,7 @@ export default function AuthorsManagementPage() {
     const totalPages = Math.ceil(totalCount / pageSize);
 
     return (
-        <div className="p-4 md:p-6">
+        <div>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h1 className="text-xl md:text-2xl font-semibold text-foreground">{t("title")}</h1>
                 <div className="flex gap-2">
@@ -221,7 +221,7 @@ export default function AuthorsManagementPage() {
                     enableClientSort={true}
                 />
             </div>
-            <Pagination currentPage={page} totalPages={totalPages} totalItems={totalCount} pageSize={pageSize} onPageChange={setPage} loading={loading} className="mt-4"/>
+            <Pagination currentPage={page} totalPages={totalPages} totalItems={totalCount} pageSize={pageSize} onPageChange={setPage} loading={loading} className="mt-4" />
             <CreateModal
                 open={createModalOpen}
                 onOpenChange={setCreateModalOpen}

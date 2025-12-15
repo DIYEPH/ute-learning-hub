@@ -72,7 +72,8 @@
     "recent": "Gần đây",
     "chat": "Trò chuyện",
     "conversations": "Khám phá nhóm",
-    "profile": "Hồ sơ"
+    "profile": "Hồ sơ",
+    "about": "Giới thiệu"
   },
   "auth": {
     "title": "UTE Learning Hub",
@@ -284,8 +285,12 @@
       },
       "filter": {
         "visibility": "Hiển thị",
-        "private": "Riêng tư",
         "public": "Công khai",
+        "internal": "Nội bộ",
+        "subject": "Môn học",
+        "type": "Loại tài liệu",
+        "author": "Tác giả",
+        "tags": "Chủ đề",
         "fileStatus": "Trạng thái file",
         "deleted": "Trạng thái",
         "activeItems": "Đang hoạt động",
@@ -753,8 +758,8 @@
         "status": "Trạng thái",
         "type": "Loại nội dung",
         "pending": "Chờ xử lý",
-        "handled": "Đã xử lý",
-        "hidden": "Đã ẩn"
+        "approved": "Đã duyệt",
+        "rejected": "Từ chối"
       },
       "table": {
         "loading": "Đang tải...",
@@ -773,14 +778,14 @@
         "reports": "Danh sách báo cáo",
         "noContent": "Không có nội dung",
         "close": "Đóng",
-        "hideContent": "Ẩn nội dung",
-        "markHandled": "Đã xử lý"
+        "rejectReport": "Từ chối",
+        "approveReport": "Chấp nhận (ẩn nội dung)"
       },
       "notifications": {
-        "approveSuccess": "Đã xử lý báo cáo thành công!",
-        "approveError": "Không thể xử lý báo cáo",
-        "hideSuccess": "Đã ẩn nội dung thành công!",
-        "hideError": "Không thể ẩn nội dung"
+        "approveSuccess": "Đã chấp nhận báo cáo và ẩn nội dung vi phạm!",
+        "approveError": "Không thể chấp nhận báo cáo",
+        "hideSuccess": "Đã từ chối báo cáo!",
+        "hideError": "Không thể từ chối báo cáo"
       }
     },
     "settings": {

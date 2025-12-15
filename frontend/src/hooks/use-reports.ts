@@ -17,6 +17,7 @@ export interface GroupedReport {
     key: string; // documentFileId or commentId
     type: "documentFile" | "comment";
     targetId: string;
+    targetUrl: string | null;
     reports: ReportDto[];
     reportCount: number;
     latestContent: string;
@@ -117,6 +118,7 @@ export function useReports() {
                     key,
                     type,
                     targetId,
+                    targetUrl: report.targetUrl ?? null,
                     reports: [report],
                     reportCount: 1,
                     latestContent: report.content || "",

@@ -13,7 +13,6 @@ import {
 import { CheckCircle, EyeOff, FileText, MessageCircle, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { GroupedReport } from "@/src/hooks/use-reports";
-import type { ReportDto } from "@/src/api/database/types.gen";
 
 interface ReportDetailModalProps {
     open: boolean;
@@ -26,8 +25,8 @@ interface ReportDetailModalProps {
 
 const statusLabels: Record<number, { label: string; variant: "default" | "outline" | "secondary" | "destructive" }> = {
     0: { label: "Chờ xử lý", variant: "destructive" },
-    1: { label: "Đã xử lý", variant: "default" },
-    2: { label: "Đã ẩn", variant: "secondary" },
+    1: { label: "Đã duyệt", variant: "default" },
+    2: { label: "Từ chối", variant: "secondary" },
 };
 
 export function ReportDetailModal({
@@ -76,9 +75,20 @@ export function ReportDetailModal({
                         <div className="text-sm text-slate-500 mb-1">
                             {grouped?.type === "documentFile" ? t("type.documentFile") : t("type.comment")}
                         </div>
-                        <div className="font-mono text-xs text-slate-400">
-                            ID: {grouped?.targetId}
-                        </div>
+                        {grouped?.targetUrl ? (
+                            <a
+                                href={grouped.targetUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                            >
+                                {grouped.targetUrl}
+                            </a>
+                        ) : (
+                            <div className="font-mono text-xs text-slate-400">
+                                ID: {grouped?.targetId}
+                            </div>
+                        )}
                     </div>
 
                     {/* Reports list */}
@@ -132,26 +142,26 @@ export function ReportDetailModal({
                         {t("detailModal.close")}
                     </Button>
                     <Button
-                        variant="destructive"
+                        variant="secondary"
                         onClick={() => {
                             const ids = grouped?.reports.map(r => r.id).filter((id): id is string => !!id) || [];
                             onHide(ids);
                         }}
-                        disabled={loading || grouped?.status === 2}
+                        disabled={loading || grouped?.status !== 0}
                     >
                         {loading ? (
                             <Loader2 size={16} className="mr-1 animate-spin" />
                         ) : (
                             <EyeOff size={16} className="mr-1" />
                         )}
-                        {t("detailModal.hideContent")}
+                        {t("detailModal.rejectReport")}
                     </Button>
                     <Button
                         onClick={() => {
                             const ids = grouped?.reports.map(r => r.id).filter((id): id is string => !!id) || [];
                             onApprove(ids);
                         }}
-                        disabled={loading || grouped?.status === 1}
+                        disabled={loading || grouped?.status !== 0}
                         className="bg-green-600 hover:bg-green-700"
                     >
                         {loading ? (
@@ -159,7 +169,7 @@ export function ReportDetailModal({
                         ) : (
                             <CheckCircle size={16} className="mr-1" />
                         )}
-                        {t("detailModal.markHandled")}
+                        {t("detailModal.approveReport")}
                     </Button>
                 </DialogFooter>
             </DialogContent>

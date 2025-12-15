@@ -92,8 +92,14 @@ export function FacultyForm({
   }, [initialData?.id]);
 
   useEffect(() => {
+    // Skip search if the debounced value is the same as initial data (edit mode)
+    if (initialData?.facultyName && debouncedName === initialData.facultyName) {
+      setMatchingFaculties([]);
+      setIsDuplicate(false);
+      return;
+    }
     searchFaculties(debouncedName);
-  }, [debouncedName, searchFaculties]);
+  }, [debouncedName, searchFaculties, initialData?.facultyName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

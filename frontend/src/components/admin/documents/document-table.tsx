@@ -15,6 +15,7 @@ const VisibilityLabels: Record<number, string> = {
 
 interface DocumentTableProps {
     documents: DocumentDto[];
+    onViewDetail?: (document: DocumentDto) => void;
     onEdit?: (document: DocumentDto) => void;
     onDelete?: (document: DocumentDto) => void;
     onBulkDelete?: (ids: string[]) => void | Promise<void>;
@@ -27,6 +28,7 @@ interface DocumentTableProps {
 
 export function DocumentTable({
     documents,
+    onViewDetail,
     onEdit,
     onDelete,
     onBulkDelete,
@@ -108,19 +110,29 @@ export function DocumentTable({
         },
     ];
 
-    // Add view detail link
+    // Add view detail link/button
     columns.push({
         key: "quickActions",
         header: "",
         className: "min-w-[50px]",
         render: (doc) => (
-            <Link
-                href={`/documents/${doc.id}`}
-                className="inline-flex items-center justify-center h-8 w-8 text-slate-600 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                title={t("table.viewDetail")}
-            >
-                <Eye size={16} />
-            </Link>
+            onViewDetail ? (
+                <button
+                    onClick={() => onViewDetail(doc)}
+                    className="inline-flex items-center justify-center h-8 w-8 text-slate-600 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
+                    title={t("table.viewDetail")}
+                >
+                    <Eye size={16} />
+                </button>
+            ) : (
+                <Link
+                    href={`/documents/${doc.id}`}
+                    className="inline-flex items-center justify-center h-8 w-8 text-slate-600 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    title={t("table.viewDetail")}
+                >
+                    <Eye size={16} />
+                </Link>
+            )
         ),
     });
 

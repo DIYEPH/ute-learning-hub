@@ -192,7 +192,7 @@ export default function TypesManagementPage() {
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <div className="p-4 md:p-6">
+    <div>
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-xl md:text-2xl font-semibold text-foreground">{t("title")}</h1>
         <div className="flex gap-2">

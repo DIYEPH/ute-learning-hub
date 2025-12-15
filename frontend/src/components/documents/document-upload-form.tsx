@@ -61,7 +61,7 @@ export function DocumentUploadForm({
     typeId: null,
     tagIds: [],
     tagNames: [],
-    visibility: 2,
+    visibility: 1,
     coverFile: null,
   });
 
@@ -401,8 +401,7 @@ export function DocumentUploadForm({
           className={selectClassName}
         >
           <option value={0}>Công khai</option>
-          <option value={1}>Riêng tư</option>
-          <option value={2}>Nội bộ</option>
+          <option value={1}>Nội bộ</option>
         </select>
       </div>
     </form >

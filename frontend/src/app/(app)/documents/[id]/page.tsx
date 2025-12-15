@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { ArrowLeft, Loader2, FileText, Edit } from "lucide-react";
 
 import { getApiDocumentById, deleteApiDocumentByDocumentIdFilesByFileId, putApiDocumentByDocumentIdFilesByFileId } from "@/src/api/database/sdk.gen";
@@ -232,6 +233,20 @@ export default function DocumentDetailPage() {
                   </span>
                 </p>
               )}
+              {/* Người đăng */}
+              {doc.createdById && (
+                <Link href={`/profile/${doc.createdById}`} className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
+                  <span>Người đăng:</span>
+                  {doc.createdByAvatarUrl && (
+                    <img
+                      src={doc.createdByAvatarUrl}
+                      alt={doc.createdByName || ""}
+                      className="h-5 w-5 rounded-full object-cover"
+                    />
+                  )}
+                  <span className="font-medium hover:underline">{doc.createdByName || "Người dùng"}</span>
+                </Link>
+              )}
               <div className="flex flex-wrap gap-1.5">
                 {doc.type?.typeName && (
                   <Badge variant="outline" className="border-sky-200 text-sky-700">
@@ -320,6 +335,7 @@ export default function DocumentDetailPage() {
               onEdit={handleEditFile}
               onDelete={handleDeleteFile}
               onReorder={handleReorder}
+              onRefresh={refreshData}
             />
           </div>
         </div>

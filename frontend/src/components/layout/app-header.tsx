@@ -17,6 +17,7 @@ import { useAuthState } from "@/src/hooks/use-auth-state";
 import { UserMenu } from "./user-menu";
 import { NotificationMenu } from "./notification-menu";
 import { EventMenu } from "./event-menu";
+import { TrustPointsBadge } from "./trust-points-badge";
 
 type HeaderProps = {
   navItems: NavItem[];
@@ -31,19 +32,15 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
 
-  // Sync search input with URL query param
   const [searchValue, setSearchValue] = useState(searchParams.get("q") || "");
   const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
 
-  // Update searchValue when URL changes (e.g., when navigating to /search?q=...)
   useEffect(() => {
     if (pathname === "/search") {
       setSearchValue(searchParams.get("q") || "");
     }
   }, [pathname, searchParams]);
 
-  // Nếu trước đó bị 401, interceptor sẽ set flag auth_show_login,
-  // header sẽ tự mở modal login khi load lại trang.
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -116,6 +113,13 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
         {/* Auth-dependent actions */}
         {authReady && (
           <>
+            {/* Trust Points Badge */}
+            {isAuthenticated && (
+              <div className="hidden sm:block">
+                <TrustPointsBadge />
+              </div>
+            )}
+
             {/* Event/Calendar icon */}
             {isAuthenticated && (
               <div className="hidden sm:block">

@@ -79,8 +79,14 @@ export function TypeForm({
   }, [initialData?.id]);
 
   useEffect(() => {
+    // Skip search if the debounced value is the same as initial data (edit mode)
+    if (initialData?.typeName && debouncedName === initialData.typeName) {
+      setMatchingTypes([]);
+      setIsDuplicate(false);
+      return;
+    }
     searchTypes(debouncedName);
-  }, [debouncedName, searchTypes]);
+  }, [debouncedName, searchTypes, initialData?.typeName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,9 +1,9 @@
 "use client";
 
 import { ReactNode, useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAdmin } from "@/src/hooks/use-admin";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthState } from "@/src/hooks/use-auth-state";
+import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { AdminShell } from "./admin-shell";
 import { useTranslations } from 'next-intl';
 
@@ -11,32 +11,41 @@ type AdminLayoutProps = {
   children: ReactNode;
 };
 
+// Trust levels that can access admin panel
+const ADMIN_TRUST_LEVELS = ["Moderator", "Master"];
+// Pages Moderator can access
+const MODERATOR_ALLOWED_PATHS = ["/admin/reports", "/admin/documents"];
+
 export function AdminLayout({ children }: AdminLayoutProps) {
-  const { isAdmin, isLoading } = useAdmin();
   const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
+  const { profile, loading: profileLoading } = useUserProfile();
   const router = useRouter();
+  const pathname = usePathname();
   const t = useTranslations('common');
-  const [isChecking, setIsChecking] = useState(true);
+  const isModerator = profile?.trustLevel === "Moderator";
+  const canAccessAdmin = profile?.trustLevel && ADMIN_TRUST_LEVELS.includes(profile.trustLevel);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsChecking(false);
-    }, 100);
+    if (!authReady || profileLoading) return;
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (isChecking || !authReady) return;
-
-    if (!isAuthenticated || (!isLoading && !isAdmin)) {
+    // Not authenticated or no admin access -> redirect home
+    if (!isAuthenticated || !canAccessAdmin) {
       router.push('/');
       return;
     }
 
-  }, [isAuthenticated, isAdmin, isLoading, router, isChecking, authReady]);
+    // Moderator accessing Master-only page -> redirect to reports
+    if (isModerator && pathname) {
+      const isAllowedPath = MODERATOR_ALLOWED_PATHS.some(p => pathname.startsWith(p));
+      if (!isAllowedPath) {
+        router.push('/admin/reports');
+        return;
+      }
+    }
 
-  if (isChecking || !authReady || isLoading) {
+  }, [isAuthenticated, canAccessAdmin, isModerator, pathname, profileLoading, router, authReady]);
+
+  if (!authReady || profileLoading) {
     return (
       <AdminShell>
         <div className="flex items-center justify-center min-h-screen">
@@ -46,7 +55,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
     );
   }
 
-  if (!isAuthenticated || (!isLoading && !isAdmin)) {
+  if (!isAuthenticated || !canAccessAdmin) {
     return (
       <AdminShell>
         <div className="flex items-center justify-center min-h-screen">
@@ -58,4 +67,3 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   return <AdminShell>{children}</AdminShell>;
 }
-
