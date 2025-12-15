@@ -2,6 +2,7 @@ using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
+using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 
 namespace UteLearningHub.Application.Features.User.Commands.ManageTrustScore;
@@ -29,6 +30,6 @@ public class ManageTrustScoreCommandHandler : IRequestHandler<ManageTrustScoreCo
         if (!isAdmin)
             throw new UnauthorizedException("Only administrators can manage trust score");
 
-        return await _userService.UpdateTrustScoreAsync(request.UserId, request.TrustScore, request.Reason,null, cancellationToken);
+        return await _userService.UpdateTrustScoreAsync(request.UserId, request.TrustScore, request.Reason, null, TrustEntityType.Manual, cancellationToken);
     }
 }

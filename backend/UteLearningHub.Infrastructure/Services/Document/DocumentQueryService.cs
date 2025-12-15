@@ -87,6 +87,8 @@ public class DocumentQueryService : IDocumentQueryService
                 NotUsefulCount = d.Reviews.Count(r => r.DocumentReviewType == DocumentReviewType.NotUseful),
                 CommentCount = d.DocumentFiles.Where(df => !df.IsDeleted).Sum(df => df.Comments.Count(c => !c.IsDeleted)),
                 CreatedById = d.CreatedById,
+                CreatedByName = _dbContext.Users.Where(u => u.Id == d.CreatedById).Select(u => u.FullName ?? u.UserName).FirstOrDefault(),
+                CreatedByAvatarUrl = _dbContext.Users.Where(u => u.Id == d.CreatedById).Select(u => u.AvatarUrl).FirstOrDefault(),
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt
             })

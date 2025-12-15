@@ -41,12 +41,13 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, PagedResponse<
         var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
 
         var canView = isAdmin ||
-                     (trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator);
+                     (trustLevel.HasValue && trustLevel.Value >= TrustLever.TrustedMember);
 
         if (!canView)
-            throw new UnauthorizedException("Only administrators or moderators can view reports");
+            throw new UnauthorizedException("Only administrators or TrustedMember+ can view reports");
 
         var query = _reportRepository.GetQueryableSet()
+            .Include(r => r.DocumentFile)
             .AsNoTracking();
 
         // Filters
@@ -84,6 +85,7 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, PagedResponse<
             Id = r.Id,
             DocumentFileId = r.DocumentFileId,
             CommentId = r.CommentId,
+            TargetUrl = BuildTargetUrl(r.DocumentFile?.DocumentId, r.DocumentFileId, r.CommentId),
             Content = r.Content,
             ReporterName = authorInfo.TryGetValue(r.CreatedById, out var reporter)
                 ? reporter.FullName
@@ -103,5 +105,16 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, PagedResponse<
             Page = request.Page,
             PageSize = request.PageSize
         };
+    }
+
+    private static string? BuildTargetUrl(Guid? documentId, Guid? documentFileId, Guid? commentId)
+    {
+        if (documentId.HasValue && documentFileId.HasValue)
+            return $"/documents/{documentId}/files/{documentFileId}";
+        
+        if (commentId.HasValue)
+            return null; // Comments don't have direct URL for now
+        
+        return null;
     }
 }

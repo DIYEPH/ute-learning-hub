@@ -51,16 +51,7 @@ public class GetFileHandler : IRequestHandler<GetFileQuery, GetFileResponse>
                 throw new NotFoundException("File not found");
 
             // Kiểm tra visibility
-            if (document.Visibility == VisibilityStatus.Private)
-            {
-                // Private: owner hoặc admin mới xem được
-                var isOwner = isAuthenticated && userId.HasValue && document.CreatedById == userId.Value;
-                if (!isOwner && !isAdmin)
-                {
-                    throw new ForbiddenException("You do not have permission to access this file");
-                }
-            }
-            else if (document.Visibility == VisibilityStatus.Internal)
+            if (document.Visibility == VisibilityStatus.Internal)
             {
                 // Internal: cần authenticated
                 if (!isAuthenticated)
@@ -69,11 +60,6 @@ public class GetFileHandler : IRequestHandler<GetFileQuery, GetFileResponse>
                 }
             }
             // Public: ai cũng xem được
-        }
-        else
-        {
-            // File không thuộc document (avatar, cover, message file, etc.)
-            // Cho phép anonymous access - không cần authentication
         }
 
         // Lấy file stream từ storage

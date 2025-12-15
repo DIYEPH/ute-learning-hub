@@ -433,7 +433,7 @@ public class UserService : IUserService
         await _userManager.UpdateAsync(user);
     }
 
-    public async Task<UserDto> UpdateTrustScoreAsync(Guid userId, int trustScore, string? reason, Guid? entityId = null, CancellationToken cancellationToken = default)
+    public async Task<UserDto> UpdateTrustScoreAsync(Guid userId, int trustScore, string? reason, Guid? entityId = null, TrustEntityType? entityType = null, CancellationToken cancellationToken = default)
     {
         var user = await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
@@ -442,12 +442,14 @@ public class UserService : IUserService
             throw new NotFoundException($"User with id {userId} not found");
 
         var oldTrustScore = user.TrustScore;
-        var oldTrustLevel = user.TrustLever; // Save old level before update
+        var oldTrustLevel = user.TrustLever;
         
         user.TrustScore = trustScore;
         user.UpdatedAt = _dateTimeProvider.OffsetNow;
 
-        // Lưu lịch sử thay đổi trust score
+        if (oldTrustLevel != TrustLever.Master)
+            user.TrustLever = CalculateTrustLevel(trustScore);
+
         if (!string.IsNullOrWhiteSpace(reason))
         {
             var trustHistory = new UserTrustHistory
@@ -459,6 +461,7 @@ public class UserService : IUserService
                 NewScore = trustScore,
                 Reason = reason,
                 EntityId = entityId,
+                EntityType = entityType,
                 CreatedAt = _dateTimeProvider.OffsetNow
             };
             _dbContext.UserTrustHistories.Add(trustHistory);
@@ -466,11 +469,8 @@ public class UserService : IUserService
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        // ⭐ Reload to get updated computed TrustLevel from database
-        await _dbContext.Entry(user).ReloadAsync(cancellationToken);
         var newTrustLevel = user.TrustLever;
 
-        // ⭐ Publish event if level changed
         if (newTrustLevel > oldTrustLevel)
         {
             await _mediator.Publish(new TrustLevelChangedEvent
@@ -488,6 +488,22 @@ public class UserService : IUserService
             ?? throw new NotFoundException("User not found");
     }
 
+    /// <summary>
+    /// Calculate TrustLevel from TrustScore.
+    /// Max level for normal users is Moderator (4). Master (5) is reserved for admin-seeded users.
+    /// </summary>
+    private static TrustLever CalculateTrustLevel(int trustScore)
+    {
+        return trustScore switch
+        {
+            < 5 => TrustLever.None,
+            < 15 => TrustLever.Newbie,
+            < 60 => TrustLever.Contributor,
+            < 120 => TrustLever.TrustedMember,
+            _ => TrustLever.Moderator
+        };
+    }
+
     public async Task<IList<UserTrustHistoryDto>> GetUserTrustHistoryAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var histories = await _dbContext.UserTrustHistories
@@ -502,6 +518,8 @@ public class UserService : IUserService
                 OldScore = h.OldScore,
                 NewScore = h.NewScore,
                 Reason = h.Reason,
+                EntityId = h.EntityId,
+                EntityType = h.EntityType.HasValue ? (int)h.EntityType : null,
                 CreatedAt = h.CreatedAt
             })
             .ToListAsync(cancellationToken);

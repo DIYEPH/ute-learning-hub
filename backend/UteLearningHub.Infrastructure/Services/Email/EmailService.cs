@@ -101,13 +101,15 @@ public class EmailService : IEmailService
         <div class='content'>
             <h2>Đặt lại mật khẩu</h2>
             <p>Xin chào,</p>
-            <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình. Vui lòng click vào nút bên dưới để đặt lại mật khẩu:</p>
+            <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình.</p>
+            <p><strong>Mã xác thực của bạn:</strong></p>
+            <p style='font-size: 24px; font-weight: bold; text-align: center; background-color: #e5e7eb; padding: 15px; border-radius: 5px; letter-spacing: 2px;'>{resetToken}</p>
+            <p>Vui lòng nhập mã này vào trang hồ sơ cá nhân để đặt mật khẩu mới.</p>
+            <p>Hoặc click vào nút bên dưới để đặt lại mật khẩu:</p>
             <p style='text-align: center;'>
                 <a href='{resetUrl}' class='button'>Đặt lại mật khẩu</a>
             </p>
-            <p>Hoặc copy và paste link sau vào trình duyệt:</p>
-            <p style='word-break: break-all; color: #2563eb;'>{resetUrl}</p>
-            <p><strong>Lưu ý:</strong> Link này sẽ hết hạn sau 1 giờ.</p>
+            <p><strong>Lưu ý:</strong> Mã này sẽ hết hạn sau 15 phút.</p>
             <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
         </div>
         <div class='footer'>
@@ -146,10 +148,10 @@ public class EmailService : IEmailService
             <p>Cảm ơn bạn đã tham gia UTE Learning Hub - nền tảng học tập và chia sẻ tài liệu của sinh viên Đại học Sư phạm Kỹ thuật TP.HCM.</p>
             <p>Bạn có thể:</p>
             <ul>
-                <li>📚 Tìm kiếm và tải xuống tài liệu học tập</li>
-                <li>📝 Đóng góp tài liệu của riêng bạn</li>
-                <li>💬 Tham gia các cuộc trò chuyện và thảo luận</li>
-                <li>⭐ Đánh giá và nhận xét về tài liệu</li>
+                <li>1. Tìm kiếm và tải xuống tài liệu học tập</li>
+                <li>2. Đóng góp tài liệu của riêng bạn</li>
+                <li>3. Tham gia các cuộc trò chuyện và thảo luận</li>
+                <li>4. Đánh giá và nhận xét về tài liệu</li>
             </ul>
             <p>Chúc bạn có trải nghiệm học tập tuyệt vời!</p>
         </div>

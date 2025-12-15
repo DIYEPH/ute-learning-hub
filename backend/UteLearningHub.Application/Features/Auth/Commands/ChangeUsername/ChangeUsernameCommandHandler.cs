@@ -30,12 +30,17 @@ public class ChangeUsernameCommandHandler : IRequestHandler<ChangeUsernameComman
             throw new BadRequestException("Username mới không hợp lệ.");
 
         var normalizedNewUsername = request.NewUsername.Trim();
+        
+        // Check if username is same as current
         if (string.Equals(user.UserName, normalizedNewUsername, StringComparison.OrdinalIgnoreCase))
             return Unit.Value;
 
-        var passwordValid = await _identityService.CheckPasswordAsync(userId, request.CurrentPassword);
-        if (!passwordValid)
-            throw new BadRequestException("Mật khẩu hiện tại không chính xác.");
+        // Username cannot be email format (except user's own email)
+        if (normalizedNewUsername.Contains('@'))
+        {
+            if (!string.Equals(normalizedNewUsername, user.Email, StringComparison.OrdinalIgnoreCase))
+                throw new BadRequestException("Username không được có định dạng email.");
+        }
 
         var existingUser = await _identityService.FindByUsernameAsync(normalizedNewUsername);
         if (existingUser != null && existingUser.Id != user.Id)

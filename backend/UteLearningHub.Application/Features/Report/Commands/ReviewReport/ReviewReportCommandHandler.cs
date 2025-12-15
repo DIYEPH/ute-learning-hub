@@ -125,7 +125,7 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
             await _reportRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
             // Process rewards and notifications (async)
-            _ = ProcessRewardsAndNotificationsAsync(allReports, report.DocumentFile, report.Comment, now, cancellationToken);
+            _ = ProcessRewardsAndNotificationsAsync(allReports, report.DocumentFile, report.Comment, userId, now, cancellationToken);
         }
         else if (request.Status == ContentStatus.Hidden) // Report rejected
         {
@@ -152,6 +152,7 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
         List<ReportEntity> reports,
         DocumentFileEntity? documentFile,
         CommentEntity? comment,
+        Guid reviewerId,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
@@ -181,13 +182,20 @@ public class ReviewReportCommandHandler : IRequestHandler<ReviewReportCommand, U
             // 2. Reward and notify TOP N reporters
             foreach (var report in rewardedReports)
             {
+                // Skip self-reward: reviewer doesn't get points for reports they created
+                if (report.CreatedById == reviewerId)
+                {
+                    continue;
+                }
+
                 var points = TrustScoreConstants.CalculateReportRewardPoints(contentCreatedAt, report.CreatedAt);
                 
                 await _trustScoreService.AddTrustScoreAsync(
                     report.CreatedById,
                     points,
                     $"Báo cáo được duyệt (+{points}đ)",
-                    null,
+                    report.Id, // Pass report.Id as entityId for potential revert
+                    TrustEntityType.Report,
                     cancellationToken);
 
                 await CreateNotificationAsync(

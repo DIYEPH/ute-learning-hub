@@ -160,6 +160,7 @@ public class AddDocumentFileCommandHandler : IRequestHandler<AddDocumentFileComm
                 TrustScoreConstants.GetActionPoints("CreateDocument"), 
                 "Thêm chương/file tài liệu",
                 chapter.Id, // Pass document file ID as entityId
+                TrustEntityType.DocumentFile,
                 cancellationToken);
         }
         catch (Exception ex)

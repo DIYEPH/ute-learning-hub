@@ -3,6 +3,5 @@
 public enum VisibilityStatus
 {
     Public,
-    Private,
     Internal
 }

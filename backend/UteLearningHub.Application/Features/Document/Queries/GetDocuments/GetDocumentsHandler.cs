@@ -49,6 +49,9 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
         if (request.AuthorId.HasValue)
             query = query.Where(d => d.DocumentAuthors.Any(da => da.AuthorId == request.AuthorId.Value));
 
+        if (request.CreatedById.HasValue)
+            query = query.Where(d => d.CreatedById == request.CreatedById.Value);
+
         if (!string.IsNullOrWhiteSpace(request.SearchTerm))
         {
             var searchTerm = request.SearchTerm.ToLower();

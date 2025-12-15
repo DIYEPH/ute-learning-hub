@@ -35,11 +35,16 @@ public static class PersistenceExtensions
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;
+
+            options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultProvider;
         })
         .AddRoles<IdentityRole<Guid>>()
         .AddEntityFrameworkStores<ApplicationDbContext>()
         .AddSignInManager<SignInManager<AppUser>>()
         .AddDefaultTokenProviders();
+
+        services.Configure<DataProtectionTokenProviderOptions>(options =>
+            options.TokenLifespan = TimeSpan.FromMinutes(15));
 
         //Register Repositories
         services.AddScoped<IDocumentRepository, DocumentRepository>();

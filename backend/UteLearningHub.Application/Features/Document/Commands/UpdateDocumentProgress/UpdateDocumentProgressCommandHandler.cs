@@ -54,15 +54,6 @@ public class UpdateDocumentProgressCommandHandler : IRequestHandler<UpdateDocume
         if (!isAdmin && documentFile != null && documentFile.Status != Domain.Constaints.Enums.ContentStatus.Approved)
             throw new NotFoundException("Document file not found");
 
-        // Kiểm tra visibility
-        if (document.Visibility == Domain.Constaints.Enums.VisibilityStatus.Private)
-        {
-            // Private: chỉ owner mới xem được
-            if (document.CreatedById != userId)
-                throw new ForbiddenException("You do not have permission to access this document");
-        }
-        // Internal và Public: đã authenticated (đã check ở đầu method)
-
         // Tìm hoặc tạo progress
         var progress = await _progressRepository.GetByUserAndDocumentFileAsync(
             userId,

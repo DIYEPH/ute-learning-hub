@@ -21,6 +21,7 @@ public class UserTrustHistoryConfiguration : IEntityTypeConfiguration<UserTrustH
         builder.Property(u => u.NewScore).HasColumnName("DiemMoi");
         builder.Property(u => u.Reason).HasColumnName("LyDo");
         builder.Property(u => u.EntityId).HasColumnName("ThucTheId");
+        builder.Property(u => u.EntityType).HasColumnName("LoaiThucThe");
 
         builder.ApplyTrack<UserTrustHistory>();
 

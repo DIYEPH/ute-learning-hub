@@ -337,7 +337,7 @@ public class DataSeeder
             TrustScore = 1000,
             TrustLever = TrustLever.Master,
             Gender = Gender.Other,
-            MajorId = null, // Admin không thuộc ngành nào
+            MajorId = null, 
             CreatedAt = DateTimeOffset.UtcNow
         };
 

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
+using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence.Repositories.Common;
@@ -96,5 +97,11 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
             .Where(d => !d.IsDeleted)
             .SelectMany(d => d.DocumentFiles)
             .AnyAsync(df => df.FileId == fileId && !df.IsDeleted && df.Id != excludeDocumentFileId, cancellationToken);
+    }
+    public async Task<int> GetPendingFilesCountAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Set<DocumentFile>()
+            .Where(df => !df.IsDeleted && df.Status == ContentStatus.PendingReview)
+            .CountAsync(cancellationToken);
     }
 }

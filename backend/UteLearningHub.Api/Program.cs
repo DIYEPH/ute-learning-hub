@@ -29,12 +29,9 @@ services.Configure<MicrosoftAuthOptions>(configurations.GetSection(MicrosoftAuth
 services.Configure<AmazonS3Options>(configurations.GetSection(AmazonS3Options.SectionName));
 services.Configure<FileStorageOptions>(configurations.GetSection(FileStorageOptions.SectionName));
 services.Configure<KafkaOptions>(configurations.GetSection(KafkaOptions.SectionName));
-services.Configure<UteLearningHub.Infrastructure.ConfigurationOptions.RecommendationOptions>(
-    configurations.GetSection(UteLearningHub.Infrastructure.ConfigurationOptions.RecommendationOptions.SectionName));
-services.Configure<UteLearningHub.Infrastructure.ConfigurationOptions.RedisOptions>(
-    configurations.GetSection(UteLearningHub.Infrastructure.ConfigurationOptions.RedisOptions.SectionName));
-services.Configure<UteLearningHub.Infrastructure.ConfigurationOptions.EmailOptions>(
-    configurations.GetSection(UteLearningHub.Infrastructure.ConfigurationOptions.EmailOptions.SectionName));
+services.Configure<RecommendationOptions>(configurations.GetSection(RecommendationOptions.SectionName));
+services.Configure<RedisOptions>(configurations.GetSection(RedisOptions.SectionName));
+services.Configure<EmailOptions>(configurations.GetSection(EmailOptions.SectionName));
 
 services.AddApplication()
     .AddPersistence(appSettings.ConnectionStrings.DefaultConnection)

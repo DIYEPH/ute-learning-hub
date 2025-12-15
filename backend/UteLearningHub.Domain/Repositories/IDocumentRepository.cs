@@ -12,4 +12,5 @@ public interface IDocumentRepository : IRepository<Document, Guid>
     Task<DocumentFile?> GetDocumentFileByIdAsync(Guid documentFileId, bool disableTracking = false, CancellationToken cancellationToken = default);
     Task AddDocumentFileAsync(DocumentFile documentFile, CancellationToken cancellationToken = default);
     Task<bool> IsDocumentFileUsedElsewhereAsync(Guid fileId, Guid excludeDocumentFileId, CancellationToken cancellationToken = default);
+    Task<int> GetPendingFilesCountAsync(CancellationToken cancellationToken = default);
 }

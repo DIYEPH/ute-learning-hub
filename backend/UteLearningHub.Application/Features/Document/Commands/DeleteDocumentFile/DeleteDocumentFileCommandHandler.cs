@@ -65,7 +65,7 @@ public class DeleteDocumentFileCommandHandler : IRequestHandler<DeleteDocumentFi
             throw new NotFoundException($"Document file with id {request.DocumentFileId} not found in this document");
 
         // Revert all trust points associated with this document file
-        await _trustScoreService.RevertTrustScoreByEntityAsync(fileEntity.Id, cancellationToken);
+        await _trustScoreService.RevertTrustScoreByEntityAsync(fileEntity.Id, TrustEntityType.DocumentFile, cancellationToken);
 
         fileEntity.MarkAsDeleted(userId, _dateTimeProvider.OffsetNow);
 

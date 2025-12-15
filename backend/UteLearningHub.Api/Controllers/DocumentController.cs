@@ -13,7 +13,9 @@ using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentProgre
 using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
 using UteLearningHub.Application.Features.Document.Queries.GetDocumentProgress;
 using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
+using UteLearningHub.Application.Features.Document.Queries.GetHomepage;
 using UteLearningHub.Application.Features.Document.Queries.GetMyDocuments;
+using UteLearningHub.Application.Features.Document.Queries.GetPendingFilesCount;
 using UteLearningHub.Application.Features.Document.Queries.GetReadingHistory;
 
 namespace UteLearningHub.Api.Controllers
@@ -32,6 +34,21 @@ namespace UteLearningHub.Api.Controllers
         public async Task<ActionResult<PagedResponse<DocumentDto>>> GetDocuments([FromQuery] GetDocumentsQuery query)
         {
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpGet("pending-files-count")]
+        [Authorize]
+        public async Task<ActionResult<int>> GetPendingFilesCount()
+        {
+            var result = await _mediator.Send(new GetPendingFilesCountQuery());
+            return Ok(result);
+        }
+
+        [HttpGet("homepage")]
+        public async Task<ActionResult<HomepageDto>> GetHomepage()
+        {
+            var result = await _mediator.Send(new GetHomepageQuery());
             return Ok(result);
         }
 
