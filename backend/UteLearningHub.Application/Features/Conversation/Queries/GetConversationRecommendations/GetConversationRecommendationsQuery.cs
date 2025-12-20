@@ -27,5 +27,7 @@ public record ConversationRecommendationDto
     public string? AvatarUrl { get; init; }
     public int MemberCount { get; init; }
     public bool? IsCurrentUserMember { get; init; }
+    public bool? HasPendingJoinRequest { get; init; }
 }
+
 

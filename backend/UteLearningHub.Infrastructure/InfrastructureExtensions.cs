@@ -100,10 +100,10 @@ public static class InfrastructureExtensions
         services.AddScoped<IFileUsageService, FileUsageService>();
 
         // Recommendation services
-        services.AddScoped<IVectorCalculationService, VectorCalculationService>();
         services.AddScoped<IUserDataRepository, UserDataRepository>();
         services.AddScoped<IVectorMaintenanceService, VectorMaintenanceService>();
         services.AddHttpClient<IRecommendationService, RecommendationService>();
+        services.AddHttpClient<IEmbeddingService, EmbeddingService>();
 
         // Trust Score service
         services.AddScoped<ITrustScoreService, TrustScoreService>();

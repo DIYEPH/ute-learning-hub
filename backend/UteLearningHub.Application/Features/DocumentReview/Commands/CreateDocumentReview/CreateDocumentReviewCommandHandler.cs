@@ -58,7 +58,7 @@ public class CreateDocumentReviewCommandHandler : IRequestHandler<CreateDocument
             disableTracking: false,
             cancellationToken);
 
-        // CASE 1: Same type clicked again → Toggle off (Delete)
+        // CASE 1: 
         if (existingReview != null && existingReview.DocumentReviewType == request.DocumentReviewType)
         {
             var oldType = existingReview.DocumentReviewType;

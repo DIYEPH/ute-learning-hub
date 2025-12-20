@@ -9,146 +9,113 @@ namespace UteLearningHub.Infrastructure.Services.Recommendation;
 
 public class VectorMaintenanceService : IVectorMaintenanceService
 {
-    private readonly IVectorCalculationService _vectorCalculationService;
-    private readonly IProfileVectorStore _profileVectorStore;
-    private readonly IConversationVectorStore _conversationVectorStore;
-    private readonly IUserDataRepository _userDataRepository;
-    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
+    private readonly IEmbeddingService _embed;
+    private readonly IProfileVectorStore _userStore;
+    private readonly IConversationVectorStore _convStore;
+    private readonly IUserDataRepository _userData;
+    private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
     private readonly ICacheService _cache;
-    private readonly ILogger<VectorMaintenanceService> _logger;
-    private const int VectorDimension = 100;
+    private readonly ILogger<VectorMaintenanceService> _log;
 
     public VectorMaintenanceService(
-        IVectorCalculationService vectorCalculationService,
-        IProfileVectorStore profileVectorStore,
-        IConversationVectorStore conversationVectorStore,
-        IUserDataRepository userDataRepository,
-        IDbContextFactory<ApplicationDbContext> dbContextFactory,
+        IEmbeddingService embed,
+        IProfileVectorStore userStore,
+        IConversationVectorStore convStore,
+        IUserDataRepository userData,
+        IDbContextFactory<ApplicationDbContext> dbFactory,
         ICacheService cache,
-        ILogger<VectorMaintenanceService> logger)
+        ILogger<VectorMaintenanceService> log)
     {
-        _vectorCalculationService = vectorCalculationService;
-        _profileVectorStore = profileVectorStore;
-        _conversationVectorStore = conversationVectorStore;
-        _userDataRepository = userDataRepository;
-        _dbContextFactory = dbContextFactory;
+        _embed = embed;
+        _userStore = userStore;
+        _convStore = convStore;
+        _userData = userData;
+        _dbFactory = dbFactory;
         _cache = cache;
-        _logger = logger;
+        _log = log;
     }
 
-    public async Task UpdateUserVectorAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task UpdateUserVectorAsync(Guid userId, CancellationToken ct = default)
     {
         try
         {
-            // Use new behavior-based data
-            var behaviorData = await _userDataRepository.GetUserBehaviorDataAsync(userId, cancellationToken);
-            if (behaviorData == null)
+            var data = await _userData.GetUserBehaviorTextDataAsync(userId, ct);
+            if (data == null) return;
+
+            var req = new UserVectorRequest
             {
-                _logger.LogWarning("User behavior data not found for userId {UserId}", userId);
-                return;
-            }
+                Subjects = data.SubjectScores.Select(x => x.Name).ToList(),
+                SubjectWeights = data.SubjectScores.Select(x => (float)x.Score).ToList(),
+                Tags = data.TagScores.Select(x => x.Name).ToList(),
+                TagWeights = data.TagScores.Select(x => (float)x.Score).ToList()
+            };
 
-            // Use new behavior-based calculation
-            var vector = _vectorCalculationService.CalculateUserVectorFromBehavior(
-                behaviorData.FacultyScores,
-                behaviorData.TypeScores,
-                behaviorData.TagScores,
-                VectorDimension);
+            var vec = await _embed.UserVectorAsync(req, ct);
 
-            var profileVector = new UteLearningHub.Domain.Entities.ProfileVector
+            await _userStore.UpsertAsync(new Domain.Entities.ProfileVector
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vector),
+                EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vec),
                 CalculatedAt = DateTimeOffset.UtcNow,
                 IsActive = true
-            };
+            }, ct);
 
-            await _profileVectorStore.UpsertAsync(profileVector, cancellationToken);
-            _logger.LogInformation("Updated user vector for userId {UserId} (behavior-based)", userId);
-
-            // Invalidate cache
-            await InvalidateUserRecommendationsCacheAsync(userId, cancellationToken);
+            _log.LogInformation("Updated user vector: {UserId}", userId);
+            await InvalidateUserRecommendationsCacheAsync(userId, ct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating user vector for userId {UserId}", userId);
+            _log.LogError(ex, "Failed to update user vector: {UserId}", userId);
         }
     }
 
-    public async Task UpdateConversationVectorAsync(Guid conversationId, CancellationToken cancellationToken = default)
+    public async Task UpdateConversationVectorAsync(Guid convId, CancellationToken ct = default)
     {
         try
         {
-            await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
 
-            // Get conversation with Subject → SubjectMajors → Major (to get FacultyId)
-            var conversation = await dbContext.Conversations
+            var conv = await db.Conversations
                 .Include(c => c.Subject)
-                    .ThenInclude(s => s!.SubjectMajors)
-                        .ThenInclude(sm => sm.Major)
-                .Include(c => c.ConversationTags)
+                .Include(c => c.ConversationTags).ThenInclude(ct => ct.Tag)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == conversationId && !c.IsDeleted, cancellationToken);
+                .FirstOrDefaultAsync(c => c.Id == convId && !c.IsDeleted, ct);
 
-            if (conversation == null)
+            if (conv == null) return;
+
+            var req = new ConvVectorRequest
             {
-                _logger.LogWarning("Conversation not found for conversationId {ConversationId}", conversationId);
-                return;
-            }
+                Name = conv.ConversationName,
+                Subject = conv.Subject?.SubjectName,
+                Tags = conv.ConversationTags.Where(t => t.Tag != null).Select(t => t.Tag!.TagName).ToList()
+            };
 
-            // Get FacultyIds from Subject → SubjectMajors → Major → FacultyId
-            var facultyIds = new List<Guid>();
-            if (conversation.Subject != null)
-            {
-                foreach (var sm in conversation.Subject.SubjectMajors)
-                {
-                    if (sm.Major != null && !sm.Major.IsDeleted)
-                    {
-                        facultyIds.Add(sm.Major.FacultyId);
-                    }
-                }
-            }
+            var vec = await _embed.ConvVectorAsync(req, ct);
 
-            var tagIds = conversation.ConversationTags
-                .Select(ct => ct.TagId)
-                .ToList();
-
-            // Use new Faculty-based calculation
-            var vector = _vectorCalculationService.CalculateConversationVector(
-                facultyIds.Distinct().ToList(),
-                tagIds,
-                VectorDimension);
-
-            var conversationVector = new UteLearningHub.Domain.Entities.ConversationVector
+            await _convStore.UpsertAsync(new Domain.Entities.ConversationVector
             {
                 Id = Guid.NewGuid(),
-                ConversationId = conversationId,
-                EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vector),
+                ConversationId = convId,
+                EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vec),
                 CalculatedAt = DateTimeOffset.UtcNow,
                 IsActive = true
-            };
+            }, ct);
 
-            await _conversationVectorStore.UpsertAsync(conversationVector, cancellationToken);
-            _logger.LogInformation("Updated conversation vector for conversationId {ConversationId} (Faculty-based)", conversationId);
+            _log.LogInformation("Updated conv vector: {ConvId}", convId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating conversation vector for conversationId {ConversationId}", conversationId);
+            _log.LogError(ex, "Failed to update conv vector: {ConvId}", convId);
         }
     }
 
-    public async Task InvalidateUserRecommendationsCacheAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task InvalidateUserRecommendationsCacheAsync(Guid userId, CancellationToken ct = default)
     {
         try
         {
-            var pattern = $"recommendations:{userId}:*";
-            await _cache.RemoveByPatternAsync(pattern, cancellationToken);
-            _logger.LogDebug("Invalidated recommendations cache for userId {UserId}", userId);
+            await _cache.RemoveByPatternAsync($"rec:{userId}:*", ct);
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error invalidating cache for userId {UserId}", userId);
-        }
+        catch { /* ignore */ }
     }
 }

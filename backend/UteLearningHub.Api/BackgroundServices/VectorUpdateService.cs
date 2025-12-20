@@ -5,154 +5,113 @@ using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Api.BackgroundServices;
 
+/// <summary>
+/// Background service to periodically update all vectors
+/// </summary>
 public class VectorUpdateService : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<VectorUpdateService> _logger;
-    private readonly TimeSpan _updateInterval;
-    private readonly TimeSpan _initialDelay;
+    private readonly IServiceProvider _sp;
+    private readonly ILogger<VectorUpdateService> _log;
+    private readonly TimeSpan _interval = TimeSpan.FromHours(1);
+    private readonly TimeSpan _delay = TimeSpan.FromMinutes(5);
 
-    public VectorUpdateService(
-        IServiceProvider serviceProvider,
-        ILogger<VectorUpdateService> logger)
+    public VectorUpdateService(IServiceProvider sp, ILogger<VectorUpdateService> log)
     {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-        _updateInterval = TimeSpan.FromHours(1); // Update vectors mỗi giờ
-        _initialDelay = TimeSpan.FromMinutes(5); // Delay 5 phút khi khởi động
+        _sp = sp;
+        _log = log;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    protected override async Task ExecuteAsync(CancellationToken ct)
     {
-        _logger.LogInformation("VectorUpdateService started, waiting {InitialDelay} before first update", _initialDelay);
+        _log.LogInformation("VectorUpdateService started");
+        await Task.Delay(_delay, ct);
 
-        // Initial delay to let the system stabilize
-        await Task.Delay(_initialDelay, stoppingToken);
-
-        while (!stoppingToken.IsCancellationRequested)
+        while (!ct.IsCancellationRequested)
         {
-            try
-            {
-                await UpdateVectorsAsync(stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating vectors");
-            }
-
-            await Task.Delay(_updateInterval, stoppingToken);
+            try { await UpdateAllAsync(ct); }
+            catch (Exception ex) { _log.LogError(ex, "Vector update failed"); }
+            await Task.Delay(_interval, ct);
         }
-
-        _logger.LogInformation("VectorUpdateService stopped");
     }
 
-    private async Task UpdateVectorsAsync(CancellationToken cancellationToken)
+    private async Task UpdateAllAsync(CancellationToken ct)
     {
-        using var scope = _serviceProvider.CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        var userDataRepository = scope.ServiceProvider.GetRequiredService<IUserDataRepository>();
-        var vectorCalculationService = scope.ServiceProvider.GetRequiredService<IVectorCalculationService>();
-        var profileVectorStore = scope.ServiceProvider.GetRequiredService<IProfileVectorStore>();
-        var conversationVectorStore = scope.ServiceProvider.GetRequiredService<IConversationVectorStore>();
+        using var scope = _sp.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var userData = scope.ServiceProvider.GetRequiredService<IUserDataRepository>();
+        var embed = scope.ServiceProvider.GetRequiredService<IEmbeddingService>();
+        var userStore = scope.ServiceProvider.GetRequiredService<IProfileVectorStore>();
+        var convStore = scope.ServiceProvider.GetRequiredService<IConversationVectorStore>();
 
-        _logger.LogInformation("Starting vector update process (behavior-based)");
+        _log.LogInformation("Starting vector update");
 
-        // Update user vectors using behavior-based calculation
-        var userIds = await dbContext.Users
-            .Where(u => !u.IsDeleted)
-            .Select(u => u.Id)
-            .ToListAsync(cancellationToken);
+        // Update user vectors
+        var userIds = await db.Users.Where(u => !u.IsDeleted).Select(u => u.Id).ToListAsync(ct);
+        var userCount = 0;
 
-        var userUpdateCount = 0;
-        foreach (var userId in userIds)
+        foreach (var uid in userIds)
         {
             try
             {
-                var behaviorData = await userDataRepository.GetUserBehaviorDataAsync(userId, cancellationToken);
-                if (behaviorData == null)
-                    continue;
+                var data = await userData.GetUserBehaviorTextDataAsync(uid, ct);
+                if (data == null) continue;
 
-                var vector = vectorCalculationService.CalculateUserVectorFromBehavior(
-                    behaviorData.FacultyScores,
-                    behaviorData.TypeScores,
-                    behaviorData.TagScores,
-                    100);
+                var vec = await embed.UserVectorAsync(new UserVectorRequest
+                {
+                    Subjects = data.SubjectScores.Select(x => x.Name).ToList(),
+                    SubjectWeights = data.SubjectScores.Select(x => (float)x.Score).ToList(),
+                    Tags = data.TagScores.Select(x => x.Name).ToList(),
+                    TagWeights = data.TagScores.Select(x => (float)x.Score).ToList()
+                }, ct);
 
-                var profileVector = new UteLearningHub.Domain.Entities.ProfileVector
+                await userStore.UpsertAsync(new Domain.Entities.ProfileVector
                 {
                     Id = Guid.NewGuid(),
-                    UserId = userId,
-                    EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vector),
+                    UserId = uid,
+                    EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vec),
                     CalculatedAt = DateTimeOffset.UtcNow,
                     IsActive = true
-                };
+                }, ct);
 
-                await profileVectorStore.UpsertAsync(profileVector, cancellationToken);
-                userUpdateCount++;
+                userCount++;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to update vector for user {UserId}", userId);
-            }
+            catch (Exception ex) { _log.LogWarning(ex, "Failed user: {Id}", uid); }
         }
 
-        // Update conversation vectors using Faculty-based calculation
-        var conversations = await dbContext.Conversations
+        // Update conversation vectors
+        var convs = await db.Conversations
             .Include(c => c.Subject)
-                .ThenInclude(s => s!.SubjectMajors)
-                    .ThenInclude(sm => sm.Major)
-            .Include(c => c.ConversationTags)
+            .Include(c => c.ConversationTags).ThenInclude(t => t.Tag)
             .Where(c => !c.IsDeleted)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
-        var conversationUpdateCount = 0;
-        foreach (var conversation in conversations)
+        var convCount = 0;
+
+        foreach (var conv in convs)
         {
             try
             {
-                // Get FacultyIds from Subject → SubjectMajors → Major
-                var facultyIds = new List<Guid>();
-                if (conversation.Subject != null)
+                var vec = await embed.ConvVectorAsync(new ConvVectorRequest
                 {
-                    foreach (var sm in conversation.Subject.SubjectMajors)
-                    {
-                        if (sm.Major != null && !sm.Major.IsDeleted)
-                        {
-                            facultyIds.Add(sm.Major.FacultyId);
-                        }
-                    }
-                }
+                    Name = conv.ConversationName,
+                    Subject = conv.Subject?.SubjectName,
+                    Tags = conv.ConversationTags.Where(t => t.Tag != null).Select(t => t.Tag!.TagName).ToList()
+                }, ct);
 
-                var tagIds = conversation.ConversationTags
-                    .Select(ct => ct.TagId)
-                    .ToList();
-
-                var vector = vectorCalculationService.CalculateConversationVector(
-                    facultyIds.Distinct().ToList(),
-                    tagIds,
-                    100);
-
-                var conversationVector = new UteLearningHub.Domain.Entities.ConversationVector
+                await convStore.UpsertAsync(new Domain.Entities.ConversationVector
                 {
                     Id = Guid.NewGuid(),
-                    ConversationId = conversation.Id,
-                    EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vector),
+                    ConversationId = conv.Id,
+                    EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vec),
                     CalculatedAt = DateTimeOffset.UtcNow,
                     IsActive = true
-                };
+                }, ct);
 
-                await conversationVectorStore.UpsertAsync(conversationVector, cancellationToken);
-                conversationUpdateCount++;
+                convCount++;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to update vector for conversation {ConversationId}", conversation.Id);
-            }
+            catch (Exception ex) { _log.LogWarning(ex, "Failed conv: {Id}", conv.Id); }
         }
 
-        _logger.LogInformation(
-            "Vector update completed (behavior-based). Updated {UserCount} user vectors and {ConversationCount} conversation vectors",
-            userUpdateCount,
-            conversationUpdateCount);
+        _log.LogInformation("Updated {Users} users, {Convs} conversations", userCount, convCount);
     }
 }

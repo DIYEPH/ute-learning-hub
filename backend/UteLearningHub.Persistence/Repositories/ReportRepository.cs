@@ -63,5 +63,20 @@ public class ReportRepository : Repository<Report, Guid>, IReportRepository
                 && r.CreatedAt < endOfDay)
             .CountAsync(cancellationToken);
     }
+
+    public async Task<Report?> GetUserPendingReportAsync(
+        Guid userId,
+        Guid? documentFileId,
+        Guid? commentId,
+        CancellationToken cancellationToken = default)
+    {
+        return await GetQueryableSet()
+            .Where(r => !r.IsDeleted
+                && r.CreatedById == userId
+                && r.Status == ContentStatus.PendingReview
+                && ((documentFileId.HasValue && r.DocumentFileId == documentFileId.Value)
+                    || (commentId.HasValue && r.CommentId == commentId.Value)))
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }
 

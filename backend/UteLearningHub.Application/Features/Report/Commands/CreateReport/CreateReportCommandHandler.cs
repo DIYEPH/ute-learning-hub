@@ -1,5 +1,4 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.DocumentFiles.Commands.ReviewDocumentFile;
 using UteLearningHub.Application.Services.Comment;
@@ -40,7 +39,6 @@ public class CreateReportCommandHandler(
         if (!isAdmin && (!trustLevel.HasValue || trustLevel.Value < TrustLever.Newbie))
             throw new UnauthorizedException("Only administrators or users with Newbie+ trust level can create reports");
 
-        // Validate: must have either DocumentFileId or CommentId, but not both
         if (!request.DocumentFileId.HasValue && !request.CommentId.HasValue)
             throw new BadRequestException("Either DocumentFileId or CommentId must be provided");
         if (request.DocumentFileId.HasValue && request.CommentId.HasValue)
@@ -60,7 +58,22 @@ public class CreateReportCommandHandler(
                 throw new NotFoundException($"Comment with id {request.CommentId.Value} not found");
         }
 
+        // Check if user already has a pending report...
+        var existingPendingReport = await reportRepository.GetUserPendingReportAsync(
+            userId, request.DocumentFileId, request.CommentId, cancellationToken);
+        if (existingPendingReport != null)
+            throw new BadRequestException("Bạn đã có báo cáo đang chờ duyệt về nội dung này");
+
         var isTrustedMemberOrHigher = isAdmin || (trustLevel.HasValue && trustLevel.Value >= TrustLever.TrustedMember);
+
+        // Check daily instant a..
+        var canInstantApprove = isTrustedMemberOrHigher;
+        if (canInstantApprove && !isAdmin)
+        {
+            var dailyCount = await reportRepository.GetDailyInstantApproveCountAsync(userId, now, cancellationToken);
+            if (dailyCount >= TrustScoreConstants.TrustedMemberDailyReportLimit)
+                canInstantApprove = false; 
+        }
 
         var report = new ReportEntity
         {
@@ -68,18 +81,18 @@ public class CreateReportCommandHandler(
             DocumentFileId = request.DocumentFileId,
             CommentId = request.CommentId,
             Content = request.Content,
-            Status = isTrustedMemberOrHigher ? ContentStatus.Approved : ContentStatus.PendingReview,
+            Status = canInstantApprove ? ContentStatus.Approved : ContentStatus.PendingReview,
             CreatedById = userId,
             CreatedAt = now,
-            ReviewedById = isTrustedMemberOrHigher ? userId : null,
-            ReviewedAt = isTrustedMemberOrHigher ? now : null,
-            ReviewNote = isTrustedMemberOrHigher ? $"{request.Content} | Tự động xử lý thành viên uy tín" : null
+            ReviewedById = canInstantApprove ? userId : null,
+            ReviewedAt = canInstantApprove ? now : null,
+            ReviewNote = canInstantApprove ? $"{request.Content}, Tự động xử lý thành viên uy tín: {userId}" : null
         };
 
         await reportRepository.AddAsync(report, cancellationToken);
         await reportRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        if (isTrustedMemberOrHigher)
+        if (canInstantApprove)
             await AutoProcessReportAsync(report, userId, now, cancellationToken);
 
         var authorInfo = await commentService.GetCommentAuthorsAsync([userId], cancellationToken);

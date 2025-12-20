@@ -13,4 +13,10 @@ public interface IReportRepository : IRepository<Report, Guid>
         CancellationToken cancellationToken = default);
 
     Task<int> GetDailyInstantApproveCountAsync(Guid userId, DateTimeOffset today, CancellationToken cancellationToken = default);
+
+    Task<Report?> GetUserPendingReportAsync(
+        Guid userId,
+        Guid? documentFileId,
+        Guid? commentId,
+        CancellationToken cancellationToken = default);
 }

@@ -20,7 +20,15 @@ public class UserDataRepository : IUserDataRepository
         _dbContextFactory = dbContextFactory;
     }
 
-    public async Task<UserBehaviorDataDto?> GetUserBehaviorDataAsync(Guid userId, CancellationToken cancellationToken = default)
+    private static void AddTextScore(Dictionary<string, int> scores, string name, int score)
+    {
+        if (scores.ContainsKey(name))
+            scores[name] += score;
+        else
+            scores[name] = score;
+    }
+
+    public async Task<UserBehaviorTextDataDto?> GetUserBehaviorTextDataAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -29,53 +37,37 @@ public class UserDataRepository : IUserDataRepository
         if (!userExists)
             return null;
 
-        // Aggregate scores
-        var facultyScores = new Dictionary<Guid, int>();
-        var typeScores = new Dictionary<Guid, int>();
-        var tagScores = new Dictionary<Guid, int>();
+        var subjectScores = new Dictionary<string, int>();
+        var tagScores = new Dictionary<string, int>();
 
         // 1. Documents created by user
         var documents = await dbContext.Documents
             .Include(d => d.Subject)
-                .ThenInclude(s => s!.SubjectMajors)
-                    .ThenInclude(sm => sm.Major)
             .Include(d => d.DocumentTags)
+                .ThenInclude(dt => dt.Tag)
             .AsNoTracking()
             .Where(d => d.CreatedById == userId && !d.IsDeleted && d.DocumentFiles.Any())
             .ToListAsync(cancellationToken);
 
         foreach (var doc in documents)
         {
-            // Type score
-            AddScore(typeScores, doc.TypeId, DocumentCreatedScore);
-
-            // Faculty score (only if has Subject)
+            // Subject score
             if (doc.Subject != null)
-            {
-                foreach (var sm in doc.Subject.SubjectMajors)
-                {
-                    if (sm.Major != null && !sm.Major.IsDeleted)
-                    {
-                        AddScore(facultyScores, sm.Major.FacultyId, DocumentCreatedScore);
-                    }
-                }
-            }
+                AddTextScore(subjectScores, doc.Subject.SubjectName, DocumentCreatedScore);
 
             // Tag scores
             foreach (var dt in doc.DocumentTags)
-            {
-                AddScore(tagScores, dt.TagId, DocumentCreatedScore);
-            }
+                if (dt.Tag != null)
+                    AddTextScore(tagScores, dt.Tag.TagName, DocumentCreatedScore);
         }
 
-        // 2. Conversations user is a member of (active only)
+        // 2. Conversations user is a member of
         var conversationMembers = await dbContext.Set<Domain.Entities.ConversationMember>()
             .Include(cm => cm.Conversation)
                 .ThenInclude(c => c.Subject)
-                    .ThenInclude(s => s!.SubjectMajors)
-                        .ThenInclude(sm => sm.Major)
             .Include(cm => cm.Conversation)
                 .ThenInclude(c => c.ConversationTags)
+                    .ThenInclude(ct => ct.Tag)
             .AsNoTracking()
             .Where(cm => cm.UserId == userId && !cm.IsDeleted && !cm.Conversation.IsDeleted)
             .ToListAsync(cancellationToken);
@@ -84,33 +76,23 @@ public class UserDataRepository : IUserDataRepository
         {
             var conv = cm.Conversation;
 
-            // Faculty score (only if has Subject)
+            // Subject score
             if (conv.Subject != null)
-            {
-                foreach (var sm in conv.Subject.SubjectMajors)
-                {
-                    if (sm.Major != null && !sm.Major.IsDeleted)
-                    {
-                        AddScore(facultyScores, sm.Major.FacultyId, ConversationJoinedScore);
-                    }
-                }
-            }
+                AddTextScore(subjectScores, conv.Subject.SubjectName, ConversationJoinedScore);
 
             // Tag scores
             foreach (var ct in conv.ConversationTags)
-            {
-                AddScore(tagScores, ct.TagId, ConversationJoinedScore);
-            }
+                if (ct.Tag != null)
+                    AddTextScore(tagScores, ct.Tag.TagName, ConversationJoinedScore);
         }
 
-        // 3. Document reviews (Useful/NotUseful votes)
+        // 3. Document reviews
         var reviews = await dbContext.Set<Domain.Entities.DocumentReview>()
             .Include(dr => dr.Document)
                 .ThenInclude(d => d.Subject)
-                    .ThenInclude(s => s!.SubjectMajors)
-                        .ThenInclude(sm => sm.Major)
             .Include(dr => dr.Document)
                 .ThenInclude(d => d.DocumentTags)
+                    .ThenInclude(dt => dt.Tag)
             .AsNoTracking()
             .Where(dr => dr.CreatedById == userId && !dr.Document.IsDeleted)
             .ToListAsync(cancellationToken);
@@ -122,41 +104,20 @@ public class UserDataRepository : IUserDataRepository
                 ? UsefulVoteScore
                 : NotUsefulVoteScore;
 
-            // Type score
-            AddScore(typeScores, doc.TypeId, score);
-
-            // Faculty score (only if has Subject)
+            // Subject score
             if (doc.Subject != null)
-            {
-                foreach (var sm in doc.Subject.SubjectMajors)
-                {
-                    if (sm.Major != null && !sm.Major.IsDeleted)
-                    {
-                        AddScore(facultyScores, sm.Major.FacultyId, score);
-                    }
-                }
-            }
+                AddTextScore(subjectScores, doc.Subject.SubjectName, score);
 
             // Tag scores
             foreach (var dt in doc.DocumentTags)
-            {
-                AddScore(tagScores, dt.TagId, score);
-            }
+                if (dt.Tag != null)
+                    AddTextScore(tagScores, dt.Tag.TagName, score);
         }
 
-        return new UserBehaviorDataDto(
+        return new UserBehaviorTextDataDto(
             userId,
-            facultyScores.Where(x => x.Value > 0).Select(x => new ScoreItem(x.Key, x.Value)).ToList(),
-            typeScores.Where(x => x.Value > 0).Select(x => new ScoreItem(x.Key, x.Value)).ToList(),
-            tagScores.Where(x => x.Value > 0).Select(x => new ScoreItem(x.Key, x.Value)).ToList()
+            subjectScores.Where(x => x.Value > 0).Select(x => new TextScoreItem(x.Key, x.Value)).ToList(),
+            tagScores.Where(x => x.Value > 0).Select(x => new TextScoreItem(x.Key, x.Value)).ToList()
         );
-    }
-
-    private static void AddScore(Dictionary<Guid, int> scores, Guid id, int score)
-    {
-        if (scores.ContainsKey(id))
-            scores[id] += score;
-        else
-            scores[id] = score;
     }
 }

@@ -14,7 +14,7 @@ namespace UteLearningHub.Application.Features.Conversation.Queries.GetConversati
 public class GetConversationRecommendationsHandler
     : IRequestHandler<GetConversationRecommendationsQuery, GetConversationRecommendationsResponse>
 {
-    private readonly IVectorCalculationService _vectorCalculationService;
+    private readonly IEmbeddingService _embeddingService;
     private readonly IRecommendationService _recommendationService;
     private readonly IProfileVectorStore _profileVectorStore;
     private readonly IConversationVectorStore _conversationVectorStore;
@@ -23,12 +23,11 @@ public class GetConversationRecommendationsHandler
     private readonly ICurrentUserService _currentUserService;
     private readonly IUserDataRepository _userDataRepository;
     private readonly ICacheService _cache;
-    private readonly int _vectorDimension;
     private readonly ILogger<GetConversationRecommendationsHandler> _logger;
     private static readonly TimeSpan CacheExpiration = TimeSpan.FromMinutes(15); // Cache 15 phút
 
     public GetConversationRecommendationsHandler(
-        IVectorCalculationService vectorCalculationService,
+        IEmbeddingService embeddingService,
         IRecommendationService recommendationService,
         IProfileVectorStore profileVectorStore,
         IConversationVectorStore conversationVectorStore,
@@ -39,7 +38,7 @@ public class GetConversationRecommendationsHandler
         ICacheService cache,
         ILogger<GetConversationRecommendationsHandler> logger)
     {
-        _vectorCalculationService = vectorCalculationService;
+        _embeddingService = embeddingService;
         _recommendationService = recommendationService;
         _profileVectorStore = profileVectorStore;
         _conversationVectorStore = conversationVectorStore;
@@ -48,7 +47,6 @@ public class GetConversationRecommendationsHandler
         _currentUserService = currentUserService;
         _userDataRepository = userDataRepository;
         _cache = cache;
-        _vectorDimension = 100; // Default vector dimension
         _logger = logger;
     }
 
@@ -64,19 +62,18 @@ public class GetConversationRecommendationsHandler
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
         _logger.LogInformation("Getting recommendations for userId {UserId}", userId);
 
-        // Kiểm tra cache
-        var cacheKey = $"recommendations:{userId}:{request.TopK}:{request.MinSimilarity}";
-        var cachedResponse = await _cache.GetAsync<GetConversationRecommendationsResponse>(cacheKey, cancellationToken);
-        if (cachedResponse != null)
-        {
-            _logger.LogInformation("Returning CACHED recommendations for user {UserId} (cache hit)", userId);
-            return cachedResponse;
-        }
-        _logger.LogInformation("Cache miss, calculating recommendations");
+        // [DISABLED] Cache - uncomment to enable 15-minute cache
+        // var cacheKey = $"recommendations:{userId}:{request.TopK}:{request.MinSimilarity}";
+        // var cachedResponse = await _cache.GetAsync<GetConversationRecommendationsResponse>(cacheKey, cancellationToken);
+        // if (cachedResponse != null)
+        // {
+        //     _logger.LogInformation("Returning CACHED recommendations for user {UserId}", userId);
+        //     return cachedResponse;
+        // }
 
-        // Lấy hoặc tính user vector
-        var userVector = await GetOrCalculateUserVectorAsync(userId, cancellationToken);
-        _logger.LogInformation("Got user vector with length {VectorLength}", userVector.Length);
+        // Calculate user vector
+        var userVector = await GetOrCalcUserVectorAsync(userId, cancellationToken);
+        _logger.LogInformation("Got user vector: {Len} dims", userVector.Length);
 
         // Lấy tất cả conversations active và chưa join (bao gồm SubjectMajors để lấy FacultyId)
         var activeConversations = await _conversationRepository.GetQueryableSet()
@@ -86,6 +83,7 @@ public class GetConversationRecommendationsHandler
             .Include(c => c.ConversationTags)
                 .ThenInclude(ct => ct.Tag)
             .Include(c => c.Members)
+            .Include(c => c.ConversationJoinRequests)
             .AsNoTracking()
             .Where(c => !c.IsDeleted
                 && c.ConversationStatus == ConversationStatus.Active
@@ -105,63 +103,40 @@ public class GetConversationRecommendationsHandler
             };
         }
 
-        // Lấy hoặc tính conversation vectors
-        var conversationVectors = new List<ConversationVectorData>();
-        foreach (var conversation in activeConversations)
+        // Calculate conversation vectors
+        var convVectors = new List<ConversationVectorData>();
+        foreach (var conv in activeConversations)
         {
-            // Lấy FacultyIds từ Subject → SubjectMajors → Major
-            var facultyIds = new List<Guid>();
-            if (conversation.Subject != null)
-            {
-                foreach (var sm in conversation.Subject.SubjectMajors)
-                {
-                    if (sm.Major != null && !sm.Major.IsDeleted)
-                    {
-                        facultyIds.Add(sm.Major.FacultyId);
-                    }
-                }
-            }
-
-            var tagIds = conversation.ConversationTags
-                .Select(ct => ct.TagId)
-                .ToList();
-
-            var convVector = await GetOrCalculateConversationVectorAsync(
-                conversation.Id,
-                conversation.SubjectId,
-                facultyIds.Distinct().ToList(),
-                tagIds,
-                cancellationToken);
-
-            conversationVectors.Add(new ConversationVectorData(conversation.Id, convVector));
+            var vec = await GetOrCalcConvVectorAsync(conv, cancellationToken);
+            convVectors.Add(new ConversationVectorData(conv.Id, vec));
         }
 
         // Gọi AI service để lấy recommendations
         var topK = request.TopK ?? 10;
         var minSimilarity = request.MinSimilarity ?? 0.3f;
 
-        _logger.LogInformation("Calling AI service with {Count} conversation vectors, topK={TopK}, minSimilarity={MinSimilarity}",
-            conversationVectors.Count, topK, minSimilarity);
+        _logger.LogInformation("Calling AI: {Count} convs, topK={TopK}", convVectors.Count, topK);
 
-        var recommendationResponse = await _recommendationService.GetRecommendationsAsync(
-            userVector,
-            conversationVectors,
-            topK,
-            minSimilarity,
-            cancellationToken);
+        var recResponse = await _recommendationService.GetRecommendationsAsync(
+            userVector, convVectors, topK, minSimilarity, cancellationToken);
 
         // Map recommendations với conversation details
         var conversationDict = activeConversations.ToDictionary(c => c.Id);
         var currentUserId = _currentUserService.UserId;
 
-        var recommendations = recommendationResponse.Recommendations
-            .Select(rec =>
+        var recs = recResponse.Recommendations.Select(rec =>
             {
                 if (!conversationDict.TryGetValue(rec.ConversationId, out var conversation))
                     return null;
 
                 var isMember = currentUserId.HasValue &&
                     conversation.Members.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
+
+                var hasPendingJoinRequest = currentUserId.HasValue &&
+                    conversation.ConversationJoinRequests.Any(jr => 
+                        jr.CreatedById == currentUserId.Value && 
+                        jr.Status == ContentStatus.PendingReview &&
+                        !jr.IsDeleted);
 
                 return new ConversationRecommendationDto
                 {
@@ -184,7 +159,8 @@ public class GetConversationRecommendationsHandler
                         .ToList(),
                     AvatarUrl = conversation.AvatarUrl,
                     MemberCount = conversation.Members.Count(m => !m.IsDeleted),
-                    IsCurrentUserMember = currentUserId.HasValue ? isMember : null
+                    IsCurrentUserMember = currentUserId.HasValue ? isMember : null,
+                    HasPendingJoinRequest = currentUserId.HasValue ? hasPendingJoinRequest : null
                 };
             })
             .Where(r => r != null)
@@ -193,138 +169,114 @@ public class GetConversationRecommendationsHandler
 
         var response = new GetConversationRecommendationsResponse
         {
-            Recommendations = recommendations,
-            TotalProcessed = recommendationResponse.TotalProcessed,
-            ProcessingTimeMs = recommendationResponse.ProcessingTimeMs
+            Recommendations = recs,
+            TotalProcessed = recResponse.TotalProcessed,
+            ProcessingTimeMs = recResponse.ProcessingTimeMs
         };
 
-        // Lưu vào cache
-        await _cache.SetAsync(cacheKey, response, CacheExpiration, cancellationToken);
-        _logger.LogDebug("Cached recommendations for user {UserId}", userId);
+        // [DISABLED] Cache save - uncomment to enable 15-minute cache
+        // await _cache.SetAsync(cacheKey, response, CacheExpiration, cancellationToken);
 
         return response;
     }
 
-    private async Task<float[]> GetOrCalculateUserVectorAsync(
-        Guid userId,
-        CancellationToken cancellationToken)
+    private async Task<float[]> GetOrCalcUserVectorAsync(Guid userId, CancellationToken ct)
     {
-        // Tìm vector đã lưu trong DB
-        var existingVector = await _profileVectorStore.Query()
+        var dim = _embeddingService.Dim;
+
+        var existing = await _profileVectorStore.Query()
             .Where(v => v.UserId == userId && v.IsActive)
             .OrderByDescending(v => v.CalculatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
 
-        if (existingVector != null && !string.IsNullOrEmpty(existingVector.EmbeddingJson))
+        if (existing != null && !string.IsNullOrEmpty(existing.EmbeddingJson))
         {
             try
             {
-                var savedVector = System.Text.Json.JsonSerializer.Deserialize<float[]>(existingVector.EmbeddingJson);
-                if (savedVector != null && savedVector.Length == _vectorDimension)
-                {
-                    return savedVector;
-                }
+                var vec = System.Text.Json.JsonSerializer.Deserialize<float[]>(existing.EmbeddingJson);
+                if (vec != null && vec.Length == dim) return vec;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to deserialize user vector from DB, will recalculate");
-            }
+            catch { /* recalculate */ }
         }
 
-        // Tính vector mới từ behavior data
-        var behaviorData = await _userDataRepository.GetUserBehaviorDataAsync(userId, cancellationToken);
-        if (behaviorData == null)
-            throw new NotFoundException($"User with id {userId} not found");
+        var data = await _userDataRepository.GetUserBehaviorTextDataAsync(userId, ct);
+        if (data == null) throw new NotFoundException($"User {userId} not found");
 
-        var calculatedVector = _vectorCalculationService.CalculateUserVectorFromBehavior(
-            behaviorData.FacultyScores,
-            behaviorData.TypeScores,
-            behaviorData.TagScores,
-            _vectorDimension);
+        var req = new UserVectorRequest
+        {
+            Subjects = data.SubjectScores.Select(x => x.Name).ToList(),
+            SubjectWeights = data.SubjectScores.Select(x => (float)x.Score).ToList(),
+            Tags = data.TagScores.Select(x => x.Name).ToList(),
+            TagWeights = data.TagScores.Select(x => (float)x.Score).ToList()
+        };
 
-        // Lưu vào DB (async, không cần chờ)
+        var result = await _embeddingService.UserVectorAsync(req, ct);
+
+        // Save async
         _ = Task.Run(async () =>
         {
             try
             {
-                var profileVector = new UteLearningHub.Domain.Entities.ProfileVector
+                await _profileVectorStore.UpsertAsync(new Domain.Entities.ProfileVector
                 {
                     Id = Guid.NewGuid(),
                     UserId = userId,
-                    EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(calculatedVector),
+                    EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(result),
                     CalculatedAt = DateTimeOffset.UtcNow,
                     IsActive = true
-                };
-
-                await _profileVectorStore.UpsertAsync(profileVector, cancellationToken);
+                }, ct);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to save user vector to DB");
-            }
-        }, cancellationToken);
+            catch { }
+        }, ct);
 
-        return calculatedVector;
+        return result;
     }
 
-    private async Task<float[]> GetOrCalculateConversationVectorAsync(
-        Guid conversationId,
-        Guid? subjectId,
-        IReadOnlyList<Guid> facultyIds,
-        IReadOnlyList<Guid> tagIds,
-        CancellationToken cancellationToken)
+    private async Task<float[]> GetOrCalcConvVectorAsync(Domain.Entities.Conversation conv, CancellationToken ct)
     {
-        // Tìm vector đã lưu trong DB
-        var existingVector = await _conversationVectorStore.Query()
-            .Where(v => v.ConversationId == conversationId && v.IsActive)
-            .OrderByDescending(v => v.CalculatedAt)
-            .FirstOrDefaultAsync(cancellationToken);
+        var dim = _embeddingService.Dim;
 
-        if (existingVector != null && !string.IsNullOrEmpty(existingVector.EmbeddingJson))
+        var existing = await _conversationVectorStore.Query()
+            .Where(v => v.ConversationId == conv.Id && v.IsActive)
+            .OrderByDescending(v => v.CalculatedAt)
+            .FirstOrDefaultAsync(ct);
+
+        if (existing != null && !string.IsNullOrEmpty(existing.EmbeddingJson))
         {
             try
             {
-                var savedVector = System.Text.Json.JsonSerializer.Deserialize<float[]>(existingVector.EmbeddingJson);
-                if (savedVector != null && savedVector.Length == _vectorDimension)
-                {
-                    return savedVector;
-                }
+                var vec = System.Text.Json.JsonSerializer.Deserialize<float[]>(existing.EmbeddingJson);
+                if (vec != null && vec.Length == dim) return vec;
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to deserialize conversation vector from DB, will recalculate");
-            }
+            catch { /* recalculate */ }
         }
 
-        // Tính vector mới với Faculty-based approach
-        var calculatedVector = _vectorCalculationService.CalculateConversationVector(
-            facultyIds,
-            tagIds,
-            _vectorDimension);
+        var req = new ConvVectorRequest
+        {
+            Name = conv.ConversationName,
+            Subject = conv.Subject?.SubjectName,
+            Tags = conv.ConversationTags.Where(t => t.Tag != null).Select(t => t.Tag!.TagName).ToList()
+        };
 
-        // Lưu vào DB (async, không cần chờ)
+        var result = await _embeddingService.ConvVectorAsync(req, ct);
+
+        // Save async
         _ = Task.Run(async () =>
         {
             try
             {
-                var conversationVector = new UteLearningHub.Domain.Entities.ConversationVector
+                await _conversationVectorStore.UpsertAsync(new Domain.Entities.ConversationVector
                 {
                     Id = Guid.NewGuid(),
-                    ConversationId = conversationId,
-                    EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(calculatedVector),
+                    ConversationId = conv.Id,
+                    EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(result),
                     CalculatedAt = DateTimeOffset.UtcNow,
                     IsActive = true
-                };
-
-                await _conversationVectorStore.UpsertAsync(conversationVector, cancellationToken);
+                }, ct);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to save conversation vector to DB");
-            }
-        }, cancellationToken);
+            catch { }
+        }, ct);
 
-        return calculatedVector;
+        return result;
     }
 }
-

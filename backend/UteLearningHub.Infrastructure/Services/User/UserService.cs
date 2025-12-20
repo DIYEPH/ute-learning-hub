@@ -488,18 +488,15 @@ public class UserService : IUserService
             ?? throw new NotFoundException("User not found");
     }
 
-    /// <summary>
-    /// Calculate TrustLevel from TrustScore.
-    /// Max level for normal users is Moderator (4). Master (5) is reserved for admin-seeded users.
-    /// </summary>
+   // tính điểm 
     private static TrustLever CalculateTrustLevel(int trustScore)
     {
         return trustScore switch
         {
             < 5 => TrustLever.None,
-            < 15 => TrustLever.Newbie,
-            < 60 => TrustLever.Contributor,
-            < 120 => TrustLever.TrustedMember,
+            < 9 => TrustLever.Newbie,
+            < 29 => TrustLever.Contributor,
+            < 59 => TrustLever.TrustedMember,
             _ => TrustLever.Moderator
         };
     }
