@@ -9,7 +9,6 @@ import { getApiDocumentById, deleteApiDocumentByDocumentIdFilesByFileId, putApiD
 import type { DocumentDetailDto, DocumentFileDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
-import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { EditDocumentModal } from "@/src/components/documents/edit-document-modal";
 import { EditDocumentFileModal } from "@/src/components/documents/edit-document-file-modal";
 import { DocumentFileUpload } from "@/src/components/documents/document-file-upload";

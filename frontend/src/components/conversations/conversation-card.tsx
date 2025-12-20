@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle, Users, Lock, Globe, Loader2 } from "lucide-react";
+import { MessageCircle, Users, Lock, Globe, Loader2, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { ConversationDto } from "@/src/api/database/types.gen";
@@ -14,11 +14,13 @@ import { JoinRequestModal } from "@/src/components/conversations/join-request-mo
 interface ConversationCardProps {
   conversation: ConversationDto;
   onJoinSuccess?: () => void;
+  similarity?: number;
 }
 
 export function ConversationCard({
   conversation,
   onJoinSuccess,
+  similarity,
 }: ConversationCardProps) {
   const router = useRouter();
   const [joining, setJoining] = useState(false);
@@ -158,6 +160,12 @@ export function ConversationCard({
                 <div className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
                   <span>{conversation.memberCount} thành viên</span>
+                </div>
+              )}
+              {similarity !== undefined && similarity > 0 && (
+                <div className="flex items-center gap-1 text-sky-600 dark:text-sky-400 font-medium">
+                  <Sparkles className="h-3 w-3" />
+                  <span>{Math.round(similarity * 100)}% phù hợp</span>
                 </div>
               )}
               {conversation.unreadCount !== undefined && conversation.unreadCount > 0 && (

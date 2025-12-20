@@ -140,6 +140,7 @@ export type ConversationRecommendationDto = {
     avatarUrl?: string | null;
     memberCount?: number;
     isCurrentUserMember?: boolean | null;
+    hasPendingJoinRequest?: boolean | null;
 };
 
 export type ConversationStatus = number;

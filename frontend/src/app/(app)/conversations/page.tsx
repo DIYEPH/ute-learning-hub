@@ -12,9 +12,7 @@ import type {
 } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import { Label } from "@/src/components/ui/label";
 import { ConversationCard } from "@/src/components/conversations/conversation-card";
-import { RecommendationCard } from "@/src/components/conversations/recommendation-card";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import type { SubjectDto2 } from "@/src/api/database/types.gen";
 
@@ -177,9 +175,26 @@ export default function ConversationsPage() {
             <Sparkles className="h-5 w-5 text-sky-500" />
             <h2 className="text-lg font-semibold text-foreground">Gợi ý cho bạn</h2>
           </div>
-          <div className="flex gap-4 overflow-x-auto pb-3 -mx-4 px-4 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {recommendations.map((rec) => (
-              <RecommendationCard key={rec.conversationId} recommendation={rec} />
+              <ConversationCard
+                key={rec.conversationId}
+                conversation={{
+                  id: rec.conversationId,
+                  conversationName: rec.conversationName,
+                  subject: rec.subject,
+                  tags: rec.tags,
+                  avatarUrl: rec.avatarUrl,
+                  memberCount: rec.memberCount,
+                  isCurrentUserMember: rec.isCurrentUserMember,
+                  hasPendingJoinRequest: rec.hasPendingJoinRequest,
+                }}
+                similarity={rec.similarity}
+                onJoinSuccess={() => {
+                  fetchRecommendations();
+                  fetchConversations(page, true);
+                }}
+              />
             ))}
           </div>
         </div>
