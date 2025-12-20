@@ -1,0 +1,31 @@
+from pydantic import BaseModel, Field
+
+class BatchEmbedRequest(BaseModel):
+    texts: list[str]
+
+class UserVectorRequest(BaseModel):
+    subjects: list[str] = []       
+    subjectWeights: list[float] = []
+    tags: list[str] = []           
+    tagWeights: list[float] = []
+
+class ConvVectorRequest(BaseModel):
+    name: str                      
+    subject: str | None = None      
+    tags: list[str] = []
+
+class ConvVectorDto(BaseModel):
+    Id: str = Field(alias="id")
+    Vector: list[float] = Field(alias="vector")
+
+    class Config:
+        populate_by_name = True
+
+class RecommendRequest(BaseModel):
+    UserVector: list[float] = Field(alias="userVector")
+    ConversationVectors: list[dict] = Field(alias="conversationVectors")
+    TopK: int = Field(default=10, alias="topK")
+    MinSimilarity: float = Field(default=0.3, alias="minSimilarity")
+
+    class Config:
+        populate_by_name = True
