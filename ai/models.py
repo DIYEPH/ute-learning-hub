@@ -29,3 +29,12 @@ class RecommendRequest(BaseModel):
 
     class Config:
         populate_by_name = True
+
+class SimilarUsersRequest(BaseModel):
+    ConvVector: list[float] = Field(alias="convVector")
+    UserVectors: list[dict] = Field(alias="userVectors")
+    TopK: int = Field(default=10, alias="topK")
+    MinScore: float = Field(default=0.3, alias="minScore")
+
+    class Config:
+        populate_by_name = True

@@ -77,6 +77,41 @@ def recommend(req: RecommendRequest):
         "processingTimeMs": round(elapsed, 2)
     }
 
+@app.post("/similar/users")
+def similar_users(req: SimilarUsersRequest):
+    import time
+    start = time.perf_counter()
+    
+    # Tìm users có vector tương tự với conversation
+    conv = np.array(req.ConvVector)
+    results = []
+    
+    for user in req.UserVectors:
+        vec = np.array(user["vector"])
+        score = cosine(conv, vec)
+        if score >= req.MinScore:
+            results.append({
+                "userId": user["id"],
+                "similarity": round(score, 4)
+            })
+    
+    # Sắp xếp theo score giảm dần
+    results.sort(key=lambda x: x["similarity"], reverse=True)
+    top = results[:req.TopK]
+    
+    # Thêm rank
+    for i, r in enumerate(top):
+        r["rank"] = i + 1
+    
+    elapsed = (time.perf_counter() - start) * 1000
+    
+    return {
+        "users": top,
+        "totalProcessed": len(req.UserVectors),
+        "processingTimeMs": round(elapsed, 2)
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
