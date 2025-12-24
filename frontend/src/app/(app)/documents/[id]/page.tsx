@@ -3,366 +3,212 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2, FileText, Edit } from "lucide-react";
+import { ArrowLeft, Loader2, FileText, Edit, Eye } from "lucide-react";
 
-import { getApiDocumentById, deleteApiDocumentByDocumentIdFilesByFileId, putApiDocumentByDocumentIdFilesByFileId } from "@/src/api/database/sdk.gen";
+import {
+  getApiDocumentById,
+  deleteApiDocumentByDocumentIdFilesByFileId,
+  putApiDocumentByDocumentIdFilesByFileId,
+} from "@/src/api/database/sdk.gen";
 import type { DocumentDetailDto, DocumentFileDto } from "@/src/api/database/types.gen";
+
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { EditDocumentModal } from "@/src/components/documents/edit-document-modal";
 import { EditDocumentFileModal } from "@/src/components/documents/edit-document-file-modal";
 import { DocumentFileUpload } from "@/src/components/documents/document-file-upload";
 import { DocumentFileList } from "@/src/components/documents/document-file-list";
+
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { useNotification } from "@/src/components/providers/notification-provider";
 
 export default function DocumentDetailPage() {
-  const params = useParams<{ id: string }>();
+  const { id: documentId } = useParams<{ id: string }>();
   const router = useRouter();
-  const documentId = params?.id;
   const { profile } = useUserProfile();
+  const { success, error } = useNotification();
 
   const [data, setData] = useState<DocumentDetailDto | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showEditFileModal, setShowEditFileModal] = useState(false);
   const [editingFile, setEditingFile] = useState<DocumentFileDto | null>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
-  const { success: notifySuccess, error: notifyError } = useNotification();
 
-  // Check if current user is the owner
-  const isOwner = profile?.id && data?.createdById && profile.id === data.createdById;
+  const isOwner = profile?.id === data?.createdById;
 
-  useEffect(() => {
+  /* ======================= DATA ======================= */
+
+  const fetchDetail = async () => {
     if (!documentId) return;
-    let cancelled = false;
-
-    const fetchDetail = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getApiDocumentById({
-          path: { id: documentId },
-        });
-
-        const payload = (response.data ??
-          response) as DocumentDetailDto | undefined;
-        // Check if payload is a valid document (has id) and not an error object
-        if (!cancelled && payload && typeof payload === 'object' && 'id' in payload) {
-          setData(payload);
-        }
-      } catch (err: any) {
-        if (cancelled) return;
-        const message =
-          err?.response?.data?.message ||
-          err?.message ||
-          "Không thể tải chi tiết tài liệu";
-        setError(message);
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
-    };
-
-    void fetchDetail();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [documentId]);
-
-
-
-  const refreshData = async () => {
-    if (!documentId) return;
+    setLoading(true);
     try {
-      const response = await getApiDocumentById({
-        path: { id: documentId },
-      });
-      const payload = (response.data ?? response) as DocumentDetailDto | undefined;
-      // Check if payload is a valid document (has id) and not an error object
-      if (payload && typeof payload === 'object' && 'id' in payload) {
-        setData(payload);
-      }
-    } catch (err) {
-      console.error("Error refreshing data:", err);
+      const res = await getApiDocumentById({ path: { id: documentId } });
+      const payload = (res.data ?? res) as DocumentDetailDto;
+      if (payload?.id) setData(payload);
+    } catch (e: any) {
+      error(e?.message || "Không thể tải tài liệu");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleEditFile = (file: DocumentFileDto) => {
-    setEditingFile(file);
-    setShowEditFileModal(true);
-  };
+  useEffect(() => { void fetchDetail(); }, [documentId]);
+
+  /* ======================= ACTIONS ======================= */
 
   const handleDeleteFile = async (fileId: string) => {
-    if (!documentId || !confirm("Bạn có chắc muốn xóa chương/file này?")) return;
+    if (!documentId || !confirm("Xóa file này?")) return;
     try {
-      await deleteApiDocumentByDocumentIdFilesByFileId({
-        path: { documentId, fileId },
-      });
-      notifySuccess("Đã xóa file thành công");
-      await refreshData();
-    } catch (err: any) {
-      notifyError(err?.message || "Không thể xóa file");
+      await deleteApiDocumentByDocumentIdFilesByFileId({ path: { documentId, fileId } });
+      success("Đã xóa file");
+      await fetchDetail();
+    } catch (e: any) {
+      error(e?.message || "Không thể xóa file");
     }
   };
 
-  const handleReorder = async (reorderedFiles: DocumentFileDto[]) => {
+  const handleReorder = async (files: DocumentFileDto[]) => {
     if (!documentId) return;
-
-    // Optimistic update
-    setData(prev => prev ? { ...prev, files: reorderedFiles } : prev);
-
-    // Update each file's order in the backend
+    setData(prev => prev ? { ...prev, files } : prev);
     try {
       await Promise.all(
-        reorderedFiles.map((file, index) =>
-          file.id
+        files.map((f, i) =>
+          f.id
             ? putApiDocumentByDocumentIdFilesByFileId({
-              path: { documentId, fileId: file.id },
-              body: {
-                documentId,
-                documentFileId: file.id,
-                order: index,
-              },
+              path: { documentId, fileId: f.id },
+              body: { documentId, documentFileId: f.id, order: i },
             })
             : Promise.resolve()
         )
       );
-      notifySuccess("Đã cập nhật thứ tự các chương");
-    } catch (err: any) {
-      notifyError(err?.message || "Không thể cập nhật thứ tự");
-      await refreshData(); // Revert on error
+      success("Đã cập nhật thứ tự");
+    } catch (e: any) {
+      error(e?.message || "Cập nhật thất bại");
+      await fetchDetail();
     }
   };
 
-  if (!documentId) {
-    return (
-      <div className="space-y-4">
-        <p className="text-sm text-red-600 dark:text-red-400">
-          Không tìm thấy mã tài liệu hợp lệ.
-        </p>
-      </div>
-    );
-  }
+  /* ======================= GUARDS ======================= */
 
-  if (loading && !data) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
-      </div>
-    );
-  }
+  if (!documentId)
+    return <p className="text-sm text-red-600">Không có mã tài liệu</p>;
 
-  if (error && !data) {
-    return (
-      <div className="space-y-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Quay lại
-        </Button>
-        <div className=" border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
-          {error}
-        </div>
-      </div>
-    );
-  }
+  if (loading && !data)
+    return <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>;
 
-  // Guard against null data
-  if (!data) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
-      </div>
-    );
-  }
+  if (!data)
+    return <div className="flex justify-center py-12"><Loader2 className="animate-spin" /></div>;
 
-  const doc = data;
-  const files = doc.files ?? [];
-  const tags = doc.tags ?? [];
-  const authors = doc.authors ?? [];
+  const { files = [], tags = [], authors = [] } = data;
+
+  /* ======================= UI ======================= */
 
   return (
     <div className="flex flex-col gap-4 lg:gap-6">
-      <div className="flex items-center justify-between gap-3">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
-          className="inline-flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Quay lại
+
+      {/* Header */}
+      <div className="flex justify-between">
+        <Button variant="ghost" size="sm" onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4 mr-1" /> Quay lại
         </Button>
         {isOwner && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowEditModal(true)}
-            className="inline-flex items-center gap-1"
-          >
-            <Edit className="h-4 w-4" />
-            Sửa thông tin
+          <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
+            <Edit className="h-4 w-4 mr-1" /> Sửa
           </Button>
         )}
       </div>
 
-      {/* Thông tin document + upload + danh sách file */}
-      <div className="flex flex-col gap-4">
-        {/* Thông tin document - 2 column layout */}
-        <div className=" border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Left: Title, Author, Type badges */}
-            <div className="space-y-2">
-              <h1 className="text-xl font-semibold text-foreground">
-                {doc.documentName ?? "Tài liệu"}
-              </h1>
-              {authors.length > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Tác giả:{" "}
-                  <span className="font-medium">
-                    {authors.map((a) => a.fullName).join(", ")}
-                  </span>
-                </p>
-              )}
-              {/* Người đăng */}
-              {doc.createdById && (
-                <Link href={`/profile/${doc.createdById}`} className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
-                  <span>Người đăng:</span>
-                  {doc.createdByAvatarUrl && (
-                    <img
-                      src={doc.createdByAvatarUrl}
-                      alt={doc.createdByName || ""}
-                      className="h-5 w-5 rounded-full object-cover"
-                    />
-                  )}
-                  <span className="font-medium hover:underline">{doc.createdByName || "Người dùng"}</span>
+      {/* Info */}
+      <div className="border p-4 bg-white dark:bg-slate-900">
+        <div className="grid md:grid-cols-3 gap-4">
+
+          {/* Left: Main info - spans 2 columns */}
+          <div className="md:col-span-2 grid md:grid-cols-2 gap-4">
+            <div>
+              <h1 className="text-xl font-semibold">{data.documentName}</h1>
+              {authors.length > 0 && <p className="text-xs">Tác giả: {authors.map(a => a.fullName).join(", ")}</p>}
+              {data.createdById && (
+                <Link href={`/profile/${data.createdById}`} className="text-xs flex gap-2 mt-1">
+                  {data.createdByAvatarUrl && <img src={data.createdByAvatarUrl} className="h-5 w-5 rounded-full" />}
+                  <span>{data.createdByName}</span>
                 </Link>
               )}
-              <div className="flex flex-wrap gap-1.5">
-                {doc.type?.typeName && (
-                  <Badge variant="outline" className="border-sky-200 text-sky-700">
-                    {doc.type.typeName}
-                  </Badge>
-                )}
-                {doc.visibility === 0 && (
-                  <Badge variant="outline" className="border-blue-200 text-blue-700">
-                    Công khai
-                  </Badge>
-                )}
-                {doc.visibility === 1 && (
-                  <Badge variant="outline" className="border-slate-200 text-slate-700">
-                    Riêng tư
-                  </Badge>
-                )}
-                {doc.visibility === 2 && (
-                  <Badge variant="outline" className="border-amber-200 text-amber-700">
-                    Nội bộ
-                  </Badge>
-                )}
+              <div className="flex gap-1 mt-2">
+                {data.type?.typeName && <Badge variant="outline">{data.type.typeName}</Badge>}
               </div>
             </div>
 
-            {/* Right: Tags, Description */}
-            <div className="space-y-2">
-              {tags.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.map((tag) => (
-                    <Badge
-                      key={tag.id}
-                      variant="secondary"
-                      className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200 text-[11px]"
-                    >
-                      #{tag.tagName}
-                    </Badge>
-                  ))}
-                </div>
-              )}
-
-              {doc.description && (
-                <div>
-                  <h2 className="text-xs font-semibold text-foreground mb-1">Mô tả</h2>
-                  <p
-                    className={`text-sm text-muted-foreground whitespace-pre-wrap ${!showFullDescription ? "line-clamp-2" : ""
-                      }`}
-                  >
-                    {doc.description}
+            <div>
+              <div className="flex flex-wrap gap-1">
+                {tags.map(t => <Badge key={t.id} variant="secondary">#{t.tagName}</Badge>)}
+              </div>
+              {data.description && (
+                <>
+                  <p className={`text-sm mt-2 ${!showFullDescription && "line-clamp-2"}`}>
+                    {data.description}
                   </p>
-                  {doc.description.length > 100 && (
-                    <button
-                      onClick={() => setShowFullDescription(!showFullDescription)}
-                      className="text-xs text-sky-600 hover:text-sky-700 mt-1"
-                    >
+                  {data.description.length > 100 && (
+                    <button className="text-xs text-sky-600" onClick={() => setShowFullDescription(v => !v)}>
                       {showFullDescription ? "Thu gọn" : "Xem thêm"}
                     </button>
                   )}
-                </div>
+                </>
               )}
             </div>
           </div>
 
-          {/* Form upload - full width below */}
-          {isOwner && (
-            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
-              <DocumentFileUpload
-                documentId={documentId}
-                onUploadSuccess={refreshData}
-              />
+          {/* Right: Stats box */}
+          <div className="flex flex-col items-center justify-center border rounded-lg p-4 bg-slate-50 dark:bg-slate-800">
+            <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+              Tổng số lượt xem
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-bold text-slate-800 dark:text-white">
+                {data.totalViewCount?.toLocaleString() ?? 0}
+              </span>
             </div>
-          )}
+          </div>
+
         </div>
 
-        {/* Danh sách chương/file */}
-        <div className=" border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900">
-          <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700 flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-              <FileText className="h-4 w-4" />
-              <span>Chương / file ({files.length})</span>
-            </div>
+        {isOwner && (
+          <div className="mt-4 pt-4 border-t">
+            <DocumentFileUpload documentId={documentId} onUploadSuccess={fetchDetail} />
           </div>
-          <div className="p-4">
-            <DocumentFileList
-              files={files}
-              document={doc}
-              onEdit={handleEditFile}
-              onDelete={handleDeleteFile}
-              onReorder={handleReorder}
-              onRefresh={refreshData}
-            />
-          </div>
+        )}
+      </div>
+
+      {/* Files */}
+      <div className="border bg-white dark:bg-slate-900">
+        <div className="border-b px-4 py-3 flex items-center gap-2">
+          <FileText className="h-4 w-4" /> Chương / file ({files.length})
+        </div>
+        <div className="p-4">
+          <DocumentFileList
+            files={files}
+            document={data}
+            onEdit={f => { setEditingFile(f); setShowEditFileModal(true); }}
+            onDelete={handleDeleteFile}
+            onReorder={handleReorder}
+            onRefresh={fetchDetail}
+          />
         </div>
       </div>
 
-      {data && (
-        <EditDocumentModal
-          open={showEditModal}
-          onOpenChange={setShowEditModal}
-          document={data}
-          onSuccess={refreshData}
+      {/* Modals */}
+      <EditDocumentModal open={showEditModal} onOpenChange={setShowEditModal} document={data} onSuccess={fetchDetail} />
+
+      {editingFile && (
+        <EditDocumentFileModal
+          open={showEditFileModal}
+          onOpenChange={o => { setShowEditFileModal(o); if (!o) setEditingFile(null); }}
+          documentId={documentId}
+          file={editingFile}
+          onSuccess={fetchDetail}
         />
       )}
 
-      {/* Modal chỉnh sửa file */}
-      {editingFile && documentId && (
-        <EditDocumentFileModal
-          open={showEditFileModal}
-          onOpenChange={(open: boolean) => {
-            setShowEditFileModal(open);
-            if (!open) setEditingFile(null);
-          }}
-          documentId={documentId}
-          file={editingFile}
-          onSuccess={refreshData}
-        />
-      )}
     </div>
   );
 }
-

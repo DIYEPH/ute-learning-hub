@@ -1,25 +1,16 @@
 # Production with External Database (Azure SQL / AWS RDS)
-# Use this instead of docker-compose.prod.yml when using managed database
+# Lightweight deployment - No Redis, No Kafka
 
 version: '3.8'
 
 services:
-  # Remove sqlserver service - using external database
-
-  redis:
-    restart: always
-
-  zookeeper:
-    restart: always
-
-  kafka:
-    restart: always
+  # SQL Server, Redis, Zookeeper, Kafka - ALL DISABLED
+  # Using external database and NoOp message producer
 
   backend:
     restart: always
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      # ⭐ External database connection string
       ConnectionStrings__DefaultConnection: ${DB_CONNECTION_STRING}
       Jwt__SecretKey: ${JWT_SECRET}
       Jwt__Issuer: ${JWT_ISSUER}
@@ -33,19 +24,12 @@ services:
       Email__BaseUrl: ${FRONTEND_URL}
       FileStorage__BaseUrl: ${API_URL}/uploads
       Recommendation__AiServiceBaseUrl: "http://ai:8000"
-      Redis__ConnectionString: "redis:6379,password=${REDIS_PASSWORD:-}"
-    # Remove depends_on sqlserver
-    depends_on:
-      redis:
-        condition: service_healthy
-      kafka:
-        condition: service_started
 
   frontend:
     restart: always
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: "/api"
+      NEXT_PUBLIC_API_URL: ""
     depends_on:
       backend:
         condition: service_started
@@ -59,8 +43,5 @@ services:
       - "80:80"
       - "443:443"
 
-# Remove sqlserver-data volume
-volumes:
-  redis-data:
-  zookeeper-data:
-  kafka-data:
+# No volumes needed - all external
+volumes: {}

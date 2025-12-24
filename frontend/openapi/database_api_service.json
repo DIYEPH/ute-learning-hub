@@ -229,26 +229,6 @@
         "tags": [
           "Auth"
         ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenCommand"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenCommand"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenCommand"
-              }
-            }
-          },
-          "required": true
-        },
         "responses": {
           "200": {
             "description": "OK",
@@ -1454,6 +1434,278 @@
         }
       }
     },
+    "/api/Conversation/{id}/suggested-users": {
+      "get": {
+        "tags": [
+          "Conversation"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "topK",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "minScore",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSuggestedUsersResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSuggestedUsersResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSuggestedUsersResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Conversation/my-invitations": {
+      "get": {
+        "tags": [
+          "Conversation"
+        ],
+        "parameters": [
+          {
+            "name": "PageNumber",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "PendingOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseOfInvitationDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseOfInvitationDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResponseOfInvitationDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Conversation/{id}/invitations": {
+      "post": {
+        "tags": [
+          "Conversation"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendInvitationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendInvitationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendInvitationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendInvitationResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendInvitationResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendInvitationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Conversation/invitations/{invitationId}/respond": {
+      "post": {
+        "tags": [
+          "Conversation"
+        ],
+        "parameters": [
+          {
+            "name": "invitationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondToInvitationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondToInvitationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondToInvitationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Conversation/dm/{userId}": {
+      "post": {
+        "tags": [
+          "Conversation"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartDMRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartDMRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartDMRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOrCreateDMResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOrCreateDMResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetOrCreateDMResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/ConversationJoinRequest": {
       "post": {
         "tags": [
@@ -2523,6 +2775,29 @@
         }
       }
     },
+    "/api/Document/files/{fileId}/view": {
+      "post": {
+        "tags": [
+          "Document"
+        ],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/DocumentReview": {
       "post": {
         "tags": [
@@ -3461,17 +3736,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/MessageDto"
+                  "$ref": "#/components/schemas/MessageDto2"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MessageDto"
+                  "$ref": "#/components/schemas/MessageDto2"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MessageDto"
+                  "$ref": "#/components/schemas/MessageDto2"
                 }
               }
             }
@@ -3530,17 +3805,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/MessageDto"
+                  "$ref": "#/components/schemas/MessageDto2"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MessageDto"
+                  "$ref": "#/components/schemas/MessageDto2"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/MessageDto"
+                  "$ref": "#/components/schemas/MessageDto2"
                 }
               }
             }
@@ -6092,6 +6367,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "totalViewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
           "createdById": {
             "type": "string",
             "format": "uuid"
@@ -6170,6 +6449,10 @@
             "type": "integer",
             "format": "int32"
           },
+          "totalViewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
           "createdById": {
             "type": "string",
             "format": "uuid"
@@ -6243,6 +6526,10 @@
             "format": "int32"
           },
           "notUsefulCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "viewCount": {
             "type": "integer",
             "format": "int32"
           },
@@ -6498,6 +6785,35 @@
           }
         }
       },
+      "GetOrCreateDMResponse": {
+        "type": "object",
+        "properties": {
+          "conversation": {
+            "$ref": "#/components/schemas/ConversationDetailDto"
+          },
+          "firstMessageSent": {
+            "$ref": "#/components/schemas/MessageDto"
+          },
+          "isNewConversation": {
+            "type": "boolean"
+          }
+        }
+      },
+      "GetSuggestedUsersResponse": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SuggestedUserDto"
+            }
+          },
+          "totalProcessed": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "HomepageDto": {
         "type": "object",
         "properties": {
@@ -6511,11 +6827,61 @@
             "type": "array",
             "items": { }
           },
+          "mostViewedDocuments": {
+            "type": "array",
+            "items": { }
+          },
           "topSubjects": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/SubjectWithDocsDto"
             }
+          }
+        }
+      },
+      "InvitationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationName": {
+            "type": "string"
+          },
+          "conversationAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "invitedById": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "invitedByName": {
+            "type": "string"
+          },
+          "invitedByAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContentStatus"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -6671,6 +7037,63 @@
         }
       },
       "MessageDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "content": {
+            "type": "string"
+          },
+          "isEdit": {
+            "type": "boolean"
+          },
+          "isPined": {
+            "type": "boolean"
+          },
+          "type": {
+            "$ref": "#/components/schemas/NullableOfMessageType"
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "senderName": {
+            "type": "string"
+          },
+          "senderAvatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MessageFileDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "nullable": true
+      },
+      "MessageDto2": {
         "type": "object",
         "properties": {
           "id": {
@@ -7018,6 +7441,39 @@
           }
         }
       },
+      "PagedResponseOfInvitationDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InvitationDto"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasPreviousPage": {
+            "type": "boolean"
+          },
+          "hasNextPage": {
+            "type": "boolean"
+          }
+        }
+      },
       "PagedResponseOfMajorDto": {
         "type": "object",
         "properties": {
@@ -7057,7 +7513,7 @@
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MessageDto"
+              "$ref": "#/components/schemas/MessageDto2"
             }
           },
           "totalCount": {
@@ -7428,11 +7884,16 @@
           }
         }
       },
-      "RefreshTokenCommand": {
-        "type": "object"
-      },
       "RefreshTokenResponse": {
-        "type": "object"
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          }
+        }
       },
       "ReportDto": {
         "type": "object",
@@ -7492,6 +7953,22 @@
           }
         }
       },
+      "RespondToInvitationRequest": {
+        "required": [
+          "accept",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "accept": {
+            "type": "boolean"
+          },
+          "note": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "ReviewConversationJoinRequestCommand": {
         "type": "object",
         "properties": {
@@ -7539,6 +8016,53 @@
             "nullable": true
           }
         }
+      },
+      "SendInvitationRequest": {
+        "required": [
+          "userId",
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SendInvitationResponse": {
+        "type": "object",
+        "properties": {
+          "invitationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "success": {
+            "type": "boolean"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "StartDMRequest": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "default": null,
+        "nullable": true
       },
       "SubjectDetailDto": {
         "type": "object",
@@ -7625,6 +8149,30 @@
           "documents": {
             "type": "array",
             "items": { }
+          }
+        }
+      },
+      "SuggestedUserDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "similarity": {
+            "type": "number",
+            "format": "float"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },

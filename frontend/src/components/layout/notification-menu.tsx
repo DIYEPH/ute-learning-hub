@@ -1,203 +1,292 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Bell, Check, CheckCheck, Loader2, FileText, MessageSquare, Award, Calendar, Megaphone, AlertCircle } from "lucide-react";
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  Loader2,
+  FileText,
+  MessageSquare,
+  Award,
+  Calendar,
+  Megaphone,
+  AlertCircle,
+  Users,
+  X,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
+
 import { Button } from "../ui/button";
 import { DropdownMenuWrapper } from "../ui/dropdown-menu-wrapper";
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "../ui/dropdown-menu";
+
 import {
   getApiNotification,
   getApiNotificationUnreadCount,
   postApiNotificationByIdMarkAsRead,
   postApiNotificationMarkAllAsRead,
+  getApiConversationMyInvitations,
+  postApiConversationInvitationsByInvitationIdRespond,
 } from "@/src/api/database/sdk.gen";
-import type { NotificationDto, GetApiNotificationResponse, GetApiNotificationUnreadCountResponse } from "@/src/api/database/types.gen";
+
+import type {
+  NotificationDto,
+  GetApiNotificationResponse,
+  GetApiNotificationUnreadCountResponse,
+  InvitationDto,
+} from "@/src/api/database/types.gen";
+
 import { cn } from "@/lib/utils";
-// NotificationType enum values: System=0, Message=1, Comment=2, Document=3, UserAction=4, Conversation=5, Event=6, AdminNote=7
+import { useNotification } from "../providers/notification-provider";
+
+/* =========================
+   Helpers
+========================= */
+
+function unwrapApiResponse<T>(response: unknown): T {
+  return (response as { data?: T })?.data ?? (response as T);
+}
+
 const getNotificationIcon = (type?: number) => {
   switch (type) {
-    case 1: // Message
+    case 1:
+    case 2:
       return <MessageSquare className="h-4 w-4" />;
-    case 2: // Comment
-      return <MessageSquare className="h-4 w-4" />;
-    case 3: // Document
+    case 3:
       return <FileText className="h-4 w-4" />;
-    case 4: // UserAction
+    case 4:
       return <Award className="h-4 w-4" />;
-    case 5: // Conversation
-      return <MessageSquare className="h-4 w-4" />;
-    case 6: // Event
+    case 5:
+      return <Users className="h-4 w-4" />;
+    case 6:
       return <Calendar className="h-4 w-4" />;
-    case 7: // AdminNote
+    case 7:
       return <Megaphone className="h-4 w-4" />;
-    default: // System=0
+    default:
       return <Bell className="h-4 w-4" />;
   }
 };
 
-// NotificationPriorityType enum values: Low=0, Normal=1, Hight=2
 const getPriorityColor = (priority?: number) => {
   switch (priority) {
-    case 2: // Hight (High)
+    case 2:
       return "text-red-600 dark:text-red-400";
-    case 1: // Normal
+    case 1:
       return "text-amber-600 dark:text-amber-400";
-    default: // Low=0
+    default:
       return "text-slate-600 dark:text-slate-400";
   }
 };
 
-// Format relative time
 const formatRelativeTime = (date: string | Date) => {
   const now = new Date();
   const then = new Date(date);
   const diffMs = now.getTime() - then.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
+  const mins = Math.floor(diffMs / 60000);
+  const hours = Math.floor(diffMs / 3600000);
+  const days = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return "Vừa xong";
-  if (diffMins < 60) return `${diffMins} phút trước`;
-  if (diffHours < 24) return `${diffHours} giờ trước`;
-  if (diffDays < 7) return `${diffDays} ngày trước`;
+  if (mins < 1) return "Vừa xong";
+  if (mins < 60) return `${mins} phút trước`;
+  if (hours < 24) return `${hours} giờ trước`;
+  if (days < 7) return `${days} ngày trước`;
   return then.toLocaleDateString("vi-VN");
 };
 
+/* =========================
+   Component
+========================= */
+
 export function NotificationMenu() {
   const router = useRouter();
+  const { success, error: showError } = useNotification();
+
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
+  const [invitations, setInvitations] = useState<InvitationDto[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+
   const [loading, setLoading] = useState(false);
   const [markingAllRead, setMarkingAllRead] = useState(false);
+  const [respondingInvitation, setRespondingInvitation] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Fetch unread count
+  /* =========================
+     Fetch data
+  ========================= */
+
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const response = await getApiNotificationUnreadCount();
-      const data = (response as unknown as { data: GetApiNotificationUnreadCountResponse })?.data || response as GetApiNotificationUnreadCountResponse;
+      const res = await getApiNotificationUnreadCount();
+      const data = unwrapApiResponse<GetApiNotificationUnreadCountResponse>(res);
       setUnreadCount(data?.unreadCount ?? 0);
-    } catch (error) {
-      console.error("Failed to fetch unread count:", error);
+    } catch (err) {
+      console.error("Fetch unread count failed", err);
     }
   }, []);
 
-  // Fetch notifications
   const fetchNotifications = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await getApiNotification({
+      const res = await getApiNotification({
         query: { Page: 1, PageSize: 10 },
       });
-      const data = (response as unknown as { data: GetApiNotificationResponse })?.data || response as GetApiNotificationResponse;
+      const data = unwrapApiResponse<GetApiNotificationResponse>(res);
       setNotifications(data?.items ?? []);
-    } catch (error) {
-      console.error("Failed to fetch notifications:", error);
+    } catch (err) {
+      console.error("Fetch notifications failed", err);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Mark single notification as read
+  const fetchInvitations = useCallback(async () => {
+    try {
+      const res = await getApiConversationMyInvitations({
+        query: { PageNumber: 1, PageSize: 5, PendingOnly: true },
+      });
+      const data = unwrapApiResponse<{ items?: InvitationDto[] }>(res);
+      setInvitations(data?.items ?? []);
+    } catch (err) {
+      console.error("Fetch invitations failed", err);
+    }
+  }, []);
+
+  /* =========================
+     Actions
+  ========================= */
+
   const markAsRead = useCallback(async (notification: NotificationDto) => {
     if (notification.isRead || !notification.id) return;
 
     try {
       await postApiNotificationByIdMarkAsRead({ path: { id: notification.id } });
-      // Update local state
       setNotifications((prev) =>
         prev.map((n) =>
           n.id === notification.id ? { ...n, isRead: true } : n
         )
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error("Failed to mark as read:", error);
+    } catch (err) {
+      console.error("Mark as read failed", err);
     }
   }, []);
 
-  // Mark all as read
   const markAllAsRead = useCallback(async () => {
     if (unreadCount === 0) return;
 
     setMarkingAllRead(true);
     try {
       await postApiNotificationMarkAllAsRead();
-      // Update local state
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
       setUnreadCount(0);
-    } catch (error) {
-      console.error("Failed to mark all as read:", error);
+    } catch (err) {
+      console.error("Mark all as read failed", err);
     } finally {
       setMarkingAllRead(false);
     }
   }, [unreadCount]);
 
-  // Handle notification click
   const handleNotificationClick = useCallback(
     async (notification: NotificationDto) => {
-      // Mark as read
       await markAsRead(notification);
 
-      // Navigate to link if provided
-      if (notification.link) {
-        // Check if it's an external URL
-        if (notification.link.startsWith("http://") || notification.link.startsWith("https://")) {
-          window.open(notification.link, "_blank", "noopener,noreferrer");
-        } else {
-          // Internal route - use Next.js router
-          router.push(notification.link);
-        }
+      if (!notification.link) return;
+
+      if (
+        notification.link.startsWith("http://") ||
+        notification.link.startsWith("https://")
+      ) {
+        window.open(notification.link, "_blank", "noopener,noreferrer");
+      } else {
+        router.push(notification.link);
       }
     },
     [markAsRead, router]
   );
 
-  // Fetch data when dropdown opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchNotifications();
-    }
-  }, [isOpen, fetchNotifications]);
+  const respondToInvitation = useCallback(
+    async (invitation: InvitationDto, accept: boolean) => {
+      if (!invitation.id) return;
 
-  // Fetch unread count on mount
+      setRespondingInvitation(invitation.id);
+      try {
+        await postApiConversationInvitationsByInvitationIdRespond({
+          path: { invitationId: invitation.id },
+          body: { accept, note: null },
+        });
+
+        setInvitations((prev) => prev.filter((i) => i.id !== invitation.id));
+
+        if (accept) {
+          success("Đã tham gia nhóm thành công!");
+          router.push(`/conversations/${invitation.conversationId}`);
+        } else {
+          success("Đã từ chối lời mời");
+        }
+      } catch (err) {
+        console.error("Respond invitation failed", err);
+        showError("Không thể xử lý lời mời");
+      } finally {
+        setRespondingInvitation(null);
+      }
+    },
+    [router, success, showError]
+  );
+
+  /* =========================
+     Effects
+  ========================= */
+
   useEffect(() => {
     fetchUnreadCount();
   }, [fetchUnreadCount]);
 
+  useEffect(() => {
+    if (isOpen) {
+      fetchNotifications();
+      fetchInvitations();
+    }
+  }, [isOpen, fetchNotifications, fetchInvitations]);
+
+  const totalBadge = unreadCount + invitations.length;
+
+  /* =========================
+     Render
+  ========================= */
+
   return (
     <DropdownMenuWrapper
+      align="end"
+      contentClassName="w-96"
+      onOpenChange={setIsOpen}
       trigger={
         <Button
           variant="ghost"
           size="sm"
-          className="h-9 w-9 rounded-full p-0 hover:bg-slate-100 dark:hover:bg-slate-800 relative"
+          className="relative h-9 w-9 rounded-full p-0"
           aria-label="Notifications"
         >
-          <Bell size={18} className="text-slate-600 dark:text-slate-400" />
-          {unreadCount > 0 && (
+          <Bell size={18} />
+          {totalBadge > 0 && (
             <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center animate-pulse">
-              {unreadCount > 9 ? "9+" : unreadCount}
+              {totalBadge > 9 ? "9+" : totalBadge}
             </span>
           )}
         </Button>
       }
-      align="end"
-      contentClassName="w-96"
-      onOpenChange={setIsOpen}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b dark:border-slate-700">
+      <div className="flex items-center justify-between px-3 py-2 border-b">
         <p className="text-sm font-semibold">Thông báo</p>
         {unreadCount > 0 && (
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 text-xs text-primary hover:text-primary/80"
+            className="h-7 text-xs"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -218,71 +307,119 @@ export function NotificationMenu() {
       {/* Content */}
       <div className="max-h-[400px] overflow-y-auto">
         {loading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
           </div>
-        ) : notifications.length > 0 ? (
-          notifications.map((notification) => (
-            <DropdownMenuItem
-              key={notification.id}
-              className={cn(
-                "flex items-start gap-3 px-3 py-3 cursor-pointer",
-                !notification.isRead && "bg-primary/5 dark:bg-primary/10"
-              )}
-              onClick={() => handleNotificationClick(notification)}
-            >
-              {/* Icon */}
-              <div
-                className={cn(
-                  "flex-shrink-0 mt-0.5",
-                  getPriorityColor(notification.notificationPriorityType)
-                )}
-              >
-                {getNotificationIcon(notification.notificationType)}
-              </div>
-
-              {/* Content */}
-              <div className="flex-1 min-w-0">
-                <p
-                  className={cn(
-                    "text-sm line-clamp-1",
-                    !notification.isRead
-                      ? "font-semibold text-slate-900 dark:text-white"
-                      : "font-medium text-slate-700 dark:text-slate-300"
-                  )}
-                >
-                  {notification.title}
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">
-                  {notification.content}
-                </p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-                  {notification.createdAt && formatRelativeTime(notification.createdAt)}
-                </p>
-              </div>
-
-              {/* Read indicator */}
-              {notification.isRead ? (
-                <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-              ) : (
-                <div className="h-2 w-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-              )}
-            </DropdownMenuItem>
-          ))
         ) : (
-          <div className="flex flex-col items-center justify-center py-8 text-slate-400">
-            <AlertCircle className="h-8 w-8 mb-2" />
-            <p className="text-sm">Không có thông báo nào</p>
-          </div>
+          <>
+            {/* Invitations */}
+            {invitations.length > 0 && (
+              <>
+                <div className="px-3 py-2 bg-blue-50 border-b">
+                  <p className="text-xs font-semibold text-blue-600">
+                    Lời mời tham gia nhóm ({invitations.length})
+                  </p>
+                </div>
+
+                {invitations.map((inv) => (
+                  <div
+                    key={inv.id}
+                    className="flex gap-3 px-3 py-3 border-b bg-blue-50/50"
+                  >
+                    <Users className="h-5 w-5 text-blue-500 mt-1" />
+
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold">
+                        {inv.conversationName}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        {inv.invitedByName} đã mời bạn
+                      </p>
+
+                      <div className="flex gap-2 mt-2">
+                        <Button
+                          size="sm"
+                          onClick={() => respondToInvitation(inv, true)}
+                          disabled={respondingInvitation === inv.id}
+                        >
+                          {respondingInvitation === inv.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Check className="h-3 w-3 mr-1" />
+                          )}
+                          Chấp nhận
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => respondToInvitation(inv, false)}
+                          disabled={respondingInvitation === inv.id}
+                        >
+                          <X className="h-3 w-3 mr-1" />
+                          Từ chối
+                        </Button>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-slate-400">
+                      {inv.createdAt && formatRelativeTime(inv.createdAt)}
+                    </p>
+                  </div>
+                ))}
+                <DropdownMenuSeparator />
+              </>
+            )}
+
+            {/* Notifications */}
+            {notifications.length > 0 ? (
+              notifications.map((n) => (
+                <DropdownMenuItem
+                  key={n.id}
+                  className={cn(
+                    "flex gap-3 px-3 py-3 cursor-pointer",
+                    !n.isRead && "bg-primary/5"
+                  )}
+                  onClick={() => handleNotificationClick(n)}
+                >
+                  <div className={getPriorityColor(n.notificationPriorityType)}>
+                    {getNotificationIcon(n.notificationType)}
+                  </div>
+
+                  <div className="flex-1">
+                    <p className={cn("text-sm", !n.isRead && "font-semibold")}>
+                      {n.title}
+                    </p>
+                    <p className="text-xs text-slate-500 line-clamp-2">
+                      {n.content}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {n.createdAt && formatRelativeTime(n.createdAt)}
+                    </p>
+                  </div>
+
+                  {n.isRead ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <span className="h-2 w-2 rounded-full bg-primary mt-2" />
+                  )}
+                </DropdownMenuItem>
+              ))
+            ) : invitations.length === 0 ? (
+              <div className="flex flex-col items-center py-8 text-slate-400">
+                <AlertCircle className="h-8 w-8 mb-2" />
+                <p className="text-sm">Không có thông báo nào</p>
+              </div>
+            ) : null}
+          </>
         )}
       </div>
 
       {/* Footer */}
-      {notifications.length > 0 && (
+      {(notifications.length > 0 || invitations.length > 0) && (
         <>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            className="flex items-center justify-center py-2 text-sm text-primary cursor-pointer"
+            className="justify-center text-primary"
             onClick={() => router.push("/notifications")}
           >
             Xem tất cả thông báo

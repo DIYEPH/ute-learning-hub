@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreVertical, Loader2 } from "lucide-react";
+import { MoreVertical, Loader2, Sparkles } from "lucide-react";
 import { putApiConversationByIdMembersByMemberIdRole } from "@/src/api/database/sdk.gen";
 import type { ConversationMemberDto, ConversationMemberRoleType, ConversationDetailDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
@@ -13,6 +13,7 @@ import {
 } from "@/src/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
+import { SuggestedUsersSidebar } from "@/src/components/conversations/suggested-users-sidebar";
 
 interface MemberManagementProps {
   conversation: ConversationDetailDto;
@@ -29,6 +30,7 @@ export function MemberManagement({ conversation, onSuccess }: MemberManagementPr
   const { profile } = useUserProfile();
   const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [showSuggestedUsers, setShowSuggestedUsers] = useState(false);
 
   if (!conversation.members || conversation.members.length === 0) {
     return null;
@@ -175,6 +177,26 @@ export function MemberManagement({ conversation, onSuccess }: MemberManagementPr
           );
         })}
       </div>
+
+      {/* AI Suggestion Button */}
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setShowSuggestedUsers(true)}
+        className="w-full mt-3"
+      >
+        <Sparkles className="h-4 w-4 mr-2 text-amber-500" />
+        Gợi ý thành viên (AI)
+      </Button>
+
+      {/* Suggested Users Sidebar */}
+      <SuggestedUsersSidebar
+        open={showSuggestedUsers}
+        onClose={() => setShowSuggestedUsers(false)}
+        conversationId={conversation.id || ""}
+        conversationName={conversation.conversationName || "Cuộc trò chuyện"}
+        onInviteSent={onSuccess}
+      />
     </div>
   );
 }

@@ -20,6 +20,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "UteLearningHub",
   description: "Chia sẻ tài liệu",
+  icons: {
+    icon: "/images/ute_logo.png",
+    shortcut: "/images/ute_logo.png",
+    apple: "/images/ute_logo.png",
+  },
 };
 
 export default async function RootLayout({

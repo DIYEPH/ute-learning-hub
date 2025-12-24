@@ -9,22 +9,15 @@ interface UseAuthReturn {
   handleMicrosoftLogin: () => Promise<LoginWithMicrosoftResponse>;
   handleLogout: () => Promise<void>;
   loading: boolean;
-  error: string | null;
 }
 
 export function useAuth(): UseAuthReturn {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (emailOrUsername: string, password: string): Promise<LoginResponse> => {
     setLoading(true);
-    setError(null);
     try {
       return await login(emailOrUsername, password);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Login failed';
-      setError(message);
-      throw err;
     } finally {
       setLoading(false);
     }
@@ -32,13 +25,8 @@ export function useAuth(): UseAuthReturn {
 
   const handleMicrosoftLogin = async (): Promise<LoginWithMicrosoftResponse> => {
     setLoading(true);
-    setError(null);
     try {
       return await loginWithMicrosoft();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Microsoft login failed';
-      setError(message);
-      throw err;
     } finally {
       setLoading(false);
     }
@@ -46,13 +34,8 @@ export function useAuth(): UseAuthReturn {
 
   const handleLogout = async (): Promise<void> => {
     setLoading(true);
-    setError(null);
     try {
       await logout();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Logout failed';
-      setError(message);
-      throw err;
     } finally {
       setLoading(false);
     }
@@ -63,6 +46,6 @@ export function useAuth(): UseAuthReturn {
     handleMicrosoftLogin,
     handleLogout,
     loading,
-    error,
   };
 }
+

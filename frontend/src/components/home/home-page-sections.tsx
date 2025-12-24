@@ -61,6 +61,7 @@ export function HomePageSections() {
 
     const latestDocs = homepageData?.latestDocuments || [];
     const popularDocs = homepageData?.popularDocuments || [];
+    const mostViewedDocs = homepageData?.mostViewedDocuments || [];
     const topSubjects = homepageData?.topSubjects || [];
 
     return (
@@ -97,6 +98,30 @@ export function HomePageSections() {
                                 tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
                                 fileCount={doc.fileCount}
                                 usefulCount={doc.usefulCount}
+                                totalViewCount={doc.totalViewCount}
+                                className="w-40 flex-shrink-0"
+                            />
+                        ))}
+                    </HorizontalScroll>
+                </Section>
+            )}
+
+            {/* Xem nhiều nhất */}
+            {mostViewedDocs.length > 0 && (
+                <Section title="Xem nhiều nhất" href="/search">
+                    <HorizontalScroll>
+                        {(mostViewedDocs as DocumentDto[]).map((doc: DocumentDto) => (
+                            <DocumentCard
+                                key={doc.id}
+                                id={doc.id}
+                                title={doc.documentName || ""}
+                                subjectName={doc.subject?.subjectName || undefined}
+                                thumbnailFileId={doc.thumbnailFileId}
+                                tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
+                                fileCount={doc.fileCount}
+                                usefulCount={doc.usefulCount}
+                                notUsefulCount={doc.notUsefulCount}
+                                totalViewCount={doc.totalViewCount}
                                 className="w-40 flex-shrink-0"
                             />
                         ))}
@@ -118,6 +143,8 @@ export function HomePageSections() {
                                 tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
                                 fileCount={doc.fileCount}
                                 usefulCount={doc.usefulCount}
+                                totalViewCount={doc.totalViewCount}
+                                notUsefulCount={doc.notUsefulCount}
                                 className="w-40 flex-shrink-0"
                             />
                         ))}
@@ -143,6 +170,8 @@ export function HomePageSections() {
                                 tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
                                 fileCount={doc.fileCount}
                                 usefulCount={doc.usefulCount}
+                                notUsefulCount={doc.notUsefulCount}
+                                totalViewCount={doc.totalViewCount}
                                 className="w-40 flex-shrink-0"
                             />
                         ))}
@@ -151,7 +180,7 @@ export function HomePageSections() {
             ))}
 
             {/* Empty state */}
-            {topSubjects.length === 0 && latestDocs.length === 0 && popularDocs.length === 0 && (
+            {topSubjects.length === 0 && latestDocs.length === 0 && popularDocs.length === 0 && mostViewedDocs.length === 0 && (
                 <div className="text-center py-12 text-slate-500 dark:text-slate-400">
                     {t("noDocuments")}
                 </div>

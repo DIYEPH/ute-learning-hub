@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { DocumentMenu } from "@/src/components/documents/document-menu";
-import { FileText, MessageSquare, ThumbsUp, ThumbsDown } from "lucide-react";
+import { FileText, MessageSquare, ThumbsUp, ThumbsDown, Eye } from "lucide-react";
 import { getFileUrlById } from "@/src/lib/file-url";
 
 export interface DocumentCardProps {
@@ -17,6 +17,7 @@ export interface DocumentCardProps {
   commentCount?: number;
   usefulCount?: number;
   notUsefulCount?: number;
+  totalViewCount?: number;
   onEdit?: () => void;
   onDelete?: () => void;
   onReport?: () => void;
@@ -35,6 +36,7 @@ export function DocumentCard({
   commentCount,
   usefulCount,
   notUsefulCount,
+  totalViewCount,
   onEdit,
   onDelete,
   onReport,
@@ -146,6 +148,12 @@ export function DocumentCard({
               <div className="flex items-center gap-1" title="Số bình luận">
                 <MessageSquare className="h-3 w-3 flex-shrink-0 text-slate-600 dark:text-slate-400" />
                 <span className="font-medium">{commentCount}</span>
+              </div>
+            )}
+            {totalViewCount !== undefined && (
+              <div className="flex items-center gap-1" title="Lượt xem">
+                <Eye className="h-3 w-3 flex-shrink-0 text-slate-400 dark:text-slate-500" />
+                <span className="font-medium text-slate-500 dark:text-slate-400">{totalViewCount}</span>
               </div>
             )}
           </div>

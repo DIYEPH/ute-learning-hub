@@ -14,168 +14,112 @@ const PAGE_SIZE = 12;
 
 export default function LibraryPage() {
   const router = useRouter();
-  const [documents, setDocuments] = useState<DocumentDto[]>([]);
+  const [docs, setDocs] = useState<DocumentDto[]>([]);
   const [page, setPage] = useState(1);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [searchValue, setSearchValue] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasNext, setHasNext] = useState(false);
+  const [search, setSearch] = useState("");
+  const [debounced, setDebounced] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchValue.trim());
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [searchValue]);
+    const t = setTimeout(() => setDebounced(search.trim()), 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
   useEffect(() => {
-    void fetchDocuments(1, debouncedSearch, false);
-  }, [debouncedSearch]);
+    fetchDocs(1, debounced, false);
+  }, [debounced]);
 
-  const fetchDocuments = async (pageNumber: number, query: string, append: boolean) => {
-    if (append) 
-      setIsLoadingMore(true);
-    else 
-      setIsLoading(true);
+  const fetchDocs = async (p: number, q: string, append: boolean) => {
+    append ? setLoadingMore(true) : setLoading(true);
     setError(null);
-
     try {
-      const response = await getApiDocumentMy({
-        query: {
-          Page: pageNumber,
-          PageSize: PAGE_SIZE,
-          SearchTerm: query || undefined,
-        },
+      const res = await getApiDocumentMy({
+        query: { Page: p, PageSize: PAGE_SIZE, SearchTerm: q || undefined },
       });
-
-      const payload = (response.data ?? response) as PagedResponseOfDocumentDto | undefined;
-      const items = payload?.items ?? [];
-
-      setDocuments((prev) =>
-        append ? [...prev, ...items] : items
-      );
-      setPage(pageNumber);
-      setHasNextPage(Boolean(payload?.hasNextPage));
-    } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Không thể tải danh sách tài liệu";
-      setError(message);
+      const data = (res.data ?? res) as PagedResponseOfDocumentDto;
+      setDocs(v => (append ? [...v, ...(data.items ?? [])] : data.items ?? []));
+      setPage(p);
+      setHasNext(!!data.hasNextPage);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || "Không thể tải tài liệu");
     } finally {
-      if (append) 
-        setIsLoadingMore(false);
-      else 
-        setIsLoading(false);
+      append ? setLoadingMore(false) : setLoading(false);
     }
   };
 
-  const handleLoadMore = () => {
-    if (hasNextPage && !isLoadingMore) 
-      void fetchDocuments(page + 1, debouncedSearch, true);
-  };
-
-  const handleRetry = () => 
-    void fetchDocuments(1, debouncedSearch, false);
-
-  const showSkeleton = isLoading && documents.length === 0;
-
-  const handleEditDocument = (documentId?: string) => {
-    if (!documentId) return;
-    router.push(`/documents/${documentId}/edit`);
-  };
-
-  const handleDeleteDocument = (documentId?: string) => {
-    if (!documentId) return;
-    console.info("Delete document", documentId);
-  };
-
-  const handleReportDocument = (documentId?: string) => {
-    if (!documentId) return
-    console.info("Report document", documentId);
-  };
+  if (loading && docs.length === 0)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="animate-spin text-sky-500" />
+      </div>
+    );
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+
+      <div className="flex flex-col gap-4 md:flex-row md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Thư viện của tôi</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Những tài liệu bạn đã chia sẻ. Tìm kiếm hoặc chỉnh sửa tại đây.</p>
+          <h1 className="text-2xl font-semibold">Thư viện của tôi</h1>
+          <p className="text-sm text-slate-500">Những tài liệu bạn đã chia sẻ</p>
         </div>
-        <div className="w-full md:w-80">
-          <Input
-            placeholder="Tìm kiếm theo tên, mô tả hoặc tác giả..."
-            value={searchValue}
-            onChange={(event) => setSearchValue(event.target.value)}
-          />
-        </div>
+        <Input
+          className="md:w-80"
+          placeholder="Tìm kiếm tài liệu..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
       </div>
 
       {error && (
-        <div className="flex items-center justify-between  border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <div className="flex justify-between items-center bg-red-50 px-4 py-3 text-sm text-red-600">
           <span>{error}</span>
-          <button
-            type="button"
-            onClick={handleRetry}
-            className="inline-flex items-center gap-1 text-red-600 underline-offset-4 hover:underline dark:text-red-300"
-          >
-            <RefreshCcw size={16} />
-            Thử lại
+          <button onClick={() => fetchDocs(1, debounced, false)} className="flex gap-1 underline">
+            <RefreshCcw size={16} /> Thử lại
           </button>
         </div>
       )}
 
-      {showSkeleton ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
-        </div>
-      ) : documents.length === 0 ? (
-        <div className=" border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
-          <h2 className="text-lg font-semibold text-foreground">
-            Chưa có tài liệu nào
-          </h2>
+      {docs.length === 0 ? (
+        <div className="border border-dashed p-8 text-center">
+          <h2 className="text-lg font-semibold">Chưa có tài liệu nào</h2>
         </div>
       ) : (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-          {documents.map((doc) => (
+          {docs.map(d => (
             <DocumentCard
-              key={doc.id}
-              id={doc.id}
-              title={doc.documentName ?? "Tài liệu"}
-              subjectName={doc.subject?.subjectName}
-              tags={doc.tags?.map((tag) => tag.tagName ?? "").filter(Boolean)}
-              thumbnailFileId={doc.thumbnailFileId}
-              fileCount={doc.fileCount}
-              commentCount={doc.commentCount}
-              usefulCount={doc.usefulCount}
-              notUsefulCount={doc.notUsefulCount}
-              onEdit={() => handleEditDocument(doc.id)}
-              onDelete={() => handleDeleteDocument(doc.id)}
-              onReport={() => handleReportDocument(doc.id)}
-              href={doc.id ? `/documents/${doc.id}` : undefined}
+              key={d.id}
+              id={d.id}
+              title={d.documentName ?? "Tài liệu"}
+              subjectName={d.subject?.subjectName}
+              tags={d.tags?.map(t => t.tagName || "").filter(Boolean)}
+              thumbnailFileId={d.thumbnailFileId}
+              fileCount={d.fileCount}
+              commentCount={d.commentCount}
+              usefulCount={d.usefulCount}
+              notUsefulCount={d.notUsefulCount}
+              totalViewCount={d.totalViewCount}
+              href={d.id ? `/documents/${d.id}` : undefined}
             />
           ))}
         </div>
       )}
 
-      {hasNextPage && (
+      {hasNext && (
         <div className="flex justify-center">
           <Button
-            type="button"
             variant="outline"
-            onClick={handleLoadMore}
-            disabled={isLoadingMore}
+            disabled={loadingMore}
+            onClick={() => fetchDocs(page + 1, debounced, true)}
           >
-            {isLoadingMore && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
+            {loadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Tải thêm
           </Button>
         </div>
       )}
+
     </div>
   );
 }
-
-
-

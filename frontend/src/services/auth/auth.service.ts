@@ -2,7 +2,7 @@
 
 import { PublicClientApplication, AuthenticationResult } from '@azure/msal-browser';
 import { postApiAuthLogin, postApiAuthLoginMicrosoft, postApiAuthLogout } from '@/src/api/database/sdk.gen';
-import { setAccessToken } from '@/src/api/client';
+import { setAccessToken, clearTokens } from '@/src/api/client';
 import type { LoginResponse, LoginWithMicrosoftResponse } from '@/src/api/database/types.gen';
 
 // ============ MSAL Configuration ============
@@ -37,64 +37,78 @@ async function getMsalInstance(): Promise<PublicClientApplication | null> {
 
 /**
  * Login với email/password
+ * Backend sets refresh token in httpOnly cookie automatically
  */
 export async function login(emailOrUsername: string, password: string): Promise<LoginResponse> {
-    const response = await postApiAuthLogin({
-        body: { emailOrUsername, password },
-    });
+    try {
+        const response = await postApiAuthLogin({
+            body: { emailOrUsername, password },
+            throwOnError: true,
+        });
 
-    if (!response.data?.accessToken) {
-        throw new Error('Login failed: No access token received');
+        const data = (response.data ?? response) as LoginResponse;
+        if (!data?.accessToken) {
+            throw new Error('Đăng nhập thất bại');
+        }
+
+        // Only save access token - refresh token is in httpOnly cookie
+        setAccessToken(data.accessToken);
+        return data;
+    } catch (error: any) {
+        const message = error?.response?.data?.message || error?.message || 'Đăng nhập thất bại';
+        throw new Error(message);
     }
-
-    setAccessToken(response.data.accessToken);
-    return response.data;
 }
 
 /**
  * Login với Microsoft
+ * Backend sets refresh token in httpOnly cookie automatically
  */
 export async function loginWithMicrosoft(): Promise<LoginWithMicrosoftResponse> {
     const instance = await getMsalInstance();
     if (!instance) {
-        throw new Error('MSAL not available in this environment');
+        throw new Error('MSAL không khả dụng');
     }
 
-    const loginResponse: AuthenticationResult = await instance.loginPopup({
-        scopes: ['openid', 'profile', 'email'],
-        prompt: 'select_account',
-    });
+    try {
+        const loginResponse: AuthenticationResult = await instance.loginPopup({
+            scopes: ['openid', 'profile', 'email'],
+            prompt: 'select_account',
+        });
 
-    if (!loginResponse.idToken) {
-        throw new Error('No ID token from Microsoft');
+        if (!loginResponse.idToken) {
+            throw new Error('Không nhận được ID token từ Microsoft');
+        }
+
+        const response = await postApiAuthLoginMicrosoft({
+            body: { idToken: loginResponse.idToken },
+            throwOnError: true,
+        });
+
+        const data = (response.data ?? response) as LoginWithMicrosoftResponse;
+        if (!data?.accessToken) {
+            throw new Error('Đăng nhập thất bại');
+        }
+
+        // Only save access token - refresh token is in httpOnly cookie
+        setAccessToken(data.accessToken);
+        return data;
+    } catch (error: any) {
+        const message = error?.response?.data?.message || error?.message || 'Đăng nhập thất bại';
+        throw new Error(message);
     }
-
-    const response = await postApiAuthLoginMicrosoft({
-        body: { idToken: loginResponse.idToken },
-    });
-
-    if (!response.data?.accessToken) {
-        throw new Error('Login failed: No access token received');
-    }
-
-    setAccessToken(response.data.accessToken);
-    return response.data;
 }
 
 /**
  * Logout
+ * Backend clears refresh token cookie automatically
  */
 export async function logout(): Promise<void> {
     try {
         await postApiAuthLogout();
     } catch {
-        // Ignore logout API errors
     }
-
-    // Clear local token
-    setAccessToken(undefined);
-
-    // Clear MSAL cache if available
+    clearTokens();
     const instance = await getMsalInstance();
     if (instance) {
         const accounts = instance.getAllAccounts();
@@ -102,7 +116,6 @@ export async function logout(): Promise<void> {
             try {
                 await instance.logoutPopup({ account: accounts[0] });
             } catch {
-                // Ignore MSAL logout errors
             }
         }
     }

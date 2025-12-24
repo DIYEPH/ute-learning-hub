@@ -2,373 +2,209 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import {
+  ArrowLeft, Upload, Loader2, X,
+  Image as ImageIcon, FileText, ChevronRight, AlertCircle
+} from "lucide-react";
+
 import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
-import { useTranslations } from "next-intl";
-import { DocumentUploadForm, type DocumentUploadFormData } from "@/src/components/documents/document-upload-form";
+import {
+  DocumentUploadForm,
+  type DocumentUploadFormData,
+} from "@/src/components/documents/document-upload-form";
 import { useFileUpload } from "@/src/hooks/use-file-upload";
-import { postApiDocument, postApiDocumentByIdFiles } from "@/src/api/database/sdk.gen";
-import type { CreateDocumentCommand, DocumentDetailDto, AddDocumentFileCommand } from "@/src/api/database/types.gen";
-import { ArrowLeft, Upload, Loader2, X, Image as ImageIcon, FileText, ChevronRight, AlertCircle } from "lucide-react";
+import {
+  postApiDocument,
+  postApiDocumentByIdFiles,
+} from "@/src/api/database/sdk.gen";
+import type {
+  CreateDocumentCommand,
+  DocumentDetailDto,
+  AddDocumentFileCommand,
+} from "@/src/api/database/types.gen";
 
-// File size limit: 100MB (matches backend)
-const MAX_FILE_SIZE_MB = 100;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const MAX_SIZE = 100 * 1024 * 1024;
 
 export default function UploadDocumentPage() {
   const t = useTranslations("documents");
   const tCommon = useTranslations("common");
   const router = useRouter();
-
-  // Wizard state
-  const [step, setStep] = useState<1 | 2>(1);
-  const [formData, setFormData] = useState<DocumentUploadFormData | null>(null);
-
-  // Step 2 state
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedCoverFile, setSelectedCoverFile] = useState<File | null>(null);
-  const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [chapterTitle, setChapterTitle] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [fileSizeError, setFileSizeError] = useState<string | null>(null);
-
   const { uploadFile } = useFileUpload();
 
-  // Step 1: Save form data and go to Step 2
-  const handleStep1Submit = async (data: DocumentUploadFormData) => {
-    setFormData(data);
-    setStep(2);
-    setError(null);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [formData, setFormData] = useState<DocumentUploadFormData | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [cover, setCover] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [sizeError, setSizeError] = useState<string | null>(null);
+
+  const onCoverChange = (f: File | null) => {
+    setCover(f);
+    if (!f) return setPreview(null);
+    const r = new FileReader();
+    r.onloadend = () => setPreview(r.result as string);
+    r.readAsDataURL(f);
   };
 
-  // Handle cover file change in Step 2
-  const handleCoverFileChange = (file: File | null) => {
-    setSelectedCoverFile(file);
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setCoverPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-      setCoverPreview(null);
-    }
-  };
+  const createDocument = async () => {
+    if (!formData || !file) return setError("Vui lòng chọn file");
 
-  // Step 2: Create document with first file
-  const handleCreateDocument = async () => {
-    if (!formData || !selectedFile) {
-      setError("Vui lòng chọn file để tải lên");
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
+    setLoading(true); setError(null);
     try {
-      // 1. Upload document cover image (if any)
-      let documentCoverFileId: string | null = null;
-      if (formData.coverFile) {
-        const uploadedCover = await uploadFile(formData.coverFile, "DocumentCover");
-        documentCoverFileId = uploadedCover.id ?? null;
-      }
+      let coverId: string | null = null;
+      if (formData.coverFile)
+        coverId = (await uploadFile(formData.coverFile, "DocumentCover")).id ?? null;
 
-      // 2. Create the document
       const body: CreateDocumentCommand = {
         documentName: formData.documentName || "",
         description: formData.description || "",
         subjectId: formData.subjectId || null,
         typeId: formData.typeId!,
-        authorIds:
-          formData.authorIds && formData.authorIds.length > 0
-            ? formData.authorIds
-            : null,
-        authors:
-          formData.authors && formData.authors.length > 0
-            ? formData.authors
-            : null,
-        tagIds:
-          formData.tagIds && formData.tagIds.length > 0 ? formData.tagIds : null,
-        tagNames:
-          formData.tagNames && formData.tagNames.length > 0 ? formData.tagNames : null,
+        authorIds: formData.authorIds?.length ? formData.authorIds : null,
+        authors: formData.authors?.length ? formData.authors : null,
+        tagIds: formData.tagIds?.length ? formData.tagIds : null,
+        tagNames: formData.tagNames?.length ? formData.tagNames : null,
         visibility: (formData.visibility as any) ?? 0,
-        coverFileId: documentCoverFileId,
+        coverFileId: coverId,
       };
 
-      const response = await postApiDocument({ body });
-      const created = (response.data ?? response) as DocumentDetailDto | undefined;
+      const doc = (await postApiDocument({ body })).data as DocumentDetailDto;
+      if (!doc?.id) throw new Error("Không thể tạo tài liệu");
 
-      if (!created?.id) {
-        throw new Error("Không thể tạo tài liệu");
-      }
+      const main = await uploadFile(file, "DocumentFile");
+      let chapterCoverId: string | null = null;
+      if (cover) chapterCoverId = (await uploadFile(cover, "DocumentFileCover")).id ?? null;
 
-      // 3. Upload the first chapter/file
-      const mainFile = await uploadFile(selectedFile, "DocumentFile");
-
-      // Upload chapter cover (if any)
-      let chapterCoverFileId: string | undefined;
-      if (selectedCoverFile) {
-        const coverFile = await uploadFile(selectedCoverFile, "DocumentFileCover");
-        chapterCoverFileId = coverFile.id;
-      }
-
-      // 4. Add the file to the document
       const fileBody: AddDocumentFileCommand = {
-        documentId: created.id,
-        fileId: mainFile.id,
-        coverFileId: chapterCoverFileId ?? null,
-        title: chapterTitle.trim() || null,
+        documentId: doc.id,
+        fileId: main.id,
+        coverFileId: chapterCoverId,
+        title: title.trim() || null,
       };
 
-      await postApiDocumentByIdFiles({
-        path: { id: created.id },
-        body: fileBody,
-        throwOnError: true,
-      });
-
-      // 5. Redirect to the document detail page
-      router.push(`/documents/${created.id}`);
-    } catch (err: any) {
-      const errorMessage =
-        err?.response?.data?.message ||
-        err?.response?.data ||
-        err?.message ||
-        "Không thể tạo tài liệu";
-      setError(errorMessage);
+      await postApiDocumentByIdFiles({ path: { id: doc.id }, body: fileBody });
+      router.push(`/documents/${doc.id}`);
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || "Không thể tạo tài liệu");
     } finally {
       setLoading(false);
     }
   };
 
-  // Go back to Step 1
-  const handleBack = () => {
-    setStep(1);
-    setError(null);
-  };
-
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto">
-      {/* Header with step indicator */}
-      <div className="flex items-center gap-4 mb-6">
-        <h1 className="text-2xl font-semibold text-foreground">
-          {t("uploadTitle")}
-        </h1>
+    <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
+
+      <div className="flex items-center gap-4">
+        <h1 className="text-2xl font-semibold">{t("uploadTitle")}</h1>
         <div className="flex items-center gap-2 text-sm text-slate-500">
-          <span className={step === 1 ? "text-primary font-medium" : ""}>
-            1. Thông tin
-          </span>
+          <span className={step === 1 ? "text-primary font-medium" : ""}>1</span>
           <ChevronRight className="h-4 w-4" />
-          <span className={step === 2 ? "text-primary font-medium" : ""}>
-            2. Tải file
-          </span>
+          <span className={step === 2 ? "text-primary font-medium" : ""}>2</span>
         </div>
       </div>
 
-      {error && (
-        <div className="mb-4 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded">
-          {error}
-        </div>
-      )}
+      {error && <div className="p-3 text-sm text-red-600 bg-red-50 rounded">{error}</div>}
 
-      {/* Step 1: Document Info Form */}
       {step === 1 && (
         <>
           <DocumentUploadForm
             initialData={formData ?? undefined}
-            onSubmit={handleStep1Submit}
             loading={loading}
+            onSubmit={d => { setFormData(d); setStep(2); }}
           />
-          <div className="flex gap-4 mt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              disabled={loading}
-            >
-              {tCommon("cancel")}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                const form = document.getElementById("document-upload-form") as HTMLFormElement;
-                if (form) {
-                  form.requestSubmit();
-                }
-              }}
-              disabled={loading}
-            >
-              Tiếp theo
-              <ChevronRight className="ml-1 h-4 w-4" />
+          <div className="flex gap-4">
+            <Button variant="outline" onClick={() => router.back()}>{tCommon("cancel")}</Button>
+            <Button onClick={() =>
+              (document.getElementById("document-upload-form") as HTMLFormElement)?.requestSubmit()
+            }>
+              Tiếp theo <ChevronRight className="ml-1 h-4 w-4" />
             </Button>
           </div>
         </>
       )}
 
-      {/* Step 2: Upload First File */}
       {step === 2 && formData && (
-        <div className="space-y-6">
-          {/* Document Summary */}
-          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg">
-            <h3 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Thông tin tài liệu
+        <>
+          <div className="p-4 bg-slate-50 rounded">
+            <h3 className="text-sm font-semibold flex gap-2 mb-1">
+              <FileText className="h-4 w-4" /> {formData.documentName}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-              <div>
-                <span className="text-slate-500">Tên:</span>{" "}
-                <span className="font-medium">{formData.documentName}</span>
-              </div>
-              {formData.description && (
-                <div className="md:col-span-2">
-                  <span className="text-slate-500">Mô tả:</span>{" "}
-                  <span className="line-clamp-1">{formData.description}</span>
-                </div>
-              )}
-            </div>
+            {formData.description && (
+              <p className="text-xs text-slate-500 line-clamp-1">{formData.description}</p>
+            )}
           </div>
 
-          {/* File Upload Section */}
-          <div className="border border-slate-200 dark:border-slate-700 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-foreground mb-4">
-              Tải lên chương/file đầu tiên <span className="text-red-500">*</span>
-            </h3>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              {/* File selection */}
+          <div className="border p-4 rounded space-y-4">
+            <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <Label className="text-xs">
-                  Tệp PDF/Ảnh <span className="text-red-500">*</span>
-                </Label>
+                <Label className="text-xs">File *</Label>
                 <input
+                  id="file"
                   type="file"
                   accept=".pdf,image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null;
-                    if (file && file.size > MAX_FILE_SIZE_BYTES) {
-                      setFileSizeError(`File quá lớn! Giới hạn ${MAX_FILE_SIZE_MB}MB, file của bạn ${(file.size / 1024 / 1024).toFixed(1)}MB`);
-                      setSelectedFile(null);
-                      e.target.value = "";
+                  className="hidden"
+                  onChange={e => {
+                    const f = e.target.files?.[0] || null;
+                    if (f && f.size > MAX_SIZE) {
+                      setSizeError("File > 100MB");
+                      setFile(null); e.target.value = "";
                       return;
                     }
-                    setFileSizeError(null);
-                    setSelectedFile(file);
+                    setSizeError(null); setFile(f);
                   }}
-                  className="hidden"
-                  id="upload-file"
-                  disabled={loading}
                 />
-                <label
-                  htmlFor="upload-file"
-                  className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-sm transition-colors ${loading ? "opacity-50 cursor-not-allowed" : ""
-                    } ${selectedFile ? "border-primary bg-primary/5" : ""} ${fileSizeError ? "border-red-300 bg-red-50 dark:bg-red-950/30" : ""}`}
-                >
-                  <Upload size={16} />
-                  <span className="truncate">
-                    {selectedFile ? selectedFile.name : "Chọn file"}
-                  </span>
+                <label htmlFor="file" className="mt-1 flex gap-2 p-2 border border-dashed rounded cursor-pointer">
+                  <Upload size={16} /> <span className="truncate">{file?.name ?? "Chọn file"}</span>
                 </label>
-                <p className="mt-1 text-[10px] text-slate-400">Tối đa {MAX_FILE_SIZE_MB}MB</p>
-                {fileSizeError && (
-                  <p className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
-                    <AlertCircle size={12} />
-                    {fileSizeError}
+                {sizeError && (
+                  <p className="text-xs text-red-600 flex gap-1 mt-1">
+                    <AlertCircle size={12} /> {sizeError}
                   </p>
                 )}
               </div>
 
-              {/* Title input */}
               <div>
-                <Label className="text-xs">Tiêu đề chương (tùy chọn)</Label>
-                <Input
-                  type="text"
-                  value={chapterTitle}
-                  onChange={(e) => setChapterTitle(e.target.value)}
-                  placeholder="Chương I, Phần 1..."
-                  className="mt-1 h-9 text-sm"
-                  disabled={loading}
-                />
+                <Label className="text-xs">Tiêu đề</Label>
+                <Input value={title} onChange={e => setTitle(e.target.value)} className="mt-1 h-9" />
               </div>
 
-              {/* Cover image selection */}
               <div>
-                <Label className="text-xs">Ảnh bìa chương (tùy chọn)</Label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null;
-                    handleCoverFileChange(file);
-                  }}
-                  className="hidden"
-                  id="upload-cover"
-                  disabled={loading}
-                />
-                <label
-                  htmlFor="upload-cover"
-                  className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-sm transition-colors ${loading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                >
-                  <ImageIcon size={16} />
-                  <span className="truncate">
-                    {selectedCoverFile ? selectedCoverFile.name : "Chọn ảnh"}
-                  </span>
+                <Label className="text-xs">Ảnh bìa</Label>
+                <input id="cover" type="file" accept="image/*" className="hidden"
+                  onChange={e => onCoverChange(e.target.files?.[0] || null)} />
+                <label htmlFor="cover" className="mt-1 flex gap-2 p-2 border border-dashed rounded cursor-pointer">
+                  <ImageIcon size={16} /> <span className="truncate">{cover?.name ?? "Chọn ảnh"}</span>
                 </label>
               </div>
             </div>
 
-            {/* Cover preview */}
-            {coverPreview && (
-              <div className="mt-3 relative inline-block">
-                <img
-                  src={coverPreview}
-                  alt="Preview"
-                  className="h-20 w-auto object-contain rounded border border-slate-200 dark:border-slate-700"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleCoverFileChange(null)}
-                  disabled={loading}
-                  className="absolute -top-1 -right-1 p-0.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
-                  title="Xóa ảnh"
-                >
+            {preview && (
+              <div className="relative inline-block">
+                <img src={preview} className="h-20 rounded border" />
+                <button onClick={() => onCoverChange(null)}
+                  className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5">
                   <X size={12} />
                 </button>
               </div>
             )}
           </div>
 
-          {/* Action buttons */}
           <div className="flex gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleBack}
-              disabled={loading}
-            >
-              <ArrowLeft className="mr-1 h-4 w-4" />
-              Quay lại
+            <Button variant="outline" onClick={() => setStep(1)}>
+              <ArrowLeft className="mr-1 h-4 w-4" /> Quay lại
             </Button>
-            <Button
-              type="button"
-              onClick={handleCreateDocument}
-              disabled={loading || !selectedFile}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Đang tạo...
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-1 h-4 w-4" />
-                  Tạo tài liệu
-                </>
-              )}
+            <Button disabled={loading || !file} onClick={createDocument}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4 mr-1" />}
+              Tạo tài liệu
             </Button>
           </div>
-        </div>
+        </>
       )}
     </div>
   );

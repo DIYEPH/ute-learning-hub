@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Search, Filter, X, Sparkles } from "lucide-react";
-import { getApiConversation, getApiTag, getApiConversationRecommendations } from "@/src/api/database/sdk.gen";
+import { Loader2, Search, Filter, X, Sparkles, Mail, Check, Users } from "lucide-react";
+import { getApiConversation, getApiTag, getApiConversationRecommendations, getApiConversationMyInvitations, postApiConversationInvitationsByInvitationIdRespond } from "@/src/api/database/sdk.gen";
 import type {
   ConversationDto,
   PagedResponseOfConversationDto,
   TagDto,
   ConversationRecommendationDto,
+  InvitationDto,
 } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -41,9 +42,15 @@ export default function ConversationsPage() {
   const [recommendations, setRecommendations] = useState<ConversationRecommendationDto[]>([]);
   const [loadingRecs, setLoadingRecs] = useState(true);
 
+  // Invitations
+  const [invitations, setInvitations] = useState<InvitationDto[]>([]);
+  const [loadingInvitations, setLoadingInvitations] = useState(true);
+  const [respondingInvitation, setRespondingInvitation] = useState<string | null>(null);
+
   useEffect(() => {
     void loadFilterOptions();
     void fetchRecommendations();
+    void fetchInvitations();
   }, []);
 
   useEffect(() => {
@@ -84,6 +91,46 @@ export default function ConversationsPage() {
       setRecommendations([]);
     } finally {
       setLoadingRecs(false);
+    }
+  };
+
+  const fetchInvitations = async () => {
+    setLoadingInvitations(true);
+    try {
+      const response = await getApiConversationMyInvitations({
+        query: { PageNumber: 1, PageSize: 10, PendingOnly: true },
+      });
+      const payload = (response.data ?? response) as any;
+      const items = payload?.items ?? [];
+      setInvitations(items);
+    } catch (err) {
+      console.error("Error loading invitations:", err);
+      setInvitations([]);
+    } finally {
+      setLoadingInvitations(false);
+    }
+  };
+
+  const respondToInvitation = async (invitation: InvitationDto, accept: boolean) => {
+    if (!invitation.id) return;
+
+    setRespondingInvitation(invitation.id);
+    try {
+      await postApiConversationInvitationsByInvitationIdRespond({
+        path: { invitationId: invitation.id },
+        body: { accept, note: null },
+      });
+
+      // Remove from local state
+      setInvitations((prev) => prev.filter((i) => i.id !== invitation.id));
+
+      if (accept) {
+        router.push(`/conversations/${invitation.conversationId}`);
+      }
+    } catch (err) {
+      console.error("Failed to respond to invitation:", err);
+    } finally {
+      setRespondingInvitation(null);
     }
   };
 
@@ -167,6 +214,76 @@ export default function ConversationsPage() {
           Tìm và tham gia các cuộc trò chuyện công khai hoặc xin tham gia các nhóm riêng tư
         </p>
       </div>
+
+      {/* Pending Invitations Section */}
+      {!loadingInvitations && invitations.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Mail className="h-5 w-5 text-blue-500" />
+            <h2 className="text-lg font-semibold text-foreground">Lời mời tham gia nhóm</h2>
+            <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+              {invitations.length}
+            </span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {invitations.map((invitation) => (
+              <div
+                key={invitation.id}
+                className="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center flex-shrink-0">
+                    <Users className="h-5 w-5 text-blue-600 dark:text-blue-300" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground truncate">
+                      {invitation.conversationName}
+                    </h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {invitation.invitedByName} đã mời bạn
+                    </p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                      {invitation.memberCount} thành viên
+                    </p>
+                    {invitation.message && (
+                      <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 italic">
+                        "{invitation.message}"
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => respondToInvitation(invitation, true)}
+                    disabled={respondingInvitation === invitation.id}
+                  >
+                    {respondingInvitation === invitation.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4 mr-1" />
+                        Chấp nhận
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => respondToInvitation(invitation, false)}
+                    disabled={respondingInvitation === invitation.id}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Từ chối
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recommendations Section */}
       {!loadingRecs && recommendations.length > 0 && (

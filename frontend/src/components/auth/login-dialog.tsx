@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useAuth } from "@/src/hooks/use-auth";
 import { useRouter } from "next/navigation";
 import AuthDialog from "./auth-dialog";
+import { useNotification } from "@/src/components/providers/notification-provider";
 
 interface LoginDialogProps {
     open: boolean;
@@ -21,32 +22,27 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [emailOrUsername, setEmailOrUsername] = useState('');
     const [password, setPassword] = useState('');
-    const { handleMicrosoftLogin, handleLogin, loading, error } = useAuth();
+    const { handleMicrosoftLogin, handleLogin, loading } = useAuth();
     const router = useRouter();
+    const { success: notifySuccess, error: notifyError } = useNotification();
 
     const handleEmailPasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!emailOrUsername.trim() || !password.trim()) {
+        if (!emailOrUsername.trim() || !password.trim())
             return;
-        }
 
         try {
             const result = await handleLogin(emailOrUsername.trim(), password);
             if (result) {
-                // Đóng dialog sau khi login thành công
                 onOpenChange(false);
-
-                // Reset form
                 setEmailOrUsername('');
                 setPassword('');
-
-                // Full page reload để update auth state
+                notifySuccess("Đăng nhập thành công!");
                 window.location.reload();
             }
-        } catch (error) {
-            // Error đã được handle trong hook
-            console.error('Login failed:', error);
+        } catch (error: any) {
+            notifyError(error?.message);
         }
     };
 
@@ -54,27 +50,18 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         try {
             const result = await handleMicrosoftLogin();
             if (result) {
-                // Đóng dialog sau khi login thành công
                 onOpenChange(false);
-
-                // Full page reload để update auth state
+                notifySuccess("Đăng nhập thành công!");
                 window.location.reload();
             }
-        } catch (error) {
-            // Error đã được handle trong hook
-            console.error('Login failed:', error);
+        } catch (error: any) {
+            notifyError(error?.message);
         }
     };
 
     return (
         <AuthDialog open={open} onOpenChange={onOpenChange} title={t('loginTitle')}>
             <form onSubmit={handleEmailPasswordSubmit} className="space-y-4">
-                {error && (
-                    <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950  border border-red-200 dark:border-red-800">
-                        {error}
-                    </div>
-                )}
-
                 <div className="space-y-1">
                     <Label>{t('emailOrUsername')}</Label>
                     <InputWithIcon

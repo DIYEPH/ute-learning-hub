@@ -431,6 +431,7 @@ export default function SearchPage() {
                                 commentCount={doc.commentCount}
                                 usefulCount={doc.usefulCount}
                                 notUsefulCount={doc.notUsefulCount}
+                                totalViewCount={doc.totalViewCount}
                             />
                         ))}
                     </div>

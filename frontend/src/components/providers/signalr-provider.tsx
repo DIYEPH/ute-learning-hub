@@ -247,18 +247,6 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
         [connection]
     );
 
-    // Subscription helpers
-    const createSubscription = useCallback(
-        <T,>(set: Set<T>) =>
-            (callback: T): (() => void) => {
-                set.add(callback);
-                return () => {
-                    set.delete(callback);
-                };
-            },
-        []
-    );
-
     const onMessageReceived = useCallback(
         (callback: MessageCallback) => {
             callbacksRef.current.messageReceived.add(callback);

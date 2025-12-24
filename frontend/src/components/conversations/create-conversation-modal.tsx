@@ -13,6 +13,7 @@ import { useFileUpload } from "@/src/hooks/use-file-upload";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 import { getFileUrlById } from "@/src/lib/file-url";
 import { TagPicker } from "@/src/components/ui/tag-picker";
+import { useNotification } from "@/src/components/providers/notification-provider";
 
 interface CreateConversationModalProps {
   open: boolean;
@@ -27,6 +28,7 @@ export function CreateConversationModal({
 }: CreateConversationModalProps) {
   const { fetchSubjects, loading: loadingSubjects } = useSubjects();
   const { uploadFile, uploading: uploadingAvatar } = useFileUpload();
+  const { success: notifySuccess, error: notifyError } = useNotification();
 
   const [formData, setFormData] = useState<CreateConversationCommand>({
     conversationName: "",
@@ -126,19 +128,20 @@ export function CreateConversationModal({
 
       const response = await postApiConversation({
         body: submitData,
+        throwOnError: true,
       });
 
-      if (response.data || response) {
-        onSuccess?.();
-        onOpenChange(false);
-      }
+      // Nếu tới được đây = thành công (throwOnError đã bắt lỗi)
+      notifySuccess("Tạo nhóm thành công!");
+      onSuccess?.();
+      onOpenChange(false);
     } catch (err: any) {
       const errorMessage =
         err?.response?.data?.message ||
-        err?.response?.data ||
+        err?.body?.message ||
         err?.message ||
         "Không thể tạo cuộc trò chuyện";
-      setError(errorMessage);
+      notifyError(errorMessage);
     } finally {
       setLoading(false);
     }

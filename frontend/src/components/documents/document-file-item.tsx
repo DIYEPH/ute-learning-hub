@@ -1,6 +1,6 @@
 "use client";
 
-import { ThumbsUp, ThumbsDown, MessageSquare, FileText, MoreVertical, Flag, Pencil, Trash2, RefreshCw, Clock, CheckCircle, EyeOff } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, FileText, MoreVertical, Flag, Pencil, Trash2, RefreshCw, EyeOff, Eye } from "lucide-react";
 import type { DocumentFileDto } from "@/src/api/database/types.gen";
 import { getFileUrlById } from "@/src/lib/file-url";
 import {
@@ -46,6 +46,7 @@ export function DocumentFileItem({
   const useful = file.usefulCount ?? 0;
   const notUseful = file.notUsefulCount ?? 0;
   const commentCount = file.commentCount ?? 0;
+  const viewCount = file.viewCount ?? 0;
 
   const handleEdit = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -144,6 +145,10 @@ export function DocumentFileItem({
 
       {/* Stats */}
       <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink-0">
+        <div className="flex items-center gap-1" title="Lượt xem">
+          <Eye className="h-3.5 w-3.5" />
+          <span>{viewCount}</span>
+        </div>
         <div className="flex items-center gap-1" title="Hữu ích">
           <ThumbsUp className="h-3.5 w-3.5" />
           <span>{useful}</span>

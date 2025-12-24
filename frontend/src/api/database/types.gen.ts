@@ -272,6 +272,7 @@ export type DocumentDetailDto = {
     commentCount?: number;
     usefulCount?: number;
     notUsefulCount?: number;
+    totalViewCount?: number;
     createdById?: string;
     createdByName?: string | null;
     createdByAvatarUrl?: string | null;
@@ -293,6 +294,7 @@ export type DocumentDto = {
     commentCount?: number;
     usefulCount?: number;
     notUsefulCount?: number;
+    totalViewCount?: number;
     createdById?: string;
     createdAt?: string;
 };
@@ -313,6 +315,7 @@ export type DocumentFileDto = {
     commentCount?: number;
     usefulCount?: number;
     notUsefulCount?: number;
+    viewCount?: number;
     progress?: DocumentProgressDto;
 };
 
@@ -400,10 +403,36 @@ export type GetOnlineMembersResponse = {
     onlineUserIds?: Array<string>;
 };
 
+export type GetOrCreateDmResponse = {
+    conversation?: ConversationDetailDto;
+    firstMessageSent?: MessageDto;
+    isNewConversation?: boolean;
+};
+
+export type GetSuggestedUsersResponse = {
+    users?: Array<SuggestedUserDto>;
+    totalProcessed?: number;
+};
+
 export type HomepageDto = {
     latestDocuments?: Array<DocumentDto>;
     popularDocuments?: Array<unknown>;
+    mostViewedDocuments?: Array<unknown>;
     topSubjects?: Array<SubjectWithDocsDto>;
+};
+
+export type InvitationDto = {
+    id?: string;
+    conversationId?: string;
+    conversationName?: string;
+    conversationAvatarUrl?: string | null;
+    memberCount?: number;
+    invitedById?: string;
+    invitedByName?: string;
+    invitedByAvatarUrl?: string | null;
+    message?: string | null;
+    status?: ContentStatus;
+    createdAt?: string;
 };
 
 export type LoginCommand = {
@@ -464,6 +493,22 @@ export type ManageTrustScoreCommand = {
 };
 
 export type MessageDto = {
+    id?: string;
+    conversationId?: string;
+    parentId?: string | null;
+    content?: string;
+    isEdit?: boolean;
+    isPined?: boolean;
+    type?: NullableOfMessageType;
+    createdById?: string;
+    senderName?: string;
+    senderAvatarUrl?: string | null;
+    files?: Array<MessageFileDto>;
+    createdAt?: string;
+    updatedAt?: string | null;
+} | null;
+
+export type MessageDto2 = {
     id?: string;
     conversationId?: string;
     parentId?: string | null;
@@ -575,6 +620,16 @@ export type PagedResponseOfFacultyDto = {
     hasNextPage?: boolean;
 };
 
+export type PagedResponseOfInvitationDto = {
+    items?: Array<InvitationDto>;
+    totalCount?: number;
+    page?: number;
+    pageSize?: number;
+    totalPages?: number;
+    hasPreviousPage?: boolean;
+    hasNextPage?: boolean;
+};
+
 export type PagedResponseOfMajorDto = {
     items?: Array<MajorDto2>;
     totalCount?: number;
@@ -586,7 +641,7 @@ export type PagedResponseOfMajorDto = {
 };
 
 export type PagedResponseOfMessageDto = {
-    items?: Array<MessageDto>;
+    items?: Array<MessageDto2>;
     totalCount?: number;
     page?: number;
     pageSize?: number;
@@ -699,12 +754,9 @@ export type ReadingHistoryItemDto = {
     subjectName?: string | null;
 };
 
-export type RefreshTokenCommand = {
-    [key: string]: unknown;
-};
-
 export type RefreshTokenResponse = {
-    [key: string]: unknown;
+    accessToken?: string;
+    refreshToken?: string;
 };
 
 export type ReportDto = {
@@ -726,6 +778,11 @@ export type ResetPasswordCommand = {
     newPassword?: string;
 };
 
+export type RespondToInvitationRequest = {
+    accept: boolean;
+    note: string | null;
+};
+
 export type ReviewConversationJoinRequestCommand = {
     joinRequestId?: string;
     status?: ContentStatus;
@@ -743,6 +800,21 @@ export type ReviewReportCommand = {
     status?: ContentStatus;
     reviewNote?: string | null;
 };
+
+export type SendInvitationRequest = {
+    userId: string;
+    message: string | null;
+};
+
+export type SendInvitationResponse = {
+    invitationId?: string;
+    success?: boolean;
+    error?: string | null;
+};
+
+export type StartDmRequest = {
+    message: string | null;
+} | null;
 
 export type SubjectDetailDto = {
     id?: string;
@@ -771,6 +843,14 @@ export type SubjectWithDocsDto = {
     subjectName?: string;
     subjectCode?: string | null;
     documents?: Array<unknown>;
+};
+
+export type SuggestedUserDto = {
+    userId?: string;
+    fullName?: string;
+    avatarUrl?: string | null;
+    similarity?: number;
+    rank?: number;
 };
 
 export type TagDetailDto = {
@@ -1060,7 +1140,7 @@ export type PostApiAuthLoginMicrosoftResponses = {
 export type PostApiAuthLoginMicrosoftResponse = PostApiAuthLoginMicrosoftResponses[keyof PostApiAuthLoginMicrosoftResponses];
 
 export type PostApiAuthRefreshTokenData = {
-    body: RefreshTokenCommand;
+    body?: never;
     path?: never;
     query?: never;
     url: '/api/Auth/refresh-token';
@@ -1520,6 +1600,99 @@ export type GetApiConversationRecommendationsResponses = {
 
 export type GetApiConversationRecommendationsResponse = GetApiConversationRecommendationsResponses[keyof GetApiConversationRecommendationsResponses];
 
+export type GetApiConversationByIdSuggestedUsersData = {
+    body?: never;
+    path: {
+        id: string;
+    };
+    query?: {
+        topK?: number;
+        minScore?: number;
+    };
+    url: '/api/Conversation/{id}/suggested-users';
+};
+
+export type GetApiConversationByIdSuggestedUsersResponses = {
+    /**
+     * OK
+     */
+    200: GetSuggestedUsersResponse;
+};
+
+export type GetApiConversationByIdSuggestedUsersResponse = GetApiConversationByIdSuggestedUsersResponses[keyof GetApiConversationByIdSuggestedUsersResponses];
+
+export type GetApiConversationMyInvitationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        PageNumber?: number;
+        PageSize?: number;
+        PendingOnly?: boolean;
+    };
+    url: '/api/Conversation/my-invitations';
+};
+
+export type GetApiConversationMyInvitationsResponses = {
+    /**
+     * OK
+     */
+    200: PagedResponseOfInvitationDto;
+};
+
+export type GetApiConversationMyInvitationsResponse = GetApiConversationMyInvitationsResponses[keyof GetApiConversationMyInvitationsResponses];
+
+export type PostApiConversationByIdInvitationsData = {
+    body: SendInvitationRequest;
+    path: {
+        id: string;
+    };
+    query?: never;
+    url: '/api/Conversation/{id}/invitations';
+};
+
+export type PostApiConversationByIdInvitationsResponses = {
+    /**
+     * OK
+     */
+    200: SendInvitationResponse;
+};
+
+export type PostApiConversationByIdInvitationsResponse = PostApiConversationByIdInvitationsResponses[keyof PostApiConversationByIdInvitationsResponses];
+
+export type PostApiConversationInvitationsByInvitationIdRespondData = {
+    body: RespondToInvitationRequest;
+    path: {
+        invitationId: string;
+    };
+    query?: never;
+    url: '/api/Conversation/invitations/{invitationId}/respond';
+};
+
+export type PostApiConversationInvitationsByInvitationIdRespondResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
+export type PostApiConversationDmByUserIdData = {
+    body?: StartDmRequest;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/Conversation/dm/{userId}';
+};
+
+export type PostApiConversationDmByUserIdResponses = {
+    /**
+     * OK
+     */
+    200: GetOrCreateDmResponse;
+};
+
+export type PostApiConversationDmByUserIdResponse = PostApiConversationDmByUserIdResponses[keyof PostApiConversationDmByUserIdResponses];
+
 export type GetApiConversationJoinRequestData = {
     body?: never;
     path?: never;
@@ -1881,6 +2054,22 @@ export type PostApiDocumentFilesByFileIdReviewResponses = {
     200: unknown;
 };
 
+export type PostApiDocumentFilesByFileIdViewData = {
+    body?: never;
+    path: {
+        fileId: string;
+    };
+    query?: never;
+    url: '/api/Document/files/{fileId}/view';
+};
+
+export type PostApiDocumentFilesByFileIdViewResponses = {
+    /**
+     * OK
+     */
+    200: unknown;
+};
+
 export type PostApiDocumentReviewData = {
     body: CreateDocumentReviewCommand;
     path?: never;
@@ -2236,7 +2425,7 @@ export type PostApiConversationsByConversationIdMessagesResponses = {
     /**
      * OK
      */
-    200: MessageDto;
+    200: MessageDto2;
 };
 
 export type PostApiConversationsByConversationIdMessagesResponse = PostApiConversationsByConversationIdMessagesResponses[keyof PostApiConversationsByConversationIdMessagesResponses];
@@ -2272,7 +2461,7 @@ export type PutApiConversationsByConversationIdMessagesByIdResponses = {
     /**
      * OK
      */
-    200: MessageDto;
+    200: MessageDto2;
 };
 
 export type PutApiConversationsByConversationIdMessagesByIdResponse = PutApiConversationsByConversationIdMessagesByIdResponses[keyof PutApiConversationsByConversationIdMessagesByIdResponses];
