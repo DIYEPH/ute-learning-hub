@@ -86,7 +86,7 @@ services.AddOpenApi(options =>
 services.AddSignalR();
 
 services.AddSingleton<IMessageHubService, SignalRMessageHubService>();
-services.AddHostedService<KafkaMessageConsumerService>();
+// services.AddHostedService<KafkaMessageConsumerService>();
 services.AddHostedService<VectorUpdateService>();
 
 var app = builder.Build();
