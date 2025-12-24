@@ -21,8 +21,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Pre-download the model during build (optional, speeds up first run)
 RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
 
-# Copy application code
-COPY main.py .
+# Copy application code (all .py files)
+COPY *.py .
 
 # Expose port
 EXPOSE 8000

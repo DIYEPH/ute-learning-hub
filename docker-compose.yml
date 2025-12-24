@@ -108,6 +108,8 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ""  # Empty = relative path, goes through nginx
+        NEXT_PUBLIC_MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
+        NEXT_PUBLIC_MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID}
     expose:
       - "3000"
     environment:

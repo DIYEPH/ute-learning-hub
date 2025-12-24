@@ -24,11 +24,15 @@ services:
       Email__BaseUrl: ${FRONTEND_URL}
       FileStorage__BaseUrl: ${API_URL}/uploads
       Recommendation__AiServiceBaseUrl: "http://ai:8000"
+      # Disable Redis - use MemoryCache fallback
+      Redis__ConnectionString: ""
 
   frontend:
     restart: always
     environment:
       NODE_ENV: production
+      NEXT_PUBLIC_MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
+      NEXT_PUBLIC_MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID}
       NEXT_PUBLIC_API_URL: ""
     depends_on:
       backend:
