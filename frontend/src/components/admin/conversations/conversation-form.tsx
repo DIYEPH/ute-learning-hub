@@ -82,7 +82,6 @@ export function ConversationForm({
         e.preventDefault();
         const command: UpdateConversationCommand = {
             conversationName: formData.conversationName || undefined,
-            conversationType: formData.conversationType ?? undefined,
             conversationStatus: formData.conversationStatus ?? undefined,
             subjectId: formData.subjectId || undefined,
             isAllowMemberPin: formData.isAllowMemberPin ?? undefined,
