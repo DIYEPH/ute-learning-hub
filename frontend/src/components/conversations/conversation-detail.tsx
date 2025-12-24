@@ -13,7 +13,7 @@ import {
 } from "@/src/api/database/sdk.gen";
 import type {
   ConversationDetailDto,
-  MessageDto,
+  MessageDto2 as MessageDto,
   PagedResponseOfMessageDto,
 } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
@@ -81,6 +81,7 @@ export function ConversationDetail({
   } = useSignalR();
 
   const { togglePin } = usePinMessage(conversationId, (updatedMessage) => {
+    if (!updatedMessage) return;
     setMessages((prev) =>
       prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
     );

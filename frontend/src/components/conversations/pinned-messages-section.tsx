@@ -3,7 +3,7 @@
 import { MessageCircle, ChevronDown, MoreVertical } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import type { MessageDto } from "@/src/api/database/types.gen";
+import type { MessageDto2 as MessageDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import {
   DropdownMenu,

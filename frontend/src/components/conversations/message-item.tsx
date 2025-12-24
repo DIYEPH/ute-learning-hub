@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { MoreVertical, Edit, Trash2, Paperclip, Pin, PinOff, Reply } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { MessageDto } from "@/src/api/database/types.gen";
+import type { MessageDto2 as MessageDto } from "@/src/api/database/types.gen";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 import { Button } from "@/src/components/ui/button";
 import {

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { postApiConversationsByConversationIdMessagesByIdPin } from "@/src/api/database/sdk.gen";
-import type { MessageDto } from "@/src/api/database/types.gen";
+import type { MessageDto2 as MessageDto } from "@/src/api/database/types.gen";
 
 export function usePinMessage(
   conversationId: string,

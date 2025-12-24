@@ -15,7 +15,7 @@ import {
     LogLevel,
     HubConnectionState,
 } from "@microsoft/signalr";
-import type { MessageDto } from "@/src/api/database/types.gen";
+import type { MessageDto2 as MessageDto } from "@/src/api/database/types.gen";
 
 interface MessageDeletedData {
     messageId: string;

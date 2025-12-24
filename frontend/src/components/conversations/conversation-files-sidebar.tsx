@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { X, Image as ImageIcon, File, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { MessageDto, MessageFileDto } from "@/src/api/database/types.gen";
+import type { MessageDto2 as MessageDto, MessageFileDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { getFileUrlById } from "@/src/lib/file-url";
