@@ -17,15 +17,20 @@ namespace UteLearningHub.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IMediator _mediator;
-    public AuthController(IMediator mediator)
+    private readonly IConfiguration _configuration;
+    private const string RefreshTokenCookieName = "refreshToken";
+
+    public AuthController(IMediator mediator, IConfiguration configuration)
     {
         _mediator = mediator;
+        _configuration = configuration;
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginCommand command)
     {
         var result = await _mediator.Send(command);
+        SetRefreshTokenCookie(result.RefreshToken);
         return Ok(result);
     }
 
@@ -33,13 +38,25 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<LoginWithMicrosoftResponse>> LoginWithMicrosoft([FromBody] LoginWithMicrosoftCommand command)
     {
         var result = await _mediator.Send(command);
+        SetRefreshTokenCookie(result.RefreshToken);
         return Ok(result);
     }
 
     [HttpPost("refresh-token")]
-    public async Task<ActionResult<RefreshTokenResponse>> RefreshToken([FromBody] RefreshTokenCommand command)
+    public async Task<ActionResult<RefreshTokenResponse>> RefreshToken()
     {
+        // Read refresh token from httpOnly cookie
+        var refreshToken = Request.Cookies[RefreshTokenCookieName];
+        if (string.IsNullOrEmpty(refreshToken))
+        {
+            return Unauthorized(new { message = "Refresh token not found" });
+        }
+
+        var command = new RefreshTokenCommand { RefreshToken = refreshToken };
         var result = await _mediator.Send(command);
+        
+        // Set new refresh token in cookie
+        SetRefreshTokenCookie(result.RefreshToken);
         return Ok(result);
     }
 
@@ -49,13 +66,15 @@ public class AuthController : ControllerBase
     {
         var command = new LogoutCommand();
         await _mediator.Send(command);
+        
+        // Clear refresh token cookie
+        ClearRefreshTokenCookie();
         return NoContent();
     }
 
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordCommand command)
     {
-        // Luôn trả về success để không leak thông tin về user tồn tại hay không
         await _mediator.Send(command);
         return Ok(new { message = "Nếu email tồn tại, bạn sẽ nhận được email hướng dẫn đặt lại mật khẩu." });
     }
@@ -81,5 +100,33 @@ public class AuthController : ControllerBase
     {
         await _mediator.Send(command);
         return NoContent();
+    }
+
+    // ============ Cookie Helpers ============
+
+    private void SetRefreshTokenCookie(string refreshToken)
+    {
+        var expiryDays = _configuration.GetValue<int>("Jwt:RefreshTokenExpiryDays", 7);
+        
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,  
+            SameSite = SameSiteMode.None,  
+            Expires = DateTimeOffset.UtcNow.AddDays(expiryDays),
+            Path = "/" 
+        };
+        Response.Cookies.Append(RefreshTokenCookieName, refreshToken, cookieOptions);
+    }
+
+    private void ClearRefreshTokenCookie()
+    {
+        Response.Cookies.Delete(RefreshTokenCookieName, new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.None,
+            Path = "/"
+        });
     }
 }

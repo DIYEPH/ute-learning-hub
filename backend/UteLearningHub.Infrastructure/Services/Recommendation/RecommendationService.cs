@@ -121,5 +121,83 @@ public class RecommendationService : IRecommendationService
         public float Similarity { get; set; }
         public int Rank { get; set; }
     }
-}
 
+    // ===== Similar Users =====
+
+    public async Task<SimilarUsersResponse> GetSimilarUsersAsync(
+        float[] convVector,
+        IReadOnlyList<UserVectorData> userVectors,
+        int topK = 10,
+        float minScore = 0.3f,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var request = new SimilarUsersRequestDto
+            {
+                ConvVector = convVector,
+                UserVectors = userVectors.Select(uv => new UserVectorDto
+                {
+                    Id = uv.Id.ToString(),
+                    Vector = uv.Vector
+                }).ToList(),
+                TopK = topK,
+                MinScore = minScore
+            };
+
+            _logger.LogInformation("Calling AI /similar/users with {Count} users", userVectors.Count);
+
+            var response = await _httpClient.PostAsJsonAsync("/similar/users", request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<SimilarUsersResponseDto>(
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
+                cancellationToken);
+
+            if (result == null)
+            {
+                return new SimilarUsersResponse(Array.Empty<SimilarUserItem>(), 0, 0);
+            }
+
+            var users = result.Users?.Select(u => new SimilarUserItem(
+                Guid.Parse(u.UserId),
+                u.Similarity,
+                u.Rank)).ToList() ?? [];
+
+            return new SimilarUsersResponse(users, result.TotalProcessed, result.ProcessingTimeMs);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "AI similar users service failed");
+            return new SimilarUsersResponse(Array.Empty<SimilarUserItem>(), 0, 0);
+        }
+    }
+
+    private record SimilarUsersRequestDto
+    {
+        public float[] ConvVector { get; set; } = [];
+        public List<UserVectorDto> UserVectors { get; set; } = [];
+        public int TopK { get; set; } = 10;
+        public float MinScore { get; set; } = 0.3f;
+    }
+
+    private record UserVectorDto
+    {
+        public string Id { get; set; } = "";
+        public float[] Vector { get; set; } = [];
+    }
+
+    private record SimilarUsersResponseDto
+    {
+        public List<SimilarUserItemDto>? Users { get; set; }
+        public int TotalProcessed { get; set; }
+        public double ProcessingTimeMs { get; set; }
+    }
+
+    private record SimilarUserItemDto
+    {
+        public string UserId { get; set; } = "";
+        public float Similarity { get; set; }
+        public int Rank { get; set; }
+    }
+}

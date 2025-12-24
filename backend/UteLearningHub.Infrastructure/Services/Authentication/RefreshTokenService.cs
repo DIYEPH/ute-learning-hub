@@ -52,13 +52,27 @@ public class RefreshTokenService : IRefreshTokenService
             if (tokensToDelete.Any())
             {
                 _dbContext.UserTokens.RemoveRange(tokensToDelete);
-                await _dbContext.SaveChangesAsync(cancellationToken);
+                try
+                {
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    // Token was already deleted by another request, ignore
+                }
             }
         }
         else
         {
             var tokenKey = $"{RefreshTokenPurpose}_{sessionId}";
-            await _userManager.RemoveAuthenticationTokenAsync(user, RefreshTokenProvider, tokenKey);
+            try
+            {
+                await _userManager.RemoveAuthenticationTokenAsync(user, RefreshTokenProvider, tokenKey);
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                // Token was already deleted or doesn't exist, ignore
+            }
         }
     }
 

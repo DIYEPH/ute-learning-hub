@@ -74,7 +74,14 @@ public class GetHomepageHandler : IRequestHandler<GetHomepageQuery, HomepageDto>
             .Where(d => d != null)
             .ToList()!;
 
-        // 3. Top 5 subjects by document count
+        // 3. Most viewed 12 documents (by total view count of all files)
+        var mostViewedDocs = await baseQuery
+            .OrderByDescending(d => d.DocumentFiles.Where(f => !f.IsDeleted).Sum(f => f.ViewCount))
+            .Take(12)
+            .Select(d => MapToDocumentDto(d))
+            .ToListAsync(cancellationToken);
+
+        // 4. Top 5 subjects by document count
         var topSubjectIds = await baseQuery
             .Where(d => d.SubjectId != null)
             .GroupBy(d => d.SubjectId)
@@ -115,6 +122,7 @@ public class GetHomepageHandler : IRequestHandler<GetHomepageQuery, HomepageDto>
         {
             LatestDocuments = latestDocs,
             PopularDocuments = popularDocs,
+            MostViewedDocuments = mostViewedDocs,
             TopSubjects = topSubjects
         };
     }
@@ -162,6 +170,9 @@ public class GetHomepageHandler : IRequestHandler<GetHomepageQuery, HomepageDto>
         FileCount = d.DocumentFiles.Count(f => !f.IsDeleted),
         ThumbnailFileId = d.CoverFileId,
         CommentCount = d.DocumentFiles.Where(f => !f.IsDeleted).Sum(f => f.Comments.Count(c => !c.IsDeleted)),
+        TotalViewCount = d.DocumentFiles.Where(f => !f.IsDeleted).Sum(f => f.ViewCount),
+        UsefulCount = d.Reviews.Count(r => r.DocumentReviewType == DocumentReviewType.Useful),
+        NotUsefulCount = d.Reviews.Count(r => r.DocumentReviewType == DocumentReviewType.NotUseful),
         CreatedById = d.CreatedById,
         CreatedAt = d.CreatedAt
     };

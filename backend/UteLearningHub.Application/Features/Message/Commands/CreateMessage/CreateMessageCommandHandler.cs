@@ -19,6 +19,7 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IMessageQueueProducer _messageQueueProducer;
+    private readonly IMessageHubService _messageHubService;
 
     public CreateMessageCommandHandler(
         IMessageRepository messageRepository,
@@ -27,7 +28,8 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider,
-        IMessageQueueProducer messageQueueProducer)
+        IMessageQueueProducer messageQueueProducer,
+        IMessageHubService messageHubService)
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
@@ -36,6 +38,7 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
         _messageQueueProducer = messageQueueProducer;
+        _messageHubService = messageHubService;
     }
 
     public async Task<MessageDto> Handle(CreateMessageCommand request, CancellationToken cancellationToken)
@@ -149,7 +152,9 @@ public class CreateMessageCommandHandler : IRequestHandler<CreateMessageCommand,
             UpdatedAt = createdMessage.UpdatedAt
         };
 
+        // Broadcast via Kafka (if enabled) AND via SignalR directly
         await _messageQueueProducer.PublishMessageCreatedAsync(messageDto, cancellationToken);
+        await _messageHubService.BroadcastMessageCreatedAsync(messageDto, cancellationToken);
 
         return messageDto;
     }

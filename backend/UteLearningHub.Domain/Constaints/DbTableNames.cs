@@ -39,4 +39,5 @@ public static class DbTableNames
     public const string DocumentAuthor = "TaiLieu_TacGia";
     public const string UserDocumentProgress = "LichSuDocTaiLieu";
     public const string SystemSetting = "CaiDatHeThong";
+    public const string ConversationInvitation = "LoiMoiVaoNhom";
 }

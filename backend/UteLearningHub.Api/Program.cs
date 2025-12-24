@@ -57,11 +57,12 @@ services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:3000",
-                "https://localhost:3000"
+                "https://localhost:3000",
+                "https://localhost:3001"  
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials(); // Required for SignalR
+            .AllowCredentials(); // Required for SignalR and cookies
     });
 });
 services.AddOpenApi(options =>

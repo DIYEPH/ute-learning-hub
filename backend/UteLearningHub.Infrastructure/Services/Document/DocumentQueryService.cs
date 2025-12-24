@@ -81,11 +81,13 @@ public class DocumentQueryService : IDocumentQueryService
                         ReviewNote = df.ReviewNote,
                         CommentCount = df.Comments.Count(c => !c.IsDeleted),
                         UsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.Useful),
-                        NotUsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.NotUseful)
+                        NotUsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.NotUseful),
+                        ViewCount = df.ViewCount
                     }).ToList(),
                 UsefulCount = d.Reviews.Count(r => r.DocumentReviewType == DocumentReviewType.Useful),
                 NotUsefulCount = d.Reviews.Count(r => r.DocumentReviewType == DocumentReviewType.NotUseful),
                 CommentCount = d.DocumentFiles.Where(df => !df.IsDeleted).Sum(df => df.Comments.Count(c => !c.IsDeleted)),
+                TotalViewCount = d.DocumentFiles.Where(df => !df.IsDeleted).Sum(df => df.ViewCount),
                 CreatedById = d.CreatedById,
                 CreatedByName = _dbContext.Users.Where(u => u.Id == d.CreatedById).Select(u => u.FullName ?? u.UserName).FirstOrDefault(),
                 CreatedByAvatarUrl = _dbContext.Users.Where(u => u.Id == d.CreatedById).Select(u => u.AvatarUrl).FirstOrDefault(),

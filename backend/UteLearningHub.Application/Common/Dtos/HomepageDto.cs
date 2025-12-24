@@ -4,6 +4,7 @@ public record HomepageDto
 {
     public IList<DocumentDto> LatestDocuments { get; init; } = [];
     public IList<DocumentDto> PopularDocuments { get; init; } = [];
+    public IList<DocumentDto> MostViewedDocuments { get; init; } = [];
     public IList<SubjectWithDocsDto> TopSubjects { get; init; } = [];
 }
 

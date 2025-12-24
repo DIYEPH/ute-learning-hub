@@ -4,14 +4,19 @@ using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Conversation.Commands.CreateConversation;
 using UteLearningHub.Application.Features.Conversation.Commands.DeleteConversation;
+using UteLearningHub.Application.Features.Conversation.Commands.GetOrCreateDM;
 using UteLearningHub.Application.Features.Conversation.Commands.JoinConversation;
 using UteLearningHub.Application.Features.Conversation.Commands.LeaveConversation;
+using UteLearningHub.Application.Features.Conversation.Commands.RespondToInvitation;
+using UteLearningHub.Application.Features.Conversation.Commands.SendInvitation;
 using UteLearningHub.Application.Features.Conversation.Commands.UpdateConversation;
 using UteLearningHub.Application.Features.Conversation.Commands.UpdateMemberRole;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversationById;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversationRecommendations;
 using UteLearningHub.Application.Features.Conversation.Queries.GetConversations;
+using UteLearningHub.Application.Features.Conversation.Queries.GetMyInvitations;
 using UteLearningHub.Application.Features.Conversation.Queries.GetOnlineMembers;
+using UteLearningHub.Application.Features.Conversation.Queries.GetSuggestedUsers;
 
 namespace UteLearningHub.Api.Controllers;
 
@@ -119,4 +124,83 @@ public class ConversationController : ControllerBase
         var result = await _mediator.Send(query);
         return Ok(result);
     }
+    [HttpGet("{id}/suggested-users")]
+    [Authorize]
+    public async Task<ActionResult<GetSuggestedUsersResponse>> GetSuggestedUsers(
+        Guid id,
+        [FromQuery] int? topK,
+        [FromQuery] float? minScore)
+    {
+        var query = new GetSuggestedUsersQuery
+        {
+            ConversationId = id,
+            TopK = topK ?? 10,
+            MinScore = minScore ?? 0.3f
+        };
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("my-invitations")]
+    [Authorize]
+    public async Task<ActionResult<PagedResponse<InvitationDto>>> GetMyInvitations([FromQuery] GetMyInvitationsQuery query)
+    {
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpPost("{id}/invitations")]
+    [Authorize]
+    public async Task<ActionResult<SendInvitationResponse>> SendInvitation(
+        Guid id,
+        [FromBody] SendInvitationRequest request)
+    {
+        var command = new SendInvitationCommand
+        {
+            ConversationId = id,
+            InvitedUserId = request.UserId,
+            Message = request.Message
+        };
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpPost("invitations/{invitationId}/respond")]
+    [Authorize]
+    public async Task<IActionResult> RespondToInvitation(
+        Guid invitationId,
+        [FromBody] RespondToInvitationRequest request)
+    {
+        var command = new RespondToInvitationCommand
+        {
+            InvitationId = invitationId,
+            Accept = request.Accept,
+            Note = request.Note
+        };
+        await _mediator.Send(command);
+        return NoContent();
+    }
+
+    // ====== DIRECT MESSAGE ENDPOINT ======
+
+    /// <summary>Tìm DM hiện có hoặc tạo mới với tin nhắn đầu tiên</summary>
+    [HttpPost("dm/{userId}")]
+    [Authorize]
+    public async Task<ActionResult<GetOrCreateDMResponse>> GetOrCreateDM(
+        Guid userId,
+        [FromBody] StartDMRequest? request = null)
+    {
+        var command = new GetOrCreateDMCommand
+        {
+            TargetUserId = userId,
+            FirstMessage = request?.Message
+        };
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
 }
+
+public record SendInvitationRequest(Guid UserId, string? Message);
+public record RespondToInvitationRequest(bool Accept, string? Note);
+public record StartDMRequest(string? Message);
+

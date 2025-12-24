@@ -74,4 +74,21 @@ public class ConversationRepository : Repository<Conversation, Guid>, IConversat
     {
         await _dbContext.Set<ConversationJoinRequest>().AddAsync(joinRequest, cancellationToken);
     }
+
+    public IQueryable<ConversationInvitation> GetInvitationsQueryable()
+    {
+        return _dbContext.ConversationInvitations;
+    }
+
+    public async Task AddInvitationAsync(ConversationInvitation invitation, CancellationToken cancellationToken = default)
+    {
+        await _dbContext.ConversationInvitations.AddAsync(invitation, cancellationToken);
+    }
+
+    public async Task<ConversationInvitation?> GetInvitationByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.ConversationInvitations
+            .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted, cancellationToken);
+    }
 }
+

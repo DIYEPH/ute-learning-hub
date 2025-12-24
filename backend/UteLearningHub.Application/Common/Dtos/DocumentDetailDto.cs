@@ -17,6 +17,7 @@ public record DocumentDetailDto
     public int CommentCount { get; init; }
     public int UsefulCount { get; init; }
     public int NotUsefulCount { get; init; }
+    public int TotalViewCount { get; init; }  
     public Guid CreatedById { get; init; }
     public string? CreatedByName { get; init; }
     public string? CreatedByAvatarUrl { get; init; }
@@ -45,6 +46,7 @@ public record DocumentFileDto
     public int CommentCount { get; init; }
     public int UsefulCount { get; init; }
     public int NotUsefulCount { get; init; }
+    public int ViewCount { get; init; }  
 
     // Progress tracking
     public DocumentProgressDto? Progress { get; init; }

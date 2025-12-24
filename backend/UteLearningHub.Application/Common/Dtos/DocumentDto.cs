@@ -17,6 +17,7 @@ namespace UteLearningHub.Application.Common.Dtos
         public int CommentCount { get; init; }
         public int UsefulCount { get; init; }
         public int NotUsefulCount { get; init; }
+        public int TotalViewCount { get; init; }  
         public Guid CreatedById { get; init; }
         public DateTimeOffset CreatedAt { get; init; }
     }

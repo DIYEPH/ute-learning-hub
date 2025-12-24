@@ -18,6 +18,7 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
     private readonly IIdentityService _identityService;
     private readonly IConversationSystemMessageService _systemMessageService;
     private readonly IMessageQueueProducer _messageQueueProducer;
+    private readonly IMessageHubService _messageHubService;
 
     public PinMessageCommandHandler(
         IMessageRepository messageRepository,
@@ -26,7 +27,8 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
         IDateTimeProvider dateTimeProvider,
         IIdentityService identityService,
         IConversationSystemMessageService systemMessageService,
-        IMessageQueueProducer messageQueueProducer)
+        IMessageQueueProducer messageQueueProducer,
+        IMessageHubService messageHubService)
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
@@ -35,6 +37,7 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
         _identityService = identityService;
         _systemMessageService = systemMessageService;
         _messageQueueProducer = messageQueueProducer;
+        _messageHubService = messageHubService;
     }
 
     public async Task<Unit> Handle(PinMessageCommand request, CancellationToken cancellationToken)
@@ -141,10 +144,18 @@ public class PinMessageCommandHandler : IRequestHandler<PinMessageCommand, Unit>
                 }
                 catch
                 {
-                    // Log error nhưng không throw để không ảnh hưởng đến response
-                    // Logger có thể được inject nếu cần
                 }
             }, cancellationToken);
+
+            // Broadcast directly via SignalR
+            if (request.IsPined)
+            {
+                await _messageHubService.BroadcastMessagePinnedAsync(messageDto, cancellationToken);
+            }
+            else
+            {
+                await _messageHubService.BroadcastMessageUnpinnedAsync(messageDto, cancellationToken);
+            }
         }
 
         return Unit.Value;

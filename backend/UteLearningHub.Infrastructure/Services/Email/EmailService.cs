@@ -145,7 +145,7 @@ public class EmailService : IEmailService
         </div>
         <div class='content'>
             <h2>Chào mừng, {userName}!</h2>
-            <p>Cảm ơn bạn đã tham gia UTE Learning Hub - nền tảng học tập và chia sẻ tài liệu của sinh viên Đại học Sư phạm Kỹ thuật TP.HCM.</p>
+            <p>Cảm ơn bạn đã tham gia UTE Learning Hub - nền tảng học tập và chia sẻ tài liệu của sinh viên Đại học Sư phạm Kỹ thuật Đà Nẵng.</p>
             <p>Bạn có thể:</p>
             <ul>
                 <li>1. Tìm kiếm và tải xuống tài liệu học tập</li>

@@ -15,19 +15,22 @@ public class ConversationSystemMessageService : IConversationSystemMessageServic
     private readonly IIdentityService _identityService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IMessageQueueProducer _messageQueueProducer;
+    private readonly IMessageHubService _messageHubService;
 
     public ConversationSystemMessageService(
         IMessageRepository messageRepository,
         IConversationRepository conversationRepository,
         IIdentityService identityService,
         IDateTimeProvider dateTimeProvider,
-        IMessageQueueProducer messageQueueProducer)
+        IMessageQueueProducer messageQueueProducer,
+        IMessageHubService messageHubService)
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
         _identityService = identityService;
         _dateTimeProvider = dateTimeProvider;
         _messageQueueProducer = messageQueueProducer;
+        _messageHubService = messageHubService;
     }
 
     public async Task<MessageDto> CreateAsync(
@@ -87,6 +90,7 @@ public class ConversationSystemMessageService : IConversationSystemMessageServic
         };
 
         await _messageQueueProducer.PublishMessageCreatedAsync(messageDto, cancellationToken);
+        await _messageHubService.BroadcastMessageCreatedAsync(messageDto, cancellationToken);
 
         return messageDto;
     }

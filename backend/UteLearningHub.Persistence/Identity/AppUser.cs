@@ -25,6 +25,8 @@ public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
     public ICollection<Conversation> Conversations { get; set; } = [];
     public ICollection<ConversationMember> ConversationMembers { get; set; } = [];
     public ICollection<ConversationJoinRequest> SentJoinRequests { get; set; } = [];
+    public ICollection<ConversationInvitation> SentInvitations { get; set; } = [];
+    public ICollection<ConversationInvitation> ReceivedInvitations { get; set; } = [];
     public ICollection<Document> Documents { get; set; } = [];
     public ICollection<DocumentReview> DocumentReviews { get; set; } = [];
     public ICollection<Comment> Comments { get; set; } = [];

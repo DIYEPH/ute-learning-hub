@@ -88,7 +88,8 @@ public static class InfrastructureExtensions
 
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<ICommentService, CommentService>();
-        services.AddSingleton<IMessageQueueProducer, KafkaMessageProducer>();
+        // Change Kafka
+        services.AddSingleton<IMessageQueueProducer, NoOpMessageProducer>();
         services.AddSingleton<IConnectionTracker, ConnectionTrackerService>();
         services.AddScoped<IUserConversationService, UserConversationService>();
         services.AddScoped<IConversationSystemMessageService, ConversationSystemMessageService>();

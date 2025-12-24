@@ -150,6 +150,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                 FileCount = d.DocumentFiles.Count,
                 ThumbnailFileId = d.CoverFileId,
                 CommentCount = d.DocumentFiles.SelectMany(df => df.Comments).Count(),
+                TotalViewCount = d.DocumentFiles.Where(df => !df.IsDeleted).Sum(df => df.ViewCount),
                 CreatedById = d.CreatedById,
                 CreatedAt = d.CreatedAt
             })
@@ -168,6 +169,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
             FileCount = d.FileCount,
             ThumbnailFileId = d.ThumbnailFileId,
             CommentCount = d.CommentCount,
+            TotalViewCount = d.TotalViewCount,
             UsefulCount = reviewStatsDict.TryGetValue(d.Id, out var stats) ? stats.UsefulCount : 0,
             NotUsefulCount = reviewStatsDict.TryGetValue(d.Id, out var stats2) ? stats2.NotUsefulCount : 0,
             CreatedById = d.CreatedById,

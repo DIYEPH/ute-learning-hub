@@ -6,6 +6,7 @@ using UteLearningHub.Application.Features.Document.Commands.AddDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
+using UteLearningHub.Application.Features.Document.Commands.IncrementViewCount;
 using UteLearningHub.Application.Features.Document.Commands.ResubmitDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentFile;
@@ -174,5 +175,14 @@ namespace UteLearningHub.Api.Controllers
             await _mediator.Send(command);
             return NoContent();
         }
+
+        [HttpPost("files/{fileId}/view")]
+        public async Task<IActionResult> IncrementViewCount(Guid fileId)
+        {
+            var command = new IncrementViewCountCommand { DocumentFileId = fileId };
+            await _mediator.Send(command);
+            return NoContent();
+        }
     }
 }
+

@@ -16,6 +16,7 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
     private readonly ICurrentUserService _currentUserService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IMessageQueueProducer _messageQueueProducer;
+    private readonly IMessageHubService _messageHubService;
 
     public UpdateMessageCommandHandler(
         IMessageRepository messageRepository,
@@ -23,7 +24,8 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
         IIdentityService identityService,
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider,
-        IMessageQueueProducer messageQueueProducer)
+        IMessageQueueProducer messageQueueProducer,
+        IMessageHubService messageHubService)
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
@@ -31,6 +33,7 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
         _currentUserService = currentUserService;
         _dateTimeProvider = dateTimeProvider;
         _messageQueueProducer = messageQueueProducer;
+        _messageHubService = messageHubService;
     }
 
     public async Task<MessageDto> Handle(UpdateMessageCommand request, CancellationToken cancellationToken)
@@ -123,6 +126,9 @@ public class UpdateMessageCommandHandler : IRequestHandler<UpdateMessageCommand,
             {
             }
         }, cancellationToken);
+
+        // Broadcast directly via SignalR
+        await _messageHubService.BroadcastMessageUpdatedAsync(messageDto, cancellationToken);
 
         return messageDto;
     }

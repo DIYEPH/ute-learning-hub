@@ -43,6 +43,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public virtual DbSet<DomainType> Types { get; set; }
     public virtual DbSet<UserTrustHistory> UserTrustHistories { get; set; }
     public virtual DbSet<SystemSetting> SystemSettings { get; set; }
+    public virtual DbSet<ConversationInvitation> ConversationInvitations { get; set; }
 
     public async Task<IDisposable> BeginTransactionAsync(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted, CancellationToken cancellationToken = default)
     {

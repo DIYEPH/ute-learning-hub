@@ -1017,14 +1017,6 @@ public class DataSeeder
             // Tác giả Việt Nam - Giáo dục & Công nghệ
             new() { Id = Guid.NewGuid(), FullName = "GS.TS Nguyễn Thanh Thủy", Description = "Chuyên gia Trí tuệ nhân tạo, ĐH Bách Khoa Hà Nội", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },
             new() { Id = Guid.NewGuid(), FullName = "PGS.TS Trần Văn Hùng", Description = "Giảng viên Công nghệ thông tin, ĐH Sư phạm Kỹ thuật TP.HCM", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },
-            new() { Id = Guid.NewGuid(), FullName = "TS. Lê Hoàng Tuấn", Description = "Chuyên gia Machine Learning và Data Science", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },
-            new() { Id = Guid.NewGuid(), FullName = "ThS. Phạm Minh Đức", Description = "Giảng viên Lập trình Web, Khoa Công nghệ Số", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },
-            new() { Id = Guid.NewGuid(), FullName = "TS. Nguyễn Thị Hồng Nhung", Description = "Chuyên gia Cơ sở dữ liệu và Big Data", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },
-            new() { Id = Guid.NewGuid(), FullName = "PGS.TS Võ Văn Hoàng", Description = "Giảng viên Kỹ thuật điện - Điện tử", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },
-            new() { Id = Guid.NewGuid(), FullName = "ThS. Trần Quang Huy", Description = "Chuyên gia DevOps và Cloud Computing", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },
-            new() { Id = Guid.NewGuid(), FullName = "TS. Lê Văn Thành", Description = "Giảng viên Cơ khí - Tự động hóa", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },
-            new() { Id = Guid.NewGuid(), FullName = "ThS. Nguyễn Hoàng Nam", Description = "Chuyên gia Mobile Development", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },
-            new() { Id = Guid.NewGuid(), FullName = "PGS.TS Đặng Thị Mai", Description = "Giảng viên Toán ứng dụng", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },
 
             // Tác giả Quốc tế - Công nghệ
             new() { Id = Guid.NewGuid(), FullName = "Robert C. Martin", Description = "Tác giả 'Clean Code', Chuyên gia Software Craftsmanship", CreatedById = adminId, CreatedAt = DateTimeOffset.UtcNow, Status = ContentStatus.Approved },

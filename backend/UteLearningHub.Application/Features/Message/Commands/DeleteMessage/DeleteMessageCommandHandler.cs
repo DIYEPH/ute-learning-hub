@@ -17,6 +17,7 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
     private readonly IUserService _userService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IMessageQueueProducer _messageQueueProducer;
+    private readonly IMessageHubService _messageHubService;
 
     public DeleteMessageCommandHandler(
         IMessageRepository messageRepository,
@@ -24,7 +25,8 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
         ICurrentUserService currentUserService,
         IUserService userService,
         IDateTimeProvider dateTimeProvider,
-        IMessageQueueProducer messageQueueProducer)
+        IMessageQueueProducer messageQueueProducer,
+        IMessageHubService messageHubService)
     {
         _messageRepository = messageRepository;
         _conversationRepository = conversationRepository;
@@ -32,6 +34,7 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
         _userService = userService;
         _dateTimeProvider = dateTimeProvider;
         _messageQueueProducer = messageQueueProducer;
+        _messageHubService = messageHubService;
     }
 
     public async Task<Unit> Handle(DeleteMessageCommand request, CancellationToken cancellationToken)
@@ -95,9 +98,11 @@ public class DeleteMessageCommandHandler : IRequestHandler<DeleteMessageCommand,
             catch
             {
                 // Log error nhưng không throw để không ảnh hưởng đến response
-                // Logger có thể được inject nếu cần
             }
         }, cancellationToken);
+
+        // Broadcast directly via SignalR
+        await _messageHubService.BroadcastMessageDeletedAsync(messageId, conversationId, cancellationToken);
 
         return Unit.Value;
     }
