@@ -2,12 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import { BaseTable, BaseTableColumn } from "@/src/components/admin/tables/base-table";
-import type { SubjectDto2 } from "@/src/api/database/types.gen";
+import { Badge } from "@/src/components/ui/badge";
+import { FileText } from "lucide-react";
+import type { SubjectDetailDto } from "@/src/api/database/types.gen";
 
 interface SubjectTableProps {
-  subjects: SubjectDto2[];
-  onEdit?: (subject: SubjectDto2) => void;
-  onDelete?: (subject: SubjectDto2) => void;
+  subjects: SubjectDetailDto[];
+  onEdit?: (subject: SubjectDetailDto) => void;
+  onDelete?: (subject: SubjectDetailDto) => void;
   onBulkDelete?: (ids: string[]) => void | Promise<void>;
   loading?: boolean;
   onSort?: (sortKey: string, direction: "asc" | "desc" | null) => void;
@@ -29,7 +31,7 @@ export function SubjectTable({
 }: SubjectTableProps) {
   const t = useTranslations("admin.subjects");
 
-  const columns: BaseTableColumn<SubjectDto2>[] = [
+  const columns: BaseTableColumn<SubjectDetailDto>[] = [
     {
       key: "subjectName",
       header: t("table.subjectName"),
@@ -57,23 +59,35 @@ export function SubjectTable({
         <div className="text-sm text-foreground">
           {subject.majors && subject.majors.length > 0 ? (
             <div className="flex flex-wrap gap-1">
-              {subject.majors.map((major, index) => (
+              {subject.majors.map((major: { id?: string; majorName?: string; majorCode?: string; facultyCode?: string | null }, index: number) => (
                 <span
                   key={major.id || index}
-                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-secondary text-secondary-foreground"
                 >
                   {major.majorName}
-                  {major.faculty && (
-                    <span className="ml-1 text-slate-500 dark:text-slate-400">
-                      ({major.faculty.facultyCode})
+                  {major.facultyCode && (
+                    <span className="ml-1 text-muted-foreground">
+                      ({major.facultyCode})
                     </span>
                   )}
                 </span>
               ))}
             </div>
           ) : (
-            <span className="text-slate-400">-</span>
+            <span className="text-muted-foreground">-</span>
           )}
+        </div>
+      ),
+    },
+    {
+      key: "documentCount",
+      header: t("table.documentCount"),
+      className: "min-w-[100px]",
+      sortable: true,
+      render: (subject) => (
+        <div className="flex items-center gap-1 text-sm">
+          <FileText className="h-4 w-4 text-muted-foreground" />
+          <Badge variant="secondary">{subject.documentCount ?? 0}</Badge>
         </div>
       ),
     },

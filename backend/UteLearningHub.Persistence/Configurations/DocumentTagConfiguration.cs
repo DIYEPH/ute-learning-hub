@@ -25,5 +25,8 @@ public class DocumentTagConfiguration : IEntityTypeConfiguration<DocumentTag>
             .WithMany(u => u.DocumentTags)
             .HasForeignKey(u => u.DocumentId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Query filter: exclude tags of deleted documents
+        builder.HasQueryFilter(u => !u.Document.IsDeleted);
     }
 }

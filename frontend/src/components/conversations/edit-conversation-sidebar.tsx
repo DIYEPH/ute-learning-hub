@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { deleteApiConversationById, putApiConversationById, getApiTag, postApiConversationByIdLeave } from "@/src/api/database/sdk.gen";
-import type { UpdateConversationCommand, SubjectDto2, TagDto, ConversationDetailDto } from "@/src/api/database/types.gen";
+import type { UpdateConversationCommandRequest, SubjectDto2, TagDto, ConversationDetailDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
@@ -39,8 +39,7 @@ export function EditConversationSidebar({
   const isOwnerOrDeputy = currentUserMember?.roleType === 2 || currentUserMember?.roleType === 1;
   const isOwner = currentUserMember?.roleType === 2;
 
-  const [formData, setFormData] = useState<UpdateConversationCommand>({
-    id: conversation?.id || undefined,
+  const [formData, setFormData] = useState<UpdateConversationCommandRequest>({
     conversationName: conversation?.conversationName || null,
     tagIds: null,
     tagNames: null,
@@ -63,7 +62,6 @@ export function EditConversationSidebar({
     if (open && conversation) {
       const currentTagIds = conversation.tags?.map((t) => t.id || "").filter(Boolean) || [];
       setFormData({
-        id: conversation.id || undefined,
         conversationName: conversation.conversationName || null,
         tagIds: null,
         tagNames: null,
@@ -125,8 +123,7 @@ export function EditConversationSidebar({
     try {
       const tagNamesToSubmit = [...(formData.tagNames || [])];
 
-      const submitData: UpdateConversationCommand = {
-        id: conversation.id,
+      const submitData: UpdateConversationCommandRequest = {
         conversationName: formData.conversationName || null,
         tagIds: selectedTagIds.length > 0 ? selectedTagIds : null,
         tagNames: tagNamesToSubmit.length > 0 ? tagNamesToSubmit : null,
@@ -227,14 +224,14 @@ export function EditConversationSidebar({
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed top-0 right-0 h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 z-50 transition-transform duration-300 ease-in-out",
+          "fixed top-0 right-0 h-full bg-card border-l border-border z-50 transition-transform duration-300 ease-in-out",
           "w-full md:w-96",
           open ? "translate-x-0" : "translate-x-full"
         )}
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 flex-shrink-0">
+          <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
             <h3 className="text-lg font-semibold text-foreground">
               {isOwnerOrDeputy ? "Chỉnh sửa cuộc trò chuyện" : "Thông tin nhóm"}
             </h3>
@@ -264,17 +261,17 @@ export function EditConversationSidebar({
                     </div>
                   )}
                   <div>
-                    <label className="text-sm font-medium text-slate-500">Tên nhóm</label>
+                    <label className="text-sm font-medium text-muted-foreground">Tên nhóm</label>
                     <p className="text-foreground">{conversation?.conversationName || "Cuộc trò chuyện"}</p>
                   </div>
                   {conversation?.tags && conversation.tags.length > 0 && (
                     <div>
-                      <label className="text-sm font-medium text-slate-500">Chủ đề</label>
+                      <label className="text-sm font-medium text-muted-foreground">Chủ đề</label>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {conversation.tags.map((tag) => (
                           <span
                             key={tag.id}
-                            className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                            className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
                           >
                             {tag.tagName}
                           </span>
@@ -284,11 +281,11 @@ export function EditConversationSidebar({
                   )}
                   {conversation?.subject && (
                     <div>
-                      <label className="text-sm font-medium text-slate-500">Môn học</label>
+                      <label className="text-sm font-medium text-muted-foreground">Môn học</label>
                       <p className="text-foreground">{conversation.subject.subjectName}</p>
                     </div>
                   )}
-                  <p className="text-xs text-slate-400 italic">
+                  <p className="text-xs text-muted-foreground italic">
                     Chỉ nhóm trưởng hoặc nhóm phó mới có thể chỉnh sửa thông tin nhóm.
                   </p>
                 </div>
@@ -340,7 +337,7 @@ export function EditConversationSidebar({
                     />
                     <label
                       htmlFor="edit-avatar"
-                      className={`mt-2 flex items-center gap-2 px-3 py-2 text-sm border-2 border-dashed cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 w-fit ${(loading || !isOwnerOrDeputy) ? "opacity-50 cursor-not-allowed" : ""}`}
+                      className={`mt-2 flex items-center gap-2 px-3 py-2 text-sm border-2 border-dashed cursor-pointer hover:bg-muted w-fit ${(loading || !isOwnerOrDeputy) ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                       <Upload size={14} />
                       <span>{avatarFile ? "Đổi ảnh" : (conversation?.avatarUrl ? "Đổi avatar" : "Chọn avatar")}</span>
@@ -447,7 +444,7 @@ export function EditConversationSidebar({
                           <option value="0">Riêng tư</option>
                           <option value="1">Công khai</option>
                         </select>
-                        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="mt-1 text-xs text-muted-foreground">
                           Riêng tư: Cần yêu cầu tham gia. Công khai: Ai cũng có thể tham gia.
                         </p>
                       </div>
@@ -464,7 +461,7 @@ export function EditConversationSidebar({
                             }))
                           }
                           disabled={loading}
-                          className="h-4 w-4 rounded border-gray-300"
+                          className="h-4 w-4 rounded border-input"
                         />
                         <Label htmlFor="isAllowMemberPin" className="cursor-pointer">
                           Cho phép thành viên ghim tin nhắn
@@ -473,7 +470,7 @@ export function EditConversationSidebar({
                     </>
                   )}
 
-                  <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-700">
+                  <div className="flex gap-2 pt-4 border-t border-border">
                     <Button
                       type="button"
                       variant="outline"
@@ -499,13 +496,13 @@ export function EditConversationSidebar({
 
               {/* Member Management Section */}
               {conversation && (
-                <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700">
+                <div className="pt-4 mt-4 border-t border-border">
                   <MemberManagement conversation={conversation} onSuccess={onSuccess} />
                 </div>
               )}
 
               {/* Leave / Delete Conversation Buttons */}
-              <div className="pt-4 mt-4 border-t border-slate-200 dark:border-slate-700 space-y-2">
+              <div className="pt-4 mt-4 border-t border-border space-y-2">
                 <Button
                   type="button"
                   variant="outline"

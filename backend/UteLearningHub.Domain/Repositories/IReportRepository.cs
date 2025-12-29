@@ -1,4 +1,5 @@
-﻿using UteLearningHub.Domain.Entities;
+﻿using UteLearningHub.Domain.Constaints.Enums;
+using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories.Base;
 
 namespace UteLearningHub.Domain.Repositories;
@@ -10,6 +11,7 @@ public interface IReportRepository : IRepository<Report, Guid>
     Task<IList<Report>> GetRelatedPendingReportsAsync(
         Guid? documentFileId,
         Guid? commentId,
+        ReportReason reason,
         CancellationToken cancellationToken = default);
 
     Task<int> GetDailyInstantApproveCountAsync(Guid userId, DateTimeOffset today, CancellationToken cancellationToken = default);

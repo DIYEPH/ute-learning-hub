@@ -38,9 +38,21 @@ public class EventController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<EventDto>> UpdateEvent(Guid id, [FromBody] UpdateEventCommand command)
+    public async Task<ActionResult<EventDto>> UpdateEvent(Guid id, [FromBody] UpdateEventRequest request)
     {
-        command = command with { Id = id };
+        var command = new UpdateEventCommand
+        {
+            Id = id,
+            Title = request.Title,
+            ShortDescription = request.ShortDescription,
+            Content = request.Content,
+            ImageUrl = request.ImageUrl,
+            RedirectUrl = request.RedirectUrl,
+            StartAt = request.StartAt,
+            EndAt = request.EndAt,
+            IsActive = request.IsActive,
+            Priority = request.Priority
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

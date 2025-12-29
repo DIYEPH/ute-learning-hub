@@ -47,9 +47,14 @@ public class MessageController : ControllerBase
     public async Task<ActionResult<MessageDto>> UpdateMessage(
         Guid conversationId,
         Guid id,
-        [FromBody] UpdateMessageCommand command)
+        [FromBody] UpdateMessageCommandRequest request)
     {
-        command = command with { Id = id, ConversationId = conversationId };
+        var command = new UpdateMessageCommand
+        {
+            Id = id,
+            ConversationId = conversationId,
+            Content = request.Content
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

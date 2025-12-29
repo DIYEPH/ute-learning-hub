@@ -1,39 +1,18 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Domain.Exceptions;
-using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Application.Services.Faculty;
+using UteLearningHub.Application.Services.Identity;
 
 namespace UteLearningHub.Application.Features.Faculty.Queries.GetFacultyById;
 
-public class GetFacultyByIdHandler : IRequestHandler<GetFacultyByIdQuery, FacultyDetailDto>
+public class GetFacultyByIdHandler(ICurrentUserService currentUserService, IFacultyService facultyService) : IRequestHandler<GetFacultyByIdQuery, FacultyDetailDto>
 {
-    private readonly IFacultyRepository _facultyRepository;
+    private readonly IFacultyService _facultyService = facultyService;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public GetFacultyByIdHandler(IFacultyRepository facultyRepository)
+    public async Task<FacultyDetailDto> Handle(GetFacultyByIdQuery request, CancellationToken ct)
     {
-        _facultyRepository = facultyRepository;
-    }
-
-    public async Task<FacultyDetailDto> Handle(GetFacultyByIdQuery request, CancellationToken cancellationToken)
-    {
-        var faculty = await _facultyRepository.GetByIdAsync(request.Id, disableTracking: true, cancellationToken);
-
-        if (faculty == null)
-            throw new NotFoundException($"Faculty with id {request.Id} not found");
-
-        var majorCount = await _facultyRepository.GetQueryableSet()
-            .Where(f => f.Id == request.Id)
-            .Select(f => f.Majors.Count)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return new FacultyDetailDto
-        {
-            Id = faculty.Id,
-            FacultyName = faculty.FacultyName,
-            FacultyCode = faculty.FacultyCode,
-            Logo = faculty.Logo,
-            MajorCount = majorCount
-        };
+        var isAdmin = _currentUserService.IsInRole("Admin");
+        return await _facultyService.GetFacultyByIdAsync(request.Id, isAdmin, ct);
     }
 }

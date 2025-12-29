@@ -17,7 +17,7 @@ import { AdvancedSearchFilter } from "@/src/components/admin/advanced-search-fil
 import type {
   TypeDto,
   CreateTypeCommand,
-  UpdateTypeCommand,
+  UpdateTypeCommandRequest,
 } from "@/src/api/database/types.gen";
 
 export default function TypesManagementPage() {
@@ -71,7 +71,7 @@ export default function TypesManagementPage() {
     loadTypes();
   }, [loadTypes]);
 
-  const handleCreate = async (command: CreateTypeCommand | UpdateTypeCommand) => {
+  const handleCreate = async (command: CreateTypeCommand | UpdateTypeCommandRequest) => {
     setFormLoading(true);
     try {
       await createType(command as CreateTypeCommand);
@@ -86,11 +86,11 @@ export default function TypesManagementPage() {
     }
   };
 
-  const handleEdit = async (command: CreateTypeCommand | UpdateTypeCommand) => {
+  const handleEdit = async (command: CreateTypeCommand | UpdateTypeCommandRequest) => {
     if (!selectedType?.id) return;
     setFormLoading(true);
     try {
-      await updateType(selectedType.id, command as UpdateTypeCommand);
+      await updateType(selectedType.id, command as UpdateTypeCommandRequest);
       await loadTypes();
       setEditModalOpen(false);
       setSelectedType(null);
@@ -249,7 +249,7 @@ export default function TypesManagementPage() {
       )}
 
       {types.length > 0 && (
-        <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+        <div className="mb-2 text-sm text-muted-foreground">
           {t("foundCount", { count: totalCount })}
         </div>
       )}

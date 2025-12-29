@@ -12,7 +12,7 @@ export default function AboutPage() {
                 <p>-<b>Trên 60 điểm</b> -Moderator</p>
             </div>
 
-            <p className="text-xs text-slate-500 mt-6 italic">
+            <p className="text-xs text-muted-foreground mt-6 italic">
                 Upload tài liệu +5đ, được đánh giá hữu ích +1đ, báo cáo đúng +3,2,1đ.
             </p>
         </div>

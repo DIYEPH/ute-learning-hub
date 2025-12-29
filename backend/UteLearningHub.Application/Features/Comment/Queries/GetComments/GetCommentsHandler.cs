@@ -8,7 +8,7 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Comment.Queries.GetComments;
 
-public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedResponse<CommentDto>>
+public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedResponse<CommentDetailDto>>
 {
     private readonly ICommentRepository _commentRepository;
     private readonly ICurrentUserService _currentUserService;
@@ -24,7 +24,7 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
         _commentService = commentService;
     }
 
-    public async Task<PagedResponse<CommentDto>> Handle(GetCommentsQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResponse<CommentDetailDto>> Handle(GetCommentsQuery request, CancellationToken cancellationToken)
     {
         var query = _commentRepository.GetQueryableSet()
             .Include(c => c.DocumentFile)
@@ -50,7 +50,7 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
         var comments = await query
             .Skip(request.Skip)
             .Take(request.Take)
-            .Select(c => new CommentDto
+            .Select(c => new CommentDetailDto
             {
                 Id = c.Id,
                 DocumentId = c.DocumentFile.DocumentId,
@@ -70,7 +70,7 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
         var authorInfo = await _commentService.GetCommentAuthorsAsync(userIds, cancellationToken);
 
         // Map author information to comments
-        var commentDtos = comments.Select(c => new CommentDto
+        var commentDtos = comments.Select(c => new CommentDetailDto
         {
             Id = c.Id,
             DocumentId = c.DocumentId,
@@ -90,7 +90,7 @@ public class GetCommentsHandler : IRequestHandler<GetCommentsQuery, PagedRespons
             UpdatedAt = c.UpdatedAt
         }).ToList();
 
-        return new PagedResponse<CommentDto>
+        return new PagedResponse<CommentDetailDto>
         {
             Items = commentDtos,
             TotalCount = totalCount,

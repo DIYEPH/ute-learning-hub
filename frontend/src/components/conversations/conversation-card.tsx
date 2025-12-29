@@ -93,7 +93,7 @@ export function ConversationCard({
   return (
     <div
       className={cn(
-        " border border-slate-200 bg-white p-4 shadow-sm transition-all hover:shadow-md dark:border-slate-700 dark:bg-slate-900",
+        "border border-border bg-card p-4 shadow-sm transition-all hover:shadow-md",
         isMember && "cursor-pointer"
       )}
       onClick={handleCardClick}
@@ -128,7 +128,7 @@ export function ConversationCard({
                   </span>
                 )}
                 {conversation.subject && (
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                  <span className="text-xs text-muted-foreground">
                     {conversation.subject.subjectName}
                   </span>
                 )}
@@ -141,13 +141,13 @@ export function ConversationCard({
               {conversation.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag.id}
-                  className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                  className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
                 >
                   {tag.tagName}
                 </span>
               ))}
               {conversation.tags.length > 3 && (
-                <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                <span className="text-[10px] font-medium text-muted-foreground">
                   +{conversation.tags.length - 3}
                 </span>
               )}
@@ -155,7 +155,7 @@ export function ConversationCard({
           )}
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground">
               {conversation.memberCount !== undefined && (
                 <div className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
@@ -163,13 +163,13 @@ export function ConversationCard({
                 </div>
               )}
               {similarity !== undefined && similarity > 0 && (
-                <div className="flex items-center gap-1 text-sky-600 dark:text-sky-400 font-medium">
+                <div className="flex items-center gap-1 text-primary font-medium">
                   <Sparkles className="h-3 w-3" />
                   <span>{Math.round(similarity * 100)}% phù hợp</span>
                 </div>
               )}
               {conversation.unreadCount !== undefined && conversation.unreadCount > 0 && (
-                <span className="inline-flex items-center rounded-full bg-sky-500 px-2 py-0.5 text-[10px] font-bold text-white">
+                <span className="inline-flex items-center rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground">
                   {conversation.unreadCount > 99 ? "99+" : conversation.unreadCount} chưa đọc
                 </span>
               )}

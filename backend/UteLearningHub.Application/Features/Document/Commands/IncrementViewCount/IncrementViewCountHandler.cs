@@ -1,28 +1,14 @@
 using MediatR;
-using UteLearningHub.Domain.Exceptions;
-using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Application.Services.Document;
 
 namespace UteLearningHub.Application.Features.Document.Commands.IncrementViewCount;
 
-public class IncrementViewCountHandler : IRequestHandler<IncrementViewCountCommand, Unit>
+public class IncrementViewCountHandler(IDocumentFileService documentFileService) : IRequestHandler<IncrementViewCountCommand>
 {
-    private readonly IDocumentRepository _docRepo;
+    private readonly IDocumentFileService _documentFileService = documentFileService;
 
-    public IncrementViewCountHandler(IDocumentRepository docRepo)
+    public async Task Handle(IncrementViewCountCommand req, CancellationToken ct)
     {
-        _docRepo = docRepo;
-    }
-
-    public async Task<Unit> Handle(IncrementViewCountCommand req, CancellationToken ct)
-    {
-        var docFile = await _docRepo.GetDocumentFileByIdAsync(req.DocumentFileId, disableTracking: false, ct);
-        if (docFile == null)
-            throw new NotFoundException($"DocumentFile with id {req.DocumentFileId} not found");
-
-        docFile.ViewCount++;
-
-        await _docRepo.UnitOfWork.SaveChangesAsync(ct);
-
-        return Unit.Value;
+        await _documentFileService.IncrementViewCountAsync(req.DocumentFileId, ct);
     }
 }

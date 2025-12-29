@@ -30,6 +30,7 @@ interface MessageItemProps {
   onDelete?: (messageId: string) => void;
   onReply?: (message: MessageDto) => void;
   onScrollToMessage?: (messageId: string) => void;
+  compact?: boolean;
 }
 
 export function MessageItem({
@@ -42,6 +43,7 @@ export function MessageItem({
   onDelete,
   onReply,
   onScrollToMessage,
+  compact = false,
 }: MessageItemProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content || "");
@@ -95,11 +97,11 @@ export function MessageItem({
     return (
       <div className="my-2 flex flex-col items-center">
         {formattedDate && (
-          <span className="mb-1 text-[11px] text-slate-400 dark:text-slate-500">
+          <span className="mb-1 text-[11px] text-muted-foreground">
             {formattedDate}
           </span>
         )}
-        <div className="rounded-full bg-slate-100 px-3 py-1 text-[11px] text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+        <div className="rounded-full bg-muted px-3 py-1 text-[11px] text-muted-foreground">
           {systemText}
         </div>
       </div>
@@ -127,8 +129,6 @@ export function MessageItem({
           id: message.id,
         },
         body: {
-          id: message.id,
-          conversationId,
           content: editContent.trim(),
         },
       });
@@ -172,18 +172,19 @@ export function MessageItem({
   return (
     <div
       className={cn(
-        "flex items-end gap-2 group hover:bg-slate-50 dark:hover:bg-slate-800/50  p-1 -m-1 transition-colors",
+        "flex items-end group hover:bg-muted/50 transition-colors",
+        compact ? "gap-1.5 p-0.5 -m-0.5" : "gap-2 p-1 -m-1",
         isOwnMessage && "flex-row-reverse"
       )}
     >
       {/* Avatar - chỉ hiển thị bên trái cho tin nhắn của người khác */}
       {!isOwnMessage && (
-        <Avatar className="h-8 w-8 flex-shrink-0">
+        <Avatar className={cn("flex-shrink-0", compact ? "h-6 w-6" : "h-8 w-8")}>
           <AvatarImage
             src={message.senderAvatarUrl || undefined}
             alt={message.senderName || "User"}
           />
-          <AvatarFallback>
+          <AvatarFallback className={compact ? "text-xs" : ""}>
             {message.senderName?.[0]?.toUpperCase() || "U"}
           </AvatarFallback>
         </Avatar>
@@ -204,7 +205,7 @@ export function MessageItem({
               isOwnMessage ? "justify-end" : "justify-start"
             )}
           >
-            <span className="text-xs text-slate-500 dark:text-slate-400">
+            <span className="text-xs text-muted-foreground">
               {formattedDate}
             </span>
           </div>
@@ -250,10 +251,13 @@ export function MessageItem({
           <>
             <div
               className={cn(
-                " px-4 py-2.5 max-w-[80%] md:max-w-[70%] shadow-sm relative group/message cursor-pointer",
+                "shadow-sm relative group/message cursor-pointer",
+                compact 
+                  ? "px-2.5 py-1.5 max-w-[90%] text-sm" 
+                  : "px-4 py-2.5 max-w-[80%] md:max-w-[70%]",
                 isOwnMessage
-                  ? "bg-sky-500 text-white rounded-br-md"
-                  : "bg-slate-200 dark:bg-slate-700 text-foreground rounded-bl-md"
+                  ? "bg-primary text-primary-foreground rounded-br-md"
+                  : "bg-secondary text-secondary-foreground rounded-bl-md"
               )}
               onClick={handleMessageClick}
             >
@@ -262,8 +266,8 @@ export function MessageItem({
                 <div className={cn(
                   "absolute bottom-2 right-2 flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium z-10",
                   isOwnMessage
-                    ? "bg-white/20 text-white"
-                    : "bg-sky-500/20 text-sky-600 dark:text-sky-400"
+                    ? "bg-primary-foreground/20 text-primary-foreground"
+                    : "bg-primary/20 text-primary"
                 )}>
                   <Pin className="h-3 w-3" />
                 </div>
@@ -278,8 +282,8 @@ export function MessageItem({
                     className={cn(
                       "absolute h-6 w-6 p-0 opacity-0 group-hover/message:opacity-100 transition-opacity z-10",
                       isOwnMessage
-                        ? "top-2 right-2 hover:bg-white/20 text-white"
-                        : "top-2 left-2 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        ? "top-2 right-2 hover:bg-primary-foreground/20 text-primary-foreground"
+                        : "top-2 left-2 hover:bg-muted"
                     )}
                     onClick={(e) => e.stopPropagation()}
                   >
@@ -365,20 +369,20 @@ export function MessageItem({
                   className={cn(
                     "mb-2 flex items-start gap-2  border-l-4 px-2 py-1.5 text-left transition-colors hover:opacity-80",
                     isOwnMessage
-                      ? "border-sky-300 bg-white/10"
-                      : "border-sky-500 bg-slate-100 dark:bg-slate-600"
+                      ? "border-primary-foreground/50 bg-primary-foreground/10"
+                      : "border-primary bg-muted"
                   )}
                 >
                   <div className="flex-1 min-w-0">
                     <div className={cn(
                       "text-xs font-semibold mb-0.5 truncate",
-                      isOwnMessage ? "text-white/90" : "text-slate-700 dark:text-slate-200"
+                      isOwnMessage ? "text-primary-foreground/90" : "text-foreground"
                     )}>
                       {parentMessage.senderName || "Người dùng"}
                     </div>
                     <div className={cn(
                       "text-xs truncate",
-                      isOwnMessage ? "text-white/70" : "text-slate-600 dark:text-slate-300"
+                      isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"
                     )}>
                       {parentMessage.content}
                     </div>
@@ -397,7 +401,7 @@ export function MessageItem({
                   {!isOwnMessage && (
                     <span className={cn(
                       "text-xs font-semibold",
-                      isOwnMessage ? "text-white/90" : "text-foreground/80"
+                      isOwnMessage ? "text-primary-foreground/90" : "text-foreground/80"
                     )}>
                       {message.senderName || "Người dùng"}
                     </span>
@@ -405,7 +409,7 @@ export function MessageItem({
                   {message.isEdit && (
                     <span className={cn(
                       "text-[10px] italic",
-                      isOwnMessage ? "text-white/70" : "text-slate-400"
+                      isOwnMessage ? "text-primary-foreground/70" : "text-muted-foreground"
                     )}>
                       (đã chỉnh sửa)
                     </span>
@@ -439,8 +443,8 @@ export function MessageItem({
                           className={cn(
                             "max-w-full max-h-64  border cursor-pointer hover:opacity-90 transition-opacity",
                             isOwnMessage
-                              ? "border-sky-400/30"
-                              : "border-slate-300 dark:border-slate-600"
+                              ? "border-primary-foreground/30"
+                              : "border-border"
                           )}
                         />
                       </a>
@@ -453,8 +457,8 @@ export function MessageItem({
                         className={cn(
                           "flex items-center gap-2 text-xs hover:underline p-2  border transition-colors",
                           isOwnMessage
-                            ? "bg-sky-400/20 border-sky-400/30 text-white"
-                            : "border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600"
+                            ? "bg-primary-foreground/20 border-primary-foreground/30 text-primary-foreground"
+                            : "border-border hover:bg-muted"
                         )}
                         onClick={(e) => e.stopPropagation()}
                       >
@@ -475,7 +479,7 @@ export function MessageItem({
                   isOwnMessage ? "justify-end" : "justify-start"
                 )}
               >
-                <span className="text-xs text-slate-500 dark:text-slate-400 px-2">
+                <span className="text-xs text-muted-foreground px-2">
                   {clickedDate}
                 </span>
               </div>

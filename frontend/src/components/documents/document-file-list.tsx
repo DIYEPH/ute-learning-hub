@@ -140,7 +140,7 @@ export function DocumentFileList({
           return (
             <div
               key={file.id}
-              className={`flex items-center gap-2 ${isDragging ? "opacity-50" : ""} ${isDragOver ? "border-t-2 border-sky-500" : ""}`}
+              className={`flex items-center gap-2 ${isDragging ? "opacity-50" : ""} ${isDragOver ? "border-t-2 border-primary" : ""}`}
               onDragOver={(e) => canReorder && handleDragOver(e, index)}
               onDrop={(e) => canReorder && handleDrop(e, index)}
             >
@@ -150,7 +150,7 @@ export function DocumentFileList({
                   draggable
                   onDragStart={(e) => handleDragStart(e, index)}
                   onDragEnd={handleDragEnd}
-                  className="cursor-grab active:cursor-grabbing p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 flex-shrink-0"
+                  className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground flex-shrink-0"
                 >
                   <GripVertical className="h-5 w-5" />
                 </div>

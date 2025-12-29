@@ -77,7 +77,7 @@ export default function DocumentDetailPage() {
           f.id
             ? putApiDocumentByDocumentIdFilesByFileId({
               path: { documentId, fileId: f.id },
-              body: { documentId, documentFileId: f.id, order: i },
+              body: { order: i },
             })
             : Promise.resolve()
         )
@@ -120,7 +120,7 @@ export default function DocumentDetailPage() {
       </div>
 
       {/* Info */}
-      <div className="border p-4 bg-white dark:bg-slate-900">
+      <div className="border p-4 bg-card">
         <div className="grid md:grid-cols-3 gap-4">
 
           {/* Left: Main info - spans 2 columns */}
@@ -149,7 +149,7 @@ export default function DocumentDetailPage() {
                     {data.description}
                   </p>
                   {data.description.length > 100 && (
-                    <button className="text-xs text-sky-600" onClick={() => setShowFullDescription(v => !v)}>
+                    <button className="text-xs text-primary" onClick={() => setShowFullDescription(v => !v)}>
                       {showFullDescription ? "Thu gọn" : "Xem thêm"}
                     </button>
                   )}
@@ -159,12 +159,12 @@ export default function DocumentDetailPage() {
           </div>
 
           {/* Right: Stats box */}
-          <div className="flex flex-col items-center justify-center border rounded-lg p-4 bg-slate-50 dark:bg-slate-800">
-            <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1">
+          <div className="flex flex-col items-center justify-center border rounded-lg p-4 bg-muted">
+            <span className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
               Tổng số lượt xem
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-3xl font-bold text-slate-800 dark:text-white">
+              <span className="text-3xl font-bold text-foreground">
                 {data.totalViewCount?.toLocaleString() ?? 0}
               </span>
             </div>
@@ -180,7 +180,7 @@ export default function DocumentDetailPage() {
       </div>
 
       {/* Files */}
-      <div className="border bg-white dark:bg-slate-900">
+      <div className="border bg-card">
         <div className="border-b px-4 py-3 flex items-center gap-2">
           <FileText className="h-4 w-4" /> Chương / file ({files.length})
         </div>

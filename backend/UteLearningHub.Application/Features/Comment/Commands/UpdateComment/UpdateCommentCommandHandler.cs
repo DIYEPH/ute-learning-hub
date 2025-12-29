@@ -8,7 +8,7 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Comment.Commands.UpdateComment;
 
-public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand, CommentDto>
+public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand, CommentDetailDto>
 {
     private readonly ICommentRepository _commentRepository;
     private readonly ICurrentUserService _currentUserService;
@@ -27,7 +27,7 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
         _dateTimeProvider = dateTimeProvider;
     }
 
-    public async Task<CommentDto> Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
+    public async Task<CommentDetailDto> Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to update comments");
@@ -48,7 +48,7 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
         comment.UpdatedById = userId;
         comment.UpdatedAt = _dateTimeProvider.OffsetNow;
 
-        await _commentRepository.UpdateAsync(comment, cancellationToken);
+        _commentRepository.Update(comment);
         await _commentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         // Get author information
@@ -58,7 +58,7 @@ public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand,
         // Get reply count
         var replyCount = await _commentService.GetReplyCountAsync(comment.Id, cancellationToken);
 
-        return new CommentDto
+        return new CommentDetailDto
         {
             Id = comment.Id,
             DocumentId = comment.DocumentFile.DocumentId,

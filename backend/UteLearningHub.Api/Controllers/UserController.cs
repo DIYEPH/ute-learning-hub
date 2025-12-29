@@ -42,9 +42,21 @@ public class UserController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<UserDto>> UpdateUser(Guid id, [FromBody] UpdateUserCommand command)
+    public async Task<ActionResult<UserDto>> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
     {
-        command = command with { UserId = id };
+        var command = new UpdateUserCommand
+        {
+            UserId = id,
+            FullName = request.FullName,
+            Email = request.Email,
+            Username = request.Username,
+            Introduction = request.Introduction,
+            AvatarUrl = request.AvatarUrl,
+            MajorId = request.MajorId,
+            Gender = request.Gender,
+            EmailConfirmed = request.EmailConfirmed,
+            Roles = request.Roles
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }
@@ -69,9 +81,14 @@ public class UserController : ControllerBase
 
     [HttpPut("{id}/trust-score")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<UserDto>> ManageTrustScore(Guid id, [FromBody] ManageTrustScoreCommand command)
+    public async Task<ActionResult<UserDto>> ManageTrustScore(Guid id, [FromBody] ManageTrustScoreRequest request)
     {
-        command = command with { UserId = id };
+        var command = new ManageTrustScoreCommand
+        {
+            UserId = id,
+            TrustScore = request.TrustScore,
+            Reason = request.Reason
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

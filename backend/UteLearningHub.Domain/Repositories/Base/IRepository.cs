@@ -8,13 +8,10 @@ public interface IRepository<TEntity, in TKey> : IConcurrencyHandler<TEntity>
 {
     IUnitOfWork UnitOfWork { get; }
     IQueryable<TEntity> GetQueryableSet();
-    Task<List<TEntity>> GetAllAsync(bool disableTracking = false, CancellationToken cancellationToken = default);
     Task<TEntity?> GetByIdAsync(TKey id, bool disableTracking = false, CancellationToken cancellationToken = default);
-    Task ToPaginationAsync(ref IQueryable<TEntity> query, int page, int size);
-    Task AddOrUpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
-    Task AddAsync(TEntity entity, CancellationToken cancellationToken = default);
-    Task UpdateAsync(TEntity entity, CancellationToken cancellationToken = default);
-    Task DeleteAsync(TEntity entity, Guid? deletedById = null, CancellationToken cancellationToken = default);
+    void Add(TEntity entity);
+    void Update(TEntity entity);
+    void Delete(TEntity entity);
     Task BulkInsertAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default);
     Task BulkUpdateAsync(List<TEntity> entities, CancellationToken cancellationToken = default);
     Task BulkDeleteAsync(List<TEntity> entities, CancellationToken cancellationToken = default);

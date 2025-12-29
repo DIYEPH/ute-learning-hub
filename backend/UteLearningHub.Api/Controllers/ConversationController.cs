@@ -58,9 +58,20 @@ public class ConversationController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize]
-    public async Task<ActionResult<ConversationDetailDto>> UpdateConversation(Guid id, [FromBody] UpdateConversationCommand command)
+    public async Task<ActionResult<ConversationDetailDto>> UpdateConversation(Guid id, [FromBody] UpdateConversationCommandRequest request)
     {
-        command = command with { Id = id };
+        var command = new UpdateConversationCommand
+        {
+            Id = id,
+            ConversationName = request.ConversationName,
+            TagIds = request.TagIds,
+            TagNames = request.TagNames,
+            Visibility = request.Visibility,
+            ConversationStatus = request.ConversationStatus,
+            SubjectId = request.SubjectId,
+            IsAllowMemberPin = request.IsAllowMemberPin,
+            AvatarUrl = request.AvatarUrl
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }
@@ -103,9 +114,14 @@ public class ConversationController : ControllerBase
 
     [HttpPut("{id}/members/{memberId}/role")]
     [Authorize]
-    public async Task<IActionResult> UpdateMemberRole(Guid id, Guid memberId, [FromBody] UpdateMemberRoleCommand command)
+    public async Task<IActionResult> UpdateMemberRole(Guid id, Guid memberId, [FromBody] UpdateMemberRoleCommandRequest request)
     {
-        command = command with { ConversationId = id, MemberId = memberId };
+        var command = new UpdateMemberRoleCommand
+        {
+            ConversationId = id,
+            MemberId = memberId,
+            RoleType = request.RoleType
+        };
         await _mediator.Send(command);
         return NoContent();
     }

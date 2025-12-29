@@ -6,12 +6,4 @@ public interface ITrustScoreService
 {
     Task AddTrustScoreAsync(Guid userId, int points, string reason, Guid? entityId = null, TrustEntityType? entityType = null, CancellationToken cancellationToken = default);
     Task RevertTrustScoreByEntityAsync(Guid entityId, TrustEntityType? entityType = null, CancellationToken cancellationToken = default);
-    Task<int> GetTrustScoreAsync(Guid userId, CancellationToken cancellationToken = default);
-}
-
-public enum ActionPoints
-{
-    CreateDocument,
-    DocumentLiked,
-    ReportApproved,
 }

@@ -2,4 +2,7 @@
 
 namespace UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
 
-public record DeleteDocumentsCommand : DeleteDocumentsRequest, IRequest<Unit>;
+public record DeleteDocumentsCommand : IRequest
+{
+    public Guid Id { get; init; }
+}

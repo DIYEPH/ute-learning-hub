@@ -13,11 +13,7 @@ public class UserDocumentProgressRepository : Repository<UserDocumentProgress, G
     {
     }
 
-    public async Task<UserDocumentProgress?> GetByUserAndDocumentFileAsync(
-        Guid userId,
-        Guid documentFileId,
-        bool disableTracking = false,
-        CancellationToken cancellationToken = default)
+    public async Task<UserDocumentProgress?> GetByUserAndDocumentFileAsync(Guid userId, Guid documentFileId, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
         var query = GetQueryableSet()
             .Where(p => p.UserId == userId && p.DocumentFileId == documentFileId);
@@ -28,11 +24,7 @@ public class UserDocumentProgressRepository : Repository<UserDocumentProgress, G
         return await query.FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<IList<UserDocumentProgress>> GetByUserAndDocumentAsync(
-        Guid userId,
-        Guid documentId,
-        bool disableTracking = false,
-        CancellationToken cancellationToken = default)
+    public async Task<IList<UserDocumentProgress>> GetByUserAndDocumentAsync(Guid userId, Guid documentId, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
         var query = GetQueryableSet()
             .Where(p => p.UserId == userId && p.DocumentId == documentId);

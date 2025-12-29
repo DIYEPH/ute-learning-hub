@@ -46,9 +46,13 @@ public class TypeController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<TypeDetailDto>> UpdateType(Guid id, [FromBody] UpdateTypeCommand command)
+    public async Task<ActionResult<TypeDetailDto>> UpdateType(Guid id, [FromBody] UpdateTypeCommandRequest request)
     {
-        command = command with { Id = id };
+        var command = new UpdateTypeCommand
+        {
+            Id = id,
+            TypeName = request.TypeName
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

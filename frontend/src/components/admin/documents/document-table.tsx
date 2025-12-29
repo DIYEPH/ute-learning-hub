@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { BaseTable, BaseTableColumn } from "@/src/components/admin/tables/base-table";
 import { Badge } from "@/src/components/ui/badge";
-import { Eye } from "lucide-react";
+import { Eye, ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react";
 import type { DocumentDto } from "@/src/api/database/types.gen";
 
 // VisibilityStatus enum mapping
@@ -64,7 +64,7 @@ export function DocumentTable({
             header: t("table.subject"),
             className: "min-w-[120px]",
             render: (doc) => (
-                <span className="text-sm text-slate-600 dark:text-slate-400">
+                <span className="text-sm text-muted-foreground">
                     {doc.subject?.subjectName || "-"}
                 </span>
             ),
@@ -91,10 +91,35 @@ export function DocumentTable({
         {
             key: "fileCount",
             header: t("table.fileCount"),
-            className: "min-w-[80px]",
+            className: "min-w-[60px]",
             sortable: true,
             render: (doc) => (
                 <Badge variant="secondary">{doc.fileCount || 0}</Badge>
+            ),
+        },
+        {
+            key: "stats",
+            header: t("table.stats"),
+            className: "min-w-[140px]",
+            render: (doc) => (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-0.5" title="Lượt xem">
+                        <Eye className="h-3.5 w-3.5" />
+                        <span>{doc.totalViewCount || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5 text-emerald-600" title="Hữu ích">
+                        <ThumbsUp className="h-3.5 w-3.5" />
+                        <span>{doc.usefulCount || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5 text-red-500" title="Không hữu ích">
+                        <ThumbsDown className="h-3.5 w-3.5" />
+                        <span>{doc.notUsefulCount || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5" title="Bình luận">
+                        <MessageSquare className="h-3.5 w-3.5" />
+                        <span>{doc.commentCount || 0}</span>
+                    </div>
+                </div>
             ),
         },
         {
@@ -103,7 +128,7 @@ export function DocumentTable({
             className: "min-w-[100px]",
             sortable: true,
             render: (doc) => (
-                <span className="text-sm text-slate-600 dark:text-slate-400">
+                <span className="text-sm text-muted-foreground">
                     {formatDate(doc.createdAt)}
                 </span>
             ),
@@ -119,7 +144,7 @@ export function DocumentTable({
             onViewDetail ? (
                 <button
                     onClick={() => onViewDetail(doc)}
-                    className="inline-flex items-center justify-center h-8 w-8 text-slate-600 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors"
+                    className="inline-flex items-center justify-center h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted rounded transition-colors"
                     title={t("table.viewDetail")}
                 >
                     <Eye size={16} />
@@ -127,7 +152,7 @@ export function DocumentTable({
             ) : (
                 <Link
                     href={`/documents/${doc.id}`}
-                    className="inline-flex items-center justify-center h-8 w-8 text-slate-600 hover:text-primary hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="inline-flex items-center justify-center h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
                     title={t("table.viewDetail")}
                 >
                     <Eye size={16} />

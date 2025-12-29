@@ -16,7 +16,7 @@ import { DocumentDetailModal } from "@/src/components/admin/documents/document-d
 import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { EditModal } from "@/src/components/admin/modals/edit-modal";
 import { AdvancedSearchFilter } from "@/src/components/admin/advanced-search-filter";
-import type { DocumentDto, UpdateDocumentCommand, SubjectDto2, TypeDto, AuthorListDto, TagDto } from "@/src/api/database/types.gen";
+import type { DocumentDto, UpdateDocumentCommandRequest, SubjectDetailDto, TypeDto, AuthorDto, TagDto } from "@/src/api/database/types.gen";
 
 export default function DocumentsManagementPage() {
     const t = useTranslations("admin.documents");
@@ -40,9 +40,9 @@ export default function DocumentsManagementPage() {
     const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
     // Filter options
-    const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
+    const [subjects, setSubjects] = useState<SubjectDetailDto[]>([]);
     const [types, setTypes] = useState<TypeDto[]>([]);
-    const [authors, setAuthors] = useState<AuthorListDto[]>([]);
+    const [authors, setAuthors] = useState<AuthorDto[]>([]);
     const [tags, setTags] = useState<TagDto[]>([]);
 
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -96,7 +96,7 @@ export default function DocumentsManagementPage() {
         loadDocuments();
     }, [loadDocuments]);
 
-    const handleEdit = async (command: UpdateDocumentCommand) => {
+    const handleEdit = async (command: UpdateDocumentCommandRequest) => {
         if (!selectedDocument?.id) return;
         setFormLoading(true);
         try {
@@ -278,7 +278,7 @@ export default function DocumentsManagementPage() {
             )}
 
             {documents.length > 0 && (
-                <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+                <div className="mb-2 text-sm text-muted-foreground">
                     {t("foundCount", { count: totalCount })}
                 </div>
             )}

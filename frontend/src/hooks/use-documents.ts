@@ -12,7 +12,7 @@ import type {
     DocumentDto,
     DocumentDetailDto,
     GetApiDocumentData,
-    UpdateDocumentCommand,
+    UpdateDocumentCommandRequest,
 } from "@/src/api/database/types.gen";
 import type { ReviewDocumentFileCommand } from "@/src/components/admin/documents/review-modal";
 import { useCrud } from "./use-crud";
@@ -25,7 +25,7 @@ interface PagedResponse<T> {
 }
 
 export function useDocuments() {
-    const crud = useCrud<DocumentDto, object, UpdateDocumentCommand, GetApiDocumentData["query"]>({
+    const crud = useCrud<DocumentDto, object, UpdateDocumentCommandRequest, GetApiDocumentData["query"]>({
         fetchAll: async (params) => {
             const response = await getApiDocument({ query: params });
             return (response as unknown as { data: PagedResponse<DocumentDto> })?.data || response as PagedResponse<DocumentDto>;
@@ -37,7 +37,7 @@ export function useDocuments() {
         update: async (id, command) => {
             const response = await putApiDocumentById({
                 path: { id },
-                body: { ...command, id },
+                body: command,
             });
             return (response as unknown as { data: DocumentDto })?.data || response as DocumentDto;
         },

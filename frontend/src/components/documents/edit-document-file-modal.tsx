@@ -95,8 +95,6 @@ export function EditDocumentFileModal({
             await putApiDocumentByDocumentIdFilesByFileId({
                 path: { documentId, fileId: file.id },
                 body: {
-                    documentId,
-                    documentFileId: file.id,
                     title: title.trim() || undefined,
                     order: file.order ?? undefined,
                     coverFileId: finalCoverFileId ?? undefined,
@@ -139,7 +137,7 @@ export function EditDocumentFileModal({
                         <Label>Ảnh bìa</Label>
                         <div className="flex gap-3">
                             {/* Preview */}
-                            <div className="relative w-24 h-16 bg-slate-100 dark:bg-slate-800 rounded overflow-hidden flex-shrink-0">
+                            <div className="relative w-24 h-16 bg-muted rounded overflow-hidden flex-shrink-0">
                                 {currentCoverUrl ? (
                                     <>
                                         <img
@@ -157,7 +155,7 @@ export function EditDocumentFileModal({
                                     </>
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center">
-                                        <ImageIcon className="h-6 w-6 text-slate-400" />
+                                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
                                     </div>
                                 )}
                             </div>
@@ -174,12 +172,12 @@ export function EditDocumentFileModal({
                                 />
                                 <label
                                     htmlFor="cover-upload"
-                                    className="flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-slate-300 dark:border-slate-600 rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm text-slate-600 dark:text-slate-400"
+                                    className="flex items-center justify-center gap-2 px-3 py-2 border border-dashed border-border rounded cursor-pointer hover:bg-muted transition-colors text-sm text-muted-foreground"
                                 >
                                     <Upload className="h-4 w-4" />
                                     Chọn ảnh bìa
                                 </label>
-                                <p className="text-xs text-slate-500 mt-1">PNG, JPG tối đa 5MB</p>
+                                <p className="text-xs text-muted-foreground mt-1">PNG, JPG tối đa 5MB</p>
                             </div>
                         </div>
                     </div>

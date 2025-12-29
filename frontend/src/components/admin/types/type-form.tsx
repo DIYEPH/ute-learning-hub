@@ -6,7 +6,7 @@ import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useDebounce } from "@/src/hooks/use-debounce";
 import { getApiType } from "@/src/api/database/sdk.gen";
-import type { UpdateTypeCommand, CreateTypeCommand, TypeDto } from "@/src/api/database/types.gen";
+import type { UpdateTypeCommandRequest, CreateTypeCommand, TypeDto } from "@/src/api/database/types.gen";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 export interface TypeFormData {
@@ -16,7 +16,7 @@ export interface TypeFormData {
 
 interface TypeFormProps {
   initialData?: TypeFormData;
-  onSubmit: (data: CreateTypeCommand | UpdateTypeCommand) => void | Promise<void>;
+  onSubmit: (data: CreateTypeCommand | UpdateTypeCommandRequest) => void | Promise<void>;
   loading?: boolean;
 }
 
@@ -93,7 +93,7 @@ export function TypeForm({
     if (isDuplicate) {
       return; // Don't submit if duplicate
     }
-    const command: CreateTypeCommand | UpdateTypeCommand = {
+    const command: CreateTypeCommand | UpdateTypeCommandRequest = {
       typeName: formData.typeName || undefined,
     };
     await onSubmit(command);
@@ -120,7 +120,7 @@ export function TypeForm({
             />
             {searching && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
-                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             )}
           </div>
@@ -135,13 +135,13 @@ export function TypeForm({
 
           {/* Matching types list */}
           {matchingTypes.length > 0 && !isDuplicate && (
-            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800  border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+            <div className="mt-2 p-2 bg-muted border border-border">
+              <p className="text-xs text-muted-foreground mb-1">
                 {t("form.similarTypes")}:
               </p>
               <ul className="space-y-0.5">
                 {matchingTypes.map((type) => (
-                  <li key={type.id} className="text-sm text-slate-700 dark:text-slate-300">
+                  <li key={type.id} className="text-sm text-foreground">
                     • {type.typeName}
                   </li>
                 ))}

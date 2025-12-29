@@ -7,11 +7,12 @@ using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
+
 using EntityComment = UteLearningHub.Domain.Entities.Comment;
 
 namespace UteLearningHub.Application.Features.Comment.Commands.CreateComment;
 
-public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand, CommentDto>
+public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand, CommentDetailDto>
 {
     private readonly ICommentRepository _commentRepository;
     private readonly IDocumentRepository _documentRepository;
@@ -36,7 +37,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
         _vectorMaintenanceService = vectorMaintenanceService;
     }
 
-    public async Task<CommentDto> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
+    public async Task<CommentDetailDto> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to create comments");
@@ -44,7 +45,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
 
         // Validate document file exists and belongs to a non-deleted document
-        var documentId = await _documentRepository.GetDocumentIdByDocumentFileIdAsync(request.DocumentFileId, cancellationToken);
+        var documentId = await _documentRepository.GetIdByDocumentFileIdAsync(request.DocumentFileId, cancellationToken);
 
         if (!documentId.HasValue)
             throw new NotFoundException($"Document file with id {request.DocumentFileId} not found");
@@ -69,14 +70,14 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        await _commentRepository.AddAsync(comment, cancellationToken);
+        _commentRepository.Add(comment);
         await _commentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         // Get author information
         var authorInfo = await _commentService.GetCommentAuthorsAsync(new[] { userId }, cancellationToken);
         var author = authorInfo.TryGetValue(userId, out var authorValue) ? authorValue : null;
 
-        return new CommentDto
+        return new CommentDetailDto
         {
             Id = comment.Id,
             DocumentId = documentId.Value,

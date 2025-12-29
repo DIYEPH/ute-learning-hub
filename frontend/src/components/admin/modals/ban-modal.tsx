@@ -128,7 +128,7 @@ export function BanModal({
                 </div>
               </div>
               {banUntil && (
-                <div className="text-sm text-slate-600 dark:text-slate-400">
+                <div className="text-sm text-muted-foreground">
                   {t("banModal.banUntil")}: {new Date(banUntil).toLocaleString("vi-VN")}
                 </div>
               )}

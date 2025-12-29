@@ -36,5 +36,8 @@ public class DocumentReviewConfiguration : IEntityTypeConfiguration<DocumentRevi
             .WithMany()
             .HasForeignKey(u => u.DocumentFileId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Query filter: exclude reviews of deleted documents
+        builder.HasQueryFilter(u => !u.Document.IsDeleted);
     }
 }

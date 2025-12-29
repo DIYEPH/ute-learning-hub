@@ -8,7 +8,7 @@ import { Upload, Link as LinkIcon, X, AlertCircle, Loader2 } from "lucide-react"
 import { useTranslations } from "next-intl";
 import { useDebounce } from "@/src/hooks/use-debounce";
 import { getApiFaculty } from "@/src/api/database/sdk.gen";
-import type { UpdateFacultyCommand, CreateFacultyCommand, FacultyDto2 } from "@/src/api/database/types.gen";
+import type { UpdateFacultyCommandRequest, CreateFacultyCommand, FacultyDetailDto } from "@/src/api/database/types.gen";
 
 export interface FacultyFormData {
   id?: string;
@@ -19,7 +19,7 @@ export interface FacultyFormData {
 
 interface FacultyFormProps {
   initialData?: FacultyFormData;
-  onSubmit: (data: CreateFacultyCommand | UpdateFacultyCommand) => void | Promise<void>;
+  onSubmit: (data: CreateFacultyCommand | UpdateFacultyCommandRequest) => void | Promise<void>;
   loading?: boolean;
   onUploadLogo?: (file: File) => Promise<string | null>;
   uploadingLogo?: boolean;
@@ -45,7 +45,7 @@ export function FacultyForm({
 
   // Debounce search state
   const [searching, setSearching] = useState(false);
-  const [matchingFaculties, setMatchingFaculties] = useState<FacultyDto2[]>([]);
+  const [matchingFaculties, setMatchingFaculties] = useState<FacultyDetailDto[]>([]);
   const [isDuplicate, setIsDuplicate] = useState(false);
 
   const debouncedName = useDebounce(formData.facultyName || "", 400);
@@ -67,7 +67,7 @@ export function FacultyForm({
     setSearching(true);
     try {
       const response = await getApiFaculty({ query: { SearchTerm: searchTerm, Page: 1, PageSize: 5 } });
-      const data = (response as unknown as { data: { items?: FacultyDto2[] } })?.data || response as { items?: FacultyDto2[] };
+      const data = (response as unknown as { data: { items?: FacultyDetailDto[] } })?.data || response as { items?: FacultyDetailDto[] };
       const items = data?.items || [];
 
       // Filter out current item if editing
@@ -104,7 +104,7 @@ export function FacultyForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isDuplicate) return;
-    const command: CreateFacultyCommand | UpdateFacultyCommand = {
+    const command: CreateFacultyCommand | UpdateFacultyCommandRequest = {
       facultyName: formData.facultyName || undefined,
       facultyCode: formData.facultyCode || undefined,
       logo: formData.logo || undefined,
@@ -155,7 +155,7 @@ export function FacultyForm({
             />
             {searching && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
-                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             )}
           </div>
@@ -170,13 +170,13 @@ export function FacultyForm({
 
           {/* Matching faculties list */}
           {matchingFaculties.length > 0 && !isDuplicate && (
-            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800  border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+            <div className="mt-2 p-2 bg-muted border border-border">
+              <p className="text-xs text-muted-foreground mb-1">
                 {t("form.similarFaculties")}:
               </p>
               <ul className="space-y-0.5">
                 {matchingFaculties.map((faculty) => (
-                  <li key={faculty.id} className="text-sm text-slate-700 dark:text-slate-300">
+                  <li key={faculty.id} className="text-sm text-foreground">
                     • {faculty.facultyName} ({faculty.facultyCode})
                   </li>
                 ))}
@@ -243,7 +243,7 @@ export function FacultyForm({
                   disabled={isDisabled}
                 />
                 {isUploading && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-muted-foreground">
                     {t("form.uploading")}
                   </p>
                 )}
@@ -253,7 +253,7 @@ export function FacultyForm({
               </div>
             )}
             {formData.logo && (
-              <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800 rounded">
+              <div className="flex items-center gap-2 p-2 bg-muted rounded">
                 <img
                   src={formData.logo}
                   alt={t("form.logoPreview")}
@@ -262,7 +262,7 @@ export function FacultyForm({
                     (e.target as HTMLImageElement).style.display = "none";
                   }}
                 />
-                <span className="text-xs text-slate-600 dark:text-slate-400 flex-1 truncate">
+                <span className="text-xs text-muted-foreground flex-1 truncate">
                   {formData.logo}
                 </span>
                 <Button

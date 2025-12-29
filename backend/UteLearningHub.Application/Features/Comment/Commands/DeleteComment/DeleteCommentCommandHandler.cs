@@ -8,7 +8,7 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Comment.Commands.DeleteComment;
 
-public class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentCommand, Unit>
+public class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentCommand>
 {
     private readonly ICommentRepository _commentRepository;
     private readonly ICurrentUserService _currentUserService;
@@ -27,7 +27,7 @@ public class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentCommand,
         _dateTimeProvider = dateTimeProvider;
     }
 
-    public async Task<Unit> Handle(DeleteCommentCommand request, CancellationToken cancellationToken)
+    public async Task Handle(DeleteCommentCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to delete comments");
@@ -52,9 +52,10 @@ public class DeleteCommentCommandHandler : IRequestHandler<DeleteCommentCommand,
             throw new UnauthorizedException("You don't have permission to delete this comment");
 
         // Soft delete
-        await _commentRepository.DeleteAsync(comment, userId, cancellationToken);
+        comment.IsDeleted = true;
+        comment.DeletedById = userId;
+        comment.DeletedAt = _dateTimeProvider.OffsetUtcNow;
+        _commentRepository.Update(comment);
         await _commentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
-
-        return Unit.Value;
     }
 }

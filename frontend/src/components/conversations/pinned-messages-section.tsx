@@ -49,21 +49,21 @@ export function PinnedMessagesSection({
   };
 
   return (
-    <div className="border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+    <div className="border-b border-border bg-card">
       <div className="px-4">
 
         <div className="space-y-2">
           {visibleMessages.map((message) => (
             <div
               key={message.id}
-              className="flex items-start gap-3 p-2.5  hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group relative"
+              className="flex items-start gap-3 p-2.5  hover:bg-muted/50 transition-colors group relative"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-baseline gap-2 mb-1">
                   <span className="text-sm font-semibold text-foreground">
                     {message.senderName || "Người dùng"}
                   </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                  <span className="text-xs text-muted-foreground">
                     {formatTime(message.createdAt)}
                   </span>
                 </div>
@@ -79,7 +79,7 @@ export function PinnedMessagesSection({
                 {hasMore && visibleMessages.length === 1 && (
                   <button
                     onClick={() => setIsExpanded(true)}
-                    className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 flex items-center gap-1 font-medium"
+                    className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 font-medium"
                   >
                     +{userPinnedMessages.length - 1} ghim
                     <ChevronDown className="h-3 w-3" />
@@ -117,7 +117,7 @@ export function PinnedMessagesSection({
           {isExpanded && hasMore && (
             <button
               onClick={() => setIsExpanded(false)}
-              className="text-xs text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300 flex items-center gap-1 mt-2 font-medium"
+              className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 mt-2 font-medium"
             >
               Thu gọn
               <ChevronDown className="h-3 w-3 rotate-180" />

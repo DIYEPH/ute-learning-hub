@@ -9,10 +9,10 @@ export default async function HomePage() {
     <AppShell>
       <section className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+          <h1 className="text-2xl font-semibold text-foreground">
             {t('welcome')}
           </h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {t('description')}
           </p>
         </div>

@@ -6,7 +6,7 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Document.Queries.GetDocumentProgress;
 
-public class GetDocumentProgressHandler : IRequestHandler<GetDocumentProgressQuery, DocumentProgressDto>
+public class GetDocumentProgressHandler : IRequestHandler<GetDocumentProgressQuery, DocumentFileProgressDto>
 {
     private readonly IUserDocumentProgressRepository _progressRepository;
     private readonly IDocumentRepository _documentRepository;
@@ -22,7 +22,7 @@ public class GetDocumentProgressHandler : IRequestHandler<GetDocumentProgressQue
         _currentUserService = currentUserService;
     }
 
-    public async Task<DocumentProgressDto> Handle(GetDocumentProgressQuery request, CancellationToken cancellationToken)
+    public async Task<DocumentFileProgressDto> Handle(GetDocumentProgressQuery request, CancellationToken cancellationToken)
     {
         if (!_currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to get document progress");
@@ -31,7 +31,7 @@ public class GetDocumentProgressHandler : IRequestHandler<GetDocumentProgressQue
 
         // Validate document file exists
         var documentFileId = request.DocumentFileId;
-        var documentId = await _documentRepository.GetDocumentIdByDocumentFileIdAsync(documentFileId, cancellationToken);
+        var documentId = await _documentRepository.GetIdByDocumentFileIdAsync(documentFileId, cancellationToken);
 
         if (!documentId.HasValue)
             throw new NotFoundException($"Document file with id {documentFileId} not found");
@@ -58,7 +58,7 @@ public class GetDocumentProgressHandler : IRequestHandler<GetDocumentProgressQue
 
         if (progress == null)
         {
-            return new DocumentProgressDto
+            return new DocumentFileProgressDto
             {
                 DocumentFileId = documentFileId,
                 LastPage = 1,
@@ -67,7 +67,7 @@ public class GetDocumentProgressHandler : IRequestHandler<GetDocumentProgressQue
             };
         }
 
-        return new DocumentProgressDto
+        return new DocumentFileProgressDto
         {
             DocumentFileId = documentFileId,
             LastPage = progress.LastPage,

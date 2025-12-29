@@ -3,4 +3,7 @@ using UteLearningHub.Application.Common.Dtos;
 
 namespace UteLearningHub.Application.Features.Subject.Commands.UpdateSubject;
 
-public record UpdateSubjectCommand : UpdateSubjectRequest, IRequest<SubjectDetailDto>;
+public record UpdateSubjectCommand : UpdateSubjectCommandRequest, IRequest<SubjectDetailDto>
+{
+    public Guid Id { get; init; }
+}

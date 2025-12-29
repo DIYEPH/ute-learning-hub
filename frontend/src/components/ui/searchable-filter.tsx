@@ -68,22 +68,22 @@ export function SearchableFilter({
 
     return (
         <div ref={containerRef} className={`relative ${className}`}>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">
                 {label}
             </label>
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex h-9 w-full items-center justify-between border border-input bg-background px-3 text-sm shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                className="flex h-9 w-full items-center justify-between border border-input bg-background px-3 text-sm shadow-sm hover:bg-muted"
             >
                 <span className={selectedOption ? "text-foreground" : "text-muted-foreground"}>
                     {selectedOption ? selectedOption.label : placeholder}
                 </span>
                 <div className="flex items-center gap-1">
                     {value && (
-                        <X className="h-3.5 w-3.5 text-slate-400 hover:text-slate-600" onClick={handleClear} />
+                        <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" onClick={handleClear} />
                     )}
-                    <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 </div>
             </button>
 
@@ -91,7 +91,7 @@ export function SearchableFilter({
                 <div className="absolute z-50 mt-1 w-full border border-input bg-background shadow-lg">
                     <div className="p-2 border-b border-input">
                         <div className="relative">
-                            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <input
                                 ref={inputRef}
                                 type="text"
@@ -111,11 +111,11 @@ export function SearchableFilter({
                                     key={opt.value}
                                     type="button"
                                     onClick={() => handleSelect(opt.value)}
-                                    className={`flex w-full items-center justify-between px-3 py-2 text-sm text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${opt.value === value ? "bg-slate-100 dark:bg-slate-800" : ""
+                                    className={`flex w-full items-center justify-between px-3 py-2 text-sm text-left hover:bg-muted ${opt.value === value ? "bg-muted" : ""
                                         }`}
                                 >
                                     <span className="truncate">{opt.label}</span>
-                                    {opt.value === value && <Check className="h-4 w-4 text-sky-500 shrink-0" />}
+                                    {opt.value === value && <Check className="h-4 w-4 text-primary shrink-0" />}
                                 </button>
                             ))
                         )}

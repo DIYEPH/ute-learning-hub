@@ -50,7 +50,7 @@ export function MemberManagement({ conversation, onSuccess }: MemberManagementPr
           {conversation.members.map((member) => (
             <div
               key={member.id}
-              className="flex items-center gap-3 p-2  hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="flex items-center gap-3 p-2 hover:bg-muted"
             >
               <Avatar className="h-8 w-8">
                 <AvatarImage src={member.userAvatarUrl || undefined} />
@@ -62,7 +62,7 @@ export function MemberManagement({ conversation, onSuccess }: MemberManagementPr
                 <p className="text-sm font-medium text-foreground truncate">
                   {member.userName || "Không tên"}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   {ROLE_LABELS[member.roleType ?? 0]}
                 </p>
               </div>
@@ -118,7 +118,7 @@ export function MemberManagement({ conversation, onSuccess }: MemberManagementPr
           return (
             <div
               key={member.id}
-              className="flex items-center gap-3 p-2  hover:bg-slate-50 dark:hover:bg-slate-800"
+              className="flex items-center gap-3 p-2 hover:bg-muted"
             >
               <Avatar className="h-8 w-8">
                 <AvatarImage src={member.userAvatarUrl || undefined} />
@@ -131,7 +131,7 @@ export function MemberManagement({ conversation, onSuccess }: MemberManagementPr
                   {member.userName || "Không tên"}
                   {isCurrentUser && " (Bạn)"}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   {ROLE_LABELS[member.roleType ?? 0]}
                 </p>
               </div>

@@ -13,6 +13,9 @@ public static class SoftDeleteQueryExtension
             if (!typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
                 continue;
 
+            if (entityType.GetQueryFilter() != null)
+                continue;
+
             var parameter = Expression.Parameter(entityType.ClrType, "x");
             var property = Expression.Property(parameter, nameof(ISoftDelete.IsDeleted));
             var compare = Expression.Equal(property, Expression.Constant(false));

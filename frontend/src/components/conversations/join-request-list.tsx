@@ -72,14 +72,14 @@ export function JoinRequestList({ conversationId, onSuccess }: JoinRequestListPr
     if (loading) {
         return (
             <div className="flex items-center justify-center py-4">
-                <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
         );
     }
 
     if (requests.length === 0) {
         return (
-            <p className="text-sm text-slate-500 dark:text-slate-400 py-2">
+            <p className="text-sm text-muted-foreground py-2">
                 Không có yêu cầu nào đang chờ duyệt
             </p>
         );
@@ -90,7 +90,7 @@ export function JoinRequestList({ conversationId, onSuccess }: JoinRequestListPr
             {requests.map((req) => (
                 <div
                     key={req.id}
-                    className="flex items-start gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg"
+                    className="flex items-start gap-3 p-3 bg-muted rounded-lg"
                 >
                     <Avatar className="h-9 w-9 flex-shrink-0">
                         <AvatarImage src={req.requesterAvatarUrl || undefined} />
@@ -102,11 +102,11 @@ export function JoinRequestList({ conversationId, onSuccess }: JoinRequestListPr
                             {req.requesterName || "Người dùng"}
                         </p>
                         {req.content && (
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                                 {req.content}
                             </p>
                         )}
-                        <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400">
+                        <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
                             <Clock className="h-3 w-3" />
                             {req.createdAt ? new Date(req.createdAt).toLocaleDateString("vi-VN") : ""}
                         </div>

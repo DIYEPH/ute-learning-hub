@@ -30,7 +30,7 @@ public class ChangeUsernameCommandHandler : IRequestHandler<ChangeUsernameComman
             throw new BadRequestException("Username mới không hợp lệ.");
 
         var normalizedNewUsername = request.NewUsername.Trim();
-        
+
         // Check if username is same as current
         if (string.Equals(user.UserName, normalizedNewUsername, StringComparison.OrdinalIgnoreCase))
             return Unit.Value;

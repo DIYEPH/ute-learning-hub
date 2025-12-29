@@ -137,20 +137,7 @@ public class GetHomepageHandler : IRequestHandler<GetHomepageQuery, HomepageDto>
         {
             Id = d.Subject.Id,
             SubjectName = d.Subject.SubjectName,
-            SubjectCode = d.Subject.SubjectCode,
-            Majors = d.Subject.SubjectMajors.Select(sm => new MajorDto
-            {
-                Id = sm.Major.Id,
-                MajorName = sm.Major.MajorName,
-                MajorCode = sm.Major.MajorCode,
-                Faculty = sm.Major.Faculty != null ? new FacultyDto
-                {
-                    Id = sm.Major.Faculty.Id,
-                    FacultyName = sm.Major.Faculty.FacultyName,
-                    FacultyCode = sm.Major.Faculty.FacultyCode,
-                    Logo = sm.Major.Faculty.Logo
-                } : null
-            }).ToList()
+            SubjectCode = d.Subject.SubjectCode
         } : null,
         Type = new TypeDto
         {
@@ -162,7 +149,7 @@ public class GetHomepageHandler : IRequestHandler<GetHomepageQuery, HomepageDto>
             Id = dt.Tag.Id,
             TagName = dt.Tag.TagName
         }).ToList(),
-        Authors = d.DocumentAuthors.Select(da => new AuthorDto
+        Authors = d.DocumentAuthors.Select(da => new AuthorDetailDto
         {
             Id = da.Author.Id,
             FullName = da.Author.FullName

@@ -2,7 +2,6 @@ namespace UteLearningHub.Application.Features.Event.Commands.UpdateEvent;
 
 public record UpdateEventRequest
 {
-    public Guid Id { get; init; }
     public string Title { get; init; } = default!;
     public string? ShortDescription { get; init; }
     public string? Content { get; init; }

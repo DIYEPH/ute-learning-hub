@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useDebounce } from "@/src/hooks/use-debounce";
 import { useAuthors } from "@/src/hooks/use-authors";
-import type { AuthorInput, UpdateAuthorCommand, AuthorListDto } from "@/src/api/database/types.gen";
+import type { AuthorInput, UpdateAuthorCommandRequest, AuthorDto } from "@/src/api/database/types.gen";
 
 export interface AuthorFormData {
     id?: string;
@@ -17,7 +17,7 @@ export interface AuthorFormData {
 
 interface AuthorFormProps {
     initialData?: AuthorFormData;
-    onSubmit: (data: AuthorInput | UpdateAuthorCommand) => void | Promise<void>;
+    onSubmit: (data: AuthorInput | UpdateAuthorCommandRequest) => void | Promise<void>;
     loading?: boolean;
 }
 
@@ -33,7 +33,7 @@ export function AuthorForm({
         description: null,
     });
     const [searching, setSearching] = useState(false);
-    const [matchingAuthors, setMatchingAuthors] = useState<AuthorListDto[]>([]);
+    const [matchingAuthors, setMatchingAuthors] = useState<AuthorDto[]>([]);
     const [isDuplicate, setIsDuplicate] = useState(false);
 
     const debouncedName = useDebounce(formData.fullName || "", 400);
@@ -65,7 +65,6 @@ export function AuthorForm({
     }, [checkNameExists, initialData?.id]);
 
     useEffect(() => {
-        // Skip search if the debounced value is the same as initial data (edit mode)
         if (initialData?.fullName && debouncedName === initialData.fullName) {
             setMatchingAuthors([]);
             setIsDuplicate(false);
@@ -77,7 +76,7 @@ export function AuthorForm({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isDuplicate) return;
-        const command: AuthorInput | UpdateAuthorCommand = {
+        const command: AuthorInput | UpdateAuthorCommandRequest = {
             fullName: formData.fullName || undefined,
             description: formData.description || undefined,
         };
@@ -105,7 +104,7 @@ export function AuthorForm({
                         />
                         {searching && (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
-                                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                             </div>
                         )}
                     </div>

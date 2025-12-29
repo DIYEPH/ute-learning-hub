@@ -1,31 +1,33 @@
 using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Application.Services.User;
+using UteLearningHub.Application.Services.Profile;
 using UteLearningHub.Domain.Exceptions;
 
 namespace UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
 
-public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand, ProfileDto>
+public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand, ProfileDetailDto>
 {
     private readonly ICurrentUserService _currentUserService;
-    private readonly IUserService _userService;
+    private readonly IProfileService _profileService;
 
     public UpdateProfileCommandHandler(
         ICurrentUserService currentUserService,
-        IUserService userService)
+        IProfileService profileService)
     {
         _currentUserService = currentUserService;
-        _userService = userService;
+        _profileService = profileService;
     }
 
-    public async Task<ProfileDto> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
+    public async Task<ProfileDetailDto> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
     {
-        if (!_currentUserService.IsAuthenticated)
-            throw new UnauthorizedException("You must be authenticated to update your profile");
+        var actorId = _currentUserService.UserId!.Value;
+        var isAdmin = _currentUserService.IsInRole("Admin");
+        var isOwner = actorId == request.Id;
 
-        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+        if (!isAdmin && !isOwner)
+            throw new ForbiddenException("Only admin or owner can update profile");
 
-        return await _userService.UpdateProfileAsync(userId, request, cancellationToken);
+        return await _profileService.UpdateAsync(actorId, request, cancellationToken);
     }
 }

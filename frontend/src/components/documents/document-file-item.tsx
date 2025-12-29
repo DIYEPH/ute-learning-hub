@@ -1,6 +1,6 @@
 "use client";
 
-import { ThumbsUp, ThumbsDown, MessageSquare, FileText, MoreVertical, Flag, Pencil, Trash2, RefreshCw, EyeOff, Eye } from "lucide-react";
+import { ThumbsUp, ThumbsDown, MessageSquare, FileText, MoreVertical, Flag, Pencil, Trash2, RefreshCw, EyeOff, Eye, Download } from "lucide-react";
 import type { DocumentFileDto } from "@/src/api/database/types.gen";
 import { getFileUrlById } from "@/src/lib/file-url";
 import {
@@ -41,6 +41,7 @@ export function DocumentFileItem({
   onResubmit,
 }: DocumentFileItemProps) {
   const coverUrl = getFileUrlById(file.coverFileId);
+  const fileUrl = getFileUrlById(file.fileId);
   const fileSize = file.fileSize ? `${(file.fileSize / 1024 / 1024).toFixed(2)} MB` : "";
   const title = file.title || `${documentName || "Tài liệu"} (${index + 1})`;
   const useful = file.usefulCount ?? 0;
@@ -111,21 +112,21 @@ export function DocumentFileItem({
     }
   };
 
-  // Check if menu has any items to show
-  const hasMenuItems = isOwner || (!isOwner && onReport);
+  // Check if menu has any items to show - always show because we have Download option
+  const hasMenuItems = true;
 
   return (
-    <div className="flex gap-3 p-3 border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 hover:border-sky-400 hover:shadow-md transition-all cursor-pointer ">
+    <div className="flex gap-3 p-3 border border-border bg-card hover:border-primary hover:shadow-md transition-all cursor-pointer ">
       {/* Thumbnail */}
       {coverUrl ? (
         <img
           src={coverUrl}
           alt={title}
-          className="w-20 h-14 object-contain flex-shrink-0 bg-slate-100 dark:bg-slate-700"
+          className="w-20 h-14 object-contain flex-shrink-0 bg-muted"
         />
       ) : (
-        <div className="w-20 h-14 bg-slate-600 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
-          <FileText className="h-6 w-6 text-white/80" />
+        <div className="w-20 h-14 bg-muted flex items-center justify-center flex-shrink-0">
+          <FileText className="h-6 w-6 text-muted-foreground" />
         </div>
       )}
 
@@ -177,6 +178,21 @@ export function DocumentFileItem({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            {/* Download option - always available */}
+            {fileUrl && (
+              <DropdownMenuItem asChild>
+                <a 
+                  href={fileUrl} 
+                  download={title}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Tải xuống
+                </a>
+              </DropdownMenuItem>
+            )}
             {/* Xem lý do ẩn - hiển thị đầu tiên nếu file bị ẩn và có lý do */}
             {isOwner && file.status === ContentStatus.Hidden && file.reviewNote && (
               <DropdownMenuItem
@@ -200,7 +216,7 @@ export function DocumentFileItem({
             )}
             {/* Resubmit - only for owner when file is hidden */}
             {isOwner && file.status === ContentStatus.Hidden && onResubmit && (
-              <DropdownMenuItem onClick={handleResubmit} className="text-blue-600 focus:text-blue-600">
+              <DropdownMenuItem onClick={handleResubmit} className="text-primary focus:text-primary">
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Gửi duyệt lại
               </DropdownMenuItem>

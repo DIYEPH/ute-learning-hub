@@ -10,7 +10,7 @@ import {
     postApiConversationDmByUserId,
 } from "@/src/api/database/sdk.gen";
 
-import type { ProfileDto, DocumentDto, GetOrCreateDmResponse } from "@/src/api/database/types.gen";
+import type { ProfileDetailDto, DocumentDto, GetOrCreateDmResponse } from "@/src/api/database/types.gen";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 import { Badge } from "@/src/components/ui/badge";
@@ -27,7 +27,7 @@ export default function UserProfilePage() {
     const { profile: me } = useUserProfile();
     const { success, error } = useNotification();
 
-    const [profile, setProfile] = useState<ProfileDto | null>(null);
+    const [profile, setProfile] = useState<ProfileDetailDto | null>(null);
     const [docs, setDocs] = useState<DocumentDto[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
@@ -90,7 +90,7 @@ export default function UserProfilePage() {
     if (loading) {
         return (
             <div className="flex h-[50vh] items-center justify-center">
-                <Loader2 className="animate-spin text-sky-500" />
+                <Loader2 className="animate-spin text-primary" />
             </div>
         );
     }
@@ -123,7 +123,7 @@ export default function UserProfilePage() {
                 <ArrowLeft className="h-4 w-4 mr-2" /> Quay lại
             </Button>
 
-            <div className="border bg-white p-6 dark:bg-slate-900">
+            <div className="border border-border bg-card p-6">
                 <div className="flex gap-4">
                     <Avatar className="h-20 w-20">
                         <AvatarImage src={profile.avatarUrl || undefined} />
@@ -135,17 +135,15 @@ export default function UserProfilePage() {
                             {profile.fullName || profile.username}
                         </h1>
                         {profile.username && (
-                            <p className="text-sm text-slate-500">@{profile.username}</p>
+                            <p className="text-sm text-muted-foreground">@{profile.username}</p>
                         )}
 
                         <div className="flex flex-wrap items-center gap-2 mt-3">
                             {profile.trustLevel && (
                                 <Badge variant="outline">{profile.trustLevel}</Badge>
                             )}
-                            {profile.major && (
-                                <Badge variant="secondary">
-                                    {(profile.major as any)?.majorName}
-                                </Badge>
+                            {profile.majorId && (
+                                <Badge variant="secondary">Ngành học</Badge>
                             )}
 
                             {!isOwn && (
@@ -179,7 +177,7 @@ export default function UserProfilePage() {
             </h2>
 
             {docs.length === 0 ? (
-                <div className="p-8 text-center text-slate-500 border bg-white">
+                <div className="p-8 text-center text-muted-foreground border border-border bg-card">
                     Chưa có tài liệu
                 </div>
             ) : (

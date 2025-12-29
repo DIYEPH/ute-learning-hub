@@ -10,9 +10,7 @@ namespace UteLearningHub.Persistence.Repositories;
 public class DocumentRepository : Repository<Document, Guid>, IDocumentRepository
 {
     public DocumentRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider) : base(dbContext, dateTimeProvider)
-    {
-    }
-
+    { }
     public async Task<Document?> GetByIdWithDetailsAsync(Guid id, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
         var query = GetQueryableSet()
@@ -37,6 +35,15 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
             .FirstOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<Document?> GetByIdForUpdateAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await GetQueryableSet()
+            .Include(d => d.DocumentTags)
+            .Include(d => d.DocumentAuthors)
+            .Include(d => d.CoverFile)
+            .Where(d => d.Id == id && !d.IsDeleted)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
     public IQueryable<Document> GetQueryableWithIncludes()
     {
         return GetQueryableSet()
@@ -54,11 +61,11 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
             .AsSplitQuery();
     }
 
-    public async Task<Guid?> GetDocumentIdByDocumentFileIdAsync(Guid documentFileId, CancellationToken cancellationToken = default)
+    public async Task<Guid?> GetIdByDocumentFileIdAsync(Guid documentFileId, CancellationToken cancellationToken = default)
     {
         var result = await GetQueryableSet()
-            .Where(d => !d.IsDeleted && d.DocumentFiles.Any(df => df.Id == documentFileId))
-            .Select(d => (Guid?)d.Id)
+            .Where(d => d.DocumentFiles.Any(df => df.Id == documentFileId))
+            .Select(d => d.Id)
             .FirstOrDefaultAsync(cancellationToken);
 
         return result;
@@ -67,7 +74,7 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
     public async Task<Document?> GetByFileIdAsync(Guid fileId, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
         var query = GetQueryableSet()
-            .Where(d => !d.IsDeleted && d.DocumentFiles.Any(df => df.FileId == fileId && !df.IsDeleted));
+            .Where(d => d.DocumentFiles.Any(df => df.FileId == fileId && !df.IsDeleted));
 
         if (disableTracking)
             query = query.AsNoTracking();
@@ -78,7 +85,7 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
     public async Task<DocumentFile?> GetDocumentFileByIdAsync(Guid documentFileId, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Set<DocumentFile>()
-            .Where(df => df.Id == documentFileId && !df.IsDeleted);
+            .Where(df => df.Id == documentFileId);
 
         if (disableTracking)
             query = query.AsNoTracking();
@@ -86,17 +93,25 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
         return await query.FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task AddDocumentFileAsync(DocumentFile documentFile, CancellationToken cancellationToken = default)
+    public async Task<DocumentFile?> GetDocumentFileByFileIdAsync(Guid fileId, bool disableTracking = false, CancellationToken cancellationToken = default)
     {
-        await _dbContext.Set<DocumentFile>().AddAsync(documentFile, cancellationToken);
+        var query = _dbContext.Set<DocumentFile>()
+            .Where(df => df.FileId == fileId);
+
+        if (disableTracking)
+            query = query.AsNoTracking();
+
+        return await query.FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<bool> IsDocumentFileUsedElsewhereAsync(Guid fileId, Guid excludeDocumentFileId, CancellationToken cancellationToken = default)
+    public void AddDocumentFile(DocumentFile documentFile)
     {
-        return await GetQueryableSet()
-            .Where(d => !d.IsDeleted)
-            .SelectMany(d => d.DocumentFiles)
-            .AnyAsync(df => df.FileId == fileId && !df.IsDeleted && df.Id != excludeDocumentFileId, cancellationToken);
+        _dbContext.Set<DocumentFile>().Add(documentFile);
+    }
+
+    public void UpdateDocumentFile(DocumentFile documentFile)
+    {
+        _dbContext.Set<DocumentFile>().Update(documentFile);
     }
     public async Task<int> GetPendingFilesCountAsync(CancellationToken cancellationToken = default)
     {

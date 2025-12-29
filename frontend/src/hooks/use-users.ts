@@ -15,9 +15,9 @@ import type {
   GetApiUserByIdResponse,
   PutApiUserByIdResponse,
   PutApiUserByIdTrustScoreResponse,
-  UpdateUserCommand,
+  UpdateUserRequest,
   BanUserCommand,
-  ManageTrustScoreCommand,
+  ManageTrustScoreRequest,
 } from "@/src/api/database/types.gen";
 
 export function useUsers() {
@@ -30,7 +30,6 @@ export function useUsers() {
       setError(null);
       try {
         const response = await getApiUser({ query: params });
-        // @hey-api/client-axios returns { data: ... } structure
         return (response as any)?.data || response;
       } catch (err: any) {
         const errorMessage =
@@ -65,15 +64,13 @@ export function useUsers() {
   );
 
   const updateUser = useCallback(
-    async (id: string, data: UpdateUserCommand): Promise<PutApiUserByIdResponse | null> => {
+    async (id: string, data: UpdateUserRequest): Promise<PutApiUserByIdResponse | null> => {
       setLoading(true);
       setError(null);
       try {
-        // Remove userId from data if present, as it's set by the controller from route parameter
-        const { userId, ...bodyData } = data;
         const response = await putApiUserById({
           path: { id },
-          body: bodyData,
+          body: data,
         });
         // @hey-api/client-axios returns { data: ... } structure
         return (response as any)?.data || response;
@@ -143,8 +140,7 @@ export function useUsers() {
       setLoading(true);
       setError(null);
       try {
-        const command: ManageTrustScoreCommand = {
-          userId: id,
+        const command: ManageTrustScoreRequest = {
           trustScore,
           reason: reason || null,
         };

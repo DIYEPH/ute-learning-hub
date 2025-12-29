@@ -11,13 +11,13 @@ import type {
     GetApiNotificationData,
     GetApiNotificationResponse,
     CreateNotificationCommand,
-    UpdateNotificationRequest,
+    UpdateNotificationCommandRequest,
     NotificationDto,
 } from "@/src/api/database/types.gen";
 import { useCrud } from "./use-crud";
 
 export function useNotifications() {
-    const crud = useCrud<NotificationDto, CreateNotificationCommand, UpdateNotificationRequest, GetApiNotificationData["query"]>({
+    const crud = useCrud<NotificationDto, CreateNotificationCommand, UpdateNotificationCommandRequest, GetApiNotificationData["query"]>({
         fetchAll: async (params) => {
             const response = await getApiNotification({ query: params });
             return (response as unknown as { data: GetApiNotificationResponse })?.data || response as GetApiNotificationResponse;

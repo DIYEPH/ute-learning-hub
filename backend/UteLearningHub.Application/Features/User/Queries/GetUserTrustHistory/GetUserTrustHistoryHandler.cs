@@ -26,7 +26,7 @@ public class GetUserTrustHistoryHandler : IRequestHandler<GetUserTrustHistoryQue
 
         var isAdmin = _currentUserService.IsInRole("Admin");
         var isOwnHistory = _currentUserService.UserId == request.UserId;
-        
+
         if (!isAdmin && !isOwnHistory)
             throw new UnauthorizedException("You can only view your own trust history");
 

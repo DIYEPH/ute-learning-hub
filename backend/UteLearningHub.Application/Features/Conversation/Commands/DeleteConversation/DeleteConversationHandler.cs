@@ -7,7 +7,7 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Conversation.Commands.DeleteConversation;
 
-public class DeleteConversationHandler : IRequestHandler<DeleteConversationCommand, Unit>
+public class DeleteConversationHandler : IRequestHandler<DeleteConversationCommand>
 {
     private readonly IConversationRepository _conversationRepository;
     private readonly ICurrentUserService _currentUserService;
@@ -23,7 +23,7 @@ public class DeleteConversationHandler : IRequestHandler<DeleteConversationComma
         _dateTimeProvider = dateTimeProvider;
     }
 
-    public async Task<Unit> Handle(DeleteConversationCommand request, CancellationToken cancellationToken)
+    public async Task Handle(DeleteConversationCommand request, CancellationToken cancellationToken)
     {
         if (!_currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to delete a conversation");
@@ -48,9 +48,11 @@ public class DeleteConversationHandler : IRequestHandler<DeleteConversationComma
         if (!isAdmin && !isOwner)
             throw new UnauthorizedException("Only administrators or conversation owners can delete conversations");
 
-        await _conversationRepository.DeleteAsync(conversation, userId, cancellationToken);
-        await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+        conversation.DeletedAt = _dateTimeProvider.OffsetUtcNow;
+        conversation.DeletedById = userId;
+        conversation.IsDeleted = true;
 
-        return Unit.Value;
+        _conversationRepository.Update(conversation);
+        await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

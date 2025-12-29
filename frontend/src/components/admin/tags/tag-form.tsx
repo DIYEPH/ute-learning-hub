@@ -117,7 +117,7 @@ export function TagForm({
                         />
                         {searching && (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
-                                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                             </div>
                         )}
                     </div>
@@ -130,13 +130,13 @@ export function TagForm({
                     )}
 
                     {matchingTags.length > 0 && !isDuplicate && (
-                        <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800  border border-slate-200 dark:border-slate-700">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                        <div className="mt-2 p-2 bg-muted border border-border">
+                            <p className="text-xs text-muted-foreground mb-1">
                                 {t("form.similarTags")}:
                             </p>
                             <ul className="space-y-0.5">
                                 {matchingTags.map((tag) => (
-                                    <li key={tag.id} className="text-sm text-slate-700 dark:text-slate-300">
+                                    <li key={tag.id} className="text-sm text-foreground">
                                         • {tag.tagName}
                                     </li>
                                 ))}

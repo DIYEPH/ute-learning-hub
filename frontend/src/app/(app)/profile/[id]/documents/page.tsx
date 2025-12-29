@@ -10,7 +10,7 @@ import {
     getApiAccountProfileByUserId,
 } from "@/src/api/database/sdk.gen";
 
-import type { DocumentDto, ProfileDto } from "@/src/api/database/types.gen";
+import type { DocumentDto, ProfileDetailDto } from "@/src/api/database/types.gen";
 import { DocumentCard } from "@/src/components/documents/document-card";
 import { Button } from "@/src/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
@@ -21,7 +21,7 @@ export default function UserDocumentsPage() {
     const { id: userId } = useParams<{ id: string }>();
     const router = useRouter();
 
-    const [profile, setProfile] = useState<ProfileDto | null>(null);
+    const [profile, setProfile] = useState<ProfileDetailDto | null>(null);
     const [docs, setDocs] = useState<DocumentDto[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
@@ -67,7 +67,7 @@ export default function UserDocumentsPage() {
     if (loading)
         return (
             <div className="flex h-[50vh] items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
         );
 
@@ -86,7 +86,7 @@ export default function UserDocumentsPage() {
                 <ArrowLeft className="h-4 w-4 mr-2" /> Quay lại
             </Button>
 
-            <div className="flex items-center gap-4 border p-4 bg-white dark:bg-slate-900">
+            <div className="flex items-center gap-4 border p-4 bg-card">
                 <Link href={`/profile/${userId}`}>
                     <Avatar className="h-12 w-12">
                         <AvatarImage src={profile?.avatarUrl || undefined} />
@@ -99,7 +99,7 @@ export default function UserDocumentsPage() {
                             {profile?.fullName || profile?.username}
                         </h1>
                     </Link>
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-muted-foreground">
                         <FileText className="inline h-4 w-4 mr-1" />
                         {total} tài liệu
                     </p>
@@ -112,7 +112,7 @@ export default function UserDocumentsPage() {
             </div>
 
             {docs.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
+                <div className="text-center py-12 text-muted-foreground">
                     Người dùng chưa có tài liệu
                 </div>
             ) : (

@@ -8,7 +8,7 @@ public class ConversationInvitation : SoftDeletableEntity<Guid>, IAuditable
     public Guid ConversationId { get; set; }
     public Guid InvitedUserId { get; set; }
     public string? Message { get; set; }
-    
+
     public ContentStatus Status { get; set; } = ContentStatus.PendingReview;
     public DateTimeOffset? RespondedAt { get; set; }
     public string? ResponseNote { get; set; }

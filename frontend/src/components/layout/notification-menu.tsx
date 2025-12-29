@@ -78,7 +78,7 @@ const getPriorityColor = (priority?: number) => {
     case 1:
       return "text-amber-600 dark:text-amber-400";
     default:
-      return "text-slate-600 dark:text-slate-400";
+      return "text-muted-foreground";
   }
 };
 
@@ -267,10 +267,10 @@ export function NotificationMenu() {
         <Button
           variant="ghost"
           size="sm"
-          className="relative h-9 w-9 rounded-full p-0"
+          className="group relative h-9 w-9 rounded-full p-0 hover:bg-muted"
           aria-label="Notifications"
         >
-          <Bell size={18} />
+          <Bell size={18} className="text-muted-foreground transition-colors group-hover:text-foreground" />
           {totalBadge > 0 && (
             <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center animate-pulse">
               {totalBadge > 9 ? "9+" : totalBadge}
@@ -308,15 +308,15 @@ export function NotificationMenu() {
       <div className="max-h-[400px] overflow-y-auto">
         {loading ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         ) : (
           <>
             {/* Invitations */}
             {invitations.length > 0 && (
               <>
-                <div className="px-3 py-2 bg-blue-50 border-b">
-                  <p className="text-xs font-semibold text-blue-600">
+                <div className="px-3 py-2 bg-primary/10 border-b">
+                  <p className="text-xs font-semibold text-primary">
                     Lời mời tham gia nhóm ({invitations.length})
                   </p>
                 </div>
@@ -324,15 +324,15 @@ export function NotificationMenu() {
                 {invitations.map((inv) => (
                   <div
                     key={inv.id}
-                    className="flex gap-3 px-3 py-3 border-b bg-blue-50/50"
+                    className="flex gap-3 px-3 py-3 border-b bg-primary/5"
                   >
-                    <Users className="h-5 w-5 text-blue-500 mt-1" />
+                    <Users className="h-5 w-5 text-primary mt-1" />
 
                     <div className="flex-1">
                       <p className="text-sm font-semibold">
                         {inv.conversationName}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-muted-foreground">
                         {inv.invitedByName} đã mời bạn
                       </p>
 
@@ -361,7 +361,7 @@ export function NotificationMenu() {
                       </div>
                     </div>
 
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-muted-foreground">
                       {inv.createdAt && formatRelativeTime(inv.createdAt)}
                     </p>
                   </div>
@@ -389,10 +389,10 @@ export function NotificationMenu() {
                     <p className={cn("text-sm", !n.isRead && "font-semibold")}>
                       {n.title}
                     </p>
-                    <p className="text-xs text-slate-500 line-clamp-2">
+                    <p className="text-xs text-muted-foreground line-clamp-2">
                       {n.content}
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {n.createdAt && formatRelativeTime(n.createdAt)}
                     </p>
                   </div>
@@ -405,7 +405,7 @@ export function NotificationMenu() {
                 </DropdownMenuItem>
               ))
             ) : invitations.length === 0 ? (
-              <div className="flex flex-col items-center py-8 text-slate-400">
+              <div className="flex flex-col items-center py-8 text-muted-foreground">
                 <AlertCircle className="h-8 w-8 mb-2" />
                 <p className="text-sm">Không có thông báo nào</p>
               </div>

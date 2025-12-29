@@ -224,7 +224,7 @@ export default function TagsManagementPage() {
             )}
 
             {tags.length > 0 && (
-                <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+                <div className="mb-2 text-sm text-muted-foreground">
                     {t("foundCount", { count: totalCount })}
                 </div>
             )}

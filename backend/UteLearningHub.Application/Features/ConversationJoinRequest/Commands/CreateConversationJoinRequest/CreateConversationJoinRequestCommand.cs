@@ -1,6 +1,0 @@
-using MediatR;
-using UteLearningHub.Application.Common.Dtos;
-
-namespace UteLearningHub.Application.Features.ConversationJoinRequest.Commands.CreateConversationJoinRequest;
-
-public record CreateConversationJoinRequestCommand : CreateConversationJoinRequestRequest, IRequest<ConversationJoinRequestDto>;

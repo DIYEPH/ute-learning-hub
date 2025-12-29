@@ -34,8 +34,8 @@ const InputWithIcon = React.forwardRef<HTMLInputElement, InputWithIconProps>(
         {PrefixIcon && (
           <div
             className={cn(
-              "absolute left-3 flex items-center justify-center text-slate-500 dark:text-slate-400",
-              onPrefixClick && "cursor-pointer hover:text-slate-700 dark:hover:text-slate-300"
+              "absolute left-3 flex items-center justify-center text-muted-foreground",
+              onPrefixClick && "cursor-pointer hover:text-foreground"
             )}
             onClick={onPrefixClick}
           >
@@ -59,8 +59,8 @@ const InputWithIcon = React.forwardRef<HTMLInputElement, InputWithIconProps>(
         {SuffixIcon && (
           <div
             className={cn(
-              "absolute right-3 flex items-center justify-center text-slate-500 dark:text-slate-400",
-              onSuffixClick && "cursor-pointer hover:text-slate-700 dark:hover:text-slate-300"
+              "absolute right-3 flex items-center justify-center text-muted-foreground",
+              onSuffixClick && "cursor-pointer hover:text-foreground"
             )}
             onClick={onSuffixClick}
           >

@@ -39,11 +39,11 @@ export default function ResetPasswordPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
-        <div className="w-full max-w-md space-y-6 border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900 text-center">
+      <div className="flex min-h-screen items-center justify-center bg-muted p-4">
+        <div className="w-full max-w-md space-y-6 border border-border bg-card p-8 shadow-sm text-center">
           <CheckCircle className="mx-auto h-16 w-16 text-emerald-500" />
           <h1 className="text-2xl font-semibold">Đặt lại mật khẩu thành công!</h1>
-          <p className="text-sm text-slate-500">Bạn có thể đăng nhập với mật khẩu mới.</p>
+          <p className="text-sm text-muted-foreground">Bạn có thể đăng nhập với mật khẩu mới.</p>
           <Button onClick={() => router.push("/auth/login")}>Đăng nhập</Button>
         </div>
       </div>
@@ -51,12 +51,12 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 p-4">
-      <div className="w-full max-w-md space-y-6 border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+    <div className="flex min-h-screen items-center justify-center bg-muted p-4">
+      <div className="w-full max-w-md space-y-6 border border-border bg-card p-8 shadow-sm">
         <div className="text-center">
-          <Lock className="mx-auto h-12 w-12 text-sky-500" />
+          <Lock className="mx-auto h-12 w-12 text-primary" />
           <h1 className="mt-4 text-2xl font-semibold">Đặt lại mật khẩu</h1>
-          <p className="mt-2 text-sm text-slate-500">Nhập mật khẩu mới cho tài khoản của bạn</p>
+          <p className="mt-2 text-sm text-muted-foreground">Nhập mật khẩu mới cho tài khoản của bạn</p>
         </div>
 
         {(!token || !email) && (
@@ -75,15 +75,15 @@ export default function ResetPasswordPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="text-xs font-medium text-slate-600">Email</label>
-            <Input type="email" value={email} disabled className="mt-1 h-10 bg-slate-50" />
+            <label className="text-xs font-medium text-muted-foreground">Email</label>
+            <Input type="email" value={email} disabled className="mt-1 h-10 bg-muted" />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-600">Mật khẩu mới</label>
+            <label className="text-xs font-medium text-muted-foreground">Mật khẩu mới</label>
             <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Nhập mật khẩu mới" className="mt-1 h-10" autoComplete="new-password" required />
           </div>
           <div>
-            <label className="text-xs font-medium text-slate-600">Xác nhận mật khẩu</label>
+            <label className="text-xs font-medium text-muted-foreground">Xác nhận mật khẩu</label>
             <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Nhập lại mật khẩu mới" className="mt-1 h-10" autoComplete="new-password" required />
           </div>
           <Button type="submit" className="w-full h-10" disabled={loading || !token || !email}>
@@ -93,7 +93,7 @@ export default function ResetPasswordPage() {
         </form>
 
         <div className="text-center">
-          <button type="button" onClick={() => router.push("/auth/login")} className="text-sm text-sky-600 hover:underline">
+          <button type="button" onClick={() => router.push("/auth/login")} className="text-sm text-primary hover:underline">
             Quay lại đăng nhập
           </button>
         </div>

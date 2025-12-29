@@ -1,6 +1,10 @@
 using MediatR;
-using UteLearningHub.Application.Features.Author.Queries.GetAuthorById;
+using UteLearningHub.Application.Common.Dtos;
 
 namespace UteLearningHub.Application.Features.Author.Commands.CreateAuthor;
 
-public record CreateAuthorCommand : CreateAuthorRequest, IRequest<AuthorDetailDto>;
+public record CreateAuthorCommand : IRequest<AuthorDetailDto>
+{
+    public string FullName { get; init; } = default!;
+    public string? Description { get; init; }
+}

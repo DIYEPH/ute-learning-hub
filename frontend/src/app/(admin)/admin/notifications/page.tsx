@@ -16,7 +16,7 @@ import { AdvancedSearchFilter } from "@/src/components/admin/advanced-search-fil
 import type {
     NotificationDto,
     CreateNotificationCommand,
-    UpdateNotificationRequest,
+    UpdateNotificationCommandRequest,
 } from "@/src/api/database/types.gen";
 
 export default function NotificationsManagementPage() {
@@ -85,7 +85,7 @@ export default function NotificationsManagementPage() {
         loadNotifications();
     }, [loadNotifications]);
 
-    const handleCreate = async (command: CreateNotificationCommand | UpdateNotificationRequest) => {
+    const handleCreate = async (command: CreateNotificationCommand | UpdateNotificationCommandRequest) => {
         setFormLoading(true);
         try {
             await createNotification(command as CreateNotificationCommand);
@@ -100,11 +100,11 @@ export default function NotificationsManagementPage() {
         }
     };
 
-    const handleEdit = async (command: CreateNotificationCommand | UpdateNotificationRequest) => {
+    const handleEdit = async (command: CreateNotificationCommand | UpdateNotificationCommandRequest) => {
         if (!selectedNotification?.id) return;
         setFormLoading(true);
         try {
-            await updateNotification(selectedNotification.id, command as UpdateNotificationRequest);
+            await updateNotification(selectedNotification.id, command as UpdateNotificationCommandRequest);
             await loadNotifications();
             setEditModalOpen(false);
             setSelectedNotification(null);
@@ -269,7 +269,7 @@ export default function NotificationsManagementPage() {
             )}
 
             {notifications.length > 0 && (
-                <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+                <div className="mb-2 text-sm text-muted-foreground">
                     {t("foundCount", { count: totalCount })}
                 </div>
             )}

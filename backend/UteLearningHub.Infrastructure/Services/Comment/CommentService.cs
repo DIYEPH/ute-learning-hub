@@ -42,10 +42,10 @@ public class CommentService : ICommentService
             });
     }
 
-    public async Task<int> GetReplyCountAsync(Guid commentId, CancellationToken cancellationToken = default)
+    public async Task<int> GetReplyCountAsync(Guid commentId, CancellationToken ct = default)
     {
         return await _dbContext.Comments
             .Where(c => c.ParentId == commentId && !c.IsDeleted)
-            .CountAsync(cancellationToken);
+            .CountAsync(ct);
     }
 }

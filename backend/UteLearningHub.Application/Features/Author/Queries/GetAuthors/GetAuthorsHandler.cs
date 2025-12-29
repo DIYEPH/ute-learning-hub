@@ -1,64 +1,18 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
+using UteLearningHub.Application.Services.Author;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Domain.Constaints.Enums;
-using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Author.Queries.GetAuthors;
 
-public class GetAuthorsHandler : IRequestHandler<GetAuthorsQuery, PagedResponse<AuthorListDto>>
+public class GetAuthorsHandler(IAuthorService authorService, ICurrentUserService currentUserService) : IRequestHandler<GetAuthorsQuery, PagedResponse<AuthorDetailDto>>
 {
-    private readonly IAuthorRepository _authorRepository;
-    private readonly ICurrentUserService _currentUserService;
+    private readonly IAuthorService _authorService = authorService;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public GetAuthorsHandler(
-        IAuthorRepository authorRepository,
-        ICurrentUserService currentUserService)
+    public async Task<PagedResponse<AuthorDetailDto>> Handle(GetAuthorsQuery request, CancellationToken ct)
     {
-        _authorRepository = authorRepository;
-        _currentUserService = currentUserService;
-    }
-
-    public async Task<PagedResponse<AuthorListDto>> Handle(GetAuthorsQuery request, CancellationToken cancellationToken)
-    {
-        var query = _authorRepository.GetQueryableSet()
-            .AsNoTracking();
-
-        // Search by name
-        if (!string.IsNullOrWhiteSpace(request.SearchTerm))
-        {
-            var searchTerm = request.SearchTerm.ToLower();
-            query = query.Where(a => a.FullName.ToLower().Contains(searchTerm));
-        }
-
-        // Only show approved authors for non-admin users
-        var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
-        if (!isAdmin)
-            query = query.Where(a => a.Status == ContentStatus.Approved);
-
-        // Order by name
-        query = query.OrderBy(a => a.FullName);
-
-        var totalCount = await query.CountAsync(cancellationToken);
-
-        var authors = await query
-            .Skip(request.Skip)
-            .Take(request.Take)
-            .Select(a => new AuthorListDto
-            {
-                Id = a.Id,
-                FullName = a.FullName,
-                Description = a.Description
-            })
-            .ToListAsync(cancellationToken);
-
-        return new PagedResponse<AuthorListDto>
-        {
-            Items = authors,
-            TotalCount = totalCount,
-            Page = request.Page,
-            PageSize = request.PageSize
-        };
+        var isAdmin = _currentUserService.IsInRole("Admin");
+        return await _authorService.GetAuthorsAsync(request, isAdmin, ct);
     }
 }

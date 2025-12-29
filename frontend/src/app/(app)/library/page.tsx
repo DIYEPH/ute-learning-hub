@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, RefreshCcw } from "lucide-react";
+import { Loader2, RefreshCcw, FileText } from "lucide-react";
 
 import { getApiDocumentMy } from "@/src/api/database/sdk.gen";
 import type { DocumentDto, PagedResponseOfDocumentDto } from "@/src/api/database/types.gen";
@@ -53,7 +53,7 @@ export default function LibraryPage() {
   if (loading && docs.length === 0)
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="animate-spin text-sky-500" />
+        <Loader2 className="animate-spin text-primary" />
       </div>
     );
 
@@ -63,7 +63,7 @@ export default function LibraryPage() {
       <div className="flex flex-col gap-4 md:flex-row md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Thư viện của tôi</h1>
-          <p className="text-sm text-slate-500">Những tài liệu bạn đã chia sẻ</p>
+          <p className="text-sm text-muted-foreground">Những tài liệu bạn đã chia sẻ</p>
         </div>
         <Input
           className="md:w-80"
@@ -83,8 +83,9 @@ export default function LibraryPage() {
       )}
 
       {docs.length === 0 ? (
-        <div className="border border-dashed p-8 text-center">
-          <h2 className="text-lg font-semibold">Chưa có tài liệu nào</h2>
+        <div className="text-center py-12 text-muted-foreground">
+          <FileText className="h-12 w-12 mx-auto mb-3 opacity-40" />
+          <p>Chưa có tài liệu nào</p>
         </div>
       ) : (
         <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">

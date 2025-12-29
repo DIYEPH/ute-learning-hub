@@ -12,17 +12,37 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Textarea } from "@/src/components/ui/textarea";
 import { Label } from "@/src/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/src/components/ui/select";
 import { postApiReport } from "@/src/api/database/sdk.gen";
 import { useNotification } from "@/src/components/providers/notification-provider";
 
 export type ReportTargetType = "documentFile" | "comment" | "document" | "user" | "conversation";
+
+// Map ReportReason enum values to Vietnamese labels
+const REPORT_REASONS = [
+    { value: 0, label: "Khác" },
+    { value: 1, label: "Vi phạm bản quyền" },
+    { value: 2, label: "Nội dung xúc phạm, lăng mạ" },
+    { value: 3, label: "Spam, quảng cáo" },
+    { value: 4, label: "Thông tin sai lệch" },
+    { value: 5, label: "Nội dung bạo lực" },
+    { value: 6, label: "Nội dung không phù hợp" },
+    { value: 7, label: "Quấy rối, bắt nạt" },
+    { value: 8, label: "Đạo văn, sao chép" },
+] as const;
 
 interface ReportModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     targetType: ReportTargetType;
     targetId: string;
-    targetTitle?: string; // Display name of what's being reported
+    targetTitle?: string; 
 }
 
 export function ReportModal({
@@ -32,6 +52,7 @@ export function ReportModal({
     targetId,
     targetTitle,
 }: ReportModalProps) {
+    const [reason, setReason] = useState<number | null>(null);
     const [content, setContent] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const { success, error } = useNotification();
@@ -54,8 +75,8 @@ export function ReportModal({
     };
 
     const handleSubmit = async () => {
-        if (!content.trim()) {
-            error("Vui lòng nhập nội dung báo cáo");
+        if (reason === null) {
+            error("Vui lòng chọn lý do báo cáo");
             return;
         }
 
@@ -63,7 +84,8 @@ export function ReportModal({
         try {
             // Map targetType to API body fields
             const body: Record<string, unknown> = {
-                content: content.trim(),
+                reason: reason,
+                content: content.trim() || REPORT_REASONS.find(r => r.value === reason)?.label || "",
             };
 
             if (targetType === "documentFile") {
@@ -74,11 +96,12 @@ export function ReportModal({
             // Add more target types as needed when API supports them
 
             await postApiReport({
-                body: body as { documentFileId?: string | null; commentId?: string | null; content?: string },
+                body: body as { documentFileId?: string | null; commentId?: string | null; reason?: number; content?: string },
                 throwOnError: true,
             });
 
             success("Đã gửi báo cáo thành công. Chúng tôi sẽ xem xét trong thời gian sớm nhất.");
+            setReason(null);
             setContent("");
             onOpenChange(false);
         } catch (err: any) {
@@ -94,6 +117,7 @@ export function ReportModal({
 
     const handleClose = () => {
         if (!submitting) {
+            setReason(null);
             setContent("");
             onOpenChange(false);
         }
@@ -109,7 +133,7 @@ export function ReportModal({
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {targetTitle && (
                         <p className="text-sm text-muted-foreground">
                             Báo cáo {getTargetLabel()}:{" "}
@@ -118,18 +142,38 @@ export function ReportModal({
                     )}
 
                     <div>
-                        <Label htmlFor="report-content">Lý do báo cáo</Label>
+                        <Label htmlFor="report-reason">Lý do báo cáo <span className="text-red-500">*</span></Label>
+                        <Select
+                            value={reason !== null ? String(reason) : undefined}
+                            onValueChange={(value: string) => setReason(Number(value))}
+                            disabled={submitting}
+                        >
+                            <SelectTrigger id="report-reason" className="mt-1.5">
+                                <SelectValue placeholder="Chọn lý do báo cáo..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {REPORT_REASONS.map((item) => (
+                                    <SelectItem key={item.value} value={String(item.value)}>
+                                        {item.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div>
+                        <Label htmlFor="report-content">Mô tả chi tiết (không bắt buộc)</Label>
                         <Textarea
                             id="report-content"
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            placeholder={`Mô tả lý do bạn muốn báo cáo ${getTargetLabel()} này...`}
-                            rows={4}
+                            placeholder={`Mô tả thêm chi tiết về vi phạm...`}
+                            rows={3}
                             className="mt-1.5"
                             disabled={submitting}
                         />
                         <p className="text-xs text-muted-foreground mt-1">
-                            Vui lòng cung cấp thông tin chi tiết để chúng tôi có thể xử lý báo cáo nhanh chóng.
+                            Cung cấp thêm thông tin để chúng tôi xử lý nhanh hơn.
                         </p>
                     </div>
                 </div>
@@ -144,7 +188,7 @@ export function ReportModal({
                     </Button>
                     <Button
                         onClick={handleSubmit}
-                        disabled={!content.trim() || submitting}
+                        disabled={reason === null || submitting}
                         variant="destructive"
                     >
                         {submitting ? (

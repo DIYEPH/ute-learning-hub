@@ -3,7 +3,7 @@ using UteLearningHub.Application.Common.Dtos;
 
 namespace UteLearningHub.Application.Features.Notification.Commands.UpdateNotification;
 
-public record UpdateNotificationCommand : UpdateNotificationRequest, IRequest<NotificationDto>
+public record UpdateNotificationCommand : UpdateNotificationCommandRequest, IRequest<NotificationDto>
 {
     public Guid Id { get; init; }
 }

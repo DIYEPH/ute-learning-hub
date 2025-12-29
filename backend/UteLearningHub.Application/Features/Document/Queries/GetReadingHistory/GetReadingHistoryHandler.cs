@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 
@@ -31,6 +32,10 @@ public class GetReadingHistoryHandler : IRequestHandler<GetReadingHistoryQuery, 
             .Where(p => p.UserId == userId)
             .Include(p => p.Document)
                 .ThenInclude(d => d.Subject)
+            .Include(p => p.Document)
+                .ThenInclude(d => d.DocumentFiles)
+            .Include(p => p.Document)
+                .ThenInclude(d => d.Reviews)
             .Include(p => p.DocumentFile)
             .AsNoTracking();
 
@@ -54,7 +59,10 @@ public class GetReadingHistoryHandler : IRequestHandler<GetReadingHistoryQuery, 
                 TotalPages = p.TotalPages,
                 LastAccessedAt = p.LastAccessedAt,
                 CoverFileId = p.Document.CoverFileId,
-                SubjectName = p.Document.Subject?.SubjectName
+                SubjectName = p.Document.Subject?.SubjectName,
+                TotalViewCount = p.Document.DocumentFiles.Sum(f => f.ViewCount),
+                UsefulCount = p.Document.Reviews.Count(r => r.DocumentReviewType == DocumentReviewType.Useful),
+                NotUsefulCount = p.Document.Reviews.Count(r => r.DocumentReviewType == DocumentReviewType.NotUseful)
             })
             .ToList();
 

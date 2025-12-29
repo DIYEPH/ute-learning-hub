@@ -19,14 +19,6 @@ public class ProfileVectorStore : IProfileVectorStore
         return dbContext.Set<ProfileVector>().AsQueryable();
     }
 
-    public async Task<ProfileVector?> GetAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-        return await dbContext.Set<ProfileVector>()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-    }
-
     public async Task UpsertAsync(ProfileVector vector, CancellationToken cancellationToken = default)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);

@@ -1,43 +1,18 @@
 using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Domain.Constaints.Enums;
-using UteLearningHub.Domain.Exceptions;
-using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Application.Services.Tag;
 
 namespace UteLearningHub.Application.Features.Tag.Queries.GetTagById;
 
-public class GetTagByIdHandler : IRequestHandler<GetTagByIdQuery, TagDetailDto>
+public class GetTagByIdHandler(ITagService tagService, ICurrentUserService currentUserService) : IRequestHandler<GetTagByIdQuery, TagDetailDto>
 {
-    private readonly ITagRepository _tagRepository;
-    private readonly ICurrentUserService _currentUserService;
+    private readonly ITagService _tagService = tagService;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public GetTagByIdHandler(
-        ITagRepository tagRepository, 
-        ICurrentUserService currentUserService)
+    public async Task<TagDetailDto> Handle(GetTagByIdQuery request, CancellationToken ct)
     {
-        _tagRepository = tagRepository;
-        _currentUserService = currentUserService;
-    }
-
-    public async Task<TagDetailDto> Handle(GetTagByIdQuery request, CancellationToken cancellationToken)
-    {
-        var tag = await _tagRepository.GetByIdAsync(request.Id, disableTracking: true, cancellationToken);
-
-        if (tag == null || tag.IsDeleted)
-            throw new NotFoundException($"Tag with id {request.Id} not found");
-
-        var isAdmin = _currentUserService.IsAuthenticated && _currentUserService.IsInRole("Admin");
-        if (!isAdmin && tag.Status != ContentStatus.Approved)
-            throw new NotFoundException($"Tag with id {request.Id} not found");
-
-        var documentCount = await _tagRepository.GetDocumentCountAsync(request.Id, cancellationToken);
-
-        return new TagDetailDto
-        {
-            Id = tag.Id,
-            TagName = tag.TagName,
-            DocumentCount = documentCount
-        };
+        var isAdmin = _currentUserService.IsInRole("Admin");
+        return await _tagService.GetTagByIdAsync(request.Id, isAdmin, ct);
     }
 }

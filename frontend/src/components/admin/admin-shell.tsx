@@ -16,9 +16,8 @@ type AdminShellProps = {
   children: ReactNode;
 };
 
-// Trust levels hierarchy
-const ADMIN_LEVEL = "Master"; // Master is the highest trust level, close to admin
-const MODERATOR_LEVELS = ["Moderator", "Master"];
+// Trust level enum values: Moderator = 4, Master = 5
+const MODERATOR_MIN_LEVEL = 4;
 
 export function AdminShell({ children }: AdminShellProps) {
   const pathname = usePathname();
@@ -26,14 +25,22 @@ export function AdminShell({ children }: AdminShellProps) {
   const { profile } = useUserProfile();
   const { pendingReports, pendingDocumentFiles } = useAdminBadges();
 
-  const isMaster = profile?.trustLevel === ADMIN_LEVEL;
-  const isModerator = profile?.trustLevel && MODERATOR_LEVELS.includes(profile.trustLevel);
+  // Check if user has Admin role (not just trust level)
+  const hasAdminRole = profile?.roles?.some(role => role === 'Admin') === true;
+  // Check if user has Moderator-level trust
+  const isModerator = typeof profile?.trustLevel === 'number' && profile.trustLevel >= MODERATOR_MIN_LEVEL;
 
   // Filter nav items based on user's permission level
   const filteredNavItems = ADMIN_NAV_CONFIG.filter(item => {
-    if (isMaster) return true; // Master sees everything
-    if (isModerator && item.minLevel === "Moderator") return true; // Moderator sees Moderator-level items
-    return false; // Hide everything else
+    if (item.minLevel === "Admin") {
+      // Admin-level pages require actual Admin role
+      return hasAdminRole;
+    }
+    if (item.minLevel === "Moderator") {
+      // Moderator-level pages require Admin role OR Moderator+ trust level
+      return hasAdminRole || isModerator;
+    }
+    return false;
   });
 
   const navItems: AdminNavItem[] = filteredNavItems.map(item => {
@@ -53,7 +60,7 @@ export function AdminShell({ children }: AdminShellProps) {
   });
 
   return (
-    <div className="h-screen overflow-hidden bg-slate-50 dark:bg-slate-950 flex flex-col">
+    <div className="h-screen overflow-hidden bg-background flex flex-col">
       <div className="flex-shrink-0">
         <AppHeader navItems={navItems} activePath={pathname} />
       </div>

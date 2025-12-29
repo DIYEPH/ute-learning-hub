@@ -32,6 +32,9 @@ public class UserDocumentProgressConfiguration : IEntityTypeConfiguration<UserDo
             .WithMany()
             .HasForeignKey(u => u.DocumentFileId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Query filter: exclude progress of deleted documents
+        builder.HasQueryFilter(u => !u.Document.IsDeleted);
     }
 }
 

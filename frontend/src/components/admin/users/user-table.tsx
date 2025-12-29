@@ -11,9 +11,11 @@ import {
   TableRow,
 } from "@/src/components/ui/table";
 import { Avatar, AvatarImage, AvatarFallback } from "@/src/components/ui/avatar";
-import { Trash2 } from "lucide-react";
+import { Badge } from "@/src/components/ui/badge";
+import { Trash2, CheckCircle, XCircle, Ban, Shield, Star } from "lucide-react";
 import type { UserDto } from "@/src/api/database/types.gen";
 import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
 interface UserTableProps {
   users: UserDto[];
@@ -88,7 +90,7 @@ export function UserTable({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <p className="text-slate-600 dark:text-slate-400">{t("table.loading")}</p>
+        <p className="text-muted-foreground">{t("table.loading")}</p>
       </div>
     );
   }
@@ -96,7 +98,7 @@ export function UserTable({
   if (users.length === 0) {
     return (
       <div className="flex items-center justify-center py-8">
-        <p className="text-slate-600 dark:text-slate-400">{t("table.noData")}</p>
+        <p className="text-muted-foreground">{t("table.noData")}</p>
       </div>
     );
   }
@@ -104,8 +106,8 @@ export function UserTable({
   return (
     <div className="space-y-2">
       {selectedIds.size > 0 && onBulkDelete && (
-        <div className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-950 rounded border border-blue-200 dark:border-blue-800">
-          <span className="text-sm text-blue-900 dark:text-blue-100">
+        <div className="flex items-center justify-between p-2 bg-secondary rounded border border-border">
+          <span className="text-sm text-foreground">
             {t("table.selectedCount", { count: selectedIds.size })}
           </span>
           <Button
@@ -134,18 +136,24 @@ export function UserTable({
                   className="cursor-pointer"
                 />
               </TableHead>
-              <TableHead className="min-w-[150px]">{t("table.fullName")}</TableHead>
+              <TableHead className="min-w-[180px]">{t("table.fullName")}</TableHead>
               <TableHead className="min-w-[180px]">{t("table.email")}</TableHead>
-              <TableHead className="min-w-[120px]">{t("table.major")}</TableHead>
+              <TableHead className="min-w-[100px]">{t("table.major")}</TableHead>
+              <TableHead className="min-w-[100px]">{t("table.trustLevel")}</TableHead>
               <TableHead className="min-w-[80px]">{t("table.roles")}</TableHead>
+              <TableHead className="min-w-[80px] text-center">{t("table.status")}</TableHead>
+              <TableHead className="min-w-[100px]">{t("table.createdAt")}</TableHead>
               <TableHead className="text-right min-w-[200px]">{t("table.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.map((user) => {
               const isSelected = user.id ? selectedIds.has(user.id) : false;
+              const isBanned = user.lockoutEnd && new Date(user.lockoutEnd) > new Date();
+              const isDeleted = user.isDeleted;
+              
               return (
-                <TableRow key={user.id}>
+                <TableRow key={user.id} className={cn(isDeleted && "opacity-50 bg-muted/30")}>
                   <TableCell>
                     {user.id && (
                       <input
@@ -167,32 +175,80 @@ export function UserTable({
                       <div className="min-w-0">
                         <div className="font-medium text-foreground truncate">{user.fullName}</div>
                         {user.username && (
-                          <div className="text-xs text-slate-500 dark:text-slate-400">@{user.username}</div>
+                          <div className="text-xs text-muted-foreground">@{user.username}</div>
                         )}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="text-sm text-foreground">{user.email}</div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm text-foreground">{user.email}</span>
+                      {user.emailConfirmed ? (
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-500" xlinkTitle="Email đã xác thực" />
+                      ) : (
+                        <XCircle className="h-3.5 w-3.5 text-amber-500" xlinkTitle="Chưa xác thực email" />
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell>
                     {user.major ? (
-                      <div className="text-sm text-foreground truncate">{user.major.majorName}</div>
+                      <div className="text-sm text-foreground truncate max-w-[120px]" title={user.major.majorName}>
+                        {user.major.majorName}
+                      </div>
                     ) : (
-                      <span className="text-slate-400">-</span>
+                      <span className="text-muted-foreground">-</span>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Star className="h-3.5 w-3.5 text-amber-500" />
+                      <span className="text-sm font-medium">{user.trustScore ?? 0}</span>
+                      <Badge variant="secondary" className="text-[10px] px-1.5">
+                        {user.trustLevel || "None"}
+                      </Badge>
+                    </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
                       {user.roles?.map((role) => (
-                        <span
+                        <Badge
                           key={role}
-                          className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
+                          variant={role === "Admin" ? "default" : "secondary"}
+                          className="text-[10px] px-1.5"
                         >
+                          {role === "Admin" && <Shield className="h-3 w-3 mr-0.5" />}
                           {role}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="flex flex-col items-center gap-0.5">
+                      {isBanned ? (
+                        <Badge variant="destructive" className="text-[10px] px-1.5">
+                          <Ban className="h-3 w-3 mr-0.5" />
+                          Bị cấm
+                        </Badge>
+                      ) : isDeleted ? (
+                        <Badge variant="outline" className="text-[10px] px-1.5 text-muted-foreground">
+                          Đã xóa
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 text-emerald-600">
+                          Hoạt động
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="text-xs text-muted-foreground">
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString("vi-VN") : "-"}
+                    </div>
+                    {user.lastLoginAt && (
+                      <div className="text-[10px] text-muted-foreground/70">
+                        Đăng nhập: {new Date(user.lastLoginAt).toLocaleDateString("vi-VN")}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1 flex-wrap">
@@ -206,7 +262,7 @@ export function UserTable({
                           {t("table.edit")}
                         </Button>
                       )}
-                      {user.lockoutEnd && new Date(user.lockoutEnd) > new Date() ? (
+                      {isBanned ? (
                         onUnban && (
                           <Button
                             variant="ghost"

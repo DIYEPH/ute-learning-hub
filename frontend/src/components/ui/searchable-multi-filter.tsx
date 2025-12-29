@@ -75,39 +75,39 @@ export function SearchableMultiFilter({
 
     return (
         <div ref={containerRef} className={`relative ${className}`}>
-            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-medium text-muted-foreground mb-1">
                 {label}
             </label>
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex min-h-9 w-full items-center justify-between border border-input bg-background px-3 py-1.5 text-sm shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800"
+                className="flex min-h-9 w-full items-center justify-between border border-input bg-background px-3 py-1.5 text-sm shadow-sm hover:bg-muted"
             >
                 <div className="flex flex-wrap gap-1 flex-1">
                     {selectedOptions.length > 0 ? (
                         selectedOptions.slice(0, 2).map((opt) => (
                             <span
                                 key={opt.value}
-                                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 rounded"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-primary/10 text-primary rounded"
                             >
                                 <span className="truncate max-w-[120px]">{opt.label}</span>
-                                <X className="h-3 w-3 cursor-pointer hover:text-sky-900" onClick={(e) => handleRemoveTag(e, opt.value)} />
+                                <X className="h-3 w-3 cursor-pointer hover:text-primary/80" onClick={(e) => handleRemoveTag(e, opt.value)} />
                             </span>
                         ))
                     ) : (
                         <span className="text-muted-foreground">{placeholder}</span>
                     )}
                     {selectedOptions.length > 2 && (
-                        <span className="inline-flex items-center px-2 py-0.5 text-xs bg-slate-200 dark:bg-slate-700 rounded">
+                        <span className="inline-flex items-center px-2 py-0.5 text-xs bg-muted rounded">
                             +{selectedOptions.length - 2}
                         </span>
                     )}
                 </div>
                 <div className="flex items-center gap-1 ml-2 shrink-0">
                     {value.length > 0 && (
-                        <X className="h-3.5 w-3.5 text-slate-400 hover:text-slate-600" onClick={handleClear} />
+                        <X className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" onClick={handleClear} />
                     )}
-                    <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 </div>
             </button>
 
@@ -115,7 +115,7 @@ export function SearchableMultiFilter({
                 <div className="absolute z-50 mt-1 w-full border border-input bg-background shadow-lg">
                     <div className="p-2 border-b border-input">
                         <div className="relative">
-                            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                            <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <input
                                 ref={inputRef}
                                 type="text"
@@ -135,11 +135,11 @@ export function SearchableMultiFilter({
                                     key={opt.value}
                                     type="button"
                                     onClick={() => handleToggle(opt.value)}
-                                    className={`flex w-full items-center justify-between px-3 py-2 text-sm text-left hover:bg-slate-100 dark:hover:bg-slate-800 ${value.includes(opt.value) ? "bg-slate-100 dark:bg-slate-800" : ""
+                                    className={`flex w-full items-center justify-between px-3 py-2 text-sm text-left hover:bg-muted ${value.includes(opt.value) ? "bg-muted" : ""
                                         }`}
                                 >
                                     <span className="truncate">{opt.label}</span>
-                                    {value.includes(opt.value) && <Check className="h-4 w-4 text-sky-500 shrink-0" />}
+                                    {value.includes(opt.value) && <Check className="h-4 w-4 text-primary shrink-0" />}
                                 </button>
                             ))
                         )}

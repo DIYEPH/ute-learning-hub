@@ -3,4 +3,7 @@ using UteLearningHub.Application.Common.Dtos;
 
 namespace UteLearningHub.Application.Features.Tag.Commands.UpdateTag;
 
-public record UpdateTagCommand : UpdateTagRequest, IRequest<TagDetailDto>;
+public record UpdateTagCommand : UpdateTagCommandRequest, IRequest<TagDetailDto>
+{
+    public Guid Id { get; init; }
+}

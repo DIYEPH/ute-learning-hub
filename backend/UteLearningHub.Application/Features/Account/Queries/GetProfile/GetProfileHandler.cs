@@ -1,39 +1,24 @@
 ﻿using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Application.Services.User;
-using UteLearningHub.Domain.Exceptions;
+using UteLearningHub.Application.Services.Profile;
 
 namespace UteLearningHub.Application.Features.Account.Queries.GetProfile;
 
-public class GetProfileHandler : IRequestHandler<GetProfileQuery, ProfileDto>
+public class GetProfileHandler : IRequestHandler<GetProfileQuery, ProfileDetailDto>
 {
     private readonly ICurrentUserService _currentUserService;
-    private readonly IUserService _userService;
-    public GetProfileHandler(ICurrentUserService currentUserService, IUserService userService)
+    private readonly IProfileService _profileService;
+    public GetProfileHandler(ICurrentUserService currentUserService, IProfileService profileService)
     {
         _currentUserService = currentUserService;
-        _userService = userService;
+        _profileService = profileService;
     }
-    public async Task<ProfileDto> Handle(GetProfileQuery request, CancellationToken cancellationToken)
+    public async Task<ProfileDetailDto> Handle(GetProfileQuery request, CancellationToken ct)
     {
-        Guid userId;
-
-        if (request.UserId.HasValue)
-            userId = request.UserId.Value;
-        else
-        {
-            if (!_currentUserService.IsAuthenticated)
-                throw new UnauthorizedException();
-
-            userId = _currentUserService.UserId ?? throw new UnauthorizedException();
-        }
-
-        var profile = await _userService.GetProfileAsync(userId, cancellationToken);
-
-        if (profile is null)
-            throw new NotFoundException("User " + userId);
-
-        return profile;
+        var targetUserId = request.UserId ?? _currentUserService.UserId;
+        var isAdmin = _currentUserService.IsInRole("Admin");
+        var isOwn = (_currentUserService.UserId == targetUserId);
+        return await _profileService.GetProfileByIdAsync(targetUserId, (isAdmin || isOwn), ct);
     }
 }

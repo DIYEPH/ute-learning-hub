@@ -46,9 +46,13 @@ public class TagController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize]
-    public async Task<ActionResult<TagDetailDto>> UpdateTag(Guid id, [FromBody] UpdateTagCommand command)
+    public async Task<ActionResult<TagDetailDto>> UpdateTag(Guid id, [FromBody] UpdateTagCommandRequest request)
     {
-        command = command with { Id = id };
+        var command = new UpdateTagCommand
+        {
+            Id = id,
+            TagName = request.TagName
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

@@ -8,7 +8,7 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Comment.Queries.GetDocumentComments;
 
-public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQuery, PagedResponse<CommentDto>>
+public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQuery, PagedResponse<CommentDetailDto>>
 {
     private readonly ICommentRepository _commentRepository;
     private readonly ICurrentUserService _currentUserService;
@@ -24,7 +24,7 @@ public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQue
         _commentService = commentService;
     }
 
-    public async Task<PagedResponse<CommentDto>> Handle(GetDocumentCommentsQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResponse<CommentDetailDto>> Handle(GetDocumentCommentsQuery request, CancellationToken cancellationToken)
     {
         var query = _commentRepository.GetQueryableSet()
             .Include(c => c.DocumentFile)
@@ -52,7 +52,7 @@ public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQue
         var comments = await query
             .Skip(request.Skip)
             .Take(request.Take)
-            .Select(c => new CommentDto
+            .Select(c => new CommentDetailDto
             {
                 Id = c.Id,
                 DocumentId = c.DocumentFile.DocumentId,
@@ -72,7 +72,7 @@ public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQue
         var authorInfo = await _commentService.GetCommentAuthorsAsync(userIds, cancellationToken);
 
         // Map author information to comments
-        var commentDtos = comments.Select(c => new CommentDto
+        var commentDtos = comments.Select(c => new CommentDetailDto
         {
             Id = c.Id,
             DocumentId = c.DocumentId,
@@ -92,7 +92,7 @@ public class GetDocumentCommentsHandler : IRequestHandler<GetDocumentCommentsQue
             UpdatedAt = c.UpdatedAt
         }).ToList();
 
-        return new PagedResponse<CommentDto>
+        return new PagedResponse<CommentDetailDto>
         {
             Items = commentDtos,
             TotalCount = totalCount,

@@ -7,22 +7,11 @@ using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Infrastructure.Services.TrustScore;
 
-public class TrustScoreService : ITrustScoreService
+public class TrustScoreService(ApplicationDbContext dbContext, IUserService userService, ILogger<TrustScoreService> logger) : ITrustScoreService
 {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IUserService _userService;
-    private readonly ILogger<TrustScoreService> _logger;
-
-
-    public TrustScoreService(
-        ApplicationDbContext dbContext,
-        IUserService userService,
-        ILogger<TrustScoreService> logger)
-    {
-        _dbContext = dbContext;
-        _userService = userService;
-        _logger = logger;
-    }
+    private readonly ApplicationDbContext _dbContext = dbContext;
+    private readonly IUserService _userService = userService;
+    private readonly ILogger<TrustScoreService> _logger = logger;
 
     public async Task AddTrustScoreAsync(Guid userId, int points, string reason, Guid? entityId = null, TrustEntityType? entityType = null, CancellationToken cancellationToken = default)
     {
@@ -41,8 +30,7 @@ public class TrustScoreService : ITrustScoreService
             var newTrustScore = oldTrustScore + points;
 
             await _userService.UpdateTrustScoreAsync(userId, newTrustScore, reason, entityId, entityType, cancellationToken);
-            _logger.LogInformation("Updated trust score for user {UserId}: {OldScore} -> {NewScore} ({Delta}) - Reason: {Reason}, EntityId: {EntityId}, EntityType: {EntityType}",
-                userId, oldTrustScore, newTrustScore, points, reason, entityId, entityType);
+            _logger.LogInformation("Updated trust score for user {UserId}: {OldScore} -> {NewScore}", userId, oldTrustScore, newTrustScore);
         }
         catch (Exception ex)
         {
@@ -55,7 +43,6 @@ public class TrustScoreService : ITrustScoreService
     {
         try
         {
-            // Find all trust history entries related to this entity (and optionally filter by type)
             var query = _dbContext.UserTrustHistories
                 .Where(h => h.EntityId == entityId);
 
@@ -70,7 +57,6 @@ public class TrustScoreService : ITrustScoreService
                 return;
             }
 
-            // Group by user and calculate total points to revert
             var userPointsToRevert = historyEntries
                 .GroupBy(h => h.UserId)
                 .Select(g => new { UserId = g.Key, TotalPoints = g.Sum(h => h.Score) })
@@ -78,11 +64,10 @@ public class TrustScoreService : ITrustScoreService
 
             foreach (var userPoints in userPointsToRevert)
             {
-                // Revert points by adding negative of what was awarded
                 var pointsToDeduct = -(int)userPoints.TotalPoints;
+
                 await AddTrustScoreAsync(userPoints.UserId, pointsToDeduct, $"Hoàn trả điểm do xóa nội dung", null, null, cancellationToken);
-                _logger.LogInformation("Reverted {Points} trust points for user {UserId} due to entity {EntityId} deletion",
-                    pointsToDeduct, userPoints.UserId, entityId);
+                _logger.LogInformation("Reverted {Points} - user {UserId} - {EntityId} deletion", pointsToDeduct, userPoints.UserId, entityId);
             }
         }
         catch (Exception ex)
@@ -91,14 +76,4 @@ public class TrustScoreService : ITrustScoreService
             throw;
         }
     }
-
-    public async Task<int> GetTrustScoreAsync(Guid userId, CancellationToken cancellationToken = default)
-    {
-        var user = await _dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-        return user?.TrustScore ?? 0;
-    }
-
 }

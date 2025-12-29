@@ -1,82 +1,11 @@
 using MediatR;
-using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.CrossCuttingConcerns.DateTimes;
-using UteLearningHub.Domain.Exceptions;
-using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Application.Services.Message;
 
 namespace UteLearningHub.Application.Features.Message.Commands.MarkMessageAsRead;
 
-public class MarkMessageAsReadCommandHandler : IRequestHandler<MarkMessageAsReadCommand, Unit>
+public class MarkMessageAsReadCommandHandler(IMessageService messageService)
+    : IRequestHandler<MarkMessageAsReadCommand>
 {
-    private readonly IMessageRepository _messageRepository;
-    private readonly IConversationRepository _conversationRepository;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IDateTimeProvider _dateTimeProvider;
-
-    public MarkMessageAsReadCommandHandler(
-        IMessageRepository messageRepository,
-        IConversationRepository conversationRepository,
-        ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
-    {
-        _messageRepository = messageRepository;
-        _conversationRepository = conversationRepository;
-        _currentUserService = currentUserService;
-        _dateTimeProvider = dateTimeProvider;
-    }
-
-    public async Task<Unit> Handle(MarkMessageAsReadCommand request, CancellationToken cancellationToken)
-    {
-        if (!_currentUserService.IsAuthenticated)
-            throw new UnauthorizedException("You must be authenticated to mark messages as read");
-
-        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
-
-        // Validate message exists
-        var message = await _messageRepository.GetByIdAsync(
-            request.MessageId,
-            disableTracking: true,
-            cancellationToken);
-
-        if (message == null || message.IsDeleted)
-            throw new NotFoundException($"Message with id {request.MessageId} not found");
-
-        if (message.ConversationId != request.ConversationId)
-            throw new BadRequestException("Message does not belong to the specified conversation");
-
-        // Validate conversation exists and get member info
-        var conversation = await _conversationRepository.GetByIdWithDetailsAsync(
-            request.ConversationId,
-            disableTracking: false,
-            cancellationToken);
-
-        if (conversation == null || conversation.IsDeleted)
-            throw new NotFoundException("Conversation not found");
-
-        if (conversation.ConversationStatus != Domain.Constaints.Enums.ConversationStatus.Active)
-            throw new BadRequestException("Conversation is not active");
-
-        // Check if user is a member
-        var member = conversation.Members.FirstOrDefault(m =>
-            m.UserId == userId && !m.IsDeleted);
-
-        if (member == null)
-            throw new ForbiddenException("You are not a member of this conversation");
-
-        // Update LastReadMessageId (only if the new message is newer than current)
-        // This ensures we don't go backwards in read status
-        if (member.LastReadMessageId == null ||
-            (message.CreatedAt > (await _messageRepository.GetByIdAsync(
-                member.LastReadMessageId.Value,
-                disableTracking: true,
-                cancellationToken))?.CreatedAt))
-        {
-            member.LastReadMessageId = request.MessageId;
-        }
-
-        await _conversationRepository.UpdateAsync(conversation, cancellationToken);
-        await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
-
-        return Unit.Value;
-    }
+    public async Task Handle(MarkMessageAsReadCommand request, CancellationToken cancellationToken)
+        => await messageService.MarkAsReadAsync(request, cancellationToken);
 }

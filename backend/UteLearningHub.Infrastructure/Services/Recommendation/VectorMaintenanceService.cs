@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using UteLearningHub.Application.Services.Cache;
 using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence;
@@ -14,7 +13,6 @@ public class VectorMaintenanceService : IVectorMaintenanceService
     private readonly IConversationVectorStore _convStore;
     private readonly IUserDataRepository _userData;
     private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
-    private readonly ICacheService _cache;
     private readonly ILogger<VectorMaintenanceService> _log;
 
     public VectorMaintenanceService(
@@ -23,7 +21,6 @@ public class VectorMaintenanceService : IVectorMaintenanceService
         IConversationVectorStore convStore,
         IUserDataRepository userData,
         IDbContextFactory<ApplicationDbContext> dbFactory,
-        ICacheService cache,
         ILogger<VectorMaintenanceService> log)
     {
         _embed = embed;
@@ -31,7 +28,6 @@ public class VectorMaintenanceService : IVectorMaintenanceService
         _convStore = convStore;
         _userData = userData;
         _dbFactory = dbFactory;
-        _cache = cache;
         _log = log;
     }
 
@@ -62,7 +58,6 @@ public class VectorMaintenanceService : IVectorMaintenanceService
             }, ct);
 
             _log.LogInformation("Updated user vector: {UserId}", userId);
-            await InvalidateUserRecommendationsCacheAsync(userId, ct);
         }
         catch (Exception ex)
         {
@@ -108,14 +103,5 @@ public class VectorMaintenanceService : IVectorMaintenanceService
         {
             _log.LogError(ex, "Failed to update conv vector: {ConvId}", convId);
         }
-    }
-
-    public async Task InvalidateUserRecommendationsCacheAsync(Guid userId, CancellationToken ct = default)
-    {
-        try
-        {
-            await _cache.RemoveByPatternAsync($"rec:{userId}:*", ct);
-        }
-        catch { /* ignore */ }
     }
 }

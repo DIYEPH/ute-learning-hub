@@ -8,6 +8,7 @@ public record ReportDto
     public Guid? DocumentFileId { get; init; }
     public Guid? CommentId { get; init; }
     public string? TargetUrl { get; init; }
+    public ReportReason Reason { get; init; }
     public string Content { get; init; } = default!;
     public string ReporterName { get; init; } = default!;
     public string? ReporterAvatarUrl { get; init; }

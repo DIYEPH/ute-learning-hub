@@ -11,4 +11,5 @@ public interface INotificationRepository : IRepository<Notification, Guid>
     Task CreateNotificationRecipientsAsync(Guid notificationId, IEnumerable<Guid> recipientIds, DateTimeOffset receivedAt, CancellationToken cancellationToken = default);
     Task<NotificationRecipient?> GetNotificationRecipientAsync(Guid notificationId, Guid userId, bool disableTracking = false, CancellationToken cancellationToken = default);
     Task<List<NotificationRecipient>> GetUnreadNotificationRecipientsAsync(Guid userId, CancellationToken cancellationToken = default);
+    void UpdateRecipient(NotificationRecipient recipient);
 }

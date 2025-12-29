@@ -2,12 +2,12 @@
 
 import { useTranslations } from "next-intl";
 import { BaseTable, BaseTableColumn } from "@/src/components/admin/tables/base-table";
-import type { AuthorListDto } from "@/src/api/database/types.gen";
+import type { AuthorDto } from "@/src/api/database/types.gen";
 
 interface AuthorTableProps {
-    authors: AuthorListDto[];
-    onEdit?: (author: AuthorListDto) => void;
-    onDelete?: (author: AuthorListDto) => void;
+    authors: AuthorDto[];
+    onEdit?: (author: AuthorDto) => void;
+    onDelete?: (author: AuthorDto) => void;
     onBulkDelete?: (ids: string[]) => void | Promise<void>;
     loading?: boolean;
     onSort?: (sortKey: string, direction: "asc" | "desc" | null) => void;
@@ -29,7 +29,7 @@ export function AuthorTable({
 }: AuthorTableProps) {
     const t = useTranslations("admin.authors");
 
-    const columns: BaseTableColumn<AuthorListDto>[] = [
+    const columns: BaseTableColumn<AuthorDto>[] = [
         {
             key: "fullName",
             header: t("table.fullName"),
@@ -44,7 +44,7 @@ export function AuthorTable({
             header: t("table.description"),
             className: "min-w-[300px]",
             render: (author) => (
-                <span className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                <span className="text-sm text-muted-foreground line-clamp-2">
                     {author.description || "-"}
                 </span>
             ),

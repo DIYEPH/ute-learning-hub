@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { useMajors } from "@/src/hooks/use-majors";
 import { useDebounce } from "@/src/hooks/use-debounce";
 import { getApiSubject } from "@/src/api/database/sdk.gen";
-import type { UpdateSubjectCommand, CreateSubjectCommand, MajorDto2, SubjectDto2 } from "@/src/api/database/types.gen";
+import type { UpdateSubjectCommandRequest, CreateSubjectCommand, MajorDetailDto, SubjectDto2 } from "@/src/api/database/types.gen";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 export interface SubjectFormData {
@@ -19,7 +19,7 @@ export interface SubjectFormData {
 
 interface SubjectFormProps {
   initialData?: SubjectFormData;
-  onSubmit: (data: CreateSubjectCommand | UpdateSubjectCommand) => void | Promise<void>;
+  onSubmit: (data: CreateSubjectCommand | UpdateSubjectCommandRequest) => void | Promise<void>;
   loading?: boolean;
 }
 
@@ -35,7 +35,7 @@ export function SubjectForm({
     subjectCode: null,
     majorIds: [],
   });
-  const [majors, setMajors] = useState<MajorDto2[]>([]);
+  const [majors, setMajors] = useState<MajorDetailDto[]>([]);
 
   // Debounce search state
   const [searching, setSearching] = useState(false);
@@ -117,7 +117,7 @@ export function SubjectForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isDuplicate) return;
-    const command: CreateSubjectCommand | UpdateSubjectCommand = {
+    const command: CreateSubjectCommand | UpdateSubjectCommandRequest = {
       subjectName: formData.subjectName || undefined,
       subjectCode: formData.subjectCode || undefined,
       majorIds: formData.majorIds && formData.majorIds.length > 0 ? formData.majorIds : undefined,
@@ -152,7 +152,7 @@ export function SubjectForm({
             />
             {searching && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
-                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             )}
           </div>
@@ -167,13 +167,13 @@ export function SubjectForm({
 
           {/* Matching subjects list */}
           {matchingSubjects.length > 0 && !isDuplicate && (
-            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800  border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+            <div className="mt-2 p-2 bg-muted border border-border">
+              <p className="text-xs text-muted-foreground mb-1">
                 {t("form.similarSubjects")}:
               </p>
               <ul className="space-y-0.5">
                 {matchingSubjects.map((subject) => (
-                  <li key={subject.id} className="text-sm text-slate-700 dark:text-slate-300">
+                  <li key={subject.id} className="text-sm text-foreground">
                     • {subject.subjectName} ({subject.subjectCode})
                   </li>
                 ))}
@@ -206,15 +206,15 @@ export function SubjectForm({
             className="mt-1 flex w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
           >
             {majors
-              .filter((major): major is MajorDto2 & { id: string } => !!major?.id)
+              .filter((major): major is MajorDetailDto & { id: string } => !!major?.id)
               .map((major) => (
                 <option key={major.id} value={major.id}>
                   {major.majorName || ""} ({major.majorCode || ""})
-                  {major.faculty ? ` - ${major.faculty.facultyName}` : ""}
+                  {major.facultyName ? ` - ${major.facultyName}` : ""}
                 </option>
               ))}
           </select>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-xs text-muted-foreground">
             {t("form.selectMultipleHint")}
           </p>
         </div>

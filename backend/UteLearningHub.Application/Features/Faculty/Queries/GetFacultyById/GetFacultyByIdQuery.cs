@@ -3,4 +3,7 @@ using UteLearningHub.Application.Common.Dtos;
 
 namespace UteLearningHub.Application.Features.Faculty.Queries.GetFacultyById;
 
-public record GetFacultyByIdQuery : GetFacultyByIdRequest, IRequest<FacultyDetailDto>;
+public record GetFacultyByIdQuery : IRequest<FacultyDetailDto>
+{
+    public Guid Id { get; init; }
+}

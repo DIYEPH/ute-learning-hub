@@ -22,7 +22,7 @@ public class MajorController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResponse<MajorDto>>> GetMajors([FromQuery] GetMajorsQuery query)
+    public async Task<ActionResult<PagedResponse<MajorDetailDto>>> GetMajors([FromQuery] GetMajorsQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);
@@ -46,9 +46,15 @@ public class MajorController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<MajorDetailDto>> UpdateMajor(Guid id, [FromBody] UpdateMajorCommand command)
+    public async Task<ActionResult<MajorDetailDto>> UpdateMajor(Guid id, [FromBody] UpdateMajorCommandRequest request)
     {
-        command = command with { Id = id };
+        var command = new UpdateMajorCommand
+        {
+            Id = id,
+            FacultyId = request.FacultyId,
+            MajorName = request.MajorName,
+            MajorCode = request.MajorCode
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

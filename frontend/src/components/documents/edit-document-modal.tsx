@@ -9,7 +9,7 @@ import { Loader2, X, Upload } from "lucide-react";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useTypes } from "@/src/hooks/use-types";
 import { getApiTag, getApiAuthor, putApiDocumentById } from "@/src/api/database/sdk.gen";
-import type { DocumentDetailDto, SubjectDto2, TypeDto, TagDto, PutApiDocumentByIdData, AuthorListDto, AuthorInput } from "@/src/api/database/types.gen";
+import type { DocumentDetailDto, SubjectDto2, TypeDto, TagDto, PutApiDocumentByIdData, AuthorDto, AuthorInput } from "@/src/api/database/types.gen";
 import { TagPicker } from "@/src/components/ui/tag-picker";
 import { AuthorPicker } from "@/src/components/ui/author-picker";
 import { getFileUrlById } from "@/src/lib/file-url";
@@ -64,7 +64,7 @@ export function EditDocumentModal({
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
   const [types, setTypes] = useState<TypeDto[]>([]);
   const [tags, setTags] = useState<TagDto[]>([]);
-  const [authors, setAuthors] = useState<AuthorListDto[]>([]);
+  const [authors, setAuthors] = useState<AuthorDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -146,7 +146,6 @@ export function EditDocumentModal({
       await putApiDocumentById({
         path: { id: document.id! },
         body: {
-          id: document.id,
           documentName: formData.documentName,
           description: formData.description,
           subjectId: formData.subjectId,
@@ -274,7 +273,7 @@ export function EditDocumentModal({
                   .filter((s): s is SubjectDto2 & { id: string } => !!s?.id)
                   .map((subject) => (
                     <option key={subject.id} value={subject.id}>
-                      {subject.subjectName || ""} ({subject.subjectCode || ""})
+                      {subject.subjectName || ""}
                     </option>
                   ))}
               </select>
@@ -315,7 +314,7 @@ export function EditDocumentModal({
               />
               <label
                 htmlFor="edit-coverFile"
-                className={`mt-1 flex items-center gap-2 px-4 py-2 border-2 border-dashed cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ${loading ? "opacity-50 cursor-not-allowed" : ""
+                className={`mt-1 flex items-center gap-2 px-4 py-2 border-2 border-dashed cursor-pointer hover:bg-muted ${loading ? "opacity-50 cursor-not-allowed" : ""
                   }`}
               >
                 <Upload size={16} />
@@ -331,7 +330,7 @@ export function EditDocumentModal({
             <Label>Tác giả (Tùy chọn)</Label>
             <AuthorPicker
               options={authors
-                .filter((a): a is AuthorListDto & { id: string } => !!a?.id)
+                .filter((a): a is AuthorDto & { id: string } => !!a?.id)
                 .map((author) => ({
                   value: author.id,
                   label: author.fullName || "",

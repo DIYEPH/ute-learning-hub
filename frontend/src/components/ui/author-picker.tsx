@@ -244,7 +244,7 @@ export function AuthorPicker({
 
             {/* Form thêm tác giả mới */}
             {showNewForm && (
-                <div className="p-3 border bg-slate-50 dark:bg-slate-800 space-y-2">
+                <div className="p-3 border bg-muted space-y-2">
                     <div>
                         <Label className="text-sm">Tên tác giả *</Label>
                         <Input

@@ -64,7 +64,7 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
   };
 
   return (
-    <header className="h-16 border-b bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex items-center px-4 gap-4">
+    <header className="h-16 border-b bg-card border-border flex items-center px-4 gap-4">
       {/* Mobile: nút menu mở sidebar */}
       <div className="md:hidden">
         <MobileSidebar navItems={navItems} activePath={activePath} />
@@ -140,7 +140,7 @@ export function AppHeader({ navItems, activePath }: HeaderProps) {
             ) : (
               <>
                 <Button
-                  className="rounded-full bg-green-500 hover:bg-green-600 text-white px-4"
+                  className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-4"
                   onClick={() => setOpen(true)}
                 >
                   {t('login')}

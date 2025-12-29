@@ -12,28 +12,28 @@ import type {
   GetApiMajorData,
   GetApiMajorResponse,
   CreateMajorCommand,
-  UpdateMajorCommand,
-  MajorDto2,
+  UpdateMajorCommandRequest,
+  MajorDetailDto,
 } from "@/src/api/database/types.gen";
 import { useCrud } from "./use-crud";
 
 export function useMajors() {
-  const crud = useCrud<MajorDto2, CreateMajorCommand, UpdateMajorCommand, GetApiMajorData["query"]>({
+  const crud = useCrud<MajorDetailDto, CreateMajorCommand, UpdateMajorCommandRequest, GetApiMajorData["query"]>({
     fetchAll: async (params) => {
       const response = await getApiMajor({ query: params });
       return (response as unknown as { data: GetApiMajorResponse })?.data || response as GetApiMajorResponse;
     },
     fetchById: async (id) => {
       const response = await getApiMajorById({ path: { id } });
-      return (response as unknown as { data: MajorDto2 })?.data || response as MajorDto2;
+      return (response as unknown as { data: MajorDetailDto })?.data || response as MajorDetailDto;
     },
     create: async (data) => {
       const response = await postApiMajor({ body: data });
-      return (response as unknown as { data: MajorDto2 })?.data || response as MajorDto2;
+      return (response as unknown as { data: MajorDetailDto })?.data || response as MajorDetailDto;
     },
     update: async (id, data) => {
       const response = await putApiMajorById({ path: { id }, body: data });
-      return (response as unknown as { data: MajorDto2 })?.data || response as MajorDto2;
+      return (response as unknown as { data: MajorDetailDto })?.data || response as MajorDetailDto;
     },
     delete: async (id) => {
       await deleteApiMajorById({ path: { id } });

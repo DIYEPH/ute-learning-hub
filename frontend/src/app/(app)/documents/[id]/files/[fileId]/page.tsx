@@ -70,7 +70,7 @@ export default function DocumentFileDetailPage() {
   if (loading && !doc)
     return (
       <div className="flex justify-center py-12">
-        <FileText className="h-6 w-6 animate-pulse text-sky-500" />
+        <FileText className="h-6 w-6 animate-pulse text-primary" />
       </div>
     );
 
@@ -86,10 +86,10 @@ export default function DocumentFileDetailPage() {
   /* ======================= UI ======================= */
 
   return (
-    <div className="flex h-full flex-col bg-slate-900">
+    <div className="flex h-full flex-col bg-secondary">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-2 py-1.5 border-b bg-white dark:bg-slate-900">
+      <div className="flex items-center justify-between px-2 py-1.5 border-b bg-card">
 
         <div className="flex items-center gap-2 min-w-0">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
@@ -128,7 +128,7 @@ export default function DocumentFileDetailPage() {
 
         {/* Viewer */}
         <div className={cn(
-          "flex-1 bg-slate-100 dark:bg-slate-950 transition-all",
+          "flex-1 bg-muted transition-all",
           showComments && "lg:mr-0"
         )}>
           {fileUrl ? (
@@ -164,7 +164,7 @@ export default function DocumentFileDetailPage() {
             <div className={cn(
               "fixed right-0 top-0 bottom-0 z-50 w-[85vw] max-w-[320px]",
               "lg:relative lg:w-[300px]",
-              "border-l bg-white dark:bg-slate-900 flex flex-col"
+              "border-l bg-card flex flex-col"
             )}>
 
               <div className="flex items-center justify-between px-3 py-2 border-b">

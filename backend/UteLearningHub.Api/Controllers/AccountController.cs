@@ -23,7 +23,7 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpGet("profile")]
         [Authorize]
-        public async Task<ActionResult<ProfileDto>> GetProfile()
+        public async Task<ActionResult<ProfileDetailDto>> GetProfile()
         {
             var query = new GetProfileQuery { UserId = null };
             var result = await _mediator.Send(query);
@@ -31,7 +31,7 @@ namespace UteLearningHub.Api.Controllers
         }
 
         [HttpGet("profile/{userId}")]
-        public async Task<ActionResult<ProfileDto>> GetProfileById(Guid userId)
+        public async Task<ActionResult<ProfileDetailDto>> GetProfileById(Guid userId)
         {
             var query = new GetProfileQuery { UserId = userId };
             var result = await _mediator.Send(query);
@@ -40,8 +40,15 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpPut("profile")]
         [Authorize]
-        public async Task<ActionResult<ProfileDto>> UpdateProfile([FromBody] UpdateProfileCommand command)
+        public async Task<ActionResult<ProfileDetailDto>> UpdateProfile([FromBody] UpdateProfileCommandRequest request)
         {
+            var command = new UpdateProfileCommand
+            {
+                Introduction = request.Introduction,
+                AvatarUrl = request.AvatarUrl,
+                MajorId = request.MajorId,
+                Gender = request.Gender
+            };
             var result = await _mediator.Send(command);
             return Ok(result);
         }

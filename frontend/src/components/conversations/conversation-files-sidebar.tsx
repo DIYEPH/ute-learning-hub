@@ -90,14 +90,14 @@ export function ConversationFilesSidebar({
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed top-0 right-0 h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 z-50 transition-transform duration-300 ease-in-out",
+          "fixed top-0 right-0 h-full bg-card border-l border-border z-50 transition-transform duration-300 ease-in-out",
           "w-full md:w-80",
           open ? "translate-x-0" : "translate-x-full"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between p-4 border-b border-border">
             <h3 className="text-lg font-semibold text-foreground">
               Tệp đã gửi
             </h3>
@@ -118,7 +118,7 @@ export function ConversationFilesSidebar({
               {images.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <ImageIcon className="h-4 w-4 text-slate-500" />
+                    <ImageIcon className="h-4 w-4 text-muted-foreground" />
                     <h4 className="text-sm font-semibold text-foreground">
                       Hình ảnh ({images.length})
                     </h4>
@@ -132,7 +132,7 @@ export function ConversationFilesSidebar({
                           href={imageUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="group relative aspect-square  overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-sky-500 transition-colors"
+                          className="group relative aspect-square overflow-hidden border border-border hover:border-primary transition-colors"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -152,7 +152,7 @@ export function ConversationFilesSidebar({
               {otherFiles.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <File className="h-4 w-4 text-slate-500" />
+                    <File className="h-4 w-4 text-muted-foreground" />
                     <h4 className="text-sm font-semibold text-foreground">
                       Tệp khác ({otherFiles.length})
                     </h4>
@@ -166,38 +166,38 @@ export function ConversationFilesSidebar({
                           href={fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3  border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
+                          className="flex items-center gap-3 p-3 border border-border hover:bg-muted transition-colors group"
                         >
-                          <div className="flex-shrink-0 w-10 h-10  bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                            <File className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+                          <div className="flex-shrink-0 w-10 h-10 bg-muted flex items-center justify-center">
+                            <File className="h-5 w-5 text-muted-foreground" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium text-foreground truncate">
                               Tệp đính kèm
                             </p>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-slate-500 dark:text-slate-400">
+                              <span className="text-xs text-muted-foreground">
                                 {formatFileSize(file.fileSize)}
                               </span>
                               {file.senderName && (
                                 <>
-                                  <span className="text-xs text-slate-400">•</span>
-                                  <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                  <span className="text-xs text-muted-foreground">•</span>
+                                  <span className="text-xs text-muted-foreground truncate">
                                     {file.senderName}
                                   </span>
                                 </>
                               )}
                               {file.messageDate && (
                                 <>
-                                  <span className="text-xs text-slate-400">•</span>
-                                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                                  <span className="text-xs text-muted-foreground">•</span>
+                                  <span className="text-xs text-muted-foreground">
                                     {formatDate(file.messageDate)}
                                   </span>
                                 </>
                               )}
                             </div>
                           </div>
-                          <Download className="h-4 w-4 text-slate-400 group-hover:text-sky-500 transition-colors flex-shrink-0" />
+                          <Download className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
                         </a>
                       );
                     })}
@@ -208,8 +208,8 @@ export function ConversationFilesSidebar({
               {/* Empty State */}
               {images.length === 0 && otherFiles.length === 0 && (
                 <div className="text-center py-12">
-                  <File className="h-12 w-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                  <File className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
                     Chưa có tệp nào được gửi
                   </p>
                 </div>

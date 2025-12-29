@@ -61,11 +61,11 @@ public class ConversationSystemMessageService : IConversationSystemMessageServic
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        await _messageRepository.AddAsync(message, cancellationToken);
+        _messageRepository.Add(message);
 
         conversation.LastMessage = message.Id;
         conversation.UpdatedAt = _dateTimeProvider.OffsetNow;
-        await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+        _conversationRepository.Update(conversation);
 
         await _messageRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 

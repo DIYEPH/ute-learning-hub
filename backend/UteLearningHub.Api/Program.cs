@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using UteLearningHub.Api.BackgroundServices;
@@ -50,7 +51,12 @@ else
     services.AddLocalFileStorage();
 }
 
-services.AddControllers();
+services.AddControllers()
+     .AddJsonOptions(options =>
+     {
+         options.JsonSerializerOptions.DefaultIgnoreCondition =
+             JsonIgnoreCondition.WhenWritingNull;
+     });
 services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -58,11 +64,11 @@ services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost:3000",
                 "https://localhost:3000",
-                "https://localhost:3001"  
+                "https://localhost:3001"
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
-            .AllowCredentials(); // Required for SignalR and cookies
+            .AllowCredentials();
     });
 });
 services.AddOpenApi(options =>

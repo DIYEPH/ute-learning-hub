@@ -102,7 +102,7 @@ public class FileController : ControllerBase
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        await _fileRepository.AddAsync(entity, cancellationToken);
+        _fileRepository.Add(entity);
         await _fileRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         var dto = new FileDto
@@ -121,13 +121,12 @@ public class FileController : ControllerBase
     {
         try
         {
-            var query = new GetFileQuery { FileId = id };
+            var query = new GetFileByIdQuery { FileId = id };
             var response = await _mediator.Send(query, cancellationToken);
 
-            // Set Content-Disposition to inline to display in browser
             Response.Headers.Append("Content-Disposition", "inline");
 
-            return File(response.FileStream, response.MimeType);
+            return File(response.Stream, response.MimeType);
         }
         catch (NotFoundException)
         {

@@ -67,10 +67,10 @@ export function ReviewModal({
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
-                    <div className="text-sm text-slate-600 dark:text-slate-400">
+                    <div className="text-sm text-muted-foreground">
                         {t("reviewModal.description")}
                     </div>
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800 ">
+                    <div className="p-3 bg-muted">
                         <span className="font-medium">{documentFileName}</span>
                     </div>
 

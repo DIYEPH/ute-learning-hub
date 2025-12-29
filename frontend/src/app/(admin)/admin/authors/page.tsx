@@ -13,14 +13,14 @@ import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { EditModal } from "@/src/components/admin/modals/edit-modal";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
 import { AdvancedSearchFilter } from "@/src/components/admin/advanced-search-filter";
-import type { AuthorListDto, AuthorInput, UpdateAuthorCommand } from "@/src/api/database/types.gen";
+import type { AuthorDto, AuthorInput, UpdateAuthorCommandRequest } from "@/src/api/database/types.gen";
 
 export default function AuthorsManagementPage() {
     const t = useTranslations("admin.authors");
     const notification = useNotification();
     const { fetchAuthors, createAuthor, updateAuthor, deleteAuthor, loading, error } = useAuthors();
 
-    const [authors, setAuthors] = useState<AuthorListDto[]>([]);
+    const [authors, setAuthors] = useState<AuthorDto[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [page, setPage] = useState(1);
     const [pageSize] = useState(10);
@@ -32,7 +32,7 @@ export default function AuthorsManagementPage() {
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [deleteAllModalOpen, setDeleteAllModalOpen] = useState(false);
-    const [selectedAuthor, setSelectedAuthor] = useState<AuthorListDto | null>(null);
+    const [selectedAuthor, setSelectedAuthor] = useState<AuthorDto | null>(null);
     const [formLoading, setFormLoading] = useState(false);
 
     const loadAuthors = useCallback(async () => {
@@ -71,7 +71,7 @@ export default function AuthorsManagementPage() {
         }
     };
 
-    const handleEdit = async (data: UpdateAuthorCommand) => {
+    const handleEdit = async (data: UpdateAuthorCommandRequest) => {
         if (!selectedAuthor?.id) return;
         setFormLoading(true);
         try {
@@ -197,7 +197,7 @@ export default function AuthorsManagementPage() {
             )}
 
             {authors.length > 0 && (
-                <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+                <div className="mb-2 text-sm text-muted-foreground">
                     {t("foundCount", { count: totalCount })}
                 </div>
             )}

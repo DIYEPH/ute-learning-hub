@@ -1,53 +1,22 @@
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.CrossCuttingConcerns.DateTimes;
+using UteLearningHub.Application.Services.Subject;
 using UteLearningHub.Domain.Exceptions;
-using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Subject.Commands.DeleteSubject;
 
-public class DeleteSubjectCommandHandler : IRequestHandler<DeleteSubjectCommand, Unit>
+public class DeleteSubjectCommandHandler(ISubjectService subjectService, ICurrentUserService currentUserService) : IRequestHandler<DeleteSubjectCommand>
 {
-    private readonly ISubjectRepository _subjectRepository;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IDateTimeProvider _dateTimeProvider;
+    private readonly ISubjectService _subjectService = subjectService;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public DeleteSubjectCommandHandler(
-        ISubjectRepository subjectRepository,
-        ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
+    public async Task Handle(DeleteSubjectCommand request, CancellationToken ct)
     {
-        _subjectRepository = subjectRepository;
-        _currentUserService = currentUserService;
-        _dateTimeProvider = dateTimeProvider;
-    }
+        if (!_currentUserService.IsInRole("Admin"))
+            throw new ForbiddenException("Only admin can delete subjects");
 
-    public async Task<Unit> Handle(DeleteSubjectCommand request, CancellationToken cancellationToken)
-    {
-        if (!_currentUserService.IsAuthenticated)
-            throw new UnauthorizedException("You must be authenticated to delete subjects");
+        var actorId = _currentUserService.UserId!.Value;
 
-        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
-
-        var subject = await _subjectRepository.GetByIdAsync(request.Id, disableTracking: false, cancellationToken);
-
-        if (subject == null || subject.IsDeleted)
-            throw new NotFoundException($"Subject with id {request.Id} not found");
-
-        // Check if subject is being used by any documents
-        var documentCount = await _subjectRepository.GetQueryableSet()
-            .Where(s => s.Id == request.Id)
-            .Select(s => s.Documents.Count(d => !d.IsDeleted))
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (documentCount > 0)
-            throw new BadRequestException($"Cannot delete subject. It is being used by {documentCount} document(s)");
-
-        // Hard delete
-        await _subjectRepository.DeleteAsync(subject, userId, cancellationToken);
-        await _subjectRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
-
-        return Unit.Value;
+        await _subjectService.SoftDeleteAsync(request.Id, actorId, ct);
     }
 }

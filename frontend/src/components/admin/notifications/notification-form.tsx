@@ -6,7 +6,7 @@ import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useDebounce } from "@/src/hooks/use-debounce";
 import { getApiNotification, getApiUser } from "@/src/api/database/sdk.gen";
-import type { CreateNotificationCommand, UpdateNotificationRequest, NotificationDto, UserDto } from "@/src/api/database/types.gen";
+import type { CreateNotificationCommand, UpdateNotificationCommandRequest, NotificationDto, UserDto } from "@/src/api/database/types.gen";
 import { AlertCircle, Loader2 } from "lucide-react";
 // NotificationPriorityType enum
 const PriorityTypes = [
@@ -30,7 +30,7 @@ export interface NotificationFormData {
 
 interface NotificationFormProps {
     initialData?: NotificationFormData;
-    onSubmit: (data: CreateNotificationCommand | UpdateNotificationRequest) => void | Promise<void>;
+    onSubmit: (data: CreateNotificationCommand | UpdateNotificationCommandRequest) => void | Promise<void>;
     loading?: boolean;
     isEditMode?: boolean;
 }
@@ -148,7 +148,7 @@ export function NotificationForm({
         const expiredAt = formData.expiredAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
         if (isEditMode) {
-            const command: UpdateNotificationRequest = {
+            const command: UpdateNotificationCommandRequest = {
                 title: formData.title || "",
                 content: formData.content || "",
                 link: formData.link || undefined,
@@ -204,7 +204,7 @@ export function NotificationForm({
                         />
                         {searching && (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
-                                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                             </div>
                         )}
                     </div>
@@ -219,13 +219,13 @@ export function NotificationForm({
 
                     {/* Matching notifications list */}
                     {matchingNotifications.length > 0 && !isDuplicate && (
-                        <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800  border border-slate-200 dark:border-slate-700">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                        <div className="mt-2 p-2 bg-muted border border-border">
+                            <p className="text-xs text-muted-foreground mb-1">
                                 {t("form.similarNotifications")}:
                             </p>
                             <ul className="space-y-0.5">
                                 {matchingNotifications.map((notif) => (
-                                    <li key={notif.id} className="text-sm text-slate-700 dark:text-slate-300">
+                                    <li key={notif.id} className="text-sm text-foreground">
                                         • {notif.title}
                                     </li>
                                 ))}
@@ -314,7 +314,7 @@ export function NotificationForm({
                                 setFormData((prev) => ({ ...prev, isGlobal: e.target.checked }))
                             }
                             disabled={isDisabled}
-                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                            className="h-4 w-4 rounded border-border text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                         />
                         <Label htmlFor="isGlobal" className="cursor-pointer">
                             {t("form.isGlobal")}
@@ -327,7 +327,7 @@ export function NotificationForm({
                     <div>
                         <Label>{t("form.recipients")} *</Label>
                         {loadingUsers ? (
-                            <div className="mt-2 flex items-center gap-2 text-sm text-slate-500">
+                            <div className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
                                 <Loader2 className="h-4 w-4 animate-spin" />
                                 {t("form.loadingUsers")}
                             </div>
@@ -343,7 +343,7 @@ export function NotificationForm({
                                                 handleRecipientChange(user.id || "", e.target.checked)
                                             }
                                             disabled={isDisabled}
-                                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                                            className="h-4 w-4 rounded border-border text-primary focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
                                         />
                                         <Label htmlFor={`user-${user.id}`} className="cursor-pointer text-sm">
                                             {user.fullName || user.email} ({user.email})

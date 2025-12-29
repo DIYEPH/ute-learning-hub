@@ -59,7 +59,7 @@ public class SendAchievementNotificationHandler : INotificationHandler<TrustLeve
 
             notificationEntity.Recipients = new List<NotificationRecipient> { recipient };
 
-            await _notificationRepository.AddAsync(notificationEntity, cancellationToken);
+            _notificationRepository.Add(notificationEntity);
             await _notificationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(

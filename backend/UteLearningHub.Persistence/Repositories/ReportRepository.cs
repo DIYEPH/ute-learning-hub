@@ -9,7 +9,7 @@ namespace UteLearningHub.Persistence.Repositories;
 
 public class ReportRepository : Repository<Report, Guid>, IReportRepository
 {
-    public ReportRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider) 
+    public ReportRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
         : base(dbContext, dateTimeProvider)
     {
     }
@@ -25,12 +25,13 @@ public class ReportRepository : Repository<Report, Guid>, IReportRepository
     public async Task<IList<Report>> GetRelatedPendingReportsAsync(
         Guid? documentFileId,
         Guid? commentId,
+        ReportReason reason,
         CancellationToken cancellationToken = default)
     {
         var query = GetQueryableSet()
             .Include(r => r.DocumentFile)
             .Include(r => r.Comment)
-            .Where(r => !r.IsDeleted && r.Status == ContentStatus.PendingReview);
+            .Where(r => !r.IsDeleted && r.Status == ContentStatus.PendingReview && r.Reason == reason);
 
         if (documentFileId.HasValue)
             query = query.Where(r => r.DocumentFileId == documentFileId.Value);
@@ -53,7 +54,7 @@ public class ReportRepository : Repository<Report, Guid>, IReportRepository
         var startOfDay = today.Date;
         var endOfDay = startOfDay.AddDays(1);
 
-        // Count reports where CreatedById == ReviewedById (self-approved) today
+        // đếm số báo cáo được người dùng này phê duyệt trong ngày hôm nay
         return await GetQueryableSet()
             .Where(r => !r.IsDeleted
                 && r.CreatedById == userId

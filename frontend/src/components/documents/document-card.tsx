@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { DocumentMenu } from "@/src/components/documents/document-menu";
-import { FileText, MessageSquare, ThumbsUp, ThumbsDown, Eye } from "lucide-react";
+import { FileText, MessageSquare, ThumbsUp, ThumbsDown, Eye, BookOpen } from "lucide-react";
 import { getFileUrlById } from "@/src/lib/file-url";
 
 export interface DocumentCardProps {
@@ -18,6 +18,10 @@ export interface DocumentCardProps {
   usefulCount?: number;
   notUsefulCount?: number;
   totalViewCount?: number;
+  /** Reading progress - last page read */
+  lastPage?: number;
+  /** Reading progress - total pages */
+  totalPages?: number | null;
   onEdit?: () => void;
   onDelete?: () => void;
   onReport?: () => void;
@@ -37,6 +41,8 @@ export function DocumentCard({
   usefulCount,
   notUsefulCount,
   totalViewCount,
+  lastPage,
+  totalPages,
   onEdit,
   onDelete,
   onReport,
@@ -53,9 +59,8 @@ export function DocumentCard({
   const content = (
     <div
       className={cn(
-        "relative flex h-full flex-col border border-slate-200/80 bg-white/95 shadow-sm transition-all duration-200 cursor-pointer overflow-hidden",
-        "hover:shadow-lg hover:border-sky-200 hover:bg-white",
-        "dark:bg-slate-900/70 dark:border-slate-700 dark:hover:border-sky-500/60",
+        "relative flex h-full flex-col border border-border bg-card shadow-sm transition-all duration-200 cursor-pointer overflow-hidden",
+        "hover:shadow-lg hover:border-primary/50",
         className
       )}
     >
@@ -71,7 +76,7 @@ export function DocumentCard({
 
       {/* Thumbnail */}
       <div className="relative p-1 pb-1">
-        <div className="aspect-[5/3] w-full bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 flex items-center justify-center overflow-hidden border border-slate-200 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 dark:border-slate-700">
+        <div className="aspect-[5/3] w-full bg-muted flex items-center justify-center overflow-hidden border border-border">
           {thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -80,7 +85,7 @@ export function DocumentCard({
               className="h-full w-full object-contain"
             />
           ) : (
-            <div className="h-full w-full flex flex-col items-center justify-center gap-1 text-slate-500 px-2 text-center leading-snug">
+            <div className="h-full w-full flex flex-col items-center justify-center gap-1 text-muted-foreground px-2 text-center leading-snug">
               <span className="text-xs font-semibold uppercase tracking-wide">
                 {normalizeMimeType(fileMimeType) ?? "FILE"}
               </span>
@@ -93,16 +98,25 @@ export function DocumentCard({
             <span>{fileCount}</span>
           </div>
         )}
+        {/* Reading progress badge */}
+        {lastPage !== undefined && lastPage > 0 && (
+          <div className="absolute bottom-2 left-2 bg-primary/90 backdrop-blur-sm text-primary-foreground text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1">
+            <BookOpen className="h-2.5 w-2.5" />
+            <span>
+              Trang {lastPage}{totalPages ? `/${totalPages}` : ""}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Info */}
       <div className="px-2 pb-2 pt-0.5 flex flex-col gap-0.5 min-h-[60px]">
-        <p className="text-xs font-semibold text-sky-700 leading-tight line-clamp-2 dark:text-sky-300">
+        <p className="text-xs font-semibold text-primary leading-tight line-clamp-2">
           {title}
         </p>
         <p
           className={cn(
-            "mt-1 text-[10px] font-medium text-slate-500 line-clamp-1 dark:text-slate-400",
+            "mt-1 text-[10px] font-medium text-muted-foreground line-clamp-1",
             !hasSubject && "invisible"
           )}
         >
@@ -117,13 +131,13 @@ export function DocumentCard({
           {mainTags.map((tag) => (
             <span
               key={tag}
-              className="rounded-full bg-slate-100 px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+              className="rounded-full bg-secondary px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide text-secondary-foreground"
             >
               {tag}
             </span>
           ))}
           {extraTagCount > 0 && (
-            <span className="text-[9px] font-medium text-slate-500 dark:text-slate-400">
+            <span className="text-[9px] font-medium text-muted-foreground">
               +{extraTagCount} …
             </span>
           )}
@@ -131,29 +145,29 @@ export function DocumentCard({
 
         {/* Stats */}
         {(commentCount !== undefined || usefulCount !== undefined || notUsefulCount !== undefined) && (
-          <div className="mt-1 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200 dark:border-slate-700">
+          <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground pt-1 border-t border-border">
             {usefulCount !== undefined && (
               <div className="flex items-center gap-1" title="Hữu ích">
-                <ThumbsUp className="h-3 w-3 flex-shrink-0 text-slate-400 dark:text-slate-500" />
-                <span className="font-medium text-slate-500 dark:text-slate-400">{usefulCount}</span>
+                <ThumbsUp className="h-3 w-3 flex-shrink-0" />
+                <span className="font-medium">{usefulCount}</span>
               </div>
             )}
             {notUsefulCount !== undefined && (
               <div className="flex items-center gap-1" title="Không hữu ích">
-                <ThumbsDown className="h-3 w-3 flex-shrink-0 text-slate-400 dark:text-slate-500" />
-                <span className="font-medium text-slate-500 dark:text-slate-400">{notUsefulCount}</span>
+                <ThumbsDown className="h-3 w-3 flex-shrink-0" />
+                <span className="font-medium">{notUsefulCount}</span>
               </div>
             )}
             {commentCount !== undefined && (
               <div className="flex items-center gap-1" title="Số bình luận">
-                <MessageSquare className="h-3 w-3 flex-shrink-0 text-slate-600 dark:text-slate-400" />
+                <MessageSquare className="h-3 w-3 flex-shrink-0" />
                 <span className="font-medium">{commentCount}</span>
               </div>
             )}
             {totalViewCount !== undefined && (
               <div className="flex items-center gap-1" title="Lượt xem">
-                <Eye className="h-3 w-3 flex-shrink-0 text-slate-400 dark:text-slate-500" />
-                <span className="font-medium text-slate-500 dark:text-slate-400">{totalViewCount}</span>
+                <Eye className="h-3 w-3 flex-shrink-0" />
+                <span className="font-medium">{totalViewCount}</span>
               </div>
             )}
           </div>

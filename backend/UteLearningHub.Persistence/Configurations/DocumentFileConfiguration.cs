@@ -21,7 +21,7 @@ public class DocumentFileConfiguration : IEntityTypeConfiguration<DocumentFile>
         builder.Property(u => u.Order).HasColumnName("ThuTu");
         builder.Property(u => u.CoverFileId).HasColumnName("TepBiaId");
         builder.Property(u => u.Status).HasColumnName("TrangThai");
-        
+
         // Review info
         builder.Property(u => u.ReviewedById).HasColumnName("NguoiDuyetId");
         builder.Property(u => u.ReviewedAt).HasColumnName("ThoiGianDuyet");
@@ -31,6 +31,7 @@ public class DocumentFileConfiguration : IEntityTypeConfiguration<DocumentFile>
             .ApplyTrack<DocumentFile>()
             .ApplyAudit<DocumentFile>();
 
+        builder.HasQueryFilter(u => !u.IsDeleted && !u.Document.IsDeleted);
 
         builder.HasOne(u => u.Document)
             .WithMany(u => u.DocumentFiles)

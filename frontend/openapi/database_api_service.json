@@ -21,17 +21,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileDto"
+                  "$ref": "#/components/schemas/ProfileDetailDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileDto"
+                  "$ref": "#/components/schemas/ProfileDetailDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileDto"
+                  "$ref": "#/components/schemas/ProfileDetailDto"
                 }
               }
             }
@@ -46,17 +46,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProfileCommand"
+                "$ref": "#/components/schemas/UpdateProfileCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProfileCommand"
+                "$ref": "#/components/schemas/UpdateProfileCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProfileCommand"
+                "$ref": "#/components/schemas/UpdateProfileCommandRequest"
               }
             }
           },
@@ -68,17 +68,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileDto"
+                  "$ref": "#/components/schemas/ProfileDetailDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileDto"
+                  "$ref": "#/components/schemas/ProfileDetailDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileDto"
+                  "$ref": "#/components/schemas/ProfileDetailDto"
                 }
               }
             }
@@ -108,17 +108,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileDto"
+                  "$ref": "#/components/schemas/ProfileDetailDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileDto"
+                  "$ref": "#/components/schemas/ProfileDetailDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProfileDto"
+                  "$ref": "#/components/schemas/ProfileDetailDto"
                 }
               }
             }
@@ -452,17 +452,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfAuthorListDto"
+                  "$ref": "#/components/schemas/PagedResponseOfAuthorDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfAuthorListDto"
+                  "$ref": "#/components/schemas/PagedResponseOfAuthorDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfAuthorListDto"
+                  "$ref": "#/components/schemas/PagedResponseOfAuthorDto"
                 }
               }
             }
@@ -575,17 +575,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateAuthorCommand"
+                "$ref": "#/components/schemas/UpdateAuthorCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateAuthorCommand"
+                "$ref": "#/components/schemas/UpdateAuthorCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateAuthorCommand"
+                "$ref": "#/components/schemas/UpdateAuthorCommandRequest"
               }
             }
           },
@@ -697,17 +697,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfCommentDto"
+                  "$ref": "#/components/schemas/PagedResponseOfCommentDetailDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfCommentDto"
+                  "$ref": "#/components/schemas/PagedResponseOfCommentDetailDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfCommentDto"
+                  "$ref": "#/components/schemas/PagedResponseOfCommentDetailDto"
                 }
               }
             }
@@ -744,17 +744,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommentDto"
+                  "$ref": "#/components/schemas/CommentDetailDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommentDto"
+                  "$ref": "#/components/schemas/CommentDetailDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommentDto"
+                  "$ref": "#/components/schemas/CommentDetailDto"
                 }
               }
             }
@@ -823,17 +823,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfCommentDto"
+                  "$ref": "#/components/schemas/PagedResponseOfCommentDetailDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfCommentDto"
+                  "$ref": "#/components/schemas/PagedResponseOfCommentDetailDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfCommentDto"
+                  "$ref": "#/components/schemas/PagedResponseOfCommentDetailDto"
                 }
               }
             }
@@ -861,17 +861,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCommentCommand"
+                "$ref": "#/components/schemas/UpdateCommentCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCommentCommand"
+                "$ref": "#/components/schemas/UpdateCommentCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCommentCommand"
+                "$ref": "#/components/schemas/UpdateCommentCommandRequest"
               }
             }
           },
@@ -883,17 +883,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommentDto"
+                  "$ref": "#/components/schemas/CommentDetailDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommentDto"
+                  "$ref": "#/components/schemas/CommentDetailDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CommentDto"
+                  "$ref": "#/components/schemas/CommentDetailDto"
                 }
               }
             }
@@ -1171,17 +1171,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateConversationCommand"
+                "$ref": "#/components/schemas/UpdateConversationCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateConversationCommand"
+                "$ref": "#/components/schemas/UpdateConversationCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateConversationCommand"
+                "$ref": "#/components/schemas/UpdateConversationCommandRequest"
               }
             }
           },
@@ -1364,17 +1364,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMemberRoleCommand"
+                "$ref": "#/components/schemas/UpdateMemberRoleCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMemberRoleCommand"
+                "$ref": "#/components/schemas/UpdateMemberRoleCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMemberRoleCommand"
+                "$ref": "#/components/schemas/UpdateMemberRoleCommandRequest"
               }
             }
           },
@@ -2319,17 +2319,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDocumentCommand"
+                "$ref": "#/components/schemas/UpdateDocumentCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDocumentCommand"
+                "$ref": "#/components/schemas/UpdateDocumentCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDocumentCommand"
+                "$ref": "#/components/schemas/UpdateDocumentCommandRequest"
               }
             }
           },
@@ -2375,24 +2375,7 @@
         ],
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Unit"
-                }
-              }
-            }
+            "description": "OK"
           }
         }
       }
@@ -2486,17 +2469,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDocumentFileCommand"
+                "$ref": "#/components/schemas/UpdateDocumentFileCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDocumentFileCommand"
+                "$ref": "#/components/schemas/UpdateDocumentFileCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDocumentFileCommand"
+                "$ref": "#/components/schemas/UpdateDocumentFileCommandRequest"
               }
             }
           },
@@ -2531,9 +2514,8 @@
         ],
         "parameters": [
           {
-            "name": "documentId",
-            "in": "path",
-            "required": true,
+            "name": "documentfileId",
+            "in": "query",
             "schema": {
               "type": "string",
               "format": "uuid"
@@ -2546,6 +2528,14 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
             }
           }
         ],
@@ -2673,17 +2663,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/DocumentProgressDto2"
+                  "$ref": "#/components/schemas/DocumentFileProgressDto2"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DocumentProgressDto2"
+                  "$ref": "#/components/schemas/DocumentFileProgressDto2"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DocumentProgressDto2"
+                  "$ref": "#/components/schemas/DocumentFileProgressDto2"
                 }
               }
             }
@@ -2709,17 +2699,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDocumentProgressCommand"
+                "$ref": "#/components/schemas/UpdateDocumentProgressCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDocumentProgressCommand"
+                "$ref": "#/components/schemas/UpdateDocumentProgressCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDocumentProgressCommand"
+                "$ref": "#/components/schemas/UpdateDocumentProgressCommandRequest"
               }
             }
           },
@@ -2807,17 +2797,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateDocumentReviewCommand"
+                "$ref": "#/components/schemas/CreateOrUpdateDocumentFileReviewCommand"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateDocumentReviewCommand"
+                "$ref": "#/components/schemas/CreateOrUpdateDocumentFileReviewCommand"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateDocumentReviewCommand"
+                "$ref": "#/components/schemas/CreateOrUpdateDocumentFileReviewCommand"
               }
             }
           },
@@ -2825,24 +2815,7 @@
         },
         "responses": {
           "200": {
-            "description": "OK",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentReviewDto"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentReviewDto"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DocumentReviewDto"
-                }
-              }
-            }
+            "description": "OK"
           }
         }
       }
@@ -2964,17 +2937,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateEventCommand"
+                "$ref": "#/components/schemas/UpdateEventRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateEventCommand"
+                "$ref": "#/components/schemas/UpdateEventRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateEventCommand"
+                "$ref": "#/components/schemas/UpdateEventRequest"
               }
             }
           },
@@ -3084,17 +3057,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfFacultyDto"
+                  "$ref": "#/components/schemas/PagedResponseOfFacultyDetailDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfFacultyDto"
+                  "$ref": "#/components/schemas/PagedResponseOfFacultyDetailDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfFacultyDto"
+                  "$ref": "#/components/schemas/PagedResponseOfFacultyDetailDto"
                 }
               }
             }
@@ -3207,17 +3180,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateFacultyCommand"
+                "$ref": "#/components/schemas/UpdateFacultyCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateFacultyCommand"
+                "$ref": "#/components/schemas/UpdateFacultyCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateFacultyCommand"
+                "$ref": "#/components/schemas/UpdateFacultyCommandRequest"
               }
             }
           },
@@ -3424,17 +3397,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfMajorDto"
+                  "$ref": "#/components/schemas/PagedResponseOfMajorDetailDto"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfMajorDto"
+                  "$ref": "#/components/schemas/PagedResponseOfMajorDetailDto"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PagedResponseOfMajorDto"
+                  "$ref": "#/components/schemas/PagedResponseOfMajorDetailDto"
                 }
               }
             }
@@ -3547,17 +3520,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMajorCommand"
+                "$ref": "#/components/schemas/UpdateMajorCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMajorCommand"
+                "$ref": "#/components/schemas/UpdateMajorCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMajorCommand"
+                "$ref": "#/components/schemas/UpdateMajorCommandRequest"
               }
             }
           },
@@ -3783,17 +3756,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMessageCommand"
+                "$ref": "#/components/schemas/UpdateMessageCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMessageCommand"
+                "$ref": "#/components/schemas/UpdateMessageCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateMessageCommand"
+                "$ref": "#/components/schemas/UpdateMessageCommandRequest"
               }
             }
           },
@@ -4159,17 +4132,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateNotificationRequest"
+                "$ref": "#/components/schemas/UpdateNotificationCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateNotificationRequest"
+                "$ref": "#/components/schemas/UpdateNotificationCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateNotificationRequest"
+                "$ref": "#/components/schemas/UpdateNotificationCommandRequest"
               }
             }
           },
@@ -4596,17 +4569,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateSubjectCommand"
+                "$ref": "#/components/schemas/UpdateSubjectCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateSubjectCommand"
+                "$ref": "#/components/schemas/UpdateSubjectCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateSubjectCommand"
+                "$ref": "#/components/schemas/UpdateSubjectCommandRequest"
               }
             }
           },
@@ -4839,17 +4812,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTagCommand"
+                "$ref": "#/components/schemas/UpdateTagCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTagCommand"
+                "$ref": "#/components/schemas/UpdateTagCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTagCommand"
+                "$ref": "#/components/schemas/UpdateTagCommandRequest"
               }
             }
           },
@@ -5082,17 +5055,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTypeCommand"
+                "$ref": "#/components/schemas/UpdateTypeCommandRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTypeCommand"
+                "$ref": "#/components/schemas/UpdateTypeCommandRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTypeCommand"
+                "$ref": "#/components/schemas/UpdateTypeCommandRequest"
               }
             }
           },
@@ -5314,17 +5287,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserCommand"
+                "$ref": "#/components/schemas/UpdateUserRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserCommand"
+                "$ref": "#/components/schemas/UpdateUserRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserCommand"
+                "$ref": "#/components/schemas/UpdateUserRequest"
               }
             }
           },
@@ -5440,17 +5413,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManageTrustScoreCommand"
+                "$ref": "#/components/schemas/ManageTrustScoreRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ManageTrustScoreCommand"
+                "$ref": "#/components/schemas/ManageTrustScoreRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ManageTrustScoreCommand"
+                "$ref": "#/components/schemas/ManageTrustScoreRequest"
               }
             }
           },
@@ -5569,7 +5542,42 @@
           },
           "documentCount": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "deletedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "updatedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -5581,6 +5589,9 @@
             "format": "uuid"
           },
           "fullName": {
+            "type": "string"
+          },
+          "description": {
             "type": "string"
           }
         }
@@ -5594,21 +5605,6 @@
           "description": {
             "type": "string",
             "nullable": true
-          }
-        }
-      },
-      "AuthorListDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "fullName": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
           }
         }
       },
@@ -5645,7 +5641,7 @@
           }
         }
       },
-      "CommentDto": {
+      "CommentDetailDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -5755,11 +5751,13 @@
           },
           "createdById": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
           },
           "createdAt": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "updatedAt": {
             "type": "string",
@@ -6113,18 +6111,6 @@
           }
         }
       },
-      "CreateDocumentReviewCommand": {
-        "type": "object",
-        "properties": {
-          "documentFileId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "documentReviewType": {
-            "$ref": "#/components/schemas/DocumentReviewType"
-          }
-        }
-      },
       "CreateEventCommand": {
         "type": "object",
         "properties": {
@@ -6258,6 +6244,18 @@
           }
         }
       },
+      "CreateOrUpdateDocumentFileReviewCommand": {
+        "type": "object",
+        "properties": {
+          "documentFileId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentReviewType": {
+            "$ref": "#/components/schemas/DocumentReviewType"
+          }
+        }
+      },
       "CreateReportCommand": {
         "type": "object",
         "properties": {
@@ -6271,8 +6269,12 @@
             "format": "uuid",
             "nullable": true
           },
+          "reason": {
+            "$ref": "#/components/schemas/ReportReason"
+          },
           "content": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -6425,7 +6427,7 @@
           "authors": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/AuthorDto"
+              "$ref": "#/components/schemas/AuthorDetailDto"
             }
           },
           "thumbnailFileId": {
@@ -6534,11 +6536,11 @@
             "format": "int32"
           },
           "progress": {
-            "$ref": "#/components/schemas/DocumentProgressDto"
+            "$ref": "#/components/schemas/DocumentFileProgressDto"
           }
         }
       },
-      "DocumentProgressDto": {
+      "DocumentFileProgressDto": {
         "type": "object",
         "properties": {
           "documentFileId": {
@@ -6562,7 +6564,7 @@
         },
         "nullable": true
       },
-      "DocumentProgressDto2": {
+      "DocumentFileProgressDto2": {
         "type": "object",
         "properties": {
           "documentFileId": {
@@ -6579,39 +6581,6 @@
             "nullable": true
           },
           "lastAccessedAt": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          }
-        }
-      },
-      "DocumentReviewDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "documentId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "documentFileId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "documentReviewType": {
-            "$ref": "#/components/schemas/DocumentReviewType"
-          },
-          "createdById": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "createdAt": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "updatedAt": {
             "type": "string",
             "format": "date-time",
             "nullable": true
@@ -6678,48 +6647,47 @@
             "type": "string"
           },
           "logo": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "majorCount": {
             "type": "integer",
-            "format": "int32"
-          }
-        }
-      },
-      "FacultyDto": {
-        "type": "object",
-        "properties": {
-          "id": {
+            "format": "int32",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "deletedById": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
           },
-          "facultyName": {
-            "type": "string"
-          },
-          "facultyCode": {
-            "type": "string"
-          },
-          "logo": {
-            "type": "string"
-          }
-        },
-        "nullable": true
-      },
-      "FacultyDto2": {
-        "type": "object",
-        "properties": {
-          "id": {
+          "createdById": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "nullable": true
           },
-          "facultyName": {
-            "type": "string"
+          "updatedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
           },
-          "facultyCode": {
-            "type": "string"
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           },
-          "logo": {
-            "type": "string"
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -6973,14 +6941,121 @@
           "majorCode": {
             "type": "string"
           },
-          "faculty": {
-            "$ref": "#/components/schemas/FacultyDto"
+          "facultyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "facultyName": {
+            "type": "string"
+          },
+          "facultyCode": {
+            "type": "string"
           },
           "subjectCount": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "deletedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "updatedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
+      },
+      "MajorDetailDto2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "majorName": {
+            "type": "string"
+          },
+          "majorCode": {
+            "type": "string"
+          },
+          "facultyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "facultyName": {
+            "type": "string"
+          },
+          "facultyCode": {
+            "type": "string"
+          },
+          "subjectCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "deletedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "updatedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "nullable": true
       },
       "MajorDto": {
         "type": "object",
@@ -6995,37 +7070,19 @@
           "majorCode": {
             "type": "string"
           },
-          "faculty": {
-            "$ref": "#/components/schemas/FacultyDto"
-          }
-        },
-        "nullable": true
-      },
-      "MajorDto2": {
-        "type": "object",
-        "properties": {
-          "id": {
+          "facultyName": {
             "type": "string",
-            "format": "uuid"
+            "nullable": true
           },
-          "majorName": {
-            "type": "string"
-          },
-          "majorCode": {
-            "type": "string"
-          },
-          "faculty": {
-            "$ref": "#/components/schemas/FacultyDto"
+          "facultyCode": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
-      "ManageTrustScoreCommand": {
+      "ManageTrustScoreRequest": {
         "type": "object",
         "properties": {
-          "userId": {
-            "type": "string",
-            "format": "uuid"
-          },
           "trustScore": {
             "type": "integer",
             "format": "int32"
@@ -7243,13 +7300,13 @@
         "type": "integer",
         "nullable": true
       },
-      "PagedResponseOfAuthorListDto": {
+      "PagedResponseOfAuthorDto": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/AuthorListDto"
+              "$ref": "#/components/schemas/AuthorDto"
             }
           },
           "totalCount": {
@@ -7276,13 +7333,13 @@
           }
         }
       },
-      "PagedResponseOfCommentDto": {
+      "PagedResponseOfCommentDetailDto": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CommentDto"
+              "$ref": "#/components/schemas/CommentDetailDto"
             }
           },
           "totalCount": {
@@ -7408,13 +7465,13 @@
           }
         }
       },
-      "PagedResponseOfFacultyDto": {
+      "PagedResponseOfFacultyDetailDto": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/FacultyDto2"
+              "$ref": "#/components/schemas/FacultyDetailDto"
             }
           },
           "totalCount": {
@@ -7474,13 +7531,13 @@
           }
         }
       },
-      "PagedResponseOfMajorDto": {
+      "PagedResponseOfMajorDetailDto": {
         "type": "object",
         "properties": {
           "items": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MajorDto2"
+              "$ref": "#/components/schemas/MajorDetailDto"
             }
           },
           "totalCount": {
@@ -7787,7 +7844,7 @@
           }
         }
       },
-      "ProfileDto": {
+      "ProfileDetailDto": {
         "type": "object",
         "properties": {
           "id": {
@@ -7805,7 +7862,8 @@
             "type": "string"
           },
           "emailConfirmed": {
-            "type": "boolean"
+            "type": "boolean",
+            "nullable": true
           },
           "avatarUrl": {
             "type": "string",
@@ -7820,10 +7878,10 @@
             "format": "int32"
           },
           "trustLevel": {
-            "type": "string"
+            "$ref": "#/components/schemas/TrustLever"
           },
           "gender": {
-            "$ref": "#/components/schemas/Gender"
+            "$ref": "#/components/schemas/NullableOfGender"
           },
           "roles": {
             "type": "array",
@@ -7831,12 +7889,24 @@
               "type": "string"
             }
           },
-          "major": {
-            "$ref": "#/components/schemas/MajorDto"
+          "majorId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
           },
           "createdAt": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
+          },
+          "lockoutEnd": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isLocked": {
+            "type": "boolean",
+            "nullable": true
           }
         }
       },
@@ -7881,6 +7951,18 @@
           "subjectName": {
             "type": "string",
             "nullable": true
+          },
+          "totalViewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usefulCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notUsefulCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -7916,6 +7998,9 @@
             "type": "string",
             "nullable": true
           },
+          "reason": {
+            "$ref": "#/components/schemas/ReportReason"
+          },
           "content": {
             "type": "string"
           },
@@ -7938,6 +8023,9 @@
             "format": "date-time"
           }
         }
+      },
+      "ReportReason": {
+        "type": "integer"
       },
       "ResetPasswordCommand": {
         "type": "object",
@@ -8080,12 +8168,47 @@
           "majors": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/MajorDto2"
+              "$ref": "#/components/schemas/MajorDto"
             }
           },
           "documentCount": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "deletedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "updatedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -8101,12 +8224,6 @@
           },
           "subjectCode": {
             "type": "string"
-          },
-          "majors": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MajorDto2"
-            }
           }
         },
         "nullable": true
@@ -8123,12 +8240,6 @@
           },
           "subjectCode": {
             "type": "string"
-          },
-          "majors": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MajorDto2"
-            }
           }
         }
       },
@@ -8189,6 +8300,43 @@
           "documentCount": {
             "type": "integer",
             "format": "int32"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ContentStatus"
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "deletedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "updatedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -8204,6 +8352,9 @@
           }
         }
       },
+      "TrustLever": {
+        "type": "integer"
+      },
       "TypeDetailDto": {
         "type": "object",
         "properties": {
@@ -8217,6 +8368,40 @@
           "documentCount": {
             "type": "integer",
             "format": "int32"
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "deletedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "updatedById": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -8232,9 +8417,6 @@
           }
         }
       },
-      "Unit": {
-        "type": "object"
-      },
       "UnreadCountDto": {
         "type": "object",
         "properties": {
@@ -8244,13 +8426,9 @@
           }
         }
       },
-      "UpdateAuthorCommand": {
+      "UpdateAuthorCommandRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "fullName": {
             "type": "string",
             "nullable": true
@@ -8261,25 +8439,17 @@
           }
         }
       },
-      "UpdateCommentCommand": {
+      "UpdateCommentCommandRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "content": {
             "type": "string"
           }
         }
       },
-      "UpdateConversationCommand": {
+      "UpdateConversationCommandRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "conversationName": {
             "type": "string",
             "nullable": true
@@ -8320,13 +8490,9 @@
           }
         }
       },
-      "UpdateDocumentCommand": {
+      "UpdateDocumentCommandRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "documentName": {
             "type": "string",
             "nullable": true
@@ -8342,14 +8508,20 @@
           },
           "typeId": {
             "type": "string",
-            "format": "uuid",
-            "nullable": true
+            "format": "uuid"
           },
           "tagIds": {
             "type": "array",
             "items": {
               "type": "string",
               "format": "uuid"
+            },
+            "nullable": true
+          },
+          "tagNames": {
+            "type": "array",
+            "items": {
+              "type": "string"
             },
             "nullable": true
           },
@@ -8386,17 +8558,9 @@
           }
         }
       },
-      "UpdateDocumentFileCommand": {
+      "UpdateDocumentFileCommandRequest": {
         "type": "object",
         "properties": {
-          "documentId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "documentFileId": {
-            "type": "string",
-            "format": "uuid"
-          },
           "title": {
             "type": "string",
             "nullable": true
@@ -8413,26 +8577,18 @@
           }
         }
       },
-      "UpdateDocumentProgressCommand": {
+      "UpdateDocumentProgressCommandRequest": {
         "type": "object",
         "properties": {
-          "documentFileId": {
-            "type": "string",
-            "format": "uuid"
-          },
           "lastPage": {
             "type": "integer",
             "format": "int32"
           }
         }
       },
-      "UpdateEventCommand": {
+      "UpdateEventRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "title": {
             "type": "string"
           },
@@ -8469,13 +8625,9 @@
           }
         }
       },
-      "UpdateFacultyCommand": {
+      "UpdateFacultyCommandRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "facultyName": {
             "type": "string"
           },
@@ -8488,13 +8640,9 @@
           }
         }
       },
-      "UpdateMajorCommand": {
+      "UpdateMajorCommandRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "facultyId": {
             "type": "string",
             "format": "uuid"
@@ -8507,29 +8655,17 @@
           }
         }
       },
-      "UpdateMemberRoleCommand": {
+      "UpdateMemberRoleCommandRequest": {
         "type": "object",
         "properties": {
-          "conversationId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "memberId": {
-            "type": "string",
-            "format": "uuid"
-          },
           "roleType": {
             "$ref": "#/components/schemas/ConversationMemberRoleType"
           }
         }
       },
-      "UpdateMessageCommand": {
+      "UpdateMessageCommandRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "conversationId": {
             "type": "string",
             "format": "uuid"
@@ -8539,7 +8675,7 @@
           }
         }
       },
-      "UpdateNotificationRequest": {
+      "UpdateNotificationCommandRequest": {
         "type": "object",
         "properties": {
           "title": {
@@ -8564,13 +8700,9 @@
           }
         }
       },
-      "UpdateProfileCommand": {
+      "UpdateProfileCommandRequest": {
         "type": "object",
         "properties": {
-          "fullName": {
-            "type": "string",
-            "nullable": true
-          },
           "introduction": {
             "type": "string",
             "nullable": true
@@ -8589,13 +8721,9 @@
           }
         }
       },
-      "UpdateSubjectCommand": {
+      "UpdateSubjectCommandRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "subjectName": {
             "type": "string"
           },
@@ -8611,37 +8739,25 @@
           }
         }
       },
-      "UpdateTagCommand": {
+      "UpdateTagCommandRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "tagName": {
             "type": "string"
           }
         }
       },
-      "UpdateTypeCommand": {
+      "UpdateTypeCommandRequest": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
           "typeName": {
             "type": "string"
           }
         }
       },
-      "UpdateUserCommand": {
+      "UpdateUserRequest": {
         "type": "object",
         "properties": {
-          "userId": {
-            "type": "string",
-            "format": "uuid"
-          },
           "fullName": {
             "type": "string",
             "nullable": true
@@ -8731,7 +8847,7 @@
             }
           },
           "major": {
-            "$ref": "#/components/schemas/MajorDto"
+            "$ref": "#/components/schemas/MajorDetailDto2"
           },
           "createdAt": {
             "type": "string",

@@ -46,9 +46,15 @@ public class SubjectController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<SubjectDetailDto>> UpdateSubject(Guid id, [FromBody] UpdateSubjectCommand command)
+    public async Task<ActionResult<SubjectDetailDto>> UpdateSubject(Guid id, [FromBody] UpdateSubjectCommandRequest request)
     {
-        command = command with { Id = id };
+        var command = new UpdateSubjectCommand
+        {
+            Id = id,
+            SubjectName = request.SubjectName,
+            SubjectCode = request.SubjectCode,
+            MajorIds = request.MajorIds
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

@@ -117,8 +117,8 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
                         var lastReadMessage = c.Messages.FirstOrDefault(m => m.Id == member.LastReadMessageId);
                         if (lastReadMessage != null)
                         {
-                            unreadCount = c.Messages.Count(m => 
-                                m.CreatedAt > lastReadMessage.CreatedAt && 
+                            unreadCount = c.Messages.Count(m =>
+                                m.CreatedAt > lastReadMessage.CreatedAt &&
                                 m.CreatedById != currentUserId.Value);
                         }
                     }

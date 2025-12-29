@@ -14,6 +14,7 @@ import {
 import { Eye, FileText, MessageCircle, ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { GroupedReport } from "@/src/hooks/use-reports";
+import { REPORT_REASON_LABELS } from "@/src/hooks/use-reports";
 
 interface ReportTableProps {
     groupedReports: GroupedReport[];
@@ -62,7 +63,7 @@ export function ReportTable({
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <span className="text-sm text-slate-500">{t("table.loading")}</span>
+                <span className="text-sm text-muted-foreground">{t("table.loading")}</span>
             </div>
         );
     }
@@ -70,7 +71,7 @@ export function ReportTable({
     if (groupedReports.length === 0) {
         return (
             <div className="flex items-center justify-center py-12">
-                <span className="text-sm text-slate-500">{t("table.noData")}</span>
+                <span className="text-sm text-muted-foreground">{t("table.noData")}</span>
             </div>
         );
     }
@@ -79,10 +80,11 @@ export function ReportTable({
         <div className="border rounded overflow-x-auto">
             <Table>
                 <TableHeader>
-                    <TableRow className="bg-slate-50 dark:bg-slate-800">
+                    <TableRow className="bg-muted">
                         <TableHead className="w-10"></TableHead>
                         <TableHead className="min-w-[120px]">{t("table.target")}</TableHead>
                         <TableHead className="min-w-[80px]">{t("table.reportCount")}</TableHead>
+                        <TableHead className="min-w-[140px]">Loại báo cáo</TableHead>
                         <TableHead className="min-w-[200px]">{t("table.latestContent")}</TableHead>
                         <TableHead className="min-w-[120px]">{t("table.reporter")}</TableHead>
                         <TableHead className="min-w-[100px]">{t("table.status")}</TableHead>
@@ -97,7 +99,7 @@ export function ReportTable({
 
                         return (
                             <Fragment key={grouped.key}>
-                                <TableRow key={grouped.key} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                <TableRow key={grouped.key} className="hover:bg-muted/50">
                                     <TableCell>
                                         {grouped.reportCount > 1 && (
                                             <Button
@@ -113,7 +115,7 @@ export function ReportTable({
                                     <TableCell>
                                         <div className="flex items-center gap-2">
                                             {grouped.type === "documentFile" ? (
-                                                <FileText size={16} className="text-blue-500" />
+                                                <FileText size={16} className="text-primary" />
                                             ) : (
                                                 <MessageCircle size={16} className="text-green-500" />
                                             )}
@@ -125,6 +127,11 @@ export function ReportTable({
                                     <TableCell>
                                         <Badge variant={grouped.reportCount > 2 ? "destructive" : "outline"}>
                                             {grouped.reportCount}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="secondary" className="font-normal">
+                                            {REPORT_REASON_LABELS[grouped.latestReason] || "Khác"}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
@@ -143,7 +150,7 @@ export function ReportTable({
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <span className="text-sm text-slate-500">
+                                        <span className="text-sm text-muted-foreground">
                                             {formatDate(grouped.latestCreatedAt)}
                                         </span>
                                     </TableCell>
@@ -160,23 +167,28 @@ export function ReportTable({
                                 </TableRow>
                                 {/* Expanded rows showing all reports */}
                                 {isExpanded && grouped.reports.slice(1).map((report) => (
-                                    <TableRow key={report.id} className="bg-slate-50/50 dark:bg-slate-800/30">
+                                    <TableRow key={report.id} className="bg-muted/30">
                                         <TableCell></TableCell>
                                         <TableCell></TableCell>
                                         <TableCell></TableCell>
                                         <TableCell>
-                                            <span className="text-sm line-clamp-2 max-w-xs text-slate-600 dark:text-slate-400">
+                                            <Badge variant="outline" className="font-normal text-xs">
+                                                {REPORT_REASON_LABELS[report.reason ?? 0] || "Khác"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="text-sm line-clamp-2 max-w-xs text-muted-foreground">
                                                 {report.content || "-"}
                                             </span>
                                         </TableCell>
                                         <TableCell>
-                                            <span className="text-sm text-slate-600 dark:text-slate-400">
+                                            <span className="text-sm text-muted-foreground">
                                                 {report.reporterName}
                                             </span>
                                         </TableCell>
                                         <TableCell></TableCell>
                                         <TableCell>
-                                            <span className="text-sm text-slate-400">
+                                            <span className="text-sm text-muted-foreground">
                                                 {formatDate(report.createdAt)}
                                             </span>
                                         </TableCell>

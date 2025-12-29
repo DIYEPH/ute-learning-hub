@@ -210,7 +210,7 @@ export default function ConversationsPage() {
         <h1 className="text-2xl font-semibold text-foreground">
           Khám phá cuộc trò chuyện
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Tìm và tham gia các cuộc trò chuyện công khai hoặc xin tham gia các nhóm riêng tư
         </p>
       </div>
@@ -219,9 +219,9 @@ export default function ConversationsPage() {
       {!loadingInvitations && invitations.length > 0 && (
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <Mail className="h-5 w-5 text-blue-500" />
+            <Mail className="h-5 w-5 text-accent" />
             <h2 className="text-lg font-semibold text-foreground">Lời mời tham gia nhóm</h2>
-            <span className="bg-blue-500 text-white text-xs px-2 py-0.5 rounded-full">
+            <span className="bg-accent text-accent-foreground text-xs px-2 py-0.5 rounded-full">
               {invitations.length}
             </span>
           </div>
@@ -229,24 +229,24 @@ export default function ConversationsPage() {
             {invitations.map((invitation) => (
               <div
                 key={invitation.id}
-                className="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800"
+                className="border rounded-lg p-4 bg-accent/10 border-accent/30"
               >
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-800 flex items-center justify-center flex-shrink-0">
-                    <Users className="h-5 w-5 text-blue-600 dark:text-blue-300" />
+                  <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                    <Users className="h-5 w-5 text-accent" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-foreground truncate">
                       {invitation.conversationName}
                     </h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-muted-foreground">
                       {invitation.invitedByName} đã mời bạn
                     </p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {invitation.memberCount} thành viên
                     </p>
                     {invitation.message && (
-                      <p className="text-sm text-slate-600 dark:text-slate-300 mt-2 italic">
+                      <p className="text-sm text-muted-foreground/80 mt-2 italic">
                         "{invitation.message}"
                       </p>
                     )}
@@ -289,7 +289,7 @@ export default function ConversationsPage() {
       {!loadingRecs && recommendations.length > 0 && (
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-sky-500" />
+            <Sparkles className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Gợi ý cho bạn</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -317,7 +317,7 @@ export default function ConversationsPage() {
         </div>
       )}
       {loadingRecs && (
-        <div className="mb-8 flex items-center gap-2 text-sm text-slate-500">
+        <div className="mb-8 flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span>Đang tải gợi ý...</span>
         </div>
@@ -328,7 +328,7 @@ export default function ConversationsPage() {
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search */}
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Tìm kiếm cuộc trò chuyện..."
@@ -399,13 +399,13 @@ export default function ConversationsPage() {
       {/* Loading */}
       {loading && conversations.length === 0 && (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
         </div>
       )}
 
       {/* Conversations Grid */}
       {!loading && conversations.length === 0 && (
-        <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+        <div className="text-center py-12 text-muted-foreground">
           <p>Không tìm thấy cuộc trò chuyện nào</p>
         </div>
       )}

@@ -12,20 +12,16 @@ public class TagRepository : Repository<Tag, Guid>, ITagRepository
     {
     }
 
-    public async Task<IList<Tag>> GetByIdsAsync(IEnumerable<Guid> ids, bool includeDeleted = false, CancellationToken cancellationToken = default)
+    public async Task<IList<Tag>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
     {
         var query = DbSet.Where(t => ids.Contains(t.Id));
-        if (!includeDeleted)
-            query = query.Where(t => !t.IsDeleted);
         return await query.ToListAsync(cancellationToken);
     }
 
-    public async Task<Tag?> FindByNameAsync(string name, bool includeDeleted = false, CancellationToken cancellationToken = default)
+    public async Task<Tag?> FindByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         var normalizedName = name.ToLowerInvariant();
         var query = DbSet.Where(t => t.TagName != null);
-        if (!includeDeleted)
-            query = query.Where(t => !t.IsDeleted);
         return await query.FirstOrDefaultAsync(t => t.TagName!.ToLower() == normalizedName, cancellationToken);
     }
 

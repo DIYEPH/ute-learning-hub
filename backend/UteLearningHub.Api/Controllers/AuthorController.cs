@@ -22,7 +22,7 @@ public class AuthorController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResponse<AuthorListDto>>> GetAuthors([FromQuery] GetAuthorsQuery query)
+    public async Task<ActionResult<PagedResponse<AuthorDto>>> GetAuthors([FromQuery] GetAuthorsQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);
@@ -46,9 +46,14 @@ public class AuthorController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize]
-    public async Task<ActionResult<AuthorDetailDto>> UpdateAuthor(Guid id, [FromBody] UpdateAuthorCommand command)
+    public async Task<ActionResult<AuthorDetailDto>> UpdateAuthor(Guid id, [FromBody] UpdateAuthorCommandRequest request)
     {
-        command = command with { Id = id };
+        var command = new UpdateAuthorCommand
+        {
+            Id = id,
+            FullName = request.FullName,
+            Description = request.Description
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

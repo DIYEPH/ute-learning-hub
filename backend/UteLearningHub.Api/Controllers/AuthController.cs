@@ -54,7 +54,7 @@ public class AuthController : ControllerBase
 
         var command = new RefreshTokenCommand { RefreshToken = refreshToken };
         var result = await _mediator.Send(command);
-        
+
         // Set new refresh token in cookie
         SetRefreshTokenCookie(result.RefreshToken);
         return Ok(result);
@@ -66,7 +66,7 @@ public class AuthController : ControllerBase
     {
         var command = new LogoutCommand();
         await _mediator.Send(command);
-        
+
         // Clear refresh token cookie
         ClearRefreshTokenCookie();
         return NoContent();
@@ -107,14 +107,14 @@ public class AuthController : ControllerBase
     private void SetRefreshTokenCookie(string refreshToken)
     {
         var expiryDays = _configuration.GetValue<int>("Jwt:RefreshTokenExpiryDays", 7);
-        
+
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,  
-            SameSite = SameSiteMode.None,  
+            Secure = true,
+            SameSite = SameSiteMode.None,
             Expires = DateTimeOffset.UtcNow.AddDays(expiryDays),
-            Path = "/" 
+            Path = "/"
         };
         Response.Cookies.Append(RefreshTokenCookieName, refreshToken, cookieOptions);
     }

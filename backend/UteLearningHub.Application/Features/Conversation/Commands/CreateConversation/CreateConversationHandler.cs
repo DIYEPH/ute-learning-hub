@@ -111,7 +111,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
                         CreatedAt = _dateTimeProvider.OffsetNow
                     };
 
-                    await _tagRepository.AddAsync(newTag, cancellationToken);
+                    _tagRepository.Add(newTag);
                     tagIdsToAdd.Add(newTag.Id);
                 }
             }
@@ -161,7 +161,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
 
         conversation.Members.Add(ownerMember);
 
-        await _conversationRepository.AddAsync(conversation, cancellationToken);
+        _conversationRepository.Add(conversation);
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         await _systemMessageService.CreateAsync(

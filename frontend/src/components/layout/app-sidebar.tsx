@@ -14,18 +14,19 @@ type SidebarProps = {
   activePath?: string;
 };
 
-const MODERATOR_LEVELS = ["Moderator", "Master"];
+// Trust levels that can access admin features (Moderator = 4, Master = 5)
+const MODERATOR_MIN_LEVEL = 4;
 
 export function AppSidebar({ navItems, activePath }: SidebarProps) {
   const t = useTranslations('common');
   const tNav = useTranslations('nav');
   const { profile } = useUserProfile();
 
-  const canAccessAdmin = profile?.trustLevel && MODERATOR_LEVELS.includes(profile.trustLevel);
+  const canAccessAdmin = typeof profile?.trustLevel === 'number' && profile.trustLevel >= MODERATOR_MIN_LEVEL;
   const isInAdminPanel = activePath?.startsWith("/admin");
 
   return (
-    <aside className="hidden md:flex w-64 flex-shrink-0 border-r bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 h-full overflow-hidden flex-col">
+    <aside className="hidden md:flex w-64 flex-shrink-0 border-r bg-card border-border h-full overflow-hidden flex-col">
       <ScrollArea className="w-full flex-1">
         <div className="p-4 space-y-4">
           {/* Show upload button only in user pages */}
@@ -45,8 +46,8 @@ export function AppSidebar({ navItems, activePath }: SidebarProps) {
                 <Link key={item.href} href={item.href}>
                   <button
                     className={`flex w-full items-center gap-3 px-3 py-2 text-left transition-colors ${isActive
-                      ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
-                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      ? "bg-muted text-foreground font-medium"
+                      : "text-muted-foreground hover:bg-muted"
                       }`}
                   >
                     <span className="shrink-0">
@@ -69,14 +70,14 @@ export function AppSidebar({ navItems, activePath }: SidebarProps) {
             <div className="pt-4 border-t">
               {isInAdminPanel ? (
                 <Link href="/">
-                  <button className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                  <button className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors text-muted-foreground hover:bg-muted">
                     <Home size={18} />
                     <span>Trang chủ</span>
                   </button>
                 </Link>
               ) : (
                 <Link href="/admin">
-                  <button className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                  <button className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors text-muted-foreground hover:bg-muted">
                     <Shield size={18} />
                     <span>Quản trị</span>
                   </button>
@@ -92,8 +93,8 @@ export function AppSidebar({ navItems, activePath }: SidebarProps) {
         <Link href="/about">
           <button
             className={`flex w-full items-center gap-3 px-3 py-2 text-sm text-left transition-colors ${activePath === "/about"
-              ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
-              : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              ? "bg-muted text-foreground font-medium"
+              : "text-muted-foreground hover:bg-muted"
               }`}
           >
             <Info size={18} />

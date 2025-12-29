@@ -26,6 +26,9 @@ public class DocumentAuthorConfiguration : IEntityTypeConfiguration<DocumentAuth
             .WithMany(u => u.DocumentAuthors)
             .HasForeignKey(u => u.AuthorId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Query filter: exclude when document or author is deleted
+        builder.HasQueryFilter(u => !u.Document.IsDeleted && !u.Author.IsDeleted);
     }
 }
 

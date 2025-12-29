@@ -25,7 +25,7 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, R
     {
         // 1. Validate refresh token format and extract claims
         var (isValid, userId, sessionId) = _jwtTokenService.ValidateRefreshToken(request.RefreshToken);
-        
+
         if (!isValid || !userId.HasValue || string.IsNullOrEmpty(sessionId))
             throw new UnauthorizedException("Invalid refresh token");
 

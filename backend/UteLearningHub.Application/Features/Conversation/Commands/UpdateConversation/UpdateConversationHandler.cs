@@ -129,7 +129,7 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
                             CreatedAt = _dateTimeProvider.OffsetNow
                         };
 
-                        await _tagRepository.AddAsync(newTag, cancellationToken);
+                        _tagRepository.Add(newTag);
                         tagIdsToAdd.Add(newTag.Id);
                     }
                 }
@@ -155,7 +155,7 @@ public class UpdateConversationHandler : IRequestHandler<UpdateConversationComma
         conversation.UpdatedById = userId;
         conversation.UpdatedAt = _dateTimeProvider.OffsetNow;
 
-        await _conversationRepository.UpdateAsync(conversation, cancellationToken);
+        _conversationRepository.Update(conversation);
         await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         if (subjectChanged || tagsChanged)

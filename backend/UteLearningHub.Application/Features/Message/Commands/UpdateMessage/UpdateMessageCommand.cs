@@ -3,4 +3,7 @@ using UteLearningHub.Application.Common.Dtos;
 
 namespace UteLearningHub.Application.Features.Message.Commands.UpdateMessage;
 
-public record UpdateMessageCommand : UpdateMessageRequest, IRequest<MessageDto>;
+public record UpdateMessageCommand : UpdateMessageCommandRequest, IRequest<MessageDto>
+{
+    public Guid Id { get; init; }
+}

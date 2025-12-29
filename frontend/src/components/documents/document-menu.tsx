@@ -40,7 +40,7 @@ export function DocumentMenu({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-full border border-slate-200 bg-white/80 text-slate-600 shadow-sm transition hover:border-sky-200 hover:text-sky-600 dark:border-slate-700 dark:bg-slate-900/70 dark:text-slate-200"
+          className="h-8 w-8 rounded-full border border-border bg-card/80 text-muted-foreground shadow-sm transition hover:border-primary hover:text-primary"
           disabled={disabled && !onEdit && !onDelete && !onReport}
         >
           <MoreVertical className="h-4 w-4" />

@@ -6,7 +6,7 @@ import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useMajors } from "@/src/hooks/use-majors";
 import { useFaculties } from "@/src/hooks/use-faculties";
-import type { UpdateUserCommand, MajorDto2, FacultyDto2 } from "@/src/api/database/types.gen";
+import type { UpdateUserRequest, MajorDetailDto, FacultyDetailDto } from "@/src/api/database/types.gen";
 
 export interface UserFormData {
   fullName?: string | null;
@@ -15,7 +15,7 @@ export interface UserFormData {
   introduction?: string | null;
   avatarUrl?: string | null;
   majorId?: string | null;
-  major?: { id?: string; faculty?: { id?: string } | null } | null;
+  major?: { id?: string; facultyId?: string } | null;
   gender?: string | null;
   emailConfirmed?: boolean | null;
   roles?: string[] | null;
@@ -23,7 +23,7 @@ export interface UserFormData {
 
 interface UserFormProps {
   initialData?: UserFormData;
-  onSubmit: (data: UpdateUserCommand) => void | Promise<void>;
+  onSubmit: (data: UpdateUserRequest) => void | Promise<void>;
   loading?: boolean;
 }
 
@@ -42,23 +42,23 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
     emailConfirmed: null,
     roles: null,
   });
-  const [majors, setMajors] = useState<MajorDto2[]>([]);
-  const [faculties, setFaculties] = useState<FacultyDto2[]>([]);
+  const [majors, setMajors] = useState<MajorDetailDto[]>([]);
+  const [faculties, setFaculties] = useState<FacultyDetailDto[]>([]);
   const [selectedFacultyId, setSelectedFacultyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData) {
       // Extract majorId from initialData.majorId or initialData.major.id
       const majorId = initialData.majorId || initialData.major?.id || null;
-      // Extract facultyId from initialData.major.faculty.id
-      const facultyId = initialData.major?.faculty?.id || null;
+      // Extract facultyId from initialData.major.facultyId
+      const facultyId = initialData.major?.facultyId || null;
 
       setFormData({
         ...initialData,
         majorId: majorId,
       });
 
-      // Set selectedFacultyId from major.faculty.id if available
+      // Set selectedFacultyId from major.facultyId if available
       if (facultyId) {
         setSelectedFacultyId(facultyId);
       } else {
@@ -105,18 +105,14 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
         });
 
         if (allMajorsResponse?.items) {
-          // Filter majors by selected faculty if one is selected
           const filteredMajors = selectedFacultyId
-            ? allMajorsResponse.items.filter((m) => m.faculty?.id === selectedFacultyId)
+            ? allMajorsResponse.items.filter((m) => m.facultyId === selectedFacultyId)
             : allMajorsResponse.items;
 
           setMajors(filteredMajors);
-
-          // Reset majorId if selected faculty changed and current major doesn't belong to it
-          // Only do this if user manually changed faculty (not during initial load)
           if (selectedFacultyId && formData.majorId) {
             const major = filteredMajors.find((m) => m.id === formData.majorId);
-            if (!major || major.faculty?.id !== selectedFacultyId) {
+            if (!major || major.facultyId !== selectedFacultyId) {
               setFormData((prev) => ({ ...prev, majorId: null }));
             }
           }
@@ -131,7 +127,6 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Map gender string to enum number: Other = 0, Male = 1, Female = 2
     let genderValue: number | null | undefined = undefined;
     if (formData.gender) {
       const genderMap: Record<string, number> = {
@@ -144,7 +139,7 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
       genderValue = null;
     }
 
-    const command: UpdateUserCommand = {
+    const command: UpdateUserRequest = {
       fullName: formData.fullName || undefined,
       email: formData.email || undefined,
       username: formData.username || undefined,
@@ -232,7 +227,7 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
           >
             <option value="">{t("form.selectFaculty")}</option>
             {faculties
-              .filter((faculty): faculty is FacultyDto2 & { id: string } => !!faculty?.id)
+              .filter((faculty): faculty is FacultyDetailDto & { id: string } => !!faculty?.id)
               .map((faculty) => (
                 <option key={faculty.id} value={faculty.id}>
                   {faculty.facultyName || ""} ({faculty.facultyCode || ""})
@@ -254,7 +249,7 @@ export function UserForm({ initialData, onSubmit, loading }: UserFormProps) {
           >
             <option value="">{t("form.selectMajor")}</option>
             {majors
-              .filter((major): major is MajorDto2 & { id: string } => !!major?.id)
+              .filter((major): major is MajorDetailDto & { id: string } => !!major?.id)
               .map((major) => (
                 <option key={major.id} value={major.id}>
                   {major.majorName || ""} ({major.majorCode || ""})

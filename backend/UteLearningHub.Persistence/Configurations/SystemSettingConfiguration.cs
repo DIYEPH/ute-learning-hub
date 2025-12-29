@@ -12,7 +12,7 @@ public class SystemSettingConfiguration : IEntityTypeConfiguration<SystemSetting
         builder.ToTable(DbTableNames.SystemSetting);
 
         builder.HasKey(s => s.Name);
-        
+
         builder.Property(s => s.Name)
             .HasColumnName("Ten")
             .HasMaxLength(100)

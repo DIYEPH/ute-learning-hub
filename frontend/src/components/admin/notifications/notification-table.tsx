@@ -12,8 +12,8 @@ const PriorityLabels: Record<number, string> = {
 };
 
 const PriorityColors: Record<number, string> = {
-    0: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-    1: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+    0: "bg-secondary text-secondary-foreground",
+    1: "bg-primary/10 text-primary",
     2: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300",
 };
 
@@ -90,7 +90,7 @@ export function NotificationTable({
             className: "min-w-[140px]",
             sortable: true,
             render: (notification) => (
-                <span className="text-sm text-slate-600 dark:text-slate-400">
+                <span className="text-sm text-muted-foreground">
                     {formatDate(notification.createdAt)}
                 </span>
             ),
@@ -101,7 +101,7 @@ export function NotificationTable({
             className: "min-w-[140px]",
             sortable: true,
             render: (notification) => (
-                <span className="text-sm text-slate-600 dark:text-slate-400">
+                <span className="text-sm text-muted-foreground">
                     {formatDate(notification.expiredAt)}
                 </span>
             ),

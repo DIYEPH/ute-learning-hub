@@ -15,7 +15,7 @@ import type {
   TypeDto,
   TagDto,
   CreateDocumentCommand,
-  AuthorListDto,
+  AuthorDto,
   AuthorInput,
   DocumentDto,
 } from "@/src/api/database/types.gen";
@@ -68,7 +68,7 @@ export function DocumentUploadForm({
   const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
   const [types, setTypes] = useState<TypeDto[]>([]);
   const [tags, setTags] = useState<TagDto[]>([]);
-  const [authors, setAuthors] = useState<AuthorListDto[]>([]);
+  const [authors, setAuthors] = useState<AuthorDto[]>([]);
   const [fileError, setFileError] = useState<string | null>(null);
 
   // Debounce search for similar documents
@@ -208,7 +208,7 @@ export function DocumentUploadForm({
               className="mt-1"
             />
             {searching && (
-              <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-slate-400" />
+              <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
             )}
           </div>
 
@@ -222,7 +222,7 @@ export function DocumentUploadForm({
 
           {/* Similar documents */}
           {similarDocuments.length > 0 && !isDuplicate && (
-            <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            <div className="mt-2 text-xs text-muted-foreground">
               <span className="font-medium">Tài liệu tương tự:</span>
               <ul className="mt-1 space-y-0.5">
                 {similarDocuments.map((doc) => (
@@ -257,7 +257,7 @@ export function DocumentUploadForm({
         <Label htmlFor="authors">{t("author")} (Tùy chọn)</Label>
         <AuthorPicker
           options={authors
-            .filter((a): a is AuthorListDto & { id: string } => !!a?.id)
+            .filter((a): a is AuthorDto & { id: string } => !!a?.id)
             .map((author) => ({
               value: author.id,
               label: author.fullName || "",

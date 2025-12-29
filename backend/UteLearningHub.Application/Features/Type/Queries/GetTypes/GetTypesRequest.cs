@@ -1,6 +1,6 @@
 using UteLearningHub.Application.Common.Dtos;
 
-namespace UteLearningHub.Application.Features.Type.Queries.GetTypes;
+namespace UteLearningHub.Application.Features.Tag.Queries.GetTypes;
 
 public record GetTypesRequest : PagedRequest
 {

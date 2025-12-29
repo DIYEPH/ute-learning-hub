@@ -121,7 +121,7 @@ export function DocumentDetailModal({
 
                 {loading ? (
                     <div className="flex items-center justify-center py-8">
-                        <span className="text-sm text-slate-500">{t("table.loading")}</span>
+                        <span className="text-sm text-muted-foreground">{t("table.loading")}</span>
                     </div>
                 ) : document ? (
                     <div className="space-y-6">
@@ -133,14 +133,14 @@ export function DocumentDetailModal({
                                     href={`/documents/${document.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+                                    className="text-sm text-primary hover:text-accent hover:underline flex items-center gap-1"
                                 >
                                     <ExternalLink size={14} />
                                     Xem tài liệu
                                 </a>
                             </div>
                             {document.description && (
-                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                <p className="text-sm text-muted-foreground">
                                     {document.description}
                                 </p>
                             )}
@@ -159,7 +159,7 @@ export function DocumentDetailModal({
                                     </Badge>
                                 ))}
                             </div>
-                            <div className="flex items-center gap-4 text-sm text-slate-500">
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                     <Calendar size={14} />
                                     {formatDate(document.createdAt)}
@@ -196,9 +196,9 @@ export function DocumentDetailModal({
                                     return (
                                         <div
                                             key={file.id}
-                                            className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded"
+                                            className="flex items-center gap-3 p-3 bg-muted rounded"
                                         >
-                                            <FileText size={20} className="text-slate-400 flex-shrink-0" />
+                                            <FileText size={20} className="text-muted-foreground flex-shrink-0" />
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-medium text-sm truncate">
@@ -208,7 +208,7 @@ export function DocumentDetailModal({
                                                         {statusInfo.label}
                                                     </Badge>
                                                 </div>
-                                                <div className="text-xs text-slate-500">
+                                                <div className="text-xs text-muted-foreground">
                                                     {formatFileSize(file.fileSize)} • {file.mimeType || "-"}
                                                     {file.totalPages && ` • ${file.totalPages} ${t("detailModal.pages")}`}
                                                 </div>
@@ -289,7 +289,7 @@ export function DocumentDetailModal({
                                     );
                                 })}
                                 {(!document.files || document.files.length === 0) && (
-                                    <p className="text-sm text-slate-500 py-4 text-center">
+                                    <p className="text-sm text-muted-foreground py-4 text-center">
                                         {t("detailModal.noFiles")}
                                     </p>
                                 )}
@@ -298,7 +298,7 @@ export function DocumentDetailModal({
                     </div>
                 ) : (
                     <div className="flex items-center justify-center py-8">
-                        <span className="text-sm text-slate-500">{t("table.noData")}</span>
+                        <span className="text-sm text-muted-foreground">{t("table.noData")}</span>
                     </div>
                 )}
             </DialogContent>

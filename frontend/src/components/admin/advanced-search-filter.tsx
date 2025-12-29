@@ -114,7 +114,7 @@ export function AdvancedSearchFilter({
       </form>
 
       {showAdvanced && filters.length > 0 && (
-        <div className="p-4 border  bg-slate-50 dark:bg-slate-900 space-y-3">
+        <div className="p-4 border bg-muted space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold text-foreground">{t("advancedFilters")}</h3>
             <Button

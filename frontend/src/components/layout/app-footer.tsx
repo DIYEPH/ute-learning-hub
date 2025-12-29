@@ -11,7 +11,7 @@ export function AppFooter({ className }: AppFooterProps) {
 
   return (
     <footer className={cn(
-      "border-t bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 py-3 px-4 text-xs md:text-sm text-slate-500 dark:text-slate-400 flex items-center justify-between",
+      "border-t bg-card border-border py-3 px-4 text-xs md:text-sm text-muted-foreground flex items-center justify-between",
       className
     )}>
       <span>© {year} UTE Ahihi</span>

@@ -114,7 +114,6 @@ public class IdentityService : IIdentityService
         if (user == null)
             return (false, new[] { "User not found" });
 
-        // Check username đã tồn tại chưa
         var existingUser = await _userManager.FindByNameAsync(newUsername);
         if (existingUser != null && existingUser.Id != userId)
             return (false, new[] { "Username already exists" });

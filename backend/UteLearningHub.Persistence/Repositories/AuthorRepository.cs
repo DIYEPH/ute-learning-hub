@@ -13,20 +13,16 @@ public class AuthorRepository : Repository<Author, Guid>, IAuthorRepository
     {
     }
 
-    public async Task<IList<Author>> GetByIdsAsync(IEnumerable<Guid> ids, bool includeDeleted = false, CancellationToken cancellationToken = default)
-    {
-        var query = DbSet.Where(a => ids.Contains(a.Id));
-        if (!includeDeleted)
-            query = query.Where(a => !a.IsDeleted);
-        return await query.ToListAsync(cancellationToken);
-    }
-
-    public async Task<Author?> FindByNameAsync(string name, bool includeDeleted = false, CancellationToken cancellationToken = default)
+    public async Task<Author?> FindByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         var normalizedName = name.ToLowerInvariant();
         var query = DbSet.AsQueryable();
-        if (!includeDeleted)
-            query = query.Where(a => !a.IsDeleted);
         return await query.FirstOrDefaultAsync(a => a.FullName.ToLower() == normalizedName, cancellationToken);
+    }
+
+    public async Task<IList<Author>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default)
+    {
+        var query = DbSet.Where(t => ids.Contains(t.Id));
+        return await query.ToListAsync(cancellationToken);
     }
 }

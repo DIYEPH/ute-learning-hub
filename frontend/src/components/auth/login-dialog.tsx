@@ -86,7 +86,7 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         required
                         disabled={loading}
                     />
-                    <div className="text-right text-sm text-blue-600 dark:text-blue-400 cursor-pointer mt-1 hover:underline">
+                    <div className="text-right text-sm text-primary cursor-pointer mt-1 hover:underline">
                         {t('forgotPassword')}
                     </div>
                 </div>
@@ -99,10 +99,10 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                 </Button>
                 <div className="relative">
                     <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-slate-200 dark:border-slate-700" />
+                        <span className="w-full border-t border-border" />
                     </div>
                     <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-slate-500 dark:text-slate-400">
+                        <span className="bg-background px-2 text-muted-foreground">
                             {tCommon('or') || 'Hoặc'}
                         </span>
                     </div>

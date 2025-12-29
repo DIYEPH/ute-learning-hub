@@ -15,23 +15,25 @@ export type AuthorDetailDto = {
     id?: string;
     fullName?: string;
     description?: string;
-    documentCount?: number;
+    documentCount?: number | null;
+    isDeleted?: boolean | null;
+    deletedById?: string | null;
+    createdById?: string | null;
+    updatedById?: string | null;
+    createdAt?: string | null;
+    deletedAt?: string | null;
+    updatedAt?: string | null;
 };
 
 export type AuthorDto = {
     id?: string;
     fullName?: string;
+    description?: string;
 };
 
 export type AuthorInput = {
     fullName?: string;
     description?: string | null;
-};
-
-export type AuthorListDto = {
-    id?: string;
-    fullName?: string;
-    description?: string;
 };
 
 export type BanUserCommand = {
@@ -48,7 +50,7 @@ export type ChangeUsernameCommand = {
     newUsername?: string;
 };
 
-export type CommentDto = {
+export type CommentDetailDto = {
     id?: string;
     documentId?: string;
     documentFileId?: string;
@@ -79,8 +81,8 @@ export type ConversationDetailDto = {
     members?: Array<ConversationMemberDto>;
     messageCount?: number;
     lastMessageId?: string | null;
-    createdById?: string;
-    createdAt?: string;
+    createdById?: string | null;
+    createdAt?: string | null;
     updatedAt?: string | null;
 };
 
@@ -190,11 +192,6 @@ export type CreateDocumentCommand = {
     coverFileId?: string | null;
 };
 
-export type CreateDocumentReviewCommand = {
-    documentFileId?: string;
-    documentReviewType?: DocumentReviewType;
-};
-
 export type CreateEventCommand = {
     title?: string;
     shortDescription?: string | null;
@@ -238,10 +235,16 @@ export type CreateNotificationCommand = {
     recipientIds?: Array<string> | null;
 };
 
+export type CreateOrUpdateDocumentFileReviewCommand = {
+    documentFileId?: string;
+    documentReviewType?: DocumentReviewType;
+};
+
 export type CreateReportCommand = {
     documentFileId?: string | null;
     commentId?: string | null;
-    content?: string;
+    reason?: ReportReason;
+    content?: string | null;
 };
 
 export type CreateSubjectCommand = {
@@ -288,7 +291,7 @@ export type DocumentDto = {
     subject?: SubjectDto;
     type?: TypeDto;
     tags?: Array<TagDto>;
-    authors?: Array<AuthorDto>;
+    authors?: Array<AuthorDetailDto>;
     thumbnailFileId?: string | null;
     fileCount?: number;
     commentCount?: number;
@@ -316,31 +319,21 @@ export type DocumentFileDto = {
     usefulCount?: number;
     notUsefulCount?: number;
     viewCount?: number;
-    progress?: DocumentProgressDto;
+    progress?: DocumentFileProgressDto;
 };
 
-export type DocumentProgressDto = {
+export type DocumentFileProgressDto = {
     documentFileId?: string;
     lastPage?: number;
     totalPages?: number | null;
     lastAccessedAt?: string | null;
 } | null;
 
-export type DocumentProgressDto2 = {
+export type DocumentFileProgressDto2 = {
     documentFileId?: string;
     lastPage?: number;
     totalPages?: number | null;
     lastAccessedAt?: string | null;
-};
-
-export type DocumentReviewDto = {
-    id?: string;
-    documentId?: string;
-    documentFileId?: string;
-    documentReviewType?: DocumentReviewType;
-    createdById?: string;
-    createdAt?: string;
-    updatedAt?: string | null;
 };
 
 export type DocumentReviewType = number;
@@ -362,22 +355,15 @@ export type FacultyDetailDto = {
     id?: string;
     facultyName?: string;
     facultyCode?: string;
-    logo?: string;
-    majorCount?: number;
-};
-
-export type FacultyDto = {
-    id?: string;
-    facultyName?: string;
-    facultyCode?: string;
-    logo?: string;
-} | null;
-
-export type FacultyDto2 = {
-    id?: string;
-    facultyName?: string;
-    facultyCode?: string;
-    logo?: string;
+    logo?: string | null;
+    majorCount?: number | null;
+    isDeleted?: boolean | null;
+    deletedById?: string | null;
+    createdById?: string | null;
+    updatedById?: string | null;
+    createdAt?: string | null;
+    deletedAt?: string | null;
+    updatedAt?: string | null;
 };
 
 export type FileDto = {
@@ -468,26 +454,45 @@ export type MajorDetailDto = {
     id?: string;
     majorName?: string;
     majorCode?: string;
-    faculty?: FacultyDto;
-    subjectCount?: number;
+    facultyId?: string;
+    facultyName?: string;
+    facultyCode?: string;
+    subjectCount?: number | null;
+    isDeleted?: boolean | null;
+    deletedById?: string | null;
+    createdById?: string | null;
+    updatedById?: string | null;
+    createdAt?: string | null;
+    deletedAt?: string | null;
+    updatedAt?: string | null;
 };
+
+export type MajorDetailDto2 = {
+    id?: string;
+    majorName?: string;
+    majorCode?: string;
+    facultyId?: string;
+    facultyName?: string;
+    facultyCode?: string;
+    subjectCount?: number | null;
+    isDeleted?: boolean | null;
+    deletedById?: string | null;
+    createdById?: string | null;
+    updatedById?: string | null;
+    createdAt?: string | null;
+    deletedAt?: string | null;
+    updatedAt?: string | null;
+} | null;
 
 export type MajorDto = {
     id?: string;
     majorName?: string;
     majorCode?: string;
-    faculty?: FacultyDto;
-} | null;
-
-export type MajorDto2 = {
-    id?: string;
-    majorName?: string;
-    majorCode?: string;
-    faculty?: FacultyDto;
+    facultyName?: string | null;
+    facultyCode?: string | null;
 };
 
-export type ManageTrustScoreCommand = {
-    userId?: string;
+export type ManageTrustScoreRequest = {
     trustScore?: number;
     reason?: string | null;
 };
@@ -560,8 +565,8 @@ export type NullableOfMessageType = number | null;
 
 export type NullableOfVisibilityStatus = number | null;
 
-export type PagedResponseOfAuthorListDto = {
-    items?: Array<AuthorListDto>;
+export type PagedResponseOfAuthorDto = {
+    items?: Array<AuthorDto>;
     totalCount?: number;
     page?: number;
     pageSize?: number;
@@ -570,8 +575,8 @@ export type PagedResponseOfAuthorListDto = {
     hasNextPage?: boolean;
 };
 
-export type PagedResponseOfCommentDto = {
-    items?: Array<CommentDto>;
+export type PagedResponseOfCommentDetailDto = {
+    items?: Array<CommentDetailDto>;
     totalCount?: number;
     page?: number;
     pageSize?: number;
@@ -610,8 +615,8 @@ export type PagedResponseOfDocumentDto = {
     hasNextPage?: boolean;
 };
 
-export type PagedResponseOfFacultyDto = {
-    items?: Array<FacultyDto2>;
+export type PagedResponseOfFacultyDetailDto = {
+    items?: Array<FacultyDetailDto>;
     totalCount?: number;
     page?: number;
     pageSize?: number;
@@ -630,8 +635,8 @@ export type PagedResponseOfInvitationDto = {
     hasNextPage?: boolean;
 };
 
-export type PagedResponseOfMajorDto = {
-    items?: Array<MajorDto2>;
+export type PagedResponseOfMajorDetailDto = {
+    items?: Array<MajorDetailDto>;
     totalCount?: number;
     page?: number;
     pageSize?: number;
@@ -726,20 +731,22 @@ export type PinMessageCommand = {
     isPined?: boolean;
 };
 
-export type ProfileDto = {
+export type ProfileDetailDto = {
     id?: string;
     email?: string;
     username?: string | null;
     fullName?: string;
-    emailConfirmed?: boolean;
+    emailConfirmed?: boolean | null;
     avatarUrl?: string | null;
     introduction?: string | null;
     trustScore?: number;
-    trustLevel?: string;
-    gender?: Gender;
+    trustLevel?: TrustLever;
+    gender?: NullableOfGender;
     roles?: Array<string>;
-    major?: MajorDto;
-    createdAt?: string;
+    majorId?: string | null;
+    createdAt?: string | null;
+    lockoutEnd?: string | null;
+    isLocked?: boolean | null;
 };
 
 export type ReadingHistoryItemDto = {
@@ -752,6 +759,9 @@ export type ReadingHistoryItemDto = {
     lastAccessedAt?: string | null;
     coverFileId?: string | null;
     subjectName?: string | null;
+    totalViewCount?: number;
+    usefulCount?: number;
+    notUsefulCount?: number;
 };
 
 export type RefreshTokenResponse = {
@@ -764,6 +774,7 @@ export type ReportDto = {
     documentFileId?: string | null;
     commentId?: string | null;
     targetUrl?: string | null;
+    reason?: ReportReason;
     content?: string;
     reporterName?: string;
     reporterAvatarUrl?: string | null;
@@ -771,6 +782,8 @@ export type ReportDto = {
     status?: ContentStatus;
     createdAt?: string;
 };
+
+export type ReportReason = number;
 
 export type ResetPasswordCommand = {
     email?: string;
@@ -820,22 +833,27 @@ export type SubjectDetailDto = {
     id?: string;
     subjectName?: string;
     subjectCode?: string;
-    majors?: Array<MajorDto2>;
-    documentCount?: number;
+    majors?: Array<MajorDto>;
+    documentCount?: number | null;
+    isDeleted?: boolean | null;
+    deletedById?: string | null;
+    createdById?: string | null;
+    updatedById?: string | null;
+    createdAt?: string | null;
+    deletedAt?: string | null;
+    updatedAt?: string | null;
 };
 
 export type SubjectDto = {
     id?: string;
     subjectName?: string;
     subjectCode?: string;
-    majors?: Array<MajorDto2>;
 } | null;
 
 export type SubjectDto2 = {
     id?: string;
     subjectName?: string;
     subjectCode?: string;
-    majors?: Array<MajorDto2>;
 };
 
 export type SubjectWithDocsDto = {
@@ -857,6 +875,14 @@ export type TagDetailDto = {
     id?: string;
     tagName?: string;
     documentCount?: number;
+    status?: ContentStatus;
+    isDeleted?: boolean | null;
+    deletedById?: string | null;
+    createdById?: string | null;
+    updatedById?: string | null;
+    createdAt?: string | null;
+    deletedAt?: string | null;
+    updatedAt?: string | null;
 };
 
 export type TagDto = {
@@ -864,10 +890,19 @@ export type TagDto = {
     tagName?: string;
 };
 
+export type TrustLever = number;
+
 export type TypeDetailDto = {
     id?: string;
     typeName?: string;
     documentCount?: number;
+    isDeleted?: boolean | null;
+    deletedById?: string | null;
+    createdById?: string | null;
+    updatedById?: string | null;
+    createdAt?: string | null;
+    deletedAt?: string | null;
+    updatedAt?: string | null;
 };
 
 export type TypeDto = {
@@ -875,27 +910,20 @@ export type TypeDto = {
     typeName?: string;
 };
 
-export type Unit = {
-    [key: string]: unknown;
-};
-
 export type UnreadCountDto = {
     unreadCount?: number;
 };
 
-export type UpdateAuthorCommand = {
-    id?: string;
+export type UpdateAuthorCommandRequest = {
     fullName?: string | null;
     description?: string | null;
 };
 
-export type UpdateCommentCommand = {
-    id?: string;
+export type UpdateCommentCommandRequest = {
     content?: string;
 };
 
-export type UpdateConversationCommand = {
-    id?: string;
+export type UpdateConversationCommandRequest = {
     conversationName?: string | null;
     tagIds?: Array<string> | null;
     tagNames?: Array<string> | null;
@@ -906,13 +934,13 @@ export type UpdateConversationCommand = {
     avatarUrl?: string | null;
 };
 
-export type UpdateDocumentCommand = {
-    id?: string;
+export type UpdateDocumentCommandRequest = {
     documentName?: string | null;
     description?: string | null;
     subjectId?: string | null;
-    typeId?: string | null;
+    typeId?: string;
     tagIds?: Array<string> | null;
+    tagNames?: Array<string> | null;
     authorIds?: Array<string> | null;
     authors?: Array<AuthorInput> | null;
     visibility?: NullableOfVisibilityStatus;
@@ -920,21 +948,17 @@ export type UpdateDocumentCommand = {
     coverFileId?: string | null;
 };
 
-export type UpdateDocumentFileCommand = {
-    documentId?: string;
-    documentFileId?: string;
+export type UpdateDocumentFileCommandRequest = {
     title?: string | null;
     order?: number | null;
     coverFileId?: string | null;
 };
 
-export type UpdateDocumentProgressCommand = {
-    documentFileId?: string;
+export type UpdateDocumentProgressCommandRequest = {
     lastPage?: number;
 };
 
-export type UpdateEventCommand = {
-    id?: string;
+export type UpdateEventRequest = {
     title?: string;
     shortDescription?: string | null;
     content?: string | null;
@@ -946,33 +970,28 @@ export type UpdateEventCommand = {
     priority?: number;
 };
 
-export type UpdateFacultyCommand = {
-    id?: string;
+export type UpdateFacultyCommandRequest = {
     facultyName?: string;
     facultyCode?: string;
     logo?: string | null;
 };
 
-export type UpdateMajorCommand = {
-    id?: string;
+export type UpdateMajorCommandRequest = {
     facultyId?: string;
     majorName?: string;
     majorCode?: string;
 };
 
-export type UpdateMemberRoleCommand = {
-    conversationId?: string;
-    memberId?: string;
+export type UpdateMemberRoleCommandRequest = {
     roleType?: ConversationMemberRoleType;
 };
 
-export type UpdateMessageCommand = {
-    id?: string;
+export type UpdateMessageCommandRequest = {
     conversationId?: string;
     content?: string;
 };
 
-export type UpdateNotificationRequest = {
+export type UpdateNotificationCommandRequest = {
     title?: string;
     content?: string;
     link?: string | null;
@@ -981,33 +1000,28 @@ export type UpdateNotificationRequest = {
     notificationPriorityType?: NotificationPriorityType;
 };
 
-export type UpdateProfileCommand = {
-    fullName?: string | null;
+export type UpdateProfileCommandRequest = {
     introduction?: string | null;
     avatarUrl?: string | null;
     majorId?: string | null;
     gender?: NullableOfGender;
 };
 
-export type UpdateSubjectCommand = {
-    id?: string;
+export type UpdateSubjectCommandRequest = {
     subjectName?: string;
     subjectCode?: string;
     majorIds?: Array<string>;
 };
 
-export type UpdateTagCommand = {
-    id?: string;
+export type UpdateTagCommandRequest = {
     tagName?: string;
 };
 
-export type UpdateTypeCommand = {
-    id?: string;
+export type UpdateTypeCommandRequest = {
     typeName?: string;
 };
 
-export type UpdateUserCommand = {
-    userId?: string;
+export type UpdateUserRequest = {
     fullName?: string | null;
     email?: string | null;
     username?: string | null;
@@ -1032,7 +1046,7 @@ export type UserDto = {
     gender?: Gender;
     isSuggest?: boolean;
     roles?: Array<string>;
-    major?: MajorDto;
+    major?: MajorDetailDto2;
     createdAt?: string;
     updatedAt?: string | null;
     lastLoginAt?: string | null;
@@ -1068,13 +1082,13 @@ export type GetApiAccountProfileResponses = {
     /**
      * OK
      */
-    200: ProfileDto;
+    200: ProfileDetailDto;
 };
 
 export type GetApiAccountProfileResponse = GetApiAccountProfileResponses[keyof GetApiAccountProfileResponses];
 
 export type PutApiAccountProfileData = {
-    body: UpdateProfileCommand;
+    body: UpdateProfileCommandRequest;
     path?: never;
     query?: never;
     url: '/api/Account/profile';
@@ -1084,7 +1098,7 @@ export type PutApiAccountProfileResponses = {
     /**
      * OK
      */
-    200: ProfileDto;
+    200: ProfileDetailDto;
 };
 
 export type PutApiAccountProfileResponse = PutApiAccountProfileResponses[keyof PutApiAccountProfileResponses];
@@ -1102,7 +1116,7 @@ export type GetApiAccountProfileByUserIdResponses = {
     /**
      * OK
      */
-    200: ProfileDto;
+    200: ProfileDetailDto;
 };
 
 export type GetApiAccountProfileByUserIdResponse = GetApiAccountProfileByUserIdResponses[keyof GetApiAccountProfileByUserIdResponses];
@@ -1243,7 +1257,7 @@ export type GetApiAuthorResponses = {
     /**
      * OK
      */
-    200: PagedResponseOfAuthorListDto;
+    200: PagedResponseOfAuthorDto;
 };
 
 export type GetApiAuthorResponse = GetApiAuthorResponses[keyof GetApiAuthorResponses];
@@ -1299,7 +1313,7 @@ export type GetApiAuthorByIdResponses = {
 export type GetApiAuthorByIdResponse = GetApiAuthorByIdResponses[keyof GetApiAuthorByIdResponses];
 
 export type PutApiAuthorByIdData = {
-    body: UpdateAuthorCommand;
+    body: UpdateAuthorCommandRequest;
     path: {
         id: string;
     };
@@ -1334,7 +1348,7 @@ export type GetApiCommentResponses = {
     /**
      * OK
      */
-    200: PagedResponseOfCommentDto;
+    200: PagedResponseOfCommentDetailDto;
 };
 
 export type GetApiCommentResponse = GetApiCommentResponses[keyof GetApiCommentResponses];
@@ -1350,7 +1364,7 @@ export type PostApiCommentResponses = {
     /**
      * OK
      */
-    200: CommentDto;
+    200: CommentDetailDto;
 };
 
 export type PostApiCommentResponse = PostApiCommentResponses[keyof PostApiCommentResponses];
@@ -1373,7 +1387,7 @@ export type GetApiCommentDocumentResponses = {
     /**
      * OK
      */
-    200: PagedResponseOfCommentDto;
+    200: PagedResponseOfCommentDetailDto;
 };
 
 export type GetApiCommentDocumentResponse = GetApiCommentDocumentResponses[keyof GetApiCommentDocumentResponses];
@@ -1395,7 +1409,7 @@ export type DeleteApiCommentByIdResponses = {
 };
 
 export type PutApiCommentByIdData = {
-    body: UpdateCommentCommand;
+    body: UpdateCommentCommandRequest;
     path: {
         id: string;
     };
@@ -1407,7 +1421,7 @@ export type PutApiCommentByIdResponses = {
     /**
      * OK
      */
-    200: CommentDto;
+    200: CommentDetailDto;
 };
 
 export type PutApiCommentByIdResponse = PutApiCommentByIdResponses[keyof PutApiCommentByIdResponses];
@@ -1495,7 +1509,7 @@ export type GetApiConversationByIdResponses = {
 export type GetApiConversationByIdResponse = GetApiConversationByIdResponses[keyof GetApiConversationByIdResponses];
 
 export type PutApiConversationByIdData = {
-    body: UpdateConversationCommand;
+    body: UpdateConversationCommandRequest;
     path: {
         id: string;
     };
@@ -1565,7 +1579,7 @@ export type GetApiConversationByConversationIdOnlineMembersResponses = {
 export type GetApiConversationByConversationIdOnlineMembersResponse = GetApiConversationByConversationIdOnlineMembersResponses[keyof GetApiConversationByConversationIdOnlineMembersResponses];
 
 export type PutApiConversationByIdMembersByMemberIdRoleData = {
-    body: UpdateMemberRoleCommand;
+    body: UpdateMemberRoleCommandRequest;
     path: {
         id: string;
         memberId: string;
@@ -1871,10 +1885,8 @@ export type DeleteApiDocumentByIdResponses = {
     /**
      * OK
      */
-    200: Unit;
+    200: unknown;
 };
-
-export type DeleteApiDocumentByIdResponse = DeleteApiDocumentByIdResponses[keyof DeleteApiDocumentByIdResponses];
 
 export type GetApiDocumentByIdData = {
     body?: never;
@@ -1895,7 +1907,7 @@ export type GetApiDocumentByIdResponses = {
 export type GetApiDocumentByIdResponse = GetApiDocumentByIdResponses[keyof GetApiDocumentByIdResponses];
 
 export type PutApiDocumentByIdData = {
-    body: UpdateDocumentCommand;
+    body: UpdateDocumentCommandRequest;
     path: {
         id: string;
     };
@@ -1933,10 +1945,12 @@ export type PostApiDocumentByIdFilesResponse = PostApiDocumentByIdFilesResponses
 export type DeleteApiDocumentByDocumentIdFilesByFileIdData = {
     body?: never;
     path: {
-        documentId: string;
         fileId: string;
+        documentId: string;
     };
-    query?: never;
+    query?: {
+        documentfileId?: string;
+    };
     url: '/api/Document/{documentId}/files/{fileId}';
 };
 
@@ -1948,7 +1962,7 @@ export type DeleteApiDocumentByDocumentIdFilesByFileIdResponses = {
 };
 
 export type PutApiDocumentByDocumentIdFilesByFileIdData = {
-    body: UpdateDocumentFileCommand;
+    body: UpdateDocumentFileCommandRequest;
     path: {
         documentId: string;
         fileId: string;
@@ -2017,13 +2031,13 @@ export type GetApiDocumentFilesByFileIdProgressResponses = {
     /**
      * OK
      */
-    200: DocumentProgressDto2;
+    200: DocumentFileProgressDto2;
 };
 
 export type GetApiDocumentFilesByFileIdProgressResponse = GetApiDocumentFilesByFileIdProgressResponses[keyof GetApiDocumentFilesByFileIdProgressResponses];
 
 export type PutApiDocumentFilesByFileIdProgressData = {
-    body: UpdateDocumentProgressCommand;
+    body: UpdateDocumentProgressCommandRequest;
     path: {
         fileId: string;
     };
@@ -2071,7 +2085,7 @@ export type PostApiDocumentFilesByFileIdViewResponses = {
 };
 
 export type PostApiDocumentReviewData = {
-    body: CreateDocumentReviewCommand;
+    body: CreateOrUpdateDocumentFileReviewCommand;
     path?: never;
     query?: never;
     url: '/api/DocumentReview';
@@ -2081,10 +2095,8 @@ export type PostApiDocumentReviewResponses = {
     /**
      * OK
      */
-    200: DocumentReviewDto;
+    200: unknown;
 };
-
-export type PostApiDocumentReviewResponse = PostApiDocumentReviewResponses[keyof PostApiDocumentReviewResponses];
 
 export type GetApiEventActiveData = {
     body?: never;
@@ -2137,7 +2149,7 @@ export type DeleteApiEventByIdResponses = {
 };
 
 export type PutApiEventByIdData = {
-    body: UpdateEventCommand;
+    body: UpdateEventRequest;
     path: {
         id: string;
     };
@@ -2172,7 +2184,7 @@ export type GetApiFacultyResponses = {
     /**
      * OK
      */
-    200: PagedResponseOfFacultyDto;
+    200: PagedResponseOfFacultyDetailDto;
 };
 
 export type GetApiFacultyResponse = GetApiFacultyResponses[keyof GetApiFacultyResponses];
@@ -2228,7 +2240,7 @@ export type GetApiFacultyByIdResponses = {
 export type GetApiFacultyByIdResponse = GetApiFacultyByIdResponses[keyof GetApiFacultyByIdResponses];
 
 export type PutApiFacultyByIdData = {
-    body: UpdateFacultyCommand;
+    body: UpdateFacultyCommandRequest;
     path: {
         id: string;
     };
@@ -2314,7 +2326,7 @@ export type GetApiMajorResponses = {
     /**
      * OK
      */
-    200: PagedResponseOfMajorDto;
+    200: PagedResponseOfMajorDetailDto;
 };
 
 export type GetApiMajorResponse = GetApiMajorResponses[keyof GetApiMajorResponses];
@@ -2370,7 +2382,7 @@ export type GetApiMajorByIdResponses = {
 export type GetApiMajorByIdResponse = GetApiMajorByIdResponses[keyof GetApiMajorByIdResponses];
 
 export type PutApiMajorByIdData = {
-    body: UpdateMajorCommand;
+    body: UpdateMajorCommandRequest;
     path: {
         id: string;
     };
@@ -2448,7 +2460,7 @@ export type DeleteApiConversationsByConversationIdMessagesByIdResponses = {
 };
 
 export type PutApiConversationsByConversationIdMessagesByIdData = {
-    body: UpdateMessageCommand;
+    body: UpdateMessageCommandRequest;
     path: {
         conversationId: string;
         id: string;
@@ -2604,7 +2616,7 @@ export type DeleteApiNotificationByIdResponses = {
 };
 
 export type PutApiNotificationByIdData = {
-    body: UpdateNotificationRequest;
+    body: UpdateNotificationCommandRequest;
     path: {
         id: string;
     };
@@ -2753,7 +2765,7 @@ export type GetApiSubjectByIdResponses = {
 export type GetApiSubjectByIdResponse = GetApiSubjectByIdResponses[keyof GetApiSubjectByIdResponses];
 
 export type PutApiSubjectByIdData = {
-    body: UpdateSubjectCommand;
+    body: UpdateSubjectCommandRequest;
     path: {
         id: string;
     };
@@ -2844,7 +2856,7 @@ export type GetApiTagByIdResponses = {
 export type GetApiTagByIdResponse = GetApiTagByIdResponses[keyof GetApiTagByIdResponses];
 
 export type PutApiTagByIdData = {
-    body: UpdateTagCommand;
+    body: UpdateTagCommandRequest;
     path: {
         id: string;
     };
@@ -2935,7 +2947,7 @@ export type GetApiTypeByIdResponses = {
 export type GetApiTypeByIdResponse = GetApiTypeByIdResponses[keyof GetApiTypeByIdResponses];
 
 export type PutApiTypeByIdData = {
-    body: UpdateTypeCommand;
+    body: UpdateTypeCommandRequest;
     path: {
         id: string;
     };
@@ -2999,7 +3011,7 @@ export type GetApiUserByIdResponses = {
 export type GetApiUserByIdResponse = GetApiUserByIdResponses[keyof GetApiUserByIdResponses];
 
 export type PutApiUserByIdData = {
-    body: UpdateUserCommand;
+    body: UpdateUserRequest;
     path: {
         id: string;
     };
@@ -3049,7 +3061,7 @@ export type PostApiUserByIdUnbanResponses = {
 };
 
 export type PutApiUserByIdTrustScoreData = {
-    body: ManageTrustScoreCommand;
+    body: ManageTrustScoreRequest;
     path: {
         id: string;
     };

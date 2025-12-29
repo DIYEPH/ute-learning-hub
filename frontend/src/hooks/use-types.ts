@@ -12,13 +12,13 @@ import type {
   GetApiTypeData,
   GetApiTypeResponse,
   CreateTypeCommand,
-  UpdateTypeCommand,
+  UpdateTypeCommandRequest,
   TypeDto,
 } from "@/src/api/database/types.gen";
 import { useCrud } from "./use-crud";
 
 export function useTypes() {
-  const crud = useCrud<TypeDto, CreateTypeCommand, UpdateTypeCommand, GetApiTypeData["query"]>({
+  const crud = useCrud<TypeDto, CreateTypeCommand, UpdateTypeCommandRequest, GetApiTypeData["query"]>({
     fetchAll: async (params) => {
       const response = await getApiType({ query: params });
       return (response as unknown as { data: GetApiTypeResponse })?.data || response as GetApiTypeResponse;

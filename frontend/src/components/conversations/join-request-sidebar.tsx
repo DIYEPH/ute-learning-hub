@@ -93,16 +93,16 @@ export function JoinRequestSidebar({
             {/* Sidebar */}
             <div
                 className={cn(
-                    "fixed top-0 right-0 h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 z-50 transition-transform duration-300 ease-in-out",
+                    "fixed top-0 right-0 h-full bg-card border-l border-border z-50 transition-transform duration-300 ease-in-out",
                     "w-full md:w-80",
                     open ? "translate-x-0" : "translate-x-full"
                 )}
             >
                 <div className="flex flex-col h-full">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center justify-between p-4 border-b border-border">
                         <div className="flex items-center gap-2">
-                            <UserPlus className="h-5 w-5 text-sky-500" />
+                            <UserPlus className="h-5 w-5 text-primary" />
                             <h3 className="text-lg font-semibold text-foreground">
                                 Yêu cầu tham gia
                             </h3>
@@ -122,12 +122,12 @@ export function JoinRequestSidebar({
                         <div className="p-4">
                             {loading ? (
                                 <div className="flex items-center justify-center py-12">
-                                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                                 </div>
                             ) : requests.length === 0 ? (
                                 <div className="text-center py-12">
-                                    <UserPlus className="h-12 w-12 mx-auto mb-3 text-slate-300 dark:text-slate-600" />
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    <UserPlus className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
+                                    <p className="text-sm text-muted-foreground">
                                         Không có yêu cầu nào đang chờ duyệt
                                     </p>
                                 </div>
@@ -136,7 +136,7 @@ export function JoinRequestSidebar({
                                     {requests.map((req) => (
                                         <div
                                             key={req.id}
-                                            className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg"
+                                            className="p-3 bg-muted rounded-lg"
                                         >
                                             <div className="flex items-start gap-3">
                                                 <Avatar className="h-10 w-10 flex-shrink-0">
@@ -149,11 +149,11 @@ export function JoinRequestSidebar({
                                                         {req.requesterName || "Người dùng"}
                                                     </p>
                                                     {req.content && (
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                        <p className="text-xs text-muted-foreground mt-1">
                                                             "{req.content}"
                                                         </p>
                                                     )}
-                                                    <div className="flex items-center gap-1 mt-2 text-[10px] text-slate-400">
+                                                    <div className="flex items-center gap-1 mt-2 text-[10px] text-muted-foreground">
                                                         <Clock className="h-3 w-3" />
                                                         {req.createdAt ? new Date(req.createdAt).toLocaleDateString("vi-VN") : ""}
                                                     </div>

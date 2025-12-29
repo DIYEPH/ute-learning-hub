@@ -16,7 +16,7 @@ public record UserDto
     public Gender Gender { get; init; }
     public bool IsSuggest { get; init; }
     public IList<string> Roles { get; init; } = [];
-    public MajorDto? Major { get; init; }
+    public MajorDetailDto? Major { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? UpdatedAt { get; init; }
     public DateTimeOffset? LastLoginAt { get; init; }

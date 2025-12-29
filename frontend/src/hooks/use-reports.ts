@@ -23,8 +23,22 @@ export interface GroupedReport {
     latestContent: string;
     latestReporterName: string;
     latestCreatedAt: string;
+    latestReason: number; // reason of the latest report
     status: number; // status of the first report
 }
+
+// Map ReportReason enum values to Vietnamese labels
+export const REPORT_REASON_LABELS: Record<number, string> = {
+    0: "Khác",
+    1: "Vi phạm bản quyền",
+    2: "Xúc phạm, lăng mạ",
+    3: "Spam, quảng cáo",
+    4: "Thông tin sai lệch",
+    5: "Nội dung bạo lực",
+    6: "Nội dung không phù hợp",
+    7: "Quấy rối, bắt nạt",
+    8: "Đạo văn, sao chép",
+};
 
 export function useReports() {
     const [pendingCount, setPendingCount] = useState(0);
@@ -112,6 +126,7 @@ export function useReports() {
                     existing.latestContent = report.content || "";
                     existing.latestReporterName = report.reporterName || "";
                     existing.latestCreatedAt = report.createdAt;
+                    existing.latestReason = report.reason ?? 0;
                 }
             } else {
                 grouped.set(key, {
@@ -124,6 +139,7 @@ export function useReports() {
                     latestContent: report.content || "",
                     latestReporterName: report.reporterName || "",
                     latestCreatedAt: report.createdAt || "",
+                    latestReason: report.reason ?? 0,
                     status: report.status ?? 0,
                 });
             }

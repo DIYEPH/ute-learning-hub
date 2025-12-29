@@ -2,12 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import { BaseTable, BaseTableColumn } from "@/src/components/admin/tables/base-table";
-import type { MajorDto2 } from "@/src/api/database/types.gen";
+import { Badge } from "@/src/components/ui/badge";
+import { BookOpen } from "lucide-react";
+import type { MajorDetailDto } from "@/src/api/database/types.gen";
 
 interface MajorTableProps {
-  majors: MajorDto2[];
-  onEdit?: (major: MajorDto2) => void;
-  onDelete?: (major: MajorDto2) => void;
+  majors: MajorDetailDto[];
+  onEdit?: (major: MajorDetailDto) => void;
+  onDelete?: (major: MajorDetailDto) => void;
   onBulkDelete?: (ids: string[]) => void | Promise<void>;
   loading?: boolean;
   onSort?: (sortKey: string, direction: "asc" | "desc" | null) => void;
@@ -29,7 +31,7 @@ export function MajorTable({
 }: MajorTableProps) {
   const t = useTranslations("admin.majors");
 
-  const columns: BaseTableColumn<MajorDto2>[] = [
+  const columns: BaseTableColumn<MajorDetailDto>[] = [
     {
       key: "majorName",
       header: t("table.majorName"),
@@ -49,14 +51,25 @@ export function MajorTable({
       ),
     },
     {
-      key: "faculty",
+      key: "facultyName",
       header: t("table.faculty"),
       className: "min-w-[200px]",
       sortable: true,
-      sortKey: "faculty.facultyName",
       render: (major) => (
         <div className="text-sm text-foreground">
-          {major.faculty?.facultyName || "-"}
+          {major.facultyName || "-"}
+        </div>
+      ),
+    },
+    {
+      key: "subjectCount",
+      header: t("table.subjectCount"),
+      className: "min-w-[100px]",
+      sortable: true,
+      render: (major) => (
+        <div className="flex items-center gap-1 text-sm">
+          <BookOpen className="h-4 w-4 text-muted-foreground" />
+          <Badge variant="secondary">{major.subjectCount ?? 0}</Badge>
         </div>
       ),
     },

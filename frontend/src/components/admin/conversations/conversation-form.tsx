@@ -5,7 +5,7 @@ import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useSubjects } from "@/src/hooks/use-subjects";
-import type { UpdateConversationCommand, SubjectDto2 } from "@/src/api/database/types.gen";
+import type { UpdateConversationCommandRequest, SubjectDto2 } from "@/src/api/database/types.gen";
 
 // ConversationType enum mapping
 const ConversationTypeOptions = [
@@ -34,7 +34,7 @@ export interface ConversationFormData {
 
 interface ConversationFormProps {
     initialData?: ConversationFormData;
-    onSubmit: (data: UpdateConversationCommand) => void | Promise<void>;
+    onSubmit: (data: UpdateConversationCommandRequest) => void | Promise<void>;
     loading?: boolean;
 }
 
@@ -80,7 +80,7 @@ export function ConversationForm({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const command: UpdateConversationCommand = {
+        const command: UpdateConversationCommandRequest = {
             conversationName: formData.conversationName || undefined,
             conversationStatus: formData.conversationStatus ?? undefined,
             subjectId: formData.subjectId || undefined,

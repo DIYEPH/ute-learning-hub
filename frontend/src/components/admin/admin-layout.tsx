@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthState } from "@/src/hooks/use-auth-state";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
@@ -11,59 +11,56 @@ type AdminLayoutProps = {
   children: ReactNode;
 };
 
-// Trust levels that can access admin panel
-const ADMIN_TRUST_LEVELS = ["Moderator", "Master"];
-// Pages Moderator can access
+// Trust level enum values: Moderator = 4, Master = 5
+const MODERATOR_MIN_LEVEL = 4;
+
+// Paths that Moderators (trust level 4+) can access without Admin role
 const MODERATOR_ALLOWED_PATHS = ["/admin/reports", "/admin/documents"];
 
 export function AdminLayout({ children }: AdminLayoutProps) {
-  const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
+  const { authenticated, ready: authReady } = useAuthState();
   const { profile, loading: profileLoading } = useUserProfile();
   const router = useRouter();
   const pathname = usePathname();
   const t = useTranslations('common');
-  const isModerator = profile?.trustLevel === "Moderator";
-  const canAccessAdmin = profile?.trustLevel && ADMIN_TRUST_LEVELS.includes(profile.trustLevel);
+
+  const trustLevel = profile?.trustLevel;
+  const hasAdminRole = profile?.roles?.some(role => role === 'Admin') === true;
+  const hasModeratorLevel = typeof trustLevel === 'number' && trustLevel >= MODERATOR_MIN_LEVEL;
+
+  // Can access admin area if: has Admin role OR has Moderator+ trust level
+  const canAccessAdmin = hasAdminRole || hasModeratorLevel;
 
   useEffect(() => {
     if (!authReady || profileLoading) return;
 
-    // Not authenticated or no admin access -> redirect home
-    if (!isAuthenticated || !canAccessAdmin) {
-      router.push('/');
+    if (!authenticated || !canAccessAdmin) {
+      router.replace("/");
       return;
     }
 
-    // Moderator accessing Master-only page -> redirect to reports
-    if (isModerator && pathname) {
-      const isAllowedPath = MODERATOR_ALLOWED_PATHS.some(p => pathname.startsWith(p));
-      if (!isAllowedPath) {
-        router.push('/admin/reports');
-        return;
-      }
+    // If user only has Moderator level (not Admin role), restrict to allowed paths
+    if (!hasAdminRole && hasModeratorLevel && pathname) {
+      const allowed = MODERATOR_ALLOWED_PATHS.some(p => pathname.startsWith(p));
+
+      if (!allowed)
+        router.replace('/admin/reports');
     }
 
-  }, [isAuthenticated, canAccessAdmin, isModerator, pathname, profileLoading, router, authReady]);
+  }, [authenticated, canAccessAdmin, hasAdminRole, hasModeratorLevel, pathname, profileLoading, router, authReady]);
 
   if (!authReady || profileLoading) {
     return (
       <AdminShell>
         <div className="flex items-center justify-center min-h-screen">
-          <p className="text-slate-600 dark:text-slate-400">{t('loading') || 'Đang tải...'}</p>
+          <p className="text-muted-foreground">{t('loading') || 'Đang tải...'}</p>
         </div>
       </AdminShell>
     );
   }
 
-  if (!isAuthenticated || !canAccessAdmin) {
-    return (
-      <AdminShell>
-        <div className="flex items-center justify-center min-h-screen">
-          <p className="text-slate-600 dark:text-slate-400">{t('loading') || 'Đang tải...'}</p>
-        </div>
-      </AdminShell>
-    );
-  }
+  if (!authenticated || !canAccessAdmin)
+    return null;
 
   return <AdminShell>{children}</AdminShell>;
 }

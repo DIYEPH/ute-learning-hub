@@ -18,11 +18,11 @@ export function ThemeSwitcher() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-9 w-9 rounded-full p-0 hover:bg-slate-100 dark:hover:bg-slate-800">
+        <Button variant="ghost" size="sm" className="group h-9 w-9 rounded-full p-0 hover:bg-muted">
           {resolvedTheme === 'dark' ? (
-            <Moon size={18} className="text-slate-600 dark:text-slate-400" />
+            <Moon size={18} className="text-muted-foreground transition-colors group-hover:text-foreground" />
           ) : (
-            <Sun size={18} className="text-slate-600 dark:text-slate-400" />
+            <Sun size={18} className="text-muted-foreground transition-colors group-hover:text-foreground" />
           )}
         </Button>
       </DropdownMenuTrigger>

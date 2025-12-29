@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories.UnitOfWork;
+using UteLearningHub.Persistence.Extensions;
 using UteLearningHub.Persistence.Identity;
 using DomainFile = UteLearningHub.Domain.Entities.File;
 using DomainType = UteLearningHub.Domain.Entities.Type;
@@ -67,7 +68,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         base.OnModelCreating(builder);
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-
-        //  chưa có !delete(làm sau)
+        
+        builder.ApplySoftDelteQueryFilters();
     }
 }

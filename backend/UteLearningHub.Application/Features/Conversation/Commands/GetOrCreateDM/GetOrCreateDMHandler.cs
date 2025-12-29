@@ -92,7 +92,7 @@ public class GetOrCreateDMHandler : IRequestHandler<GetOrCreateDMCommand, GetOrC
             CreatedAt = _dateTime.OffsetNow
         };
 
-        await _convRepo.AddAsync(newConv, ct);
+        _convRepo.Add(newConv);
 
         // Thêm 2 members (cả 2 đều là Owner trong DM)
         await _convRepo.AddMemberAsync(new ConversationMember
@@ -124,7 +124,7 @@ public class GetOrCreateDMHandler : IRequestHandler<GetOrCreateDMCommand, GetOrC
             CreatedAt = _dateTime.OffsetNow
         };
 
-        await _msgRepo.AddAsync(firstMsg, ct);
+        _msgRepo.Add(firstMsg);
         newConv.LastMessage = firstMsg.Id;
 
         await _convRepo.UnitOfWork.SaveChangesAsync(ct);

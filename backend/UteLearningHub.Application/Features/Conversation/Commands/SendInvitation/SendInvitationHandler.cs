@@ -56,10 +56,10 @@ public class SendInvitationHandler : IRequestHandler<SendInvitationCommand, Send
 
         // Kiểm tra đã có lời mời pending chưa
         var existingInvite = await _convRepo.GetInvitationsQueryable()
-            .FirstOrDefaultAsync(i => 
-                i.ConversationId == req.ConversationId && 
-                i.InvitedUserId == req.InvitedUserId && 
-                i.Status == ContentStatus.PendingReview && 
+            .FirstOrDefaultAsync(i =>
+                i.ConversationId == req.ConversationId &&
+                i.InvitedUserId == req.InvitedUserId &&
+                i.Status == ContentStatus.PendingReview &&
                 !i.IsDeleted, ct);
 
         if (existingInvite != null)
@@ -94,7 +94,7 @@ public class SendInvitationHandler : IRequestHandler<SendInvitationCommand, Send
             CreatedById = userId
         };
 
-        await _notificationRepo.AddAsync(notification, ct);
+        _notificationRepo.Add(notification);
         await _notificationRepo.UnitOfWork.SaveChangesAsync(ct);
 
         // Tạo recipient cho người được mời

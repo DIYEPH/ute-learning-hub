@@ -22,14 +22,14 @@ public class CommentController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResponse<CommentDto>>> GetComments([FromQuery] GetCommentsQuery query)
+    public async Task<ActionResult<PagedResponse<CommentDetailDto>>> GetComments([FromQuery] GetCommentsQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);
     }
 
     [HttpGet("document")]
-    public async Task<ActionResult<PagedResponse<CommentDto>>> GetDocumentComments([FromQuery] GetDocumentCommentsQuery query)
+    public async Task<ActionResult<PagedResponse<CommentDetailDto>>> GetDocumentComments([FromQuery] GetDocumentCommentsQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);
@@ -37,7 +37,7 @@ public class CommentController : ControllerBase
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<CommentDto>> CreateComment([FromBody] CreateCommentCommand command)
+    public async Task<ActionResult<CommentDetailDto>> CreateComment([FromBody] CreateCommentCommand command)
     {
         var result = await _mediator.Send(command);
         return Ok(result);
@@ -45,9 +45,13 @@ public class CommentController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize]
-    public async Task<ActionResult<CommentDto>> UpdateComment(Guid id, [FromBody] UpdateCommentCommand command)
+    public async Task<ActionResult<CommentDetailDto>> UpdateComment(Guid id, [FromBody] UpdateCommentCommandRequest request)
     {
-        command = command with { Id = id };
+        var command = new UpdateCommentCommand
+        {
+            Id = id,
+            Content = request.Content
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

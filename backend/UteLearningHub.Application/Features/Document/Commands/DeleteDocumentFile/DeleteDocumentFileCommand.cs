@@ -4,7 +4,6 @@ namespace UteLearningHub.Application.Features.Document.Commands.DeleteDocumentFi
 
 public record DeleteDocumentFileCommand : IRequest
 {
-    public Guid DocumentId { get; init; }
     public Guid DocumentFileId { get; init; }
 }
 

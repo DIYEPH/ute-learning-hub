@@ -9,10 +9,10 @@ import {
     deleteApiAuthorById,
 } from "@/src/api/database/sdk.gen";
 import type {
-    AuthorListDto,
+    AuthorDto,
     AuthorDetailDto,
     AuthorInput,
-    UpdateAuthorCommand,
+    UpdateAuthorCommandRequest,
     GetApiAuthorData,
 } from "@/src/api/database/types.gen";
 import { useCrud } from "./use-crud";
@@ -25,10 +25,10 @@ interface PagedResponse<T> {
 }
 
 export function useAuthors() {
-    const crud = useCrud<AuthorListDto, AuthorInput, UpdateAuthorCommand, GetApiAuthorData["query"]>({
+    const crud = useCrud<AuthorDto, AuthorInput, UpdateAuthorCommandRequest, GetApiAuthorData["query"]>({
         fetchAll: async (params) => {
             const response = await getApiAuthor({ query: params });
-            return (response as unknown as { data: PagedResponse<AuthorListDto> })?.data || response as PagedResponse<AuthorListDto>;
+            return (response as unknown as { data: PagedResponse<AuthorDto> })?.data || response as PagedResponse<AuthorDto>;
         },
         fetchById: async (id) => {
             const response = await getApiAuthorById({ path: { id } });
@@ -41,7 +41,7 @@ export function useAuthors() {
         update: async (id, command) => {
             const response = await putApiAuthorById({
                 path: { id },
-                body: { ...command, id },
+                body: command,
             });
             return (response as unknown as { data: AuthorDetailDto })?.data || response as AuthorDetailDto;
         },
@@ -62,7 +62,7 @@ export function useAuthors() {
         async (name: string, excludeId?: string): Promise<boolean> => {
             try {
                 const response = await getApiAuthor({ query: { SearchTerm: name, Page: 1, PageSize: 10 } });
-                const data = (response as unknown as { data: PagedResponse<AuthorListDto> })?.data || response as PagedResponse<AuthorListDto>;
+                const data = (response as unknown as { data: PagedResponse<AuthorDto> })?.data || response as PagedResponse<AuthorDto>;
                 const items = data?.items || [];
 
                 return items.some(

@@ -32,7 +32,12 @@ public class DeleteEventCommandHandler : IRequestHandler<DeleteEventCommand, Uni
             throw new NotFoundException($"Event with id {request.Id} not found");
 
         var userId = _currentUserService.UserId;
-        await _eventRepository.DeleteAsync(evt, userId, cancellationToken);
+
+        evt.DeletedAt = _dateTimeProvider.OffsetUtcNow;
+        evt.DeletedById = userId;
+        evt.IsDeleted = true;
+
+        _eventRepository.Update(evt);
         await _eventRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return Unit.Value;

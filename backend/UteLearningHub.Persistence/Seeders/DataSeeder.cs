@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
-using UteLearningHub.Domain.Repositories.UnitOfWork;
 using UteLearningHub.Persistence.Identity;
 using DomainType = UteLearningHub.Domain.Entities.Type;
 
@@ -336,7 +335,7 @@ public class DataSeeder
             TrustScore = 1000,
             TrustLever = TrustLever.Master,
             Gender = Gender.Other,
-            MajorId = null, 
+            MajorId = null,
             CreatedAt = DateTimeOffset.UtcNow
         };
 
@@ -672,7 +671,7 @@ public class DataSeeder
         CreateSubject("TTCM Mạng diện rộng", "5505329", "7480201", "7140214");
 
         // ===== MÔN HỌC CHUYÊN NGÀNH SPKTCN =====
-        CreateSubject("Vật Lý Quang - Nguyên tử", "5305005", "7140214"); 
+        CreateSubject("Vật Lý Quang - Nguyên tử", "5305005", "7140214");
         CreateSubject("Giáo dục học", "5514004", "7140214");
         CreateSubject("Lý luận dạy học", "5514005", "7140214");
         CreateSubject("Phương pháp giảng dạy môn kỹ thuật", "5514010", "7140214");
@@ -900,7 +899,7 @@ public class DataSeeder
         CreateSubject("Cơ học đất", "5506011", "7510103", "7510104");
         CreateSubject("An toàn lao động", "5506001", "7510103", "7510104");
         CreateSubject("Kinh tế xây dựng", "5506035", "7510103", "7510104");
-        CreateSubject("Ngoại ngữ chuyên ngành XD ", "5506121", "7510103","7510104");
+        CreateSubject("Ngoại ngữ chuyên ngành XD ", "5506121", "7510103", "7510104");
         CreateSubject("Luật xây dựng", "5506038", "7510103", "7510104");
         CreateSubject("Chuyên đề vật liệu xây dựng", "5506010", "7510103", "7510104");
 

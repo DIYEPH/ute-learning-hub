@@ -7,36 +7,52 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using UteLearningHub.Application.Services.Authentication;
+using UteLearningHub.Application.Services.Author;
 using UteLearningHub.Application.Services.Cache;
 using UteLearningHub.Application.Services.Comment;
+using UteLearningHub.Application.Services.Conversation;
 using UteLearningHub.Application.Services.Document;
 using UteLearningHub.Application.Services.Email;
+using UteLearningHub.Application.Services.Faculty;
 using UteLearningHub.Application.Services.File;
 using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Major;
 using UteLearningHub.Application.Services.Message;
+using UteLearningHub.Application.Services.Notification;
+using UteLearningHub.Application.Services.Profile;
 using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.Application.Services.Settings;
+using UteLearningHub.Application.Services.Subject;
+using UteLearningHub.Application.Services.Tag;
+using UteLearningHub.Application.Services.Report;
 using UteLearningHub.Application.Services.TrustScore;
+using UteLearningHub.Application.Services.Type;
 using UteLearningHub.Application.Services.User;
-using UteLearningHub.Application.Services.Author;
-using UteLearningHub.Application.Services.Conversation;
 using UteLearningHub.Infrastructure.ConfigurationOptions;
 using UteLearningHub.Infrastructure.Services.Authentication;
+using UteLearningHub.Infrastructure.Services.Author;
 using UteLearningHub.Infrastructure.Services.Cache;
 using UteLearningHub.Infrastructure.Services.Comment;
+using UteLearningHub.Infrastructure.Services.Conversation;
 using UteLearningHub.Infrastructure.Services.Document;
 using UteLearningHub.Infrastructure.Services.Email;
+using UteLearningHub.Infrastructure.Services.Faculty;
 using UteLearningHub.Infrastructure.Services.File;
 using UteLearningHub.Infrastructure.Services.FileStorage;
 using UteLearningHub.Infrastructure.Services.Identity;
+using UteLearningHub.Infrastructure.Services.Major;
 using UteLearningHub.Infrastructure.Services.Message;
+using UteLearningHub.Infrastructure.Services.Notification;
+using UteLearningHub.Infrastructure.Services.Profile;
 using UteLearningHub.Infrastructure.Services.Recommendation;
+using UteLearningHub.Infrastructure.Services.Report;
 using UteLearningHub.Infrastructure.Services.Settings;
+using UteLearningHub.Infrastructure.Services.Subject;
+using UteLearningHub.Infrastructure.Services.Tag;
 using UteLearningHub.Infrastructure.Services.TrustScore;
+using UteLearningHub.Infrastructure.Services.Type;
 using UteLearningHub.Infrastructure.Services.User;
-using UteLearningHub.Infrastructure.Services.Author;
-using UteLearningHub.Infrastructure.Services.Conversation;
 
 namespace UteLearningHub.Infrastructure;
 
@@ -64,9 +80,7 @@ public static class InfrastructureExtensions
 
                 ClockSkew = TimeSpan.Zero
             };
-
-            // Đọc token từ query string nếu không có trong Authorization header
-            // Query string được dùng cho iframe/img tags (không thể gửi header)
+            
             options.Events = new JwtBearerEvents
             {
                 OnMessageReceived = context =>
@@ -98,6 +112,9 @@ public static class InfrastructureExtensions
         // Add HttpContextAccessor for CurrentUserService
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        //Add FileService
+        services.AddScoped<IFileAccessService, FileAccessService>();
         services.AddScoped<IFileUsageService, FileUsageService>();
 
         // Recommendation services
@@ -114,15 +131,37 @@ public static class InfrastructureExtensions
         services.AddScoped<DocxPageCountService>();
         services.AddScoped<IDocumentPageCountService, DocumentPageCountService>();
         services.AddScoped<IDocumentQueryService, DocumentQueryService>();
+        services.AddScoped<IDocumentService, DocumentService>();
+        services.AddScoped<IDocumentFileService, DocumentFileService>();
+        services.AddScoped<IDocumentProgressService, DocumentProgressService>();
 
         // Author services
-        services.AddScoped<IAuthorQueryService, AuthorQueryService>();
+        services.AddScoped<IAuthorService, AuthorService>();
 
         // Conversation services
         services.AddScoped<IConversationQueryService, ConversationQueryService>();
 
         // Email service
         services.AddScoped<IEmailService, EmailService>();
+
+        // Type, Tag, Subject, Major, Faculty services
+        services.AddScoped<ITypeService, TypeService>();
+        services.AddScoped<ITagService, TagService>();
+        services.AddScoped<ISubjectService, SubjectService>();
+        services.AddScoped<IMajorService, MajorService>();
+        services.AddScoped<IFacultyService, FacultyService>();
+
+        // Profile service
+        services.AddScoped<IProfileService, ProfileService>();
+
+        // Report service
+        services.AddScoped<IReportService, ReportService>();
+
+        // Message service
+        services.AddScoped<IMessageService, MessageService>();
+
+        // Notification service
+        services.AddScoped<INotificationService, NotificationService>();
 
         return services;
     }

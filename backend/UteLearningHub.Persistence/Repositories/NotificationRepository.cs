@@ -86,4 +86,10 @@ public class NotificationRepository : Repository<Notification, Guid>, INotificat
                 && nr.Notification.ExpiredAt > DateTimeOffset.UtcNow)
             .ToListAsync(cancellationToken);
     }
+
+    public void UpdateRecipient(NotificationRecipient recipient)
+    {
+        var query = _dbContext.NotificationRecipients;
+        query.Update(recipient);
+    }
 }

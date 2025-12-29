@@ -16,6 +16,7 @@ public class TypeConfiguration : IEntityTypeConfiguration<DomainType>
         builder.Property(u => u.TypeName).HasColumnName("TenLoai");
 
         builder.ApplySoftDelete<DomainType>()
-            .ApplyTrack<DomainType>();
+            .ApplyTrack<DomainType>()
+            .ApplyAudit<DomainType>();
     }
 }

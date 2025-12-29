@@ -5,7 +5,7 @@ public static class TrustScoreConstants
     // Điểm thưởng/phạt cho từng hành động
     public static readonly Dictionary<string, int> ActionPointValues = new()
     {
-        { "CreateDocument", 5 },           // +5 điểm khi đăng bài
+        { "CreateDocumentFile", 5 },           // +5 điểm khi đăng bài
         { "DocumentLiked", 2 },             // +2 điểm khi được like
         { "DocumentUnliked", -2 },          // -2 điểm khi bị unlike
         { "ReportApproved", 3 }             // +3 điểm khi report được approve (base)

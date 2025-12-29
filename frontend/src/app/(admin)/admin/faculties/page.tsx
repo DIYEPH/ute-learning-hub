@@ -15,9 +15,9 @@ import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { ImportModal } from "@/src/components/admin/modals/import-modal";
 import { AdvancedSearchFilter } from "@/src/components/admin/advanced-search-filter";
 import type {
-  FacultyDto2,
+  FacultyDetailDto,
   CreateFacultyCommand,
-  UpdateFacultyCommand,
+  UpdateFacultyCommandRequest,
 } from "@/src/api/database/types.gen";
 
 export default function FacultiesManagementPage() {
@@ -36,7 +36,7 @@ export default function FacultiesManagementPage() {
     uploadError,
   } = useFaculties();
 
-  const [faculties, setFaculties] = useState<FacultyDto2[]>([]);
+  const [faculties, setFaculties] = useState<FacultyDetailDto[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
@@ -48,7 +48,7 @@ export default function FacultiesManagementPage() {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [selectedFaculty, setSelectedFaculty] = useState<FacultyDto2 | null>(null);
+  const [selectedFaculty, setSelectedFaculty] = useState<FacultyDetailDto | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
 
@@ -74,7 +74,7 @@ export default function FacultiesManagementPage() {
     loadFaculties();
   }, [loadFaculties]);
 
-  const handleCreate = async (command: CreateFacultyCommand | UpdateFacultyCommand) => {
+  const handleCreate = async (command: CreateFacultyCommand | UpdateFacultyCommandRequest) => {
     setFormLoading(true);
     try {
       await createFaculty(command as CreateFacultyCommand);
@@ -89,11 +89,11 @@ export default function FacultiesManagementPage() {
     }
   };
 
-  const handleEdit = async (command: CreateFacultyCommand | UpdateFacultyCommand) => {
+  const handleEdit = async (command: CreateFacultyCommand | UpdateFacultyCommandRequest) => {
     if (!selectedFaculty?.id) return;
     setFormLoading(true);
     try {
-      await updateFaculty(selectedFaculty.id, command as UpdateFacultyCommand);
+      await updateFaculty(selectedFaculty.id, command as UpdateFacultyCommandRequest);
       await loadFaculties();
       setEditModalOpen(false);
       setSelectedFaculty(null);
@@ -248,7 +248,7 @@ export default function FacultiesManagementPage() {
       )}
 
       {faculties.length > 0 && (
-        <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+        <div className="mb-2 text-sm text-muted-foreground">
           {t("foundCount", { count: totalCount })}
         </div>
       )}

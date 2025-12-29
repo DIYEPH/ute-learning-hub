@@ -3,14 +3,10 @@ using UteLearningHub.Application.Common.Dtos;
 
 namespace UteLearningHub.Application.Features.Document.Commands.UpdateDocumentFile;
 
-public record UpdateDocumentFileCommand : IRequest<DocumentDetailDto>
+public record UpdateDocumentFileCommand : UpdateDocumentFileCommandRequest, IRequest<DocumentDetailDto>
 {
     public Guid DocumentId { get; init; }
     public Guid DocumentFileId { get; init; }
-
-    public string? Title { get; init; }
-    public int? Order { get; init; }
-    public Guid? CoverFileId { get; init; }
 }
 
 

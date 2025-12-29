@@ -1,33 +1,18 @@
 using MediatR;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Domain.Exceptions;
-using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.Type;
 
 namespace UteLearningHub.Application.Features.Type.Queries.GetTypeById;
 
-public class GetTypeByIdHandler : IRequestHandler<GetTypeByIdQuery, TypeDetailDto>
+public class GetTypeByIdHandler(ITypeService typeService, ICurrentUserService currentUserService) : IRequestHandler<GetTypeByIdQuery, TypeDetailDto>
 {
-    private readonly ITypeRepository _typeRepository;
+    private readonly ITypeService _typeService = typeService;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public GetTypeByIdHandler(ITypeRepository typeRepository)
+    public async Task<TypeDetailDto> Handle(GetTypeByIdQuery request, CancellationToken ct)
     {
-        _typeRepository = typeRepository;
-    }
-
-    public async Task<TypeDetailDto> Handle(GetTypeByIdQuery request, CancellationToken cancellationToken)
-    {
-        var type = await _typeRepository.GetByIdAsync(request.Id, disableTracking: true, cancellationToken);
-
-        if (type == null || type.IsDeleted)
-            throw new NotFoundException($"Type with id {request.Id} not found");
-
-        var documentCount = await _typeRepository.GetDocumentCountAsync(request.Id, cancellationToken);
-
-        return new TypeDetailDto
-        {
-            Id = type.Id,
-            TypeName = type.TypeName,
-            DocumentCount = documentCount
-        };
+        var isAdmin = _currentUserService.IsInRole("Admin");
+        return await _typeService.GetTypeByIdAsync(request.Id, isAdmin, ct);
     }
 }

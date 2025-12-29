@@ -12,8 +12,8 @@ import type {
   GetApiFacultyData,
   GetApiFacultyResponse,
   CreateFacultyCommand,
-  UpdateFacultyCommand,
-  FacultyDto2,
+  UpdateFacultyCommandRequest,
+  FacultyDetailDto,
 } from "@/src/api/database/types.gen";
 import { useCrud } from "./use-crud";
 import { useUploadLogo } from "./use-upload-logo";
@@ -21,22 +21,22 @@ import { useUploadLogo } from "./use-upload-logo";
 export function useFaculties() {
   const { uploadLogo, uploading: uploadingLogo, error: uploadError } = useUploadLogo();
 
-  const crud = useCrud<FacultyDto2, CreateFacultyCommand, UpdateFacultyCommand, GetApiFacultyData["query"]>({
+  const crud = useCrud<FacultyDetailDto, CreateFacultyCommand, UpdateFacultyCommandRequest, GetApiFacultyData["query"]>({
     fetchAll: async (params) => {
       const response = await getApiFaculty({ query: params });
       return (response as unknown as { data: GetApiFacultyResponse })?.data || response as GetApiFacultyResponse;
     },
     fetchById: async (id) => {
       const response = await getApiFacultyById({ path: { id } });
-      return (response as unknown as { data: FacultyDto2 })?.data || response as FacultyDto2;
+      return (response as unknown as { data: FacultyDetailDto })?.data || response as FacultyDetailDto;
     },
     create: async (data) => {
       const response = await postApiFaculty({ body: data });
-      return (response as unknown as { data: FacultyDto2 })?.data || response as FacultyDto2;
+      return (response as unknown as { data: FacultyDetailDto })?.data || response as FacultyDetailDto;
     },
     update: async (id, data) => {
       const response = await putApiFacultyById({ path: { id }, body: data });
-      return (response as unknown as { data: FacultyDto2 })?.data || response as FacultyDto2;
+      return (response as unknown as { data: FacultyDetailDto })?.data || response as FacultyDetailDto;
     },
     delete: async (id) => {
       await deleteApiFacultyById({ path: { id } });

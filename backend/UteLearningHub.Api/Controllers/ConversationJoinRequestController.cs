@@ -2,9 +2,9 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Features.ConversationJoinRequest.Commands.CreateConversationJoinRequest;
-using UteLearningHub.Application.Features.ConversationJoinRequest.Commands.ReviewConversationJoinRequest;
-using UteLearningHub.Application.Features.ConversationJoinRequest.Queries.GetConversationJoinRequests;
+using UteLearningHub.Application.Features.Conversation.Commands.CreateConversationJoinRequest;
+using UteLearningHub.Application.Features.Conversation.Commands.ReviewConversationJoinRequest;
+using UteLearningHub.Application.Features.Conversation.Queries.GetConversationJoinRequests;
 
 namespace UteLearningHub.Api.Controllers;
 

@@ -54,7 +54,7 @@ public class GetSuggestedUsersHandler : IRequestHandler<GetSuggestedUsersQuery, 
         float[] convVector;
         if (convVectorEntity != null && !string.IsNullOrEmpty(convVectorEntity.EmbeddingJson))
         {
-            convVector = System.Text.Json.JsonSerializer.Deserialize<float[]>(convVectorEntity.EmbeddingJson) 
+            convVector = System.Text.Json.JsonSerializer.Deserialize<float[]>(convVectorEntity.EmbeddingJson)
                 ?? new float[_embed.Dim];
         }
         else

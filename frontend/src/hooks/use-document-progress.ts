@@ -85,7 +85,6 @@ export function useDocumentProgress({
             await putApiDocumentFilesByFileIdProgress({
                 path: { fileId },
                 body: {
-                    documentFileId: fileId,
                     lastPage: currentPage,
                 },
             });

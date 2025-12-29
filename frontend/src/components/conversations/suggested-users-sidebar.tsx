@@ -98,7 +98,7 @@ export function SuggestedUsersSidebar({
     return (
         <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
             <SheetContent side="right" className="w-[350px] sm:w-[400px] p-0">
-                <SheetHeader className="px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+                <SheetHeader className="px-4 py-3 border-b border-border">
                     <SheetTitle className="flex items-center gap-2 text-base">
                         <Sparkles className="h-4 w-4 text-amber-500" />
                         Gợi ý thành viên (AI)
@@ -108,7 +108,7 @@ export function SuggestedUsersSidebar({
                 <div className="p-4 space-y-4">
                     {/* Search */}
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Tìm kiếm người dùng..."
                             value={searchTerm}
@@ -121,10 +121,10 @@ export function SuggestedUsersSidebar({
                     <div className="space-y-2 max-h-[60vh] overflow-y-auto">
                         {loading ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
                             </div>
                         ) : filteredUsers.length === 0 ? (
-                            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                            <div className="text-center py-8 text-muted-foreground">
                                 <p className="text-sm">
                                     {searchTerm ? "Không tìm thấy người dùng" : "Không có gợi ý nào"}
                                 </p>
@@ -141,7 +141,7 @@ export function SuggestedUsersSidebar({
                                 return (
                                     <div
                                         key={user.userId}
-                                        className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:shadow-sm transition-shadow"
+                                        className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:shadow-sm transition-shadow"
                                     >
                                         <Avatar className="h-10 w-10">
                                             <AvatarImage src={user.avatarUrl || undefined} />
@@ -152,7 +152,7 @@ export function SuggestedUsersSidebar({
                                             <p className="text-sm font-medium text-foreground truncate">
                                                 {user.fullName || "Người dùng"}
                                             </p>
-                                            <div className="flex items-center gap-2 text-xs text-slate-500">
+                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                                 {matchPercent > 0 && (
                                                     <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 font-medium">
                                                         {matchPercent}% phù hợp
@@ -193,7 +193,7 @@ export function SuggestedUsersSidebar({
 
                     {/* Refresh button */}
                     {!loading && users.length > 0 && (
-                        <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                        <div className="pt-2 border-t border-border">
                             <Button
                                 variant="outline"
                                 size="sm"

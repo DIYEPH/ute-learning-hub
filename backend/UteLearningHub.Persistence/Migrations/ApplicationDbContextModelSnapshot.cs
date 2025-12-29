@@ -1500,6 +1500,9 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("bit")
                         .HasColumnName("CoDaXoa");
 
+                    b.Property<int>("Reason")
+                        .HasColumnType("int");
+
                     b.Property<string>("ReviewNote")
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("GhiChuDuyet");
@@ -1703,6 +1706,10 @@ namespace UteLearningHub.Persistence.Migrations
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("NgayTao");
 
+                    b.Property<Guid>("CreatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("TaoBoi");
+
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("NgayXoa");
@@ -1729,6 +1736,10 @@ namespace UteLearningHub.Persistence.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset")
                         .HasColumnName("NgayCapNhat");
+
+                    b.Property<Guid?>("UpdatedById")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("CapNhatBoi");
 
                     b.HasKey("Id");
 

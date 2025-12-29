@@ -28,7 +28,7 @@ export function Pagination({
 
   return (
     <div className={`flex flex-col sm:flex-row items-center justify-between gap-2 text-sm ${className}`}>
-      <span className="text-slate-600 text-xs sm:text-sm">
+      <span className="text-muted-foreground text-xs sm:text-sm">
         Trang {currentPage}/{totalPages} ({totalItems} mục)
       </span>
       <div className="flex gap-2">

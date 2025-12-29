@@ -12,7 +12,7 @@ import { ConversationForm } from "@/src/components/admin/conversations/conversat
 import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { EditModal } from "@/src/components/admin/modals/edit-modal";
 import { AdvancedSearchFilter } from "@/src/components/admin/advanced-search-filter";
-import type { ConversationDto, UpdateConversationCommand } from "@/src/api/database/types.gen";
+import type { ConversationDto, UpdateConversationCommandRequest } from "@/src/api/database/types.gen";
 
 export default function ConversationsManagementPage() {
     const t = useTranslations("admin.conversations");
@@ -59,7 +59,7 @@ export default function ConversationsManagementPage() {
         loadConversations();
     }, [loadConversations]);
 
-    const handleEdit = async (command: UpdateConversationCommand) => {
+    const handleEdit = async (command: UpdateConversationCommandRequest) => {
         if (!selectedConversation?.id) return;
         setFormLoading(true);
         try {
@@ -223,7 +223,7 @@ export default function ConversationsManagementPage() {
             )}
 
             {conversations.length > 0 && (
-                <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+                <div className="mb-2 text-sm text-muted-foreground">
                     {t("foundCount", { count: totalCount })}
                 </div>
             )}

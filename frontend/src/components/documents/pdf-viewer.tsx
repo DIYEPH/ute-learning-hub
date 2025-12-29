@@ -8,9 +8,9 @@ import {
     ZoomIn,
     ZoomOut,
     Loader2,
-    Maximize2,
     RotateCw,
-    Save
+    Save,
+    Download
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -164,8 +164,8 @@ export function PdfViewer({
 
     if (error) {
         return (
-            <div className={cn("flex items-center justify-center h-full bg-slate-100 dark:bg-slate-900", className)}>
-                <div className="text-center text-red-500 dark:text-red-400">
+            <div className={cn("flex items-center justify-center h-full bg-muted", className)}>
+                <div className="text-center text-destructive">
                     <p>{error}</p>
                     <Button variant="outline" size="sm" className="mt-4" onClick={() => window.location.reload()}>
                         Thử lại
@@ -176,9 +176,9 @@ export function PdfViewer({
     }
 
     return (
-        <div className={cn("flex flex-col h-full bg-slate-800", className)}>
+        <div className={cn("flex flex-col h-full bg-card dark:bg-background", className)}>
             {/* Toolbar */}
-            <div className="flex items-center justify-between gap-2 px-3 py-2 bg-slate-900 border-b border-slate-700 shrink-0">
+            <div className="flex items-center justify-between gap-2 px-3 py-2 bg-muted border-b border-border shrink-0">
                 {/* Left: Page navigation */}
                 <div className="flex items-center gap-1">
                     <Button
@@ -186,7 +186,7 @@ export function PdfViewer({
                         size="icon"
                         onClick={goToPrevPage}
                         disabled={currentPage <= 1 || loading}
-                        className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-700"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                     >
                         <ChevronLeft className="h-4 w-4" />
                     </Button>
@@ -196,11 +196,11 @@ export function PdfViewer({
                             type="number"
                             value={currentPage}
                             onChange={(e) => goToPage(parseInt(e.target.value, 10) || 1)}
-                            className="w-12 h-7 text-center text-sm bg-slate-700 border border-slate-600 rounded text-white focus:outline-none focus:ring-1 focus:ring-sky-500"
+                            className="w-12 h-7 text-center text-sm bg-secondary border border-border rounded text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
                             min={1}
                             max={numPages}
                         />
-                        <span className="text-sm text-slate-400">/ {numPages || "..."}</span>
+                        <span className="text-sm text-muted-foreground">/ {numPages || "..."}</span>
                     </div>
 
                     <Button
@@ -208,7 +208,7 @@ export function PdfViewer({
                         size="icon"
                         onClick={goToNextPage}
                         disabled={currentPage >= numPages || loading}
-                        className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-700"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                     >
                         <ChevronRight className="h-4 w-4" />
                     </Button>
@@ -216,19 +216,19 @@ export function PdfViewer({
 
                 {/* Center: Progress bar */}
                 <div className="hidden sm:flex items-center gap-2 flex-1 max-w-xs mx-4">
-                    <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-secondary rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-sky-500 transition-all duration-300"
+                            className="h-full bg-primary transition-all duration-300"
                             style={{ width: `${progressPercent}%` }}
                         />
                     </div>
-                    <span className="text-xs text-slate-400 w-10 text-right">{progressPercent}%</span>
+                    <span className="text-xs text-muted-foreground w-10 text-right">{progressPercent}%</span>
                 </div>
 
                 {/* Right: Zoom, rotate, save */}
                 <div className="flex items-center gap-1">
                     {isSaving && (
-                        <div className="flex items-center gap-1 text-xs text-slate-400 mr-2">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground mr-2">
                             <Loader2 className="h-3 w-3 animate-spin" />
                             <span className="hidden sm:inline">Đang lưu...</span>
                         </div>
@@ -239,32 +239,32 @@ export function PdfViewer({
                         size="icon"
                         onClick={zoomOut}
                         disabled={scale <= 0.5}
-                        className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-700"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                         title="Thu nhỏ (-)"
                     >
                         <ZoomOut className="h-4 w-4" />
                     </Button>
 
-                    <span className="text-xs text-slate-400 w-10 text-center">{Math.round(scale * 100)}%</span>
+                    <span className="text-xs text-muted-foreground w-10 text-center">{Math.round(scale * 100)}%</span>
 
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={zoomIn}
                         disabled={scale >= 3}
-                        className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-700"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                         title="Phóng to (+)"
                     >
                         <ZoomIn className="h-4 w-4" />
                     </Button>
 
-                    <div className="w-px h-4 bg-slate-700 mx-1" />
+                    <div className="w-px h-4 bg-border mx-1" />
 
                     <Button
                         variant="ghost"
                         size="icon"
                         onClick={rotate}
-                        className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-700"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                         title="Xoay trang"
                     >
                         <RotateCw className="h-4 w-4" />
@@ -275,22 +275,38 @@ export function PdfViewer({
                         size="icon"
                         onClick={saveProgress}
                         disabled={isSaving}
-                        className="h-8 w-8 text-slate-300 hover:text-white hover:bg-slate-700"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
                         title="Lưu tiến trình"
                     >
                         <Save className="h-4 w-4" />
                     </Button>
+
+                    <a
+                        href={fileUrl}
+                        download={title || "document"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted"
+                            title="Tải xuống"
+                        >
+                            <Download className="h-4 w-4" />
+                        </Button>
+                    </a>
                 </div>
             </div>
 
             {/* PDF Content */}
             <div
                 ref={containerRef}
-                className="flex-1 overflow-auto flex justify-center bg-slate-800"
+                className="flex-1 overflow-auto flex justify-center bg-card dark:bg-background"
             >
                 {(loading || progressLoading) && (
                     <div className="flex items-center justify-center h-full">
-                        <Loader2 className="h-8 w-8 animate-spin text-sky-500" />
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                     </div>
                 )}
 
@@ -309,7 +325,7 @@ export function PdfViewer({
                         className="shadow-lg mx-auto"
                         loading={
                             <div className="flex items-center justify-center h-96">
-                                <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+                                <Loader2 className="h-6 w-6 animate-spin text-primary" />
                             </div>
                         }
                     />

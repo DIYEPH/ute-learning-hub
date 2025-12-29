@@ -16,10 +16,10 @@ import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { ImportModal } from "@/src/components/admin/modals/import-modal";
 import { AdvancedSearchFilter, type FilterOption } from "@/src/components/admin/advanced-search-filter";
 import type {
-  MajorDto2,
+  MajorDetailDto,
   CreateMajorCommand,
-  UpdateMajorCommand,
-  FacultyDto2,
+  UpdateMajorCommandRequest,
+  FacultyDetailDto,
 } from "@/src/api/database/types.gen";
 
 export default function MajorsManagementPage() {
@@ -36,7 +36,7 @@ export default function MajorsManagementPage() {
   } = useMajors();
   const { fetchFaculties } = useFaculties();
 
-  const [majors, setMajors] = useState<MajorDto2[]>([]);
+  const [majors, setMajors] = useState<MajorDetailDto[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
@@ -45,14 +45,14 @@ export default function MajorsManagementPage() {
   // Filter states
   const [facultyId, setFacultyId] = useState<string | null>(null);
   const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
-  const [faculties, setFaculties] = useState<FacultyDto2[]>([]);
+  const [faculties, setFaculties] = useState<FacultyDetailDto[]>([]);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [selectedMajor, setSelectedMajor] = useState<MajorDto2 | null>(null);
+  const [selectedMajor, setSelectedMajor] = useState<MajorDetailDto | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
 
@@ -100,7 +100,7 @@ export default function MajorsManagementPage() {
     return () => clearTimeout(timer);
   }, [facultyId]);
 
-  const handleCreate = async (command: CreateMajorCommand | UpdateMajorCommand) => {
+  const handleCreate = async (command: CreateMajorCommand | UpdateMajorCommandRequest) => {
     setFormLoading(true);
     try {
       await createMajor(command as CreateMajorCommand);
@@ -115,11 +115,11 @@ export default function MajorsManagementPage() {
     }
   };
 
-  const handleEdit = async (command: CreateMajorCommand | UpdateMajorCommand) => {
+  const handleEdit = async (command: CreateMajorCommand | UpdateMajorCommandRequest) => {
     if (!selectedMajor?.id) return;
     setFormLoading(true);
     try {
-      await updateMajor(selectedMajor.id, command as UpdateMajorCommand);
+      await updateMajor(selectedMajor.id, command as UpdateMajorCommandRequest);
       await loadMajors();
       setEditModalOpen(false);
       setSelectedMajor(null);
@@ -225,7 +225,7 @@ export default function MajorsManagementPage() {
       label: t("form.faculty"),
       type: "searchable",
       options: faculties
-        .filter((f): f is FacultyDto2 & { id: string } => !!f?.id)
+        .filter((f): f is FacultyDetailDto & { id: string } => !!f?.id)
         .map((faculty) => ({
           value: faculty.id,
           label: `${faculty.facultyName || ""} (${faculty.facultyCode || ""})`
@@ -293,7 +293,7 @@ export default function MajorsManagementPage() {
       )}
 
       {majors.length > 0 && (
-        <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+        <div className="mb-2 text-sm text-muted-foreground">
           {t("foundCount", { count: totalCount })}
         </div>
       )}
@@ -363,7 +363,7 @@ export default function MajorsManagementPage() {
           initialData={{
             majorName: selectedMajor?.majorName || null,
             majorCode: selectedMajor?.majorCode || null,
-            facultyId: selectedMajor?.faculty?.id || null,
+            facultyId: selectedMajor?.facultyId || null,
           }}
           onSubmit={handleEdit}
           loading={formLoading}

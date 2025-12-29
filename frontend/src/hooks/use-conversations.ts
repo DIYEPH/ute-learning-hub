@@ -12,12 +12,12 @@ import type {
     ConversationDetailDto,
     PagedResponseOfConversationDto,
     GetApiConversationData,
-    UpdateConversationCommand,
+    UpdateConversationCommandRequest,
 } from "@/src/api/database/types.gen";
 import { useCrud } from "./use-crud";
 
 export function useConversations() {
-    const crud = useCrud<ConversationDto, object, UpdateConversationCommand, GetApiConversationData["query"]>({
+    const crud = useCrud<ConversationDto, object, UpdateConversationCommandRequest, GetApiConversationData["query"]>({
         fetchAll: async (params) => {
             const response = await getApiConversation({ query: params });
             return (response as unknown as { data: PagedResponseOfConversationDto })?.data || response as PagedResponseOfConversationDto;
@@ -29,7 +29,7 @@ export function useConversations() {
         update: async (id, command) => {
             const response = await putApiConversationById({
                 path: { id },
-                body: { ...command, id },
+                body: command,
             });
             return (response as unknown as { data: ConversationDto })?.data || response as ConversationDto;
         },

@@ -7,6 +7,7 @@ public class Report : SoftDeletableEntity<Guid>, IAuditable, IAggregateRoot
 {
     public Guid? DocumentFileId { get; set; }
     public Guid? CommentId { get; set; }
+    public ReportReason Reason { get; set; } = ReportReason.Other;
     public string Content { get; set; } = default!;
     public DocumentFile? DocumentFile { get; set; }
     public Comment? Comment { get; set; }

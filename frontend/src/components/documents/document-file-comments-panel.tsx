@@ -22,11 +22,10 @@ import {
   postApiDocumentReview,
 } from "@/src/api/database/sdk.gen";
 import type {
-  CommentDto,
+  CommentDetailDto,
   CreateCommentCommand,
-  CreateDocumentReviewCommand,
   DocumentDetailDto,
-  PagedResponseOfCommentDto,
+  PagedResponseOfCommentDetailDto,
 } from "@/src/api/database/types.gen";
 
 interface DocumentFileCommentsPanelProps {
@@ -54,7 +53,7 @@ export function DocumentFileCommentsPanel({
   const { profile } = useUserProfile();
   const { success: notifySuccess, error: notifyError } = useNotification();
 
-  const [comments, setComments] = useState<CommentDto[]>([]);
+  const [comments, setComments] = useState<CommentDetailDto[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -65,7 +64,7 @@ export function DocumentFileCommentsPanel({
 
   // Report modal state
   const [reportModalOpen, setReportModalOpen] = useState(false);
-  const [reportingComment, setReportingComment] = useState<CommentDto | null>(null);
+  const [reportingComment, setReportingComment] = useState<CommentDetailDto | null>(null);
 
   useEffect(() => {
     setLocalUseful(initialUsefulCount ?? 0);
@@ -93,7 +92,7 @@ export function DocumentFileCommentsPanel({
         throwOnError: true,
       });
 
-      const data = (res.data ?? res) as PagedResponseOfCommentDto;
+      const data = (res.data ?? res) as PagedResponseOfCommentDetailDto;
       const items = data.items ?? [];
 
       setComments((prev) => (replace ? items : [...prev, ...items]));
@@ -155,7 +154,7 @@ export function DocumentFileCommentsPanel({
       return;
     }
     try {
-      const body: CreateDocumentReviewCommand = {
+      const body = {
         documentFileId,
         documentReviewType: type,
       };
@@ -194,17 +193,17 @@ export function DocumentFileCommentsPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b border-slate-200 px-3 py-2 dark:border-slate-700 flex items-center justify-between">
+      <div className="border-b border-border px-3 py-2 flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
           <MessageCircle className="h-4 w-4" />
           <span>Bình luận & đánh giá</span>
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <button
             type="button"
             disabled={!ready || !authenticated}
             onClick={() => handleReview(DocumentReviewType.Useful)}
-            className="inline-flex items-center gap-1  border border-slate-200 px-2 py-1 text-[11px] hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-1  border border-border px-2 py-1 text-[11px] hover:bg-muted disabled:opacity-50"
             title="Đánh dấu hữu ích"
           >
             <ThumbsUp className="h-3.5 w-3.5" />
@@ -214,7 +213,7 @@ export function DocumentFileCommentsPanel({
             type="button"
             disabled={!ready || !authenticated}
             onClick={() => handleReview(DocumentReviewType.NotUseful)}
-            className="inline-flex items-center gap-1  border border-slate-200 px-2 py-1 text-[11px] hover:bg-slate-50 disabled:opacity-50 dark:border-slate-700 dark:hover:bg-slate-800"
+            className="inline-flex items-center gap-1  border border-border px-2 py-1 text-[11px] hover:bg-muted disabled:opacity-50"
             title="Đánh dấu không hữu ích"
           >
             <ThumbsDown className="h-3.5 w-3.5" />
@@ -226,7 +225,7 @@ export function DocumentFileCommentsPanel({
       <div className="flex-1 flex flex-col">
         <ScrollArea className="flex-1 px-3 py-2">
           {comments.length === 0 && !loading ? (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Chưa có bình luận nào. Hãy là người đầu tiên bình luận.
             </p>
           ) : (
@@ -236,7 +235,7 @@ export function DocumentFileCommentsPanel({
                 return (
                   <div
                     key={c.id}
-                    className=" border border-slate-200 bg-slate-50 p-2.5 text-xs dark:border-slate-700 dark:bg-slate-900"
+                    className=" border border-border bg-muted p-2.5 text-xs"
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2 min-w-0">
@@ -250,10 +249,10 @@ export function DocumentFileCommentsPanel({
                             />
                           )}
                           <div className="flex flex-col min-w-0">
-                            <span className="text-xs font-semibold text-foreground truncate hover:text-sky-600 dark:hover:text-sky-400">
+                            <span className="text-xs font-semibold text-foreground truncate hover:text-primary">
                               {c.authorName}
                             </span>
-                            <span className="text-[10px] text-slate-400">
+                            <span className="text-[10px] text-muted-foreground">
                               {new Date(c.createdAt as any).toLocaleString()}
                             </span>
                           </div>
@@ -282,7 +281,7 @@ export function DocumentFileCommentsPanel({
                         </DropdownMenu>
                       )}
                     </div>
-                    <p className="text-[13px] text-slate-700 dark:text-slate-200 whitespace-pre-wrap break-words">
+                    <p className="text-[13px] text-foreground whitespace-pre-wrap break-words">
                       {c.content}
                     </p>
                   </div>
@@ -305,13 +304,13 @@ export function DocumentFileCommentsPanel({
           )}
         </ScrollArea>
 
-        <div className="border-t border-slate-200 p-2.5 dark:border-slate-700">
+        <div className="border-t border-border p-2.5">
           {!ready ? (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Đang kiểm tra trạng thái đăng nhập...
             </p>
           ) : !authenticated ? (
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-muted-foreground">
               Vui lòng đăng nhập để bình luận và đánh giá tài liệu.
             </p>
           ) : (
@@ -321,7 +320,7 @@ export function DocumentFileCommentsPanel({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Nhập bình luận của bạn..."
                 rows={3}
-                className="w-full resize-none  border border-slate-300 bg-white px-3 py-2 text-sm text-foreground shadow-sm outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+                className="w-full resize-none  border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
               />
               <div className="flex justify-end">
                 <Button

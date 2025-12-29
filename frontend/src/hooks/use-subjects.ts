@@ -12,13 +12,13 @@ import type {
   GetApiSubjectData,
   GetApiSubjectResponse,
   CreateSubjectCommand,
-  UpdateSubjectCommand,
+  UpdateSubjectCommandRequest,
   SubjectDto2,
 } from "@/src/api/database/types.gen";
 import { useCrud } from "./use-crud";
 
 export function useSubjects() {
-  const crud = useCrud<SubjectDto2, CreateSubjectCommand, UpdateSubjectCommand, GetApiSubjectData["query"]>({
+  const crud = useCrud<SubjectDto2, CreateSubjectCommand, UpdateSubjectCommandRequest, GetApiSubjectData["query"]>({
     fetchAll: async (params) => {
       const response = await getApiSubject({ query: params });
       return (response as unknown as { data: GetApiSubjectResponse })?.data || response as GetApiSubjectResponse;

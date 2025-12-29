@@ -46,7 +46,7 @@ public class UpdateEventCommandHandler : IRequestHandler<UpdateEventCommand, Eve
         evt.Priority = request.Priority;
         evt.UpdatedAt = _dateTimeProvider.OffsetNow;
 
-        await _eventRepository.UpdateAsync(evt, cancellationToken);
+        _eventRepository.Update(evt);
         await _eventRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return new EventDto

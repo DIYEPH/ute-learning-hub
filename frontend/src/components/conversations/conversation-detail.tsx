@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { ArrowLeft, Send, Loader2, Paperclip, List, Settings, FolderOpen, X, Image as ImageIcon, UserPlus } from "lucide-react";
-// import { format } from "date-fns";
-// import { vi } from "date-fns/locale";
 
 import {
   getApiConversationById,
@@ -346,7 +344,7 @@ export function ConversationDetail({
   if (loading && !conversation) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -354,7 +352,7 @@ export function ConversationDetail({
   if (!conversation) {
     return (
       <div className="flex h-full items-center justify-center">
-        <p className="text-slate-500 dark:text-slate-400">
+        <p className="text-muted-foreground">
           Không tìm thấy cuộc trò chuyện
         </p>
       </div>
@@ -364,7 +362,7 @@ export function ConversationDetail({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex-shrink-0 border-b border-border bg-card px-4 py-3">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -385,7 +383,7 @@ export function ConversationDetail({
                 {conversation.tags.map((tag) => (
                   <span
                     key={tag.id}
-                    className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                    className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
                   >
                     {tag.tagName}
                   </span>
@@ -458,7 +456,7 @@ export function ConversationDetail({
           )}
 
           {messages.length === 0 ? (
-            <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+            <div className="text-center py-8 text-muted-foreground">
               <p>Chưa có tin nhắn nào</p>
             </div>
           ) : (
@@ -513,11 +511,11 @@ export function ConversationDetail({
 
           {/* Typing indicator */}
           {typingUsers.size > 0 && (
-            <div className="flex items-center gap-2 px-4 py-2 text-sm text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
               <div className="flex gap-1">
-                <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
               <span>
                 {typingUsers.size === 1
@@ -532,10 +530,10 @@ export function ConversationDetail({
       </ScrollArea>
 
       {/* Message Input */}
-      <div className="flex-shrink-0 border-t border-slate-200 bg-white p-2 md:p-4 dark:border-slate-700 dark:bg-slate-900">
+      <div className="flex-shrink-0 border-t border-border bg-card p-2 md:p-4">
         {/* Reply preview */}
         {replyTo && (
-          <div className="mb-2 flex items-start justify-between  bg-slate-100 px-3 py-2 text-xs text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+          <div className="mb-2 flex items-start justify-between bg-muted px-3 py-2 text-xs text-foreground">
             <div className="mr-2 min-w-0">
               <div className="font-semibold truncate">
                 Trả lời {replyTo.senderName || "người dùng"}
@@ -547,7 +545,7 @@ export function ConversationDetail({
             <button
               type="button"
               onClick={() => setReplyTo(null)}
-              className="ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-100"
+              className="ml-2 text-muted-foreground hover:text-foreground"
               title="Hủy trả lời"
             >
               <X className="h-3 w-3" />
@@ -562,7 +560,7 @@ export function ConversationDetail({
               {selectedFiles.map((file, index) => (
                 <div
                   key={index}
-                  className="relative group border border-slate-200 dark:border-slate-700  overflow-hidden"
+                  className="relative group border border-border overflow-hidden"
                 >
                   {isImageFile(file) ? (
                     <div className="relative">
@@ -580,8 +578,8 @@ export function ConversationDetail({
                       </button>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800">
-                      <Paperclip className="h-4 w-4 text-slate-500" />
+                    <div className="flex items-center gap-2 p-2 bg-muted">
+                      <Paperclip className="h-4 w-4 text-muted-foreground" />
                       <span className="text-xs text-foreground truncate max-w-[120px]">
                         {file.name}
                       </span>
@@ -613,10 +611,10 @@ export function ConversationDetail({
             />
             <label
               htmlFor="message-file-input"
-              className="flex items-center justify-center p-2  border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+              className="flex items-center justify-center p-2 border border-border hover:bg-muted cursor-pointer transition-colors"
               title="Đính kèm file"
             >
-              <Paperclip className="h-5 w-5 text-slate-500" />
+              <Paperclip className="h-5 w-5 text-muted-foreground" />
             </label>
             <Input
               type="text"

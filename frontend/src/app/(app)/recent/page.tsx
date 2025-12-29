@@ -94,7 +94,7 @@ export default function RecentPage() {
                 <h1 className="text-2xl font-semibold text-foreground">
                     Gần đây
                 </h1>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                     Những tài liệu bạn đã đọc gần đây
                 </p>
             </div>
@@ -107,10 +107,10 @@ export default function RecentPage() {
 
             {showSkeleton ? (
                 <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+                    <Loader2 className="h-6 w-6 animate-spin text-primary" />
                 </div>
             ) : items.length === 0 ? (
-                <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                <div className="text-center py-12 text-muted-foreground">
                     <p>Chưa có lịch sử đọc</p>
                 </div>
             ) : (
@@ -125,10 +125,10 @@ export default function RecentPage() {
                             <Link
                                 key={`${item.documentId}-${item.documentFileId}`}
                                 href={`/documents/${item.documentId}`}
-                                className="flex items-center gap-4 p-4 border border-slate-200 bg-white hover:border-sky-300 hover:shadow-sm transition-all dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600"
+                                className="flex items-center gap-4 p-4 border border-border bg-card hover:border-primary hover:shadow-sm transition-all"
                             >
                                 {/* Thumbnail */}
-                                <div className="flex-shrink-0 w-16 h-16 bg-slate-100 dark:bg-slate-700 overflow-hidden flex items-center justify-center">
+                                <div className="flex-shrink-0 w-16 h-16 bg-muted overflow-hidden flex items-center justify-center">
                                     {coverUrl ? (
                                         <img
                                             src={coverUrl}
@@ -136,7 +136,7 @@ export default function RecentPage() {
                                             className="w-full h-full object-contain"
                                         />
                                     ) : (
-                                        <FileText className="h-8 w-8 text-slate-400" />
+                                        <FileText className="h-8 w-8 text-muted-foreground" />
                                     )}
                                 </div>
 
@@ -145,7 +145,7 @@ export default function RecentPage() {
                                     <h3 className="font-medium text-foreground truncate">
                                         {item.documentName}
                                     </h3>
-                                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                                         {item.subjectName && <span>{item.subjectName}</span>}
                                         {item.fileTitle && (
                                             <>
@@ -157,13 +157,13 @@ export default function RecentPage() {
                                     {/* Progress bar */}
                                     {item.totalPages && item.totalPages > 0 && (
                                         <div className="mt-2 flex items-center gap-2">
-                                            <div className="flex-1 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                            <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                                                 <div
-                                                    className="h-full bg-sky-500 rounded-full transition-all"
+                                                    className="h-full bg-primary rounded-full transition-all"
                                                     style={{ width: `${progress}%` }}
                                                 />
                                             </div>
-                                            <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                                            <span className="text-xs text-muted-foreground whitespace-nowrap">
                                                 {item.lastPage}/{item.totalPages} trang
                                             </span>
                                         </div>
@@ -172,20 +172,21 @@ export default function RecentPage() {
 
                                 {/* Time & Continue reading */}
                                 <div className="flex-shrink-0 flex flex-col items-end gap-2">
-                                    <span className="text-xs text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                                    <span className="text-xs text-muted-foreground whitespace-nowrap">
                                         {formatRelativeTime(item.lastAccessedAt)}
                                     </span>
                                     {item.documentFileId && (
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            asChild
-                                            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                                            onClick={(e: React.MouseEvent) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                window.location.href = `/documents/${item.documentId}/files/${item.documentFileId}`;
+                                            }}
                                             className="text-xs h-7 px-2"
                                         >
-                                            <Link href={`/documents/${item.documentId}/files/${item.documentFileId}`}>
-                                                Đọc tiếp
-                                            </Link>
+                                            Đọc tiếp
                                         </Button>
                                     )}
                                 </div>

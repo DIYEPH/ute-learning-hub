@@ -25,6 +25,9 @@ public class ConversationTagConfiguration : IEntityTypeConfiguration<Conversatio
             .WithMany(u => u.ConversationTags)
             .HasForeignKey(u => u.ConversationId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Query filter: exclude tags of deleted conversations
+        builder.HasQueryFilter(u => !u.Conversation.IsDeleted);
     }
 }
 

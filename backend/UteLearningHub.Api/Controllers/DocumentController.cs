@@ -8,6 +8,7 @@ using UteLearningHub.Application.Features.Document.Commands.DeleteDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
 using UteLearningHub.Application.Features.Document.Commands.IncrementViewCount;
 using UteLearningHub.Application.Features.Document.Commands.ResubmitDocumentFile;
+using UteLearningHub.Application.Features.Document.Commands.ReviewDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocument;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentProgress;
@@ -79,9 +80,23 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpPut("{id}")]
         [Authorize]
-        public async Task<ActionResult<DocumentDetailDto>> UpdateDocument(Guid id, [FromBody] UpdateDocumentCommand command)
+        public async Task<ActionResult<DocumentDetailDto>> UpdateDocument(Guid id, [FromBody] UpdateDocumentCommandRequest request)
         {
-            command = command with { Id = id };
+            var command = new UpdateDocumentCommand
+            {
+                Id = id,
+                DocumentName = request.DocumentName,
+                Description = request.Description,
+                SubjectId = request.SubjectId,
+                TypeId = request.TypeId,
+                TagIds = request.TagIds,
+                TagNames = request.TagNames,
+                AuthorIds = request.AuthorIds,
+                Authors = request.Authors,
+                Visibility = request.Visibility,
+                FileIdsToRemove = request.FileIdsToRemove,
+                CoverFileId = request.CoverFileId
+            };
             var result = await _mediator.Send(command);
             return Ok(result);
         }
@@ -97,20 +112,26 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpPut("{documentId}/files/{fileId}")]
         [Authorize]
-        public async Task<ActionResult<DocumentDetailDto>> UpdateDocumentFile(Guid documentId, Guid fileId, [FromBody] UpdateDocumentFileCommand command)
+        public async Task<ActionResult<DocumentDetailDto>> UpdateDocumentFile(Guid documentId, Guid fileId, [FromBody] UpdateDocumentFileCommandRequest request)
         {
-            command = command with { DocumentId = documentId, DocumentFileId = fileId };
+            var command = new UpdateDocumentFileCommand
+            {
+                DocumentId = documentId,
+                DocumentFileId = fileId,
+                Title = request.Title,
+                Order = request.Order,
+                CoverFileId = request.CoverFileId
+            };
             var result = await _mediator.Send(command);
             return Ok(result);
         }
 
         [HttpDelete("{documentId}/files/{fileId}")]
         [Authorize]
-        public async Task<IActionResult> DeleteDocumentFile(Guid documentId, Guid fileId)
+        public async Task<IActionResult> DeleteDocumentFile(Guid documentfileId, Guid fileId)
         {
             var command = new DeleteDocumentFileCommand
             {
-                DocumentId = documentId,
                 DocumentFileId = fileId
             };
 
@@ -134,11 +155,11 @@ namespace UteLearningHub.Api.Controllers
 
         [Authorize]
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Unit>> DeleteSoftDocumentById(Guid id)
+        public async Task<ActionResult> DeleteSoftDocumentById(Guid id)
         {
             var command = new DeleteDocumentsCommand { Id = id };
-            var result = await _mediator.Send(command);
-            return Ok(result);
+            await _mediator.Send(command);
+            return NoContent();
         }
 
         [HttpGet("reading-history")]
@@ -151,7 +172,7 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpGet("files/{fileId}/progress")]
         [Authorize]
-        public async Task<ActionResult<DocumentProgressDto>> GetDocumentProgress(Guid fileId)
+        public async Task<ActionResult<DocumentFileProgressDto>> GetDocumentProgress(Guid fileId)
         {
             var query = new GetDocumentProgressQuery { DocumentFileId = fileId };
             var result = await _mediator.Send(query);
@@ -160,16 +181,20 @@ namespace UteLearningHub.Api.Controllers
 
         [HttpPut("files/{fileId}/progress")]
         [Authorize]
-        public async Task<IActionResult> UpdateDocumentProgress(Guid fileId, [FromBody] UpdateDocumentProgressCommand command)
+        public async Task<IActionResult> UpdateDocumentProgress(Guid fileId, [FromBody] UpdateDocumentProgressCommandRequest request)
         {
-            command = command with { DocumentFileId = fileId };
+            var command = new UpdateDocumentProgressCommand
+            {
+                DocumentFileId = fileId,
+                LastPage = request.LastPage
+            };
             await _mediator.Send(command);
             return NoContent();
         }
 
         [HttpPost("files/{fileId}/review")]
         [Authorize]
-        public async Task<IActionResult> ReviewDocumentFile(Guid fileId, [FromBody] Application.Features.DocumentFiles.Commands.ReviewDocumentFile.ReviewDocumentFileCommand command)
+        public async Task<IActionResult> ReviewDocumentFile(Guid fileId, [FromBody] ReviewDocumentFileCommand command)
         {
             command = command with { DocumentFileId = fileId };
             await _mediator.Send(command);

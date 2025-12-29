@@ -1,8 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using UteLearningHub.Application.Common.Dtos;
-using UteLearningHub.Application.Features.DocumentReview.Commands.CreateDocumentReview;
+using UteLearningHub.Application.Features.Document.Commands.CreateDocumentReview;
 
 namespace UteLearningHub.Api.Controllers;
 
@@ -19,9 +18,9 @@ public class DocumentReviewController : ControllerBase
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<DocumentReviewDto>> CreateDocumentReview([FromBody] CreateDocumentReviewCommand command)
+    public async Task<ActionResult> CreateDocumentReview([FromBody] CreateOrUpdateDocumentFileReviewCommand command)
     {
-        var result = await _mediator.Send(command);
-        return Ok(result);
+        await _mediator.Send(command);
+        return NoContent();
     }
 }

@@ -24,7 +24,7 @@ public class FileUsageService : IFileUsageService
     public async Task<DomainFile> EnsureFileAsync(Guid fileId, CancellationToken cancellationToken = default)
     {
         var file = await _fileRepository.GetByIdAsync(fileId, disableTracking: true, cancellationToken);
-        if (file == null || file.IsDeleted)
+        if (file == null)
             throw new NotFoundException($"File with id {fileId} not found");
 
         return file;
@@ -42,7 +42,7 @@ public class FileUsageService : IFileUsageService
             .ToListAsync(cancellationToken);
 
         if (files.Count != distinctIds.Count)
-            throw new NotFoundException("Một hoặc nhiều tệp không tồn tại");
+            throw new("Một hoặc nhiều tệp không tồn tại");
 
         return files;
     }
@@ -62,8 +62,7 @@ public class FileUsageService : IFileUsageService
         if (file == null)
             return;
 
-        await _fileRepository.DeleteAsync(file, null, cancellationToken);
+        _fileRepository.Delete(file);
         await _fileRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
-        await _fileStorageService.DeleteFileAsync(file.FileUrl, cancellationToken);
     }
 }

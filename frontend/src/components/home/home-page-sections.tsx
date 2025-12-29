@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { ChevronRight, Loader2 } from "lucide-react";
+import { ChevronRight, Loader2, FileText } from "lucide-react";
 import { getApiDocumentHomepage, getApiDocumentReadingHistory } from "@/src/api/database/sdk.gen";
 import { DocumentCard } from "@/src/components/documents/document-card";
 import { ScrollArea, ScrollBar } from "@/src/components/ui/scroll-area";
@@ -54,7 +54,7 @@ export function HomePageSections() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
             </div>
         );
     }
@@ -77,6 +77,11 @@ export function HomePageSections() {
                                 title={item.documentName || ""}
                                 subjectName={item.subjectName || undefined}
                                 thumbnailFileId={item.coverFileId}
+                                totalViewCount={item.totalViewCount}
+                                usefulCount={item.usefulCount}
+                                notUsefulCount={item.notUsefulCount}
+                                lastPage={item.lastPage}
+                                totalPages={item.totalPages}
                                 className="w-40 flex-shrink-0"
                             />
                         ))}
@@ -181,8 +186,9 @@ export function HomePageSections() {
 
             {/* Empty state */}
             {topSubjects.length === 0 && latestDocs.length === 0 && popularDocs.length === 0 && mostViewedDocs.length === 0 && (
-                <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-                    {t("noDocuments")}
+                <div className="text-center py-12 text-muted-foreground">
+                    <FileText className="h-12 w-12 mx-auto mb-3 opacity-40" />
+                    <p>{t("noDocuments")}</p>
                 </div>
             )}
         </div>
@@ -196,7 +202,7 @@ function Section({ title, href, children }: { title: string; href?: string; chil
             <div className="flex items-center justify-between mb-3">
                 <h2 className="text-base font-semibold text-foreground">{title}</h2>
                 {href && (
-                    <Link href={href} className="flex items-center gap-1 text-xs text-sky-600 hover:underline">
+                    <Link href={href} className="flex items-center gap-1 text-xs text-primary hover:underline">
                         {t("viewMore")}
                         <ChevronRight className="h-3 w-3" />
                     </Link>

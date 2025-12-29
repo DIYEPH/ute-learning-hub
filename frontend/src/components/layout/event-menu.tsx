@@ -13,7 +13,6 @@ import Link from "next/link";
  * Ví dụ sử dụng DropdownMenuWrapper cho events
  */
 export function EventMenu() {
-  // TODO: Fetch events từ API
   const upcomingEvents = [
     { id: 1, title: "Deadline nộp bài tập", date: "2025-12-01", time: "23:59" },
     { id: 2, title: "Kiểm tra giữa kỳ", date: "2025-12-05", time: "08:00" },
@@ -25,10 +24,10 @@ export function EventMenu() {
         <Button
           variant="ghost"
           size="sm"
-          className="h-9 w-9 rounded-full p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="group h-9 w-9 rounded-full p-0 hover:bg-muted"
           aria-label="Calendar"
         >
-          <Calendar size={18} className="text-slate-600 dark:text-slate-400" />
+          <Calendar size={18} className="text-muted-foreground transition-colors group-hover:text-foreground" />
         </Button>
       }
       align="end"
@@ -44,7 +43,7 @@ export function EventMenu() {
             <DropdownMenuItem key={event.id} asChild>
               <Link href={`/events/${event.id}`} className="flex flex-col items-start cursor-pointer">
                 <p className="text-sm font-medium">{event.title}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-muted-foreground">
                   {event.date} lúc {event.time}
                 </p>
               </Link>
@@ -59,7 +58,7 @@ export function EventMenu() {
         </>
       ) : (
         <DropdownMenuItem disabled>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Không có sự kiện sắp tới</p>
+          <p className="text-sm text-muted-foreground">Không có sự kiện sắp tới</p>
         </DropdownMenuItem>
       )}
     </DropdownMenuWrapper>

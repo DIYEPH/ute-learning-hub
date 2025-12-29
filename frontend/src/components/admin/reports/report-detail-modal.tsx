@@ -13,6 +13,7 @@ import {
 import { CheckCircle, EyeOff, FileText, MessageCircle, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { GroupedReport } from "@/src/hooks/use-reports";
+import { REPORT_REASON_LABELS } from "@/src/hooks/use-reports";
 
 interface ReportDetailModalProps {
     open: boolean;
@@ -61,7 +62,7 @@ export function ReportDetailModal({
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         {grouped?.type === "documentFile" ? (
-                            <FileText size={20} className="text-blue-500" />
+                            <FileText size={20} className="text-primary" />
                         ) : (
                             <MessageCircle size={20} className="text-green-500" />
                         )}
@@ -71,8 +72,8 @@ export function ReportDetailModal({
 
                 <div className="space-y-4 py-4">
                     {/* Target info */}
-                    <div className="p-3 bg-slate-50 dark:bg-slate-800 ">
-                        <div className="text-sm text-slate-500 mb-1">
+                    <div className="p-3 bg-muted">
+                        <div className="text-sm text-muted-foreground mb-1">
                             {grouped?.type === "documentFile" ? t("type.documentFile") : t("type.comment")}
                         </div>
                         {grouped?.targetUrl ? (
@@ -80,12 +81,12 @@ export function ReportDetailModal({
                                 href={grouped.targetUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                                className="text-sm text-primary hover:text-primary/80 hover:underline"
                             >
                                 {grouped.targetUrl}
                             </a>
                         ) : (
-                            <div className="font-mono text-xs text-slate-400">
+                            <div className="font-mono text-xs text-muted-foreground">
                                 ID: {grouped?.targetId}
                             </div>
                         )}
@@ -115,16 +116,21 @@ export function ReportDetailModal({
                                                 <div className="text-sm font-medium">
                                                     {report.reporterName}
                                                 </div>
-                                                <div className="text-xs text-slate-500">
+                                                <div className="text-xs text-muted-foreground">
                                                     {formatDate(report.createdAt)}
                                                 </div>
                                             </div>
                                         </div>
-                                        <Badge variant={statusInfo.variant} className="text-xs">
-                                            {statusInfo.label}
-                                        </Badge>
+                                        <div className="flex items-center gap-2">
+                                            <Badge variant="secondary" className="text-xs">
+                                                {REPORT_REASON_LABELS[report.reason ?? 0] || "Khác"}
+                                            </Badge>
+                                            <Badge variant={statusInfo.variant} className="text-xs">
+                                                {statusInfo.label}
+                                            </Badge>
+                                        </div>
                                     </div>
-                                    <div className="text-sm text-slate-600 dark:text-slate-400 pl-10">
+                                    <div className="text-sm text-muted-foreground pl-10">
                                         {report.content || t("detailModal.noContent")}
                                     </div>
                                 </div>

@@ -86,6 +86,7 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, PagedResponse<
             DocumentFileId = r.DocumentFileId,
             CommentId = r.CommentId,
             TargetUrl = BuildTargetUrl(r.DocumentFile?.DocumentId, r.DocumentFileId, r.CommentId),
+            Reason = r.Reason,
             Content = r.Content,
             ReporterName = authorInfo.TryGetValue(r.CreatedById, out var reporter)
                 ? reporter.FullName
@@ -111,10 +112,10 @@ public class GetReportsHandler : IRequestHandler<GetReportsQuery, PagedResponse<
     {
         if (documentId.HasValue && documentFileId.HasValue)
             return $"/documents/{documentId}/files/{documentFileId}";
-        
+
         if (commentId.HasValue)
             return null; // Comments don't have direct URL for now
-        
+
         return null;
     }
 }

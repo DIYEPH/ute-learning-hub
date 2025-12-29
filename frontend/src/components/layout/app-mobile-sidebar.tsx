@@ -13,8 +13,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { useState } from "react";
 
-// Trust levels that can access admin features
-const MODERATOR_LEVELS = ["Moderator", "Master"];
+// Trust levels that can access admin features (Moderator = 4, Master = 5)
+const MODERATOR_MIN_LEVEL = 4;
 
 export default function MobileSidebar({
   navItems,
@@ -106,8 +106,8 @@ export default function MobileSidebar({
                   <Link key={item.href} href={item.href} onClick={handleLinkClick}>
                     <button
                       className={`flex w-full items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${isActive
-                        ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
-                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        ? "bg-muted text-foreground font-medium"
+                        : "text-muted-foreground hover:bg-muted"
                         }`}
                     >
                       <span className="shrink-0">
@@ -123,8 +123,8 @@ export default function MobileSidebar({
               <Link href="/about" onClick={handleLinkClick}>
                 <button
                   className={`flex w-full items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${activePath === "/about"
-                    ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 font-medium"
-                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    ? "bg-muted text-foreground font-medium"
+                    : "text-muted-foreground hover:bg-muted"
                     }`}
                 >
                   <span className="shrink-0">
@@ -135,7 +135,7 @@ export default function MobileSidebar({
               </Link>
 
               {/* Admin link for Moderator+ */}
-              {profile?.trustLevel && MODERATOR_LEVELS.includes(profile.trustLevel) && (
+              {typeof profile?.trustLevel === 'number' && profile.trustLevel >= MODERATOR_MIN_LEVEL && (
                 <Link href="/admin" onClick={handleLinkClick}>
                   <button
                     className={`flex w-full items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${activePath?.startsWith("/admin")
@@ -154,12 +154,12 @@ export default function MobileSidebar({
 
             {/* Settings Section */}
             <div className="pt-4 border-t space-y-2">
-              <p className="text-xs text-slate-500 uppercase tracking-wider px-3">Cài đặt</p>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider px-3">Cài đặt</p>
 
               {/* Theme Toggle */}
               <button
                 onClick={toggleTheme}
-                className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-left text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-left text-muted-foreground hover:bg-muted transition-colors"
               >
                 {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
                 <span className="text-sm">{theme === 'dark' ? 'Sáng' : 'Tối'}</span>
@@ -168,7 +168,7 @@ export default function MobileSidebar({
               {/* Language Toggle */}
               <button
                 onClick={toggleLanguage}
-                className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-left text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-left text-muted-foreground hover:bg-muted transition-colors"
               >
                 <Globe size={18} />
                 <span className="text-sm">{currentLocale === 'vi' ? 'GB' : 'VN'}</span>

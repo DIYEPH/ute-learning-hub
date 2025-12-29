@@ -335,11 +335,7 @@ export const getApiDocumentMy = <ThrowOnError extends boolean = false>(options?:
     ...options
 });
 
-export const deleteApiDocumentById = <ThrowOnError extends boolean = false>(options: Options<DeleteApiDocumentByIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiDocumentByIdResponses, unknown, ThrowOnError>({
-    responseType: 'json',
-    url: '/api/Document/{id}',
-    ...options
-});
+export const deleteApiDocumentById = <ThrowOnError extends boolean = false>(options: Options<DeleteApiDocumentByIdData, ThrowOnError>) => (options.client ?? client).delete<DeleteApiDocumentByIdResponses, unknown, ThrowOnError>({ url: '/api/Document/{id}', ...options });
 
 export const getApiDocumentById = <ThrowOnError extends boolean = false>(options: Options<GetApiDocumentByIdData, ThrowOnError>) => (options.client ?? client).get<GetApiDocumentByIdResponses, unknown, ThrowOnError>({
     responseType: 'json',
@@ -414,7 +410,6 @@ export const postApiDocumentFilesByFileIdReview = <ThrowOnError extends boolean 
 export const postApiDocumentFilesByFileIdView = <ThrowOnError extends boolean = false>(options: Options<PostApiDocumentFilesByFileIdViewData, ThrowOnError>) => (options.client ?? client).post<PostApiDocumentFilesByFileIdViewResponses, unknown, ThrowOnError>({ url: '/api/Document/files/{fileId}/view', ...options });
 
 export const postApiDocumentReview = <ThrowOnError extends boolean = false>(options: Options<PostApiDocumentReviewData, ThrowOnError>) => (options.client ?? client).post<PostApiDocumentReviewResponses, unknown, ThrowOnError>({
-    responseType: 'json',
     url: '/api/DocumentReview',
     ...options,
     headers: {

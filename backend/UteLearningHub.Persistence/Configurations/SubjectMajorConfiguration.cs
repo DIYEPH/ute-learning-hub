@@ -25,5 +25,8 @@ public class SubjectMajorConfiguration : IEntityTypeConfiguration<SubjectMajor>
             .WithMany(m => m.SubjectMajors)
             .HasForeignKey(sm => sm.MajorId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Query filter: exclude when subject or major is deleted
+        builder.HasQueryFilter(sm => !sm.Subject.IsDeleted && !sm.Major.IsDeleted);
     }
 }

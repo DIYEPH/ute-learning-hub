@@ -68,7 +68,7 @@ public class NotificationController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize]
-    public async Task<ActionResult<NotificationDto>> UpdateNotification(Guid id, [FromBody] UpdateNotificationRequest request)
+    public async Task<ActionResult<NotificationDto>> UpdateNotification(Guid id, [FromBody] UpdateNotificationCommandRequest request)
     {
         var command = new UpdateNotificationCommand
         {

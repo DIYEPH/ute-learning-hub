@@ -133,8 +133,8 @@ public class GetConversationRecommendationsHandler
                     conversation.Members.Any(m => m.UserId == currentUserId.Value && !m.IsDeleted);
 
                 var hasPendingJoinRequest = currentUserId.HasValue &&
-                    conversation.ConversationJoinRequests.Any(jr => 
-                        jr.CreatedById == currentUserId.Value && 
+                    conversation.ConversationJoinRequests.Any(jr =>
+                        jr.CreatedById == currentUserId.Value &&
                         jr.Status == ContentStatus.PendingReview &&
                         !jr.IsDeleted);
 

@@ -54,7 +54,7 @@ public class UpdateDocumentFileCommandHandler : IRequestHandler<UpdateDocumentFi
 
         var canUpdate = isOwner ||
                         isAdmin ||
-                        (trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator);
+                        trustLevel.HasValue && trustLevel.Value >= TrustLever.Moderator;
 
         if (!canUpdate)
             throw new UnauthorizedException("You don't have permission to update this document file");

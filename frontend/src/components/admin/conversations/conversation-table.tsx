@@ -14,7 +14,7 @@ const ConversationTypeLabels: Record<number, string> = {
 
 const ConversationTypeColors: Record<number, string> = {
     0: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300",
-    1: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
+    1: "bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary",
     2: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
 };
 
@@ -27,7 +27,7 @@ const ConversationStatusLabels: Record<number, string> = {
 
 const ConversationStatusColors: Record<number, string> = {
     0: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300",
-    1: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
+    1: "bg-secondary text-secondary-foreground",
     2: "bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300",
 };
 
@@ -104,7 +104,7 @@ export function ConversationTable({
             header: t("table.subject"),
             className: "min-w-[150px]",
             render: (conversation) => (
-                <span className="text-sm text-slate-600 dark:text-slate-400">
+                <span className="text-sm text-muted-foreground">
                     {conversation.subject?.subjectName || "-"}
                 </span>
             ),
@@ -124,7 +124,7 @@ export function ConversationTable({
             className: "min-w-[140px]",
             sortable: true,
             render: (conversation) => (
-                <span className="text-sm text-slate-600 dark:text-slate-400">
+                <span className="text-sm text-muted-foreground">
                     {formatDate(conversation.createdAt)}
                 </span>
             ),

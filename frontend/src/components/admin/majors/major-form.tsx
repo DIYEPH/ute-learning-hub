@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { useFaculties } from "@/src/hooks/use-faculties";
 import { useDebounce } from "@/src/hooks/use-debounce";
 import { getApiMajor } from "@/src/api/database/sdk.gen";
-import type { UpdateMajorCommand, CreateMajorCommand, FacultyDto2, MajorDto2 } from "@/src/api/database/types.gen";
+import type { UpdateMajorCommandRequest, CreateMajorCommand, FacultyDetailDto, MajorDetailDto } from "@/src/api/database/types.gen";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 export interface MajorFormData {
@@ -19,7 +19,7 @@ export interface MajorFormData {
 
 interface MajorFormProps {
   initialData?: MajorFormData;
-  onSubmit: (data: CreateMajorCommand | UpdateMajorCommand) => void | Promise<void>;
+  onSubmit: (data: CreateMajorCommand | UpdateMajorCommandRequest) => void | Promise<void>;
   loading?: boolean;
 }
 
@@ -35,11 +35,11 @@ export function MajorForm({
     majorCode: null,
     facultyId: null,
   });
-  const [faculties, setFaculties] = useState<FacultyDto2[]>([]);
+  const [faculties, setFaculties] = useState<FacultyDetailDto[]>([]);
 
   // Debounce search state
   const [searching, setSearching] = useState(false);
-  const [matchingMajors, setMatchingMajors] = useState<MajorDto2[]>([]);
+  const [matchingMajors, setMatchingMajors] = useState<MajorDetailDto[]>([]);
   const [isDuplicate, setIsDuplicate] = useState(false);
 
   const debouncedName = useDebounce(formData.majorName || "", 400);
@@ -75,7 +75,7 @@ export function MajorForm({
     setSearching(true);
     try {
       const response = await getApiMajor({ query: { SearchTerm: searchTerm, Page: 1, PageSize: 5 } });
-      const data = (response as unknown as { data: { items?: MajorDto2[] } })?.data || response as { items?: MajorDto2[] };
+      const data = (response as unknown as { data: { items?: MajorDetailDto[] } })?.data || response as { items?: MajorDetailDto[] };
       const items = data?.items || [];
 
       // Filter out current item if editing
@@ -112,7 +112,7 @@ export function MajorForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isDuplicate) return;
-    const command: CreateMajorCommand | UpdateMajorCommand = {
+    const command: CreateMajorCommand | UpdateMajorCommandRequest = {
       majorName: formData.majorName || undefined,
       majorCode: formData.majorCode || undefined,
       facultyId: formData.facultyId || undefined,
@@ -139,7 +139,7 @@ export function MajorForm({
           >
             <option value="">{t("form.selectFaculty")}</option>
             {faculties
-              .filter((faculty): faculty is FacultyDto2 & { id: string } => !!faculty?.id)
+              .filter((faculty): faculty is FacultyDetailDto & { id: string } => !!faculty?.id)
               .map((faculty) => (
                 <option key={faculty.id} value={faculty.id}>
                   {faculty.facultyName || ""} ({faculty.facultyCode || ""})
@@ -163,7 +163,7 @@ export function MajorForm({
             />
             {searching && (
               <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
-                <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             )}
           </div>
@@ -178,13 +178,13 @@ export function MajorForm({
 
           {/* Matching majors list */}
           {matchingMajors.length > 0 && !isDuplicate && (
-            <div className="mt-2 p-2 bg-slate-50 dark:bg-slate-800  border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+            <div className="mt-2 p-2 bg-muted border border-border">
+              <p className="text-xs text-muted-foreground mb-1">
                 {t("form.similarMajors")}:
               </p>
               <ul className="space-y-0.5">
                 {matchingMajors.map((major) => (
-                  <li key={major.id} className="text-sm text-slate-700 dark:text-slate-300">
+                  <li key={major.id} className="text-sm text-foreground">
                     • {major.majorName} ({major.majorCode})
                   </li>
                 ))}

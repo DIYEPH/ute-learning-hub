@@ -14,10 +14,5 @@ public interface IVectorMaintenanceService
     /// Cập nhật conversation vector khi conversation được tạo hoặc cập nhật
     /// </summary>
     Task UpdateConversationVectorAsync(Guid conversationId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Invalidate cache cho user recommendations
-    /// </summary>
-    Task InvalidateUserRecommendationsCacheAsync(Guid userId, CancellationToken cancellationToken = default);
 }
 

@@ -16,7 +16,7 @@ import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { ImportModal } from "@/src/components/admin/modals/import-modal";
 import { BanModal } from "@/src/components/admin/modals/ban-modal";
 import { AdvancedSearchFilter, type FilterOption } from "@/src/components/admin/advanced-search-filter";
-import type { UserDto, UpdateUserCommand, MajorDto2, FacultyDto2 } from "@/src/api/database/types.gen";
+import type { UserDto, MajorDetailDto, FacultyDetailDto, UpdateUserRequest } from "@/src/api/database/types.gen";
 import { useTranslations } from "next-intl";
 
 export default function UsersManagementPage() {
@@ -41,8 +41,8 @@ export default function UsersManagementPage() {
   const [trustLevel, setTrustLevel] = useState<string | null>(null);
   const [emailConfirmed, setEmailConfirmed] = useState<boolean | null>(null);
   const [isDeleted, setIsDeleted] = useState<boolean | null>(null);
-  const [majors, setMajors] = useState<MajorDto2[]>([]);
-  const [faculties, setFaculties] = useState<FacultyDto2[]>([]);
+  const [majors, setMajors] = useState<MajorDetailDto[]>([]);
+  const [faculties, setFaculties] = useState<FacultyDetailDto[]>([]);
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -126,7 +126,7 @@ export default function UsersManagementPage() {
     return () => clearTimeout(timer);
   }, [facultyId, majorId, trustLevel, emailConfirmed, isDeleted]);
 
-  const handleCreate = async (command: UpdateUserCommand) => {
+  const handleCreate = async (command: UpdateUserRequest) => {
     setFormLoading(true);
     try {
       // TODO: Implement create user API call when backend endpoint is available
@@ -140,7 +140,7 @@ export default function UsersManagementPage() {
     }
   };
 
-  const handleEdit = async (command: UpdateUserCommand) => {
+  const handleEdit = async (command: UpdateUserRequest) => {
     if (!selectedUser?.id) return;
     setFormLoading(true);
     try {
@@ -299,7 +299,7 @@ export default function UsersManagementPage() {
       label: t("form.faculty"),
       type: "select",
       options: faculties
-        .filter((f): f is FacultyDto2 & { id: string } => !!f?.id)
+        .filter((f): f is FacultyDetailDto & { id: string } => !!f?.id)
         .map((faculty) => ({
           value: faculty.id,
           label: `${faculty.facultyName || ""} (${faculty.facultyCode || ""})`,
@@ -311,7 +311,7 @@ export default function UsersManagementPage() {
       label: t("table.major"),
       type: "select",
       options: majors
-        .filter((m): m is MajorDto2 & { id: string } => !!m?.id)
+        .filter((m): m is MajorDetailDto & { id: string } => !!m?.id)
         .map((major) => ({
           value: major.id,
           label: `${major.majorName || ""} (${major.majorCode || ""})`,
@@ -395,7 +395,7 @@ export default function UsersManagementPage() {
       )}
 
       {users.length > 0 && (
-        <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+        <div className="mb-2 text-sm text-muted-foreground">
           {t("foundCount", { count: totalCount })}
         </div>
       )}

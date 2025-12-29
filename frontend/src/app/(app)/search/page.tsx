@@ -8,7 +8,7 @@ import { DocumentCard } from "@/src/components/documents/document-card";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 import { useTranslations } from "next-intl";
-import type { DocumentDto, SubjectDto2, TagDto, AuthorListDto, TypeDto } from "@/src/api/database/types.gen";
+import type { DocumentDto, SubjectDto2, TagDto, AuthorDto, TypeDto } from "@/src/api/database/types.gen";
 
 interface PagedResponse<T> {
     items?: T[];
@@ -39,7 +39,7 @@ export default function SearchPage() {
     // Filter options
     const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
     const [tags, setTags] = useState<TagDto[]>([]);
-    const [authors, setAuthors] = useState<AuthorListDto[]>([]);
+    const [authors, setAuthors] = useState<AuthorDto[]>([]);
     const [types, setTypes] = useState<TypeDto[]>([]);
 
     // Results
@@ -206,8 +206,7 @@ export default function SearchPage() {
                             <h2 className="font-semibold text-foreground">{t("filters")}</h2>
                         </div>
                         {hasActiveFilters && (
-                            <button onClick={clearFilters} className="text-xs text-sky-600 hover:underline">
-                                {t("clearAll")}
+                        <button onClick={clearFilters} className="text-xs text-primary hover:underline">{t("clearAll")}
                             </button>
                         )}
                     </div>
@@ -234,8 +233,8 @@ export default function SearchPage() {
                                     setSelectedSubjectId(null);
                                 }}
                                 className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${noSubject
-                                    ? "bg-slate-200 text-slate-800 dark:bg-slate-600 dark:text-slate-200"
-                                    : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 italic"
+                                    ? "bg-muted text-foreground"
+                                    : "hover:bg-muted text-muted-foreground italic"
                                     }`}
                             >
                                 {t("noSubjectFilter")}
@@ -250,18 +249,18 @@ export default function SearchPage() {
                                             setNoSubject(false);
                                         }}
                                         className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${selectedSubjectId === subject.id
-                                            ? "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300"
-                                            : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                                            ? "bg-primary/10 text-primary"
+                                            : "hover:bg-muted text-foreground"
                                             }`}
                                     >
                                         {subject.subjectName}
                                     </button>
                                 ))}
                                 {subjectSearch && filteredSubjects.length === 0 && (
-                                    <div className="text-sm text-slate-400 px-2 py-1">{t("noSubjectFound")}</div>
+                                    <div className="text-sm text-muted-foreground px-2 py-1">{t("noSubjectFound")}</div>
                                 )}
                                 {!subjectSearch && subjects.length > 20 && (
-                                    <div className="text-xs text-slate-400 px-2 py-1">{t("typeToSearch")}</div>
+                                    <div className="text-xs text-muted-foreground px-2 py-1">{t("typeToSearch")}</div>
                                 )}
                             </div>
                         </div>
@@ -281,7 +280,7 @@ export default function SearchPage() {
                                     onClick={() => tag.id && handleTagToggle(tag.id)}
                                     className={`px-2 py-1 rounded-full text-xs transition-colors ${tag.id && selectedTagIds.includes(tag.id)
                                         ? "bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300"
-                                        : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"
+                                        : "bg-muted hover:bg-muted/80 text-muted-foreground"
                                         }`}
                                 >
                                     {tag.tagName}
@@ -312,17 +311,17 @@ export default function SearchPage() {
                                         onClick={() => setSelectedAuthorId(selectedAuthorId === author.id ? null : author.id || null)}
                                         className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${selectedAuthorId === author.id
                                             ? "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300"
-                                            : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                                            : "hover:bg-muted text-foreground"
                                             }`}
                                     >
                                         {author.fullName}
                                     </button>
                                 ))}
                                 {authorSearch && filteredAuthors.length === 0 && (
-                                    <div className="text-sm text-slate-400 px-2 py-1">{t("noAuthorFound")}</div>
+                                    <div className="text-sm text-muted-foreground px-2 py-1">{t("noAuthorFound")}</div>
                                 )}
                                 {!authorSearch && authors.length > 20 && (
-                                    <div className="text-xs text-slate-400 px-2 py-1">{t("typeToSearch")}</div>
+                                    <div className="text-xs text-muted-foreground px-2 py-1">{t("typeToSearch")}</div>
                                 )}
                             </div>
                         </div>
@@ -341,7 +340,7 @@ export default function SearchPage() {
                                     onClick={() => setSelectedTypeId(selectedTypeId === type.id ? null : type.id || null)}
                                     className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${selectedTypeId === type.id
                                         ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"
-                                        : "hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                                        : "hover:bg-muted text-foreground"
                                         }`}
                                 >
                                     {type.typeName}
@@ -370,7 +369,7 @@ export default function SearchPage() {
                 {/* Active Filters */}
                 {hasActiveFilters && (
                     <div className="flex flex-wrap gap-2 items-center">
-                        <span className="text-sm text-slate-500">{t("activeFilters")}:</span>
+                        <span className="text-sm text-muted-foreground">{t("activeFilters")}:</span>
                         {selectedSubjectId && (
                             <FilterBadge
                                 label={subjects.find((s) => s.id === selectedSubjectId)?.subjectName || ""}
@@ -404,17 +403,17 @@ export default function SearchPage() {
                 )}
 
                 {/* Results Count */}
-                <div className="text-sm text-slate-500">
+                <div className="text-sm text-muted-foreground">
                     {loading ? t("searching") : t("resultsCount", { count: totalCount })}
                 </div>
 
                 {/* Results */}
                 {loading && documents.length === 0 ? (
                     <div className="flex items-center justify-center py-12">
-                        <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     </div>
                 ) : documents.length === 0 ? (
-                    <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                    <div className="text-center py-12 text-muted-foreground">
                         {t("noResults")}
                     </div>
                 ) : (
@@ -466,7 +465,7 @@ function FilterSection({
     children: React.ReactNode;
 }) {
     return (
-        <div className="border-b border-slate-200 dark:border-slate-700 pb-3">
+        <div className="border-b border-border pb-3">
             <button
                 onClick={onToggle}
                 className="flex items-center justify-between w-full text-left py-1"
@@ -474,15 +473,15 @@ function FilterSection({
                 <span className="text-sm font-medium text-foreground flex items-center gap-2">
                     {title}
                     {badge && (
-                        <span className="px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300 text-xs">
+                        <span className="px-1.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs">
                             {badge}
                         </span>
                     )}
                 </span>
                 {expanded ? (
-                    <ChevronUp className="h-4 w-4 text-slate-400" />
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 )}
             </button>
             {expanded && <div className="mt-2">{children}</div>}
@@ -501,7 +500,7 @@ function FilterBadge({
     color: "sky" | "violet" | "pink" | "emerald";
 }) {
     const colorClasses = {
-        sky: "bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-300",
+        sky: "bg-primary/10 text-primary",
         violet: "bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300",
         pink: "bg-pink-100 text-pink-700 dark:bg-pink-900 dark:text-pink-300",
         emerald: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300",

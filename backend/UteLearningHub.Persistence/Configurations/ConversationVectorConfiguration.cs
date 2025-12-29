@@ -25,5 +25,8 @@ public class ConversationVectorConfiguration : IEntityTypeConfiguration<Conversa
             .WithMany()
             .HasForeignKey(x => x.ConversationId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // Query filter: exclude vectors of deleted conversations
+        builder.HasQueryFilter(x => !x.Conversation.IsDeleted);
     }
 }

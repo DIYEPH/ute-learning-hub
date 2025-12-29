@@ -21,10 +21,6 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserD
 
     public async Task<UserDto> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
-        // Only admin can update users
-        if (!_currentUserService.IsAuthenticated)
-            throw new UnauthorizedException("You must be authenticated to update users");
-
         var isAdmin = _currentUserService.IsInRole("Admin");
         if (!isAdmin)
             throw new UnauthorizedException("Only administrators can update users");

@@ -86,7 +86,7 @@ export default function ChatPage() {
   if (loading && conversations.length === 0) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-sky-500" />
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function ChatPage() {
       {/* Sidebar: Danh sách conversations */}
       <div
         className={cn(
-          "border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 flex flex-col h-full overflow-hidden transition-transform duration-300",
+          "border-r border-border bg-card flex flex-col h-full overflow-hidden transition-transform duration-300",
           "w-full md:w-80 flex-shrink-0",
           selectedConversationId
             ? "hidden md:flex"
@@ -104,7 +104,7 @@ export default function ChatPage() {
         )}
       >
         {/* Header */}
-        <div className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex-shrink-0 p-4 border-b border-border">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-lg font-semibold text-foreground">
               Trò chuyện
@@ -118,7 +118,7 @@ export default function ChatPage() {
             </Button>
           </div>
           <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="Tìm kiếm cuộc trò chuyện..."
@@ -132,12 +132,12 @@ export default function ChatPage() {
         {/* Conversation List */}
         <div className="flex-1 min-h-0 overflow-y-auto">
           {error ? (
-            <div className="p-4 text-sm text-red-600 dark:text-red-400">
+            <div className="p-6 text-sm text-red-600 dark:text-red-400">
               {error}
             </div>
           ) : conversations.length === 0 ? (
-            <div className="p-4 text-center text-sm text-slate-500 dark:text-slate-400">
-              <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center text-sm text-muted-foreground">
+              <MessageCircle className="h-12 w-12 mb-4 opacity-40" />
               <p>Chưa có cuộc trò chuyện nào</p>
             </div>
           ) : (
@@ -163,7 +163,7 @@ export default function ChatPage() {
             onBack={() => router.push("/chat")}
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-slate-500 dark:text-slate-400">
+          <div className="flex h-full items-center justify-center text-muted-foreground">
             <div className="text-center">
               <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>Chọn một cuộc trò chuyện để bắt đầu</p>

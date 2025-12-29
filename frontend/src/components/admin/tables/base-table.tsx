@@ -175,7 +175,7 @@ export function BaseTable<T extends { id?: string }>({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <p className="text-slate-600 dark:text-slate-400">
+        <p className="text-muted-foreground">
           {loadingLabel || t("loading")}
         </p>
       </div>
@@ -185,7 +185,7 @@ export function BaseTable<T extends { id?: string }>({
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center py-8">
-        <p className="text-slate-600 dark:text-slate-400">
+        <p className="text-muted-foreground">
           {noDataLabel || t("noData") || "Không có dữ liệu"}
         </p>
       </div>
@@ -195,8 +195,8 @@ export function BaseTable<T extends { id?: string }>({
   return (
     <div className="space-y-2">
       {selectedIds.size > 0 && onBulkDelete && (
-        <div className="flex items-center justify-between p-2 bg-blue-50 dark:bg-blue-950 rounded border border-blue-200 dark:border-blue-800">
-          <span className="text-sm text-blue-900 dark:text-blue-100">
+        <div className="flex items-center justify-between p-2 bg-secondary rounded border border-border">
+          <span className="text-sm text-foreground">
             {selectedCountLabel || `${selectedIds.size} mục đã chọn`}
           </span>
           <Button
@@ -241,7 +241,7 @@ export function BaseTable<T extends { id?: string }>({
                         <button
                           type="button"
                           onClick={() => handleSort(column.key, columnSortKey)}
-                          className="inline-flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-800 rounded p-1 transition-colors"
+                          className="inline-flex items-center justify-center hover:bg-muted rounded p-1 transition-colors"
                           aria-label={`Sort by ${column.header}`}
                         >
                           {isAsc ? (
@@ -249,7 +249,7 @@ export function BaseTable<T extends { id?: string }>({
                           ) : isDesc ? (
                             <ArrowDown size={14} className="text-primary" />
                           ) : (
-                            <ArrowUpDown size={14} className="text-slate-400" />
+                            <ArrowUpDown size={14} className="text-muted-foreground" />
                           )}
                         </button>
                       )}

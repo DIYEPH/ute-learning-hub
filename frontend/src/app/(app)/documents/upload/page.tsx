@@ -102,7 +102,7 @@ export default function UploadDocumentPage() {
 
       <div className="flex items-center gap-4">
         <h1 className="text-2xl font-semibold">{t("uploadTitle")}</h1>
-        <div className="flex items-center gap-2 text-sm text-slate-500">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <span className={step === 1 ? "text-primary font-medium" : ""}>1</span>
           <ChevronRight className="h-4 w-4" />
           <span className={step === 2 ? "text-primary font-medium" : ""}>2</span>
@@ -131,12 +131,12 @@ export default function UploadDocumentPage() {
 
       {step === 2 && formData && (
         <>
-          <div className="p-4 bg-slate-50 rounded">
+          <div className="p-4 bg-muted rounded">
             <h3 className="text-sm font-semibold flex gap-2 mb-1">
               <FileText className="h-4 w-4" /> {formData.documentName}
             </h3>
             {formData.description && (
-              <p className="text-xs text-slate-500 line-clamp-1">{formData.description}</p>
+              <p className="text-xs text-muted-foreground line-clamp-1">{formData.description}</p>
             )}
           </div>
 

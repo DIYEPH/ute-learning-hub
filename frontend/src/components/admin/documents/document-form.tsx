@@ -6,7 +6,7 @@ import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useTags } from "@/src/hooks/use-tags";
-import type { UpdateDocumentCommand, SubjectDto2, TagDto } from "@/src/api/database/types.gen";
+import type { UpdateDocumentCommandRequest, SubjectDto2, TagDto } from "@/src/api/database/types.gen";
 
 // VisibilityStatus enum mapping
 const VisibilityOptions = [
@@ -29,7 +29,7 @@ export interface DocumentFormData {
 
 interface DocumentFormProps {
     initialData?: DocumentFormData;
-    onSubmit: (data: UpdateDocumentCommand) => void | Promise<void>;
+    onSubmit: (data: UpdateDocumentCommandRequest) => void | Promise<void>;
     loading?: boolean;
 }
 
@@ -82,7 +82,7 @@ export function DocumentForm({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        const command: UpdateDocumentCommand = {
+        const command: UpdateDocumentCommandRequest = {
             documentName: formData.documentName || undefined,
             description: formData.description || undefined,
             subjectId: formData.subjectId || undefined,
@@ -192,7 +192,7 @@ export function DocumentForm({
                                 key={tag.id}
                                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm cursor-pointer transition-colors ${formData.tagIds?.includes(tag.id || "")
                                     ? "bg-primary text-primary-foreground"
-                                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"
+                                    : "bg-secondary text-muted-foreground hover:bg-muted"
                                     }`}
                             >
                                 <input

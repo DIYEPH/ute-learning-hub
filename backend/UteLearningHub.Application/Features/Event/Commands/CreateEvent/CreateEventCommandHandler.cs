@@ -47,7 +47,7 @@ public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Eve
             CreatedAt = _dateTimeProvider.OffsetNow
         };
 
-        await _eventRepository.AddAsync(evt, cancellationToken);
+        _eventRepository.Add(evt);
         await _eventRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
         return new EventDto

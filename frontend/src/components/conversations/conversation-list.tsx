@@ -17,7 +17,7 @@ export function ConversationList({
   onSelect,
 }: ConversationListProps) {
   return (
-    <div className="divide-y divide-slate-200 dark:divide-slate-700">
+    <div className="divide-y divide-border">
       {conversations.map((conversation) => {
         const isSelected = conversation.id === selectedId;
         const unreadCount = conversation.unreadCount ?? 0;
@@ -28,9 +28,9 @@ export function ConversationList({
             key={conversation.id}
             onClick={() => conversation.id && onSelect(conversation.id)}
             className={cn(
-              "w-full p-2 md:p-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors",
-              isSelected && "bg-sky-50 dark:bg-sky-950 border-r-2 border-sky-500",
-              hasUnread && !isSelected && "bg-sky-50/50 dark:bg-sky-950/30"
+              "w-full p-2 md:p-3 text-left hover:bg-muted transition-colors",
+              isSelected && "bg-accent border-r-2 border-primary",
+              hasUnread && !isSelected && "bg-accent/50"
             )}
           >
             <div className="flex items-start gap-3">
@@ -45,7 +45,7 @@ export function ConversationList({
                   </AvatarFallback>
                 </Avatar>
                 {hasUnread && (
-                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-sky-500 text-[10px] font-bold text-white">
+                  <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
@@ -58,7 +58,7 @@ export function ConversationList({
                       "text-sm truncate",
                       hasUnread ? "font-bold" : "font-semibold",
                       isSelected
-                        ? "text-sky-700 dark:text-sky-300"
+                        ? "text-primary"
                         : "text-foreground"
                     )}
                   >
@@ -71,20 +71,20 @@ export function ConversationList({
                     {conversation.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag.id}
-                        className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                        className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
                       >
                         {tag.tagName}
                       </span>
                     ))}
                     {conversation.tags.length > 3 && (
-                      <span className="text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                      <span className="text-[10px] font-medium text-muted-foreground">
                         +{conversation.tags.length - 3}
                       </span>
                     )}
                   </div>
                 )}
 
-                <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   {conversation.memberCount !== undefined && (
                     <div className="flex items-center gap-1">
                       <Users className="h-3 w-3" />

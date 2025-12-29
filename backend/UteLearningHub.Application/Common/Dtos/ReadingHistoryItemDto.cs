@@ -11,4 +11,7 @@ public record ReadingHistoryItemDto
     public DateTimeOffset? LastAccessedAt { get; init; }
     public Guid? CoverFileId { get; init; }
     public string? SubjectName { get; init; }
+    public int TotalViewCount { get; init; }
+    public int UsefulCount { get; init; }
+    public int NotUsefulCount { get; init; }
 }

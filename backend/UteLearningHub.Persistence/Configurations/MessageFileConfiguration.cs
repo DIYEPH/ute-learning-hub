@@ -25,5 +25,8 @@ public class MessageFileConfiguration : IEntityTypeConfiguration<MessageFile>
             .WithMany(u => u.MessageFiles)
             .HasForeignKey(u => u.FileId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Query filter: exclude when file or message is deleted
+        builder.HasQueryFilter(u => !u.File.IsDeleted && !u.Message.IsDeleted);
     }
 }

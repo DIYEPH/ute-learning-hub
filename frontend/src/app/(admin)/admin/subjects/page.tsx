@@ -16,10 +16,10 @@ import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
 import { ImportModal } from "@/src/components/admin/modals/import-modal";
 import { AdvancedSearchFilter, type FilterOption } from "@/src/components/admin/advanced-search-filter";
 import type {
-  SubjectDto2,
+  SubjectDetailDto,
   CreateSubjectCommand,
-  UpdateSubjectCommand,
-  MajorDto2,
+  UpdateSubjectCommandRequest,
+  MajorDetailDto,
 } from "@/src/api/database/types.gen";
 
 export default function SubjectsManagementPage() {
@@ -36,7 +36,7 @@ export default function SubjectsManagementPage() {
   } = useSubjects();
   const { fetchMajors } = useMajors();
 
-  const [subjects, setSubjects] = useState<SubjectDto2[]>([]);
+  const [subjects, setSubjects] = useState<SubjectDetailDto[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
@@ -45,14 +45,14 @@ export default function SubjectsManagementPage() {
   // Filter states
   const [majorIds, setMajorIds] = useState<string[]>([]);
   const [deletedFilter, setDeletedFilter] = useState<string | null>(null);
-  const [majors, setMajors] = useState<MajorDto2[]>([]);
+  const [majors, setMajors] = useState<MajorDetailDto[]>([]);
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [selectedSubject, setSelectedSubject] = useState<SubjectDto2 | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<SubjectDetailDto | null>(null);
   const [formLoading, setFormLoading] = useState(false);
   const [importLoading, setImportLoading] = useState(false);
 
@@ -93,7 +93,7 @@ export default function SubjectsManagementPage() {
     loadSubjects();
   }, [loadSubjects]);
 
-  const handleCreate = async (command: CreateSubjectCommand | UpdateSubjectCommand) => {
+  const handleCreate = async (command: CreateSubjectCommand | UpdateSubjectCommandRequest) => {
     setFormLoading(true);
     try {
       await createSubject(command as CreateSubjectCommand);
@@ -108,11 +108,11 @@ export default function SubjectsManagementPage() {
     }
   };
 
-  const handleEdit = async (command: CreateSubjectCommand | UpdateSubjectCommand) => {
+  const handleEdit = async (command: CreateSubjectCommand | UpdateSubjectCommandRequest) => {
     if (!selectedSubject?.id) return;
     setFormLoading(true);
     try {
-      await updateSubject(selectedSubject.id, command as UpdateSubjectCommand);
+      await updateSubject(selectedSubject.id, command as UpdateSubjectCommandRequest);
       await loadSubjects();
       setEditModalOpen(false);
       setSelectedSubject(null);
@@ -225,10 +225,10 @@ export default function SubjectsManagementPage() {
       label: t("form.majors"),
       type: "searchable-multiselect",
       options: majors
-        .filter((m): m is MajorDto2 & { id: string } => !!m?.id)
+        .filter((m): m is MajorDetailDto & { id: string } => !!m?.id)
         .map((major) => ({
           value: major.id,
-          label: `${major.majorName || ""} (${major.majorCode || ""})${major.faculty ? ` - ${major.faculty.facultyName}` : ""}`,
+          label: `${major.majorName || ""} (${major.majorCode || ""})`,
         })),
       value: majorIds,
     },
@@ -293,7 +293,7 @@ export default function SubjectsManagementPage() {
       )}
 
       {subjects.length > 0 && (
-        <div className="mb-2 text-sm text-slate-600 dark:text-slate-400">
+        <div className="mb-2 text-sm text-muted-foreground">
           {t("foundCount", { count: totalCount })}
         </div>
       )}
@@ -363,7 +363,7 @@ export default function SubjectsManagementPage() {
           initialData={{
             subjectName: selectedSubject?.subjectName || null,
             subjectCode: selectedSubject?.subjectCode || null,
-            majorIds: selectedSubject?.majors?.map((m) => m.id || "").filter(Boolean) || [],
+            majorIds: selectedSubject?.majors?.map(m => m.id).filter((id): id is string => !!id) || [],
           }}
           onSubmit={handleEdit}
           loading={formLoading}

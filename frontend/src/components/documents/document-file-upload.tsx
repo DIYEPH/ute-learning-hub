@@ -131,13 +131,13 @@ export function DocumentFileUpload({
           />
           <label
             htmlFor="upload-file"
-            className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-xs transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""
+            className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-muted text-xs transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""
               } ${fileSizeError ? "border-red-300 bg-red-50 dark:bg-red-950/30" : ""}`}
           >
             <Upload size={14} />
             <span className="truncate">{selectedFile ? selectedFile.name : "Chọn file"}</span>
           </label>
-          <p className="mt-0.5 text-[10px] text-slate-400">Tối đa {MAX_FILE_SIZE_MB}MB</p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">Tối đa {MAX_FILE_SIZE_MB}MB</p>
           {fileSizeError && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
               <AlertCircle size={12} />
@@ -175,7 +175,7 @@ export function DocumentFileUpload({
           />
           <label
             htmlFor="upload-cover"
-            className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 text-xs transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""
+            className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-muted text-xs transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""
               }`}
           >
             <ImageIcon size={14} />
@@ -192,7 +192,7 @@ export function DocumentFileUpload({
           <img
             src={coverPreview}
             alt="Preview"
-            className="h-16 w-auto object-contain rounded border border-slate-200 dark:border-slate-700"
+            className="h-16 w-auto object-contain rounded border border-border"
           />
           <button
             type="button"

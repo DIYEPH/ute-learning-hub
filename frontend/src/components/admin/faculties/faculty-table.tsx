@@ -2,12 +2,14 @@
 
 import { useTranslations } from "next-intl";
 import { BaseTable, BaseTableColumn } from "@/src/components/admin/tables/base-table";
-import type { FacultyDto2 } from "@/src/api/database/types.gen";
+import { Badge } from "@/src/components/ui/badge";
+import { GraduationCap } from "lucide-react";
+import type { FacultyDetailDto } from "@/src/api/database/types.gen";
 
 interface FacultyTableProps {
-  faculties: FacultyDto2[];
-  onEdit?: (faculty: FacultyDto2) => void;
-  onDelete?: (faculty: FacultyDto2) => void;
+  faculties: FacultyDetailDto[];
+  onEdit?: (faculty: FacultyDetailDto) => void;
+  onDelete?: (faculty: FacultyDetailDto) => void;
   onBulkDelete?: (ids: string[]) => void | Promise<void>;
   loading?: boolean;
   onSort?: (sortKey: string, direction: "asc" | "desc" | null) => void;
@@ -29,7 +31,7 @@ export function FacultyTable({
 }: FacultyTableProps) {
   const t = useTranslations("admin.faculties");
 
-  const columns: BaseTableColumn<FacultyDto2>[] = [
+  const columns: BaseTableColumn<FacultyDetailDto>[] = [
     {
       key: "logo",
       header: t("table.logo"),
@@ -49,7 +51,7 @@ export function FacultyTable({
               />
             </div>
           ) : (
-            <div className="h-10 w-10 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center text-xs text-slate-400">
+            <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">
               -
             </div>
           )}
@@ -72,6 +74,18 @@ export function FacultyTable({
       sortable: true,
       render: (faculty) => (
         <div className="text-sm text-foreground">{faculty.facultyCode}</div>
+      ),
+    },
+    {
+      key: "majorCount",
+      header: t("table.majorCount"),
+      className: "min-w-[100px]",
+      sortable: true,
+      render: (faculty) => (
+        <div className="flex items-center gap-1 text-sm">
+          <GraduationCap className="h-4 w-4 text-muted-foreground" />
+          <Badge variant="secondary">{faculty.majorCount ?? 0}</Badge>
+        </div>
       ),
     },
   ];

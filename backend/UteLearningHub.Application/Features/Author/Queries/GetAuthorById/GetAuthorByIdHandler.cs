@@ -1,21 +1,18 @@
 using MediatR;
+using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Author;
-using UteLearningHub.Domain.Exceptions;
+using UteLearningHub.Application.Services.Identity;
 
 namespace UteLearningHub.Application.Features.Author.Queries.GetAuthorById;
 
-public class GetAuthorByIdHandler : IRequestHandler<GetAuthorByIdQuery, AuthorDetailDto>
+public class GetAuthorByIdHandler(IAuthorService authorService, ICurrentUserService currentUserService) : IRequestHandler<GetAuthorByIdQuery, AuthorDetailDto>
 {
-    private readonly IAuthorQueryService _authorQueryService;
+    private readonly IAuthorService _authorService = authorService;
+    private readonly ICurrentUserService _currentUserService = currentUserService;
 
-    public GetAuthorByIdHandler(IAuthorQueryService authorQueryService)
+    public async Task<AuthorDetailDto> Handle(GetAuthorByIdQuery request, CancellationToken ct)
     {
-        _authorQueryService = authorQueryService;
-    }
-
-    public async Task<AuthorDetailDto> Handle(GetAuthorByIdQuery request, CancellationToken cancellationToken)
-    {
-        var author = await _authorQueryService.GetByIdAsync(request.Id, cancellationToken);
-        return author ?? throw new NotFoundException($"Author with id {request.Id} not found");
+        var isAdmin = _currentUserService.IsInRole("Admin");
+        return await _authorService.GetAuthorByIdAsync(request.Id, isAdmin, ct);
     }
 }

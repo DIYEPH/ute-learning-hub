@@ -6,5 +6,4 @@ namespace UteLearningHub.Domain.Repositories;
 public interface ITypeRepository : IRepository<DomainType, Guid>
 {
     Task<DomainType?> FindByNameAsync(string name, bool includeDeleted = false, CancellationToken cancellationToken = default);
-    Task<int> GetDocumentCountAsync(Guid typeId, CancellationToken cancellationToken = default);
 }

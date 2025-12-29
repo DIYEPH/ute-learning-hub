@@ -22,7 +22,7 @@ public class FacultyController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<PagedResponse<FacultyDto>>> GetFaculties([FromQuery] GetFacultiesQuery query)
+    public async Task<ActionResult<PagedResponse<FacultyDetailDto>>> GetFaculties([FromQuery] GetFacultiesQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);
@@ -46,9 +46,15 @@ public class FacultyController : ControllerBase
 
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<FacultyDetailDto>> UpdateFaculty(Guid id, [FromBody] UpdateFacultyCommand command)
+    public async Task<ActionResult<FacultyDetailDto>> UpdateFaculty(Guid id, [FromBody] UpdateFacultyCommandRequest request)
     {
-        command = command with { Id = id };
+        var command = new UpdateFacultyCommand
+        {
+            Id = id,
+            FacultyName = request.FacultyName,
+            FacultyCode = request.FacultyCode,
+            Logo = request.Logo
+        };
         var result = await _mediator.Send(command);
         return Ok(result);
     }

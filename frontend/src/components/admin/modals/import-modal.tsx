@@ -104,13 +104,13 @@ export function ImportModal({
           <input type="file" accept={accept} onChange={handleFileChange} className="hidden" id={fileInputId} />
           <label
             htmlFor={fileInputId}
-            className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-slate-300 dark:border-slate-700  cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+            className="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-border cursor-pointer hover:bg-muted transition-colors"
           >
             <FileText size={20} />
             <span className="text-sm">{file ? file.name : "Chọn file CSV hoặc Excel"}</span>
           </label>
           {file && (
-            <div className="flex items-center justify-between p-3 bg-slate-100 dark:bg-slate-800 ">
+            <div className="flex items-center justify-between p-3 bg-muted">
               <div className="flex items-center gap-2">
                 <FileText size={16} />
                 <span className="text-sm text-foreground">{file.name}</span>
@@ -119,11 +119,11 @@ export function ImportModal({
             </div>
           )}
           {error && <p className="text-sm text-destructive">{error}</p>}
-          {helpText && <p className="text-xs text-slate-500 dark:text-slate-400">{helpText}</p>}
+          {helpText && <p className="text-xs text-muted-foreground">{helpText}</p>}
         </div>
         {requiredColumns && (
-          <div className="p-3 bg-slate-50 dark:bg-slate-900  border border-slate-200 dark:border-slate-800">
-            <p className="text-xs text-slate-600 dark:text-slate-400">{requiredColumns}</p>
+          <div className="p-3 bg-muted border border-border">
+            <p className="text-xs text-muted-foreground">{requiredColumns}</p>
           </div>
         )}
       </div>

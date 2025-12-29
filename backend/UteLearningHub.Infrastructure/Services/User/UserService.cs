@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Events;
-using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
 using UteLearningHub.Application.Features.User.Commands.UpdateUser;
 using UteLearningHub.Application.Features.User.Queries.GetUsers;
 using UteLearningHub.Application.Services.Identity;
@@ -13,6 +12,7 @@ using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Exceptions;
+using UteLearningHub.Domain.Policies;
 using UteLearningHub.Persistence;
 using UteLearningHub.Persistence.Identity;
 
@@ -43,60 +43,6 @@ public class UserService : IUserService
         _vectorMaintenanceService = vectorMaintenanceService;
     }
 
-    public async Task<ProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
-    {
-        var user = await _identityService.FindByIdAsync(userId);
-
-        if (user is null)
-            return null;
-
-        var roles = await _identityService.GetRolesAsync(userId);
-
-        var appUser = await _dbContext.Users
-            .Include(u => u.Major!)
-                .ThenInclude(m => m!.Faculty)
-            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-        if (appUser is null)
-            return null;
-
-        MajorDto? majorDto = null;
-
-        if (appUser.MajorId.HasValue && appUser.Major != null)
-            majorDto = new MajorDto
-            {
-                Id = appUser.Major.Id,
-                MajorName = appUser.Major.MajorName,
-                MajorCode = appUser.Major.MajorCode,
-                Faculty = appUser.Major.Faculty != null
-                    ? new FacultyDto
-                    {
-                        Id = appUser.Major.Faculty.Id,
-                        FacultyName = appUser.Major.Faculty.FacultyName,
-                        FacultyCode = appUser.Major.Faculty.FacultyCode,
-                        Logo = appUser.Major.Faculty.Logo
-                    }
-                    : null
-            };
-
-        return new ProfileDto
-        {
-            Id = userId,
-            Username = user.UserName,
-            Email = user.Email,
-            FullName = user.FullName,
-            EmailConfirmed = user.EmailConfirmed,
-            AvatarUrl = user.AvatarUrl,
-            Introduction = user.Introduction,
-            TrustScore = appUser.TrustScore,
-            TrustLevel = appUser.TrustLever.ToString(),
-            Gender = appUser.Gender,
-            Roles = roles.ToList(),
-            Major = majorDto,
-            CreatedAt = appUser.CreatedAt
-        };
-    }
-
     public async Task<TrustLever?> GetTrustLevelAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var appUser = await _dbContext.Users
@@ -105,52 +51,6 @@ public class UserService : IUserService
 
         return appUser?.TrustLever;
     }
-
-    public async Task<ProfileDto> UpdateProfileAsync(
-        Guid userId,
-        UpdateProfileRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        var appUser = await _dbContext.Users
-            .Include(u => u.Major!)
-                .ThenInclude(m => m!.Faculty)
-            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
-
-        if (appUser == null)
-            throw new NotFoundException("User not found");
-
-        if (!string.IsNullOrWhiteSpace(request.FullName))
-            appUser.FullName = request.FullName;
-
-        if (!string.IsNullOrWhiteSpace(request.Introduction))
-            appUser.Introduction = request.Introduction;
-
-        if (!string.IsNullOrWhiteSpace(request.AvatarUrl))
-            appUser.AvatarUrl = request.AvatarUrl;
-
-        if (request.MajorId.HasValue)
-        {
-            var major = await _dbContext.Majors
-                .FirstOrDefaultAsync(m => m.Id == request.MajorId.Value && !m.IsDeleted, cancellationToken);
-
-            if (major == null)
-                throw new NotFoundException($"Major with id {request.MajorId.Value} not found");
-
-            appUser.MajorId = request.MajorId.Value;
-        }
-
-        if (request.Gender.HasValue)
-            appUser.Gender = request.Gender.Value;
-
-        appUser.UpdatedAt = _dateTimeProvider.OffsetNow;
-
-        await _dbContext.SaveChangesAsync(cancellationToken);
-
-        // Return updated profile
-        return await GetProfileAsync(userId, cancellationToken)
-            ?? throw new NotFoundException("User not found");
-    }
-
     public async Task<IList<Guid>> GetAllActiveUserIdsAsync(CancellationToken cancellationToken = default)
     {
         return await _dbContext.Users
@@ -266,18 +166,11 @@ public class UserService : IUserService
                 Gender = user.Gender,
                 IsSuggest = user.IsSuggest,
                 Roles = roles.ToList(),
-                Major = user.Major != null ? new MajorDto
+                Major = user.Major != null ? new MajorDetailDto
                 {
                     Id = user.Major.Id,
                     MajorName = user.Major.MajorName,
-                    MajorCode = user.Major.MajorCode,
-                    Faculty = user.Major.Faculty != null ? new FacultyDto
-                    {
-                        Id = user.Major.Faculty.Id,
-                        FacultyName = user.Major.Faculty.FacultyName,
-                        FacultyCode = user.Major.Faculty.FacultyCode,
-                        Logo = user.Major.Faculty.Logo
-                    } : null
+                    MajorCode = user.Major.MajorCode
                 } : null,
                 CreatedAt = user.CreatedAt,
                 UpdatedAt = user.UpdatedAt,
@@ -326,17 +219,11 @@ public class UserService : IUserService
             Gender = user.Gender,
             IsSuggest = user.IsSuggest,
             Roles = roles.ToList(),
-            Major = user.Major != null ? new MajorDto
+            Major = user.Major != null ? new MajorDetailDto
             {
                 Id = user.Major.Id,
                 MajorName = user.Major.MajorName,
-                MajorCode = user.Major.MajorCode,
-                Faculty = user.Major.Faculty != null ? new FacultyDto
-                {
-                    Id = user.Major.Faculty.Id,
-                    FacultyName = user.Major.Faculty.FacultyName,
-                    FacultyCode = user.Major.Faculty.FacultyCode
-                } : null
+                MajorCode = user.Major.MajorCode
             } : null,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
@@ -443,12 +330,12 @@ public class UserService : IUserService
 
         var oldTrustScore = user.TrustScore;
         var oldTrustLevel = user.TrustLever;
-        
+
         user.TrustScore = trustScore;
         user.UpdatedAt = _dateTimeProvider.OffsetNow;
 
         if (oldTrustLevel != TrustLever.Master)
-            user.TrustLever = CalculateTrustLevel(trustScore);
+            user.TrustLever = TrustLevelPolicy.Calculate(trustScore);
 
         if (!string.IsNullOrWhiteSpace(reason))
         {
@@ -487,20 +374,6 @@ public class UserService : IUserService
         return await GetUserByIdAsync(userId, cancellationToken)
             ?? throw new NotFoundException("User not found");
     }
-
-   // tính điểm 
-    private static TrustLever CalculateTrustLevel(int trustScore)
-    {
-        return trustScore switch
-        {
-            < 5 => TrustLever.None,
-            < 9 => TrustLever.Newbie,
-            < 29 => TrustLever.Contributor,
-            < 59 => TrustLever.TrustedMember,
-            _ => TrustLever.Moderator
-        };
-    }
-
     public async Task<IList<UserTrustHistoryDto>> GetUserTrustHistoryAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var histories = await _dbContext.UserTrustHistories
