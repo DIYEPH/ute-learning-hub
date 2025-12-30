@@ -7,7 +7,7 @@ import {
   postApiFaculty,
   putApiFacultyById,
   deleteApiFacultyById,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
   GetApiFacultyData,
   GetApiFacultyResponse,

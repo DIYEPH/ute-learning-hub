@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2, Clock, FileText } from "lucide-react";
 
-import { getApiDocumentReadingHistory } from "@/src/api/database/sdk.gen";
+import { getApiDocumentReadingHistory } from "@/src/api";
 import type {
     ReadingHistoryItemDto,
     PagedResponseOfReadingHistoryItemDto,

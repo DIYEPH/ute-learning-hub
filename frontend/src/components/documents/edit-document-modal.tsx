@@ -8,7 +8,7 @@ import { Input } from "@/src/components/ui/input";
 import { Loader2, X, Upload } from "lucide-react";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useTypes } from "@/src/hooks/use-types";
-import { getApiTag, getApiAuthor, putApiDocumentById } from "@/src/api/database/sdk.gen";
+import { getApiTag, getApiAuthor, putApiDocumentById, postApiFile } from "@/src/api";
 import type { DocumentDetailDto, SubjectDto2, TypeDto, TagDto, PutApiDocumentByIdData, AuthorDto, AuthorInput } from "@/src/api/database/types.gen";
 import { TagPicker } from "@/src/components/ui/tag-picker";
 import { AuthorPicker } from "@/src/components/ui/author-picker";
@@ -143,6 +143,17 @@ export function EditDocumentModal({
     setLoading(true);
 
     try {
+      // Upload cover file if selected
+      let coverFileId: string | null = null;
+      if (formData.coverFile) {
+        const uploadRes = await postApiFile({
+          body: { file: formData.coverFile },
+          query: { category: "DocumentCover" },
+        });
+        const uploadData = (uploadRes?.data ?? uploadRes) as any;
+        coverFileId = uploadData?.id || null;
+      }
+
       await putApiDocumentById({
         path: { id: document.id! },
         body: {
@@ -154,6 +165,7 @@ export function EditDocumentModal({
           authorIds: formData.authorIds && formData.authorIds.length > 0 ? formData.authorIds : null,
           authors: formData.newAuthors && formData.newAuthors.length > 0 ? formData.newAuthors : null,
           visibility: formData.visibility,
+          coverFileId: coverFileId || undefined,
         },
         throwOnError: true,
       });

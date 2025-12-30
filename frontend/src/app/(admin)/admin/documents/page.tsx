@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import { useDocuments } from "@/src/hooks/use-documents";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useTypes } from "@/src/hooks/use-types";
-import { getApiAuthor, getApiTag } from "@/src/api/database/sdk.gen";
+import { getApiAuthor, getApiTag } from "@/src/api";
 import { useNotification } from "@/src/components/providers/notification-provider";
 import { DocumentTable } from "@/src/components/admin/documents/document-table";
 import { DocumentForm } from "@/src/components/admin/documents/document-form";

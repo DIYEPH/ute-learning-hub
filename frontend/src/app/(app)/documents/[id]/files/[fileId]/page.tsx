@@ -7,7 +7,7 @@ import { ArrowLeft, FileText, MessageSquare, X } from "lucide-react";
 import {
   getApiDocumentById,
   postApiDocumentFilesByFileIdView,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type { DocumentDetailDto, DocumentFileDto } from "@/src/api/database/types.gen";
 
 import { Button } from "@/src/components/ui/button";

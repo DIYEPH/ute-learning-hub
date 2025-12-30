@@ -87,9 +87,9 @@ public class EmailService : IEmailService
     <style>
         body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-        .header {{ background-color: #2563eb; color: white; padding: 20px; text-align: center; }}
-        .content {{ padding: 20px; background-color: #f9fafb; }}
-        .button {{ display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }}
+        .header {{ background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }}
+        .content {{ padding: 30px; background-color: #f9fafb; }}
+        .button {{ display: inline-block; padding: 14px 28px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; }}
         .footer {{ padding: 20px; text-align: center; color: #6b7280; font-size: 12px; }}
     </style>
 </head>
@@ -101,15 +101,11 @@ public class EmailService : IEmailService
         <div class='content'>
             <h2>Đặt lại mật khẩu</h2>
             <p>Xin chào,</p>
-            <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình.</p>
-            <p><strong>Mã xác thực của bạn:</strong></p>
-            <p style='font-size: 24px; font-weight: bold; text-align: center; background-color: #e5e7eb; padding: 15px; border-radius: 5px; letter-spacing: 2px;'>{resetToken}</p>
-            <p>Vui lòng nhập mã này vào trang hồ sơ cá nhân để đặt mật khẩu mới.</p>
-            <p>Hoặc click vào nút bên dưới để đặt lại mật khẩu:</p>
-            <p style='text-align: center;'>
+            <p>Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản của mình. Click vào nút bên dưới để tiếp tục:</p>
+            <p style='text-align: center; margin: 30px 0;'>
                 <a href='{resetUrl}' class='button'>Đặt lại mật khẩu</a>
             </p>
-            <p><strong>Lưu ý:</strong> Mã này sẽ hết hạn sau 15 phút.</p>
+            <p><strong>Lưu ý:</strong> Link này sẽ hết hạn sau 15 phút.</p>
             <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
         </div>
         <div class='footer'>

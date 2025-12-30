@@ -174,6 +174,8 @@ public class IdentityService : IIdentityService
         user.EmailConfirmed,
         user.AvatarUrl,
         user.MajorId,
-        user.Introduction
+        user.Introduction,
+        user.LockoutEnabled,
+        user.LockoutEnd
     );
 }

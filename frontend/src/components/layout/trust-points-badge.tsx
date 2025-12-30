@@ -9,7 +9,7 @@ import {
     DropdownMenuSeparator,
 } from "@/src/components/ui/dropdown-menu";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
-import { getApiUserByIdTrustHistory } from "@/src/api/database/sdk.gen";
+import { getApiUserByIdTrustHistory } from "@/src/api";
 import type { UserTrustHistoryDto } from "@/src/api/database/types.gen";
 
 export function TrustPointsBadge() {

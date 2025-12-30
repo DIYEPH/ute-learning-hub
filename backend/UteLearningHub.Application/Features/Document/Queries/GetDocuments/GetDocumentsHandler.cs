@@ -101,13 +101,16 @@ public class GetDocumentsHandler : IRequestHandler<GetDocumentsQuery, PagedRespo
             "createdat" or "date" => request.SortDescending
                 ? query.OrderByDescending(d => d.CreatedAt)
                 : query.OrderBy(d => d.CreatedAt),
-            _ => query.OrderByDescending(d => d.CreatedAt) // Default: newest first
+            "popular" => request.SortDescending
+                ? query.OrderByDescending(d => d.DocumentFiles.Where(f => !f.IsDeleted).Sum(f => f.ViewCount))
+                : query.OrderBy(d => d.DocumentFiles.Where(f => !f.IsDeleted).Sum(f => f.ViewCount)),
+            _ => query.OrderByDescending(d => d.CreatedAt) 
         };
-
-        var totalCount = await query.CountAsync(cancellationToken);
 
         // Chỉ hiển thị tài liệu đã có ít nhất 1 file chương
         query = query.Where(d => d.DocumentFiles.Any());
+
+        var totalCount = await query.CountAsync(cancellationToken);
 
         var documentIds = await query
             .Skip(request.Skip)

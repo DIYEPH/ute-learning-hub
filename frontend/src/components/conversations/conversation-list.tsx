@@ -28,14 +28,14 @@ export function ConversationList({
             key={conversation.id}
             onClick={() => conversation.id && onSelect(conversation.id)}
             className={cn(
-              "w-full p-2 md:p-3 text-left hover:bg-muted transition-colors",
-              isSelected && "bg-accent border-r-2 border-primary",
-              hasUnread && !isSelected && "bg-accent/50"
+              "w-full p-2 md:p-3 text-left hover:bg-secondary/50 transition-colors",
+              isSelected && "bg-secondary border-l-2 border-primary",
+              hasUnread && !isSelected && "bg-secondary/50"
             )}
           >
             <div className="flex items-start gap-3">
               <div className="relative">
-                <Avatar className="h-12 w-12 flex-shrink-0">
+                <Avatar className="h-12 w-12 shrink-0">
                   <AvatarImage
                     src={conversation.avatarUrl || undefined}
                     alt={conversation.conversationName || "Avatar"}
@@ -71,7 +71,7 @@ export function ConversationList({
                     {conversation.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag.id}
-                        className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
+                        className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground"
                       >
                         {tag.tagName}
                       </span>

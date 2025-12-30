@@ -3,7 +3,7 @@
 import React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Loader2, Lock, CheckCircle, AlertCircle } from "lucide-react";
-import { postApiAuthResetPassword } from "@/src/api/database/sdk.gen";
+import { postApiAuthResetPassword } from "@/src/api";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
 

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, Filter, X, Loader2, ChevronDown, ChevronUp } from "lucide-react";
-import { getApiDocument, getApiSubject, getApiTag, getApiAuthor, getApiType } from "@/src/api/database/sdk.gen";
+import { getApiDocument, getApiSubject, getApiTag, getApiAuthor, getApiType } from "@/src/api";
 import { DocumentCard } from "@/src/components/documents/document-card";
 import { Input } from "@/src/components/ui/input";
 import { Button } from "@/src/components/ui/button";
@@ -31,6 +31,7 @@ export default function SearchPage() {
     const [selectedTagIds, setSelectedTagIds] = useState<string[]>(searchParams.get("tags")?.split(",").filter(Boolean) || []);
     const [selectedAuthorId, setSelectedAuthorId] = useState<string | null>(searchParams.get("author"));
     const [selectedTypeId, setSelectedTypeId] = useState<string | null>(searchParams.get("type"));
+    const [sortBy, setSortBy] = useState<string>(searchParams.get("sort") || "date");
 
     // Filter search state
     const [subjectSearch, setSubjectSearch] = useState("");
@@ -94,7 +95,7 @@ export default function SearchPage() {
     useEffect(() => {
         setPage(1);
         void searchDocuments(1, false);
-    }, [debouncedSearch, selectedSubjectId, noSubject, selectedTagIds, selectedAuthorId, selectedTypeId]);
+    }, [debouncedSearch, selectedSubjectId, noSubject, selectedTagIds, selectedAuthorId, selectedTypeId, sortBy]);
 
     const loadFilterOptions = async () => {
         try {
@@ -131,6 +132,7 @@ export default function SearchPage() {
                     TypeId: selectedTypeId || undefined,
                     Page: pageNum,
                     PageSize: PAGE_SIZE,
+                    SortBy: sortBy || "date",
                     SortDescending: true,
                 },
             });
@@ -187,7 +189,7 @@ export default function SearchPage() {
     return (
         <div className="flex flex-col lg:flex-row gap-6">
             {/* Filter Sidebar - Hidden on mobile unless toggled */}
-            <aside className={`flex-shrink-0 transition-all ${showFilters
+            <aside className={`shrink-0 transition-all ${showFilters
                 ? "fixed inset-0 z-40 bg-background lg:relative lg:inset-auto lg:z-auto lg:bg-transparent w-full lg:w-64 p-4 lg:p-0 overflow-auto"
                 : "hidden lg:block lg:w-64"
                 }`}>
@@ -206,7 +208,7 @@ export default function SearchPage() {
                             <h2 className="font-semibold text-foreground">{t("filters")}</h2>
                         </div>
                         {hasActiveFilters && (
-                        <button onClick={clearFilters} className="text-xs text-primary hover:underline">{t("clearAll")}
+                            <button onClick={clearFilters} className="text-xs text-primary hover:underline">{t("clearAll")}
                             </button>
                         )}
                     </div>
@@ -417,7 +419,7 @@ export default function SearchPage() {
                         {t("noResults")}
                     </div>
                 ) : (
-                    <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {documents.map((doc) => (
                             <DocumentCard
                                 key={doc.id}

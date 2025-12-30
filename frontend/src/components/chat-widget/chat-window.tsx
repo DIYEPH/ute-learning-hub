@@ -19,7 +19,7 @@ import {
   getApiConversationsByConversationIdMessages,
   postApiConversationsByConversationIdMessages,
   postApiConversationsByConversationIdMessagesByIdMarkAsRead,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
   ConversationDetailDto,
   MessageDto2 as MessageDto,

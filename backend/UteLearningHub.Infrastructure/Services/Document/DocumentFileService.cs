@@ -259,9 +259,16 @@ public class DocumentFileService(
             await _documentRepository.UnitOfWork.SaveChangesAsync(ct);
         }
 
-        var file = await _fileUsageService.EnsureFileAsync(fileEntity.FileId, ct);
+        // Soft delete associated file (mark as deleted, not hard delete)
+        var file = await _fileRepository.GetByIdAsync(fileEntity.FileId, disableTracking: false, ct);
         if (file != null)
-            await _fileUsageService.DeleteFileAsync(file, ct);
+        {
+            file.IsDeleted = true;
+            file.DeletedById = userId;
+            file.DeletedAt = _dateTimeProvider.OffsetUtcNow;
+            _fileRepository.Update(file);
+            await _fileRepository.UnitOfWork.SaveChangesAsync(ct);
+        }
     }
 
     public Task<DocumentDetailDto> UpdateAsync(UpdateDocumentCommand request, CancellationToken ct)

@@ -4376,6 +4376,206 @@
         }
       }
     },
+    "/api/Statistics/overview": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewStatsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewStatsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverviewStatsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Statistics/documents": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentStatsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentStatsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentStatsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Statistics/users": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Statistics/moderation": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationStatsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationStatsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModerationStatsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Statistics/conversations": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationStatsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationStatsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationStatsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Subject": {
       "get": {
         "tags": [
@@ -5641,6 +5841,22 @@
           }
         }
       },
+      "ChartDataItem": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "value": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "CommentDetailDto": {
         "type": "object",
         "properties": {
@@ -5956,6 +6172,39 @@
           "hasPendingJoinRequest": {
             "type": "boolean",
             "nullable": true
+          }
+        }
+      },
+      "ConversationStatsDto": {
+        "type": "object",
+        "properties": {
+          "totalConversations": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeConversations": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalMessagesLast7Days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "avgMembersPerConversation": {
+            "type": "number",
+            "format": "double"
+          },
+          "conversationsBySubject": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChartDataItem"
+            }
+          },
+          "messagesOverTime": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesDataPoint"
+            }
           }
         }
       },
@@ -6590,6 +6839,61 @@
       "DocumentReviewType": {
         "type": "integer"
       },
+      "DocumentStatsDto": {
+        "type": "object",
+        "properties": {
+          "totalDocuments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "approvedDocuments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingDocuments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalViews": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "avgViewsPerDocument": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalUsefulReviews": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalNotUsefulReviews": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "documentsBySubject": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChartDataItem"
+            }
+          },
+          "documentsByType": {
+            "type": "array",
+            "items": { }
+          },
+          "topDocumentsByViews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TopDocumentDto"
+            }
+          },
+          "viewsOverTime": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesDataPoint"
+            }
+          }
+        }
+      },
       "EventDto": {
         "type": "object",
         "properties": {
@@ -7222,6 +7526,53 @@
           }
         }
       },
+      "ModerationStatsDto": {
+        "type": "object",
+        "properties": {
+          "totalReports": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingReports": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "approvedReports": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingComments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hiddenComments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingDocumentFiles": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reportsByReason": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChartDataItem"
+            }
+          },
+          "reportsOverTime": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesDataPoint"
+            }
+          },
+          "topReportedUsers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TopReportedUserDto"
+            }
+          }
+        }
+      },
       "NotificationDto": {
         "type": "object",
         "properties": {
@@ -7299,6 +7650,57 @@
       "NullableOfVisibilityStatus": {
         "type": "integer",
         "nullable": true
+      },
+      "OverviewStatsDto": {
+        "type": "object",
+        "properties": {
+          "totalUsers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newUsersLast7Days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalDocuments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "newDocumentsLast7Days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalViews": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "pendingReports": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingDocumentFiles": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalConversations": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usersOverTime": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesDataPoint"
+            }
+          },
+          "documentsOverTime": {
+            "type": "array",
+            "items": { }
+          },
+          "viewsOverTime": {
+            "type": "array",
+            "items": { }
+          }
+        }
       },
       "PagedResponseOfAuthorDto": {
         "type": "object",
@@ -8352,6 +8754,83 @@
           }
         }
       },
+      "TimeSeriesDataPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "value": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "TopDocumentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "viewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "coverUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TopReportedUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "reportCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "TopUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "documentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "trustScore": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "TrustLever": {
         "type": "integer"
       },
@@ -8886,6 +9365,49 @@
           }
         }
       },
+      "UserStatsDto": {
+        "type": "object",
+        "properties": {
+          "totalUsers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeUsersLast7Days": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bannedUsers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "avgTrustScore": {
+            "type": "number",
+            "format": "double"
+          },
+          "usersByMajor": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChartDataItem"
+            }
+          },
+          "usersByTrustLevel": {
+            "type": "array",
+            "items": { }
+          },
+          "topContributors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TopUserDto"
+            }
+          },
+          "registrationsOverTime": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSeriesDataPoint"
+            }
+          }
+        }
+      },
       "UserTrustHistoryDto": {
         "type": "object",
         "properties": {
@@ -8989,6 +9511,9 @@
     },
     {
       "name": "Report"
+    },
+    {
+      "name": "Statistics"
     },
     {
       "name": "Subject"

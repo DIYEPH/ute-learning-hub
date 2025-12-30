@@ -7,7 +7,7 @@ import { Button } from "@/src/components/ui/button";
 import { Upload, Link as LinkIcon, X, AlertCircle, Loader2 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useDebounce } from "@/src/hooks/use-debounce";
-import { getApiFaculty } from "@/src/api/database/sdk.gen";
+import { getApiFaculty } from "@/src/api";
 import type { UpdateFacultyCommandRequest, CreateFacultyCommand, FacultyDetailDto } from "@/src/api/database/types.gen";
 
 export interface FacultyFormData {

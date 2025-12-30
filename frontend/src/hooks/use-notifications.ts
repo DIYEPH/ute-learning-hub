@@ -6,7 +6,7 @@ import {
     postApiNotification,
     putApiNotificationById,
     deleteApiNotificationById,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
     GetApiNotificationData,
     GetApiNotificationResponse,

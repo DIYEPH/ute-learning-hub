@@ -7,7 +7,7 @@ import {
   postApiType,
   putApiTypeById,
   deleteApiTypeById,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
   GetApiTypeData,
   GetApiTypeResponse,

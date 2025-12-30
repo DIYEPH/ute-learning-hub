@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Search, Filter, X, Sparkles, Mail, Check, Users } from "lucide-react";
-import { getApiConversation, getApiTag, getApiConversationRecommendations, getApiConversationMyInvitations, postApiConversationInvitationsByInvitationIdRespond } from "@/src/api/database/sdk.gen";
+import { getApiConversation, getApiTag, getApiConversationRecommendations, getApiConversationMyInvitations, postApiConversationInvitationsByInvitationIdRespond } from "@/src/api";
 import type {
   ConversationDto,
   PagedResponseOfConversationDto,

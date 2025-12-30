@@ -5,7 +5,7 @@ import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useDebounce } from "@/src/hooks/use-debounce";
-import { getApiNotification, getApiUser } from "@/src/api/database/sdk.gen";
+import { getApiNotification, getApiUser } from "@/src/api";
 import type { CreateNotificationCommand, UpdateNotificationCommandRequest, NotificationDto, UserDto } from "@/src/api/database/types.gen";
 import { AlertCircle, Loader2 } from "lucide-react";
 // NotificationPriorityType enum

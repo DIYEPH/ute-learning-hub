@@ -8,7 +8,7 @@ import {
   getApiConversationsByConversationIdMessages,
   postApiConversationsByConversationIdMessages,
   postApiConversationsByConversationIdMessagesByIdMarkAsRead,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
   ConversationDetailDto,
   MessageDto2 as MessageDto,
@@ -278,7 +278,7 @@ export function ConversationDetail({
     try {
       const fileIds: string[] = [];
       if (selectedFiles.length > 0) {
-        const uploaded = await uploadFiles(selectedFiles);
+        const uploaded = await uploadFiles(selectedFiles, "Message");
         const ids = uploaded
           .map((f) => f.id)
           .filter((id): id is string => typeof id === "string" && id.length > 0);
@@ -362,7 +362,7 @@ export function ConversationDetail({
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 border-b border-border bg-card px-4 py-3">
+      <div className="shrink-0 border-b border-border bg-card px-4 py-3">
         <div className="flex items-center gap-3">
           <Button
             variant="ghost"
@@ -383,7 +383,7 @@ export function ConversationDetail({
                 {conversation.tags.map((tag) => (
                   <span
                     key={tag.id}
-                    className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
+                    className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground"
                   >
                     {tag.tagName}
                   </span>
@@ -428,7 +428,7 @@ export function ConversationDetail({
 
       {/* Pinned Messages Section */}
       {pinnedMessages.length > 0 && (
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <PinnedMessagesSection
             pinnedMessages={pinnedMessages}
             conversationId={conversationId}
@@ -530,7 +530,7 @@ export function ConversationDetail({
       </ScrollArea>
 
       {/* Message Input */}
-      <div className="flex-shrink-0 border-t border-border bg-card p-2 md:p-4">
+      <div className="shrink-0 border-t border-border bg-card p-2 md:p-4">
         {/* Reply preview */}
         {replyTo && (
           <div className="mb-2 flex items-start justify-between bg-muted px-3 py-2 text-xs text-foreground">

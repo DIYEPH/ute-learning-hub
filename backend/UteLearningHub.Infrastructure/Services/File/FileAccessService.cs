@@ -36,15 +36,29 @@ public class FileAccessService : IFileAccessService
             await EnsureCanAccessDocumentFile(fileId, user, ct);
         }
 
+        // Try to get a pre-signed URL first (for S3 storage)
+        var presignedUrl = _fileStorageService.GetPresignedUrl(file.FileUrl);
+        if (!string.IsNullOrEmpty(presignedUrl))
+        {
+            // Return redirect response - no need to download the file
+            return new FileStreamResult(
+                Stream: null,
+                MimeType: file.MimeType,
+                RedirectUrl: presignedUrl
+            );
+        }
+
+        // Fall back to streaming (for local storage or if pre-signed URL fails)
         var stream = await _fileStorageService.GetFileAsync(file.FileUrl, ct);
         if (stream == null)
             throw new NotFoundException("File content not found");
 
         return new FileStreamResult(
-            stream,
-            file.MimeType
+            Stream: stream,
+            MimeType: file.MimeType
         );
     }
+
     private async Task EnsureCanAccessDocumentFile(Guid fileId, UserContext user, CancellationToken ct)
     {
         var document = await _documentRepository.GetByFileIdAsync(fileId, disableTracking: true, ct);
@@ -67,3 +81,4 @@ public class FileAccessService : IFileAccessService
         }
     }
 }
+

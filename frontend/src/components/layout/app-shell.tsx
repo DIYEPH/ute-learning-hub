@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 
 import { AppHeader } from "./app-header";
 import { AppSidebar } from "./app-sidebar";
-import { AppFooter } from "./app-footer";
 import { MAIN_NAV_CONFIG } from "./nav-config";
 import type { NavItem } from "./nav-config";
 import { useAuthState } from "@/src/hooks/use-auth-state";
@@ -19,7 +18,7 @@ type AppShellProps = {
 export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const t = useTranslations();
-  const { authenticated: isAuthenticated} = useAuthState();
+  const { authenticated: isAuthenticated } = useAuthState();
 
   const navItems: NavItem[] = MAIN_NAV_CONFIG
     .filter(item => !item.requiresAuth || isAuthenticated)
@@ -35,9 +34,9 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <ChatWidgetProvider>
-      <div className="h-screen overflow-hidden bg-muted flex flex-col">
+      <div className="h-screen overflow-hidden flex flex-col">
         {/* Header trên cùng */}
-        <div className="flex-shrink-0">
+        <div className="shrink-0">
           <AppHeader navItems={navItems} activePath={pathname} />
         </div>
 
@@ -45,20 +44,21 @@ export function AppShell({ children }: AppShellProps) {
         <div className="flex-1 min-h-0 flex overflow-hidden">
           <AppSidebar navItems={navItems} activePath={pathname} />
 
-          <main className={`flex-1 min-h-0 overflow-hidden ${isFullscreenPage ? '' : 'p-4 md:p-6 bg-background overflow-y-auto'}`}>
+          <main
+            className={`flex-1 min-h-0 overflow-hidden ${isFullscreenPage ? '' : 'pt-4 px-4 md:pt-6 md:px-6 overflow-y-auto'}`}
+            style={isFullscreenPage ? undefined : {
+              backgroundImage: 'url(/images/cover_page.png)',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
+              backgroundAttachment: 'fixed'
+            }}
+          >
             {children}
           </main>
         </div>
-
-        {/* Footer cuối trang */}
-        {!isFullscreenPage && (
-          <div className="flex-shrink-0">
-            <AppFooter />
-          </div>
-        )}
       </div>
 
-      {/* Chat Widget - hiển thị ở góc dưới bên phải giống Facebook */}
+      {/* Chat Widget*/}
       {isAuthenticated && !isChatPage && (
         <>
           <ChatFloatingButton />

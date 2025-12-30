@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { GripVertical } from "lucide-react";
 import type { DocumentFileDto, DocumentDetailDto } from "@/src/api/database/types.gen";
-import { postApiDocumentByDocumentIdFilesByFileIdResubmit } from "@/src/api/database/sdk.gen";
+import { postApiDocumentByDocumentIdFilesByFileIdResubmit } from "@/src/api";
 import { DocumentFileItem } from "@/src/components/documents/document-file-item";
 import { ReportModal } from "@/src/components/shared/report-modal";
 import { useUserProfile } from "@/src/hooks/use-user-profile";

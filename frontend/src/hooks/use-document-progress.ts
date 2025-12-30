@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import {
     putApiDocumentFilesByFileIdProgress,
     getApiDocumentFilesByFileIdProgress
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 
 interface UseDocumentProgressOptions {
     fileId: string;
@@ -39,13 +39,11 @@ export function useDocumentProgress({
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
-    const lastSavedPageRef = useRef(1);
+    const lastSavedPageRef = useRef(0); 
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Load initial progress (only for authenticated users)
     useEffect(() => {
         const loadProgress = async () => {
-            // Skip if not authenticated
             if (!isAuthenticated()) {
                 setIsLoading(false);
                 return;
@@ -63,7 +61,6 @@ export function useDocumentProgress({
                     lastSavedPageRef.current = data.lastPage;
                 }
             } catch {
-                // No progress saved yet, start from page 1
             } finally {
                 setIsLoading(false);
             }
@@ -74,9 +71,7 @@ export function useDocumentProgress({
         }
     }, [fileId]);
 
-    // Save progress function (only for authenticated users)
     const saveProgress = useCallback(async () => {
-        // Skip if not authenticated
         if (!isAuthenticated()) return;
         if (currentPage === lastSavedPageRef.current) return;
 
@@ -96,22 +91,18 @@ export function useDocumentProgress({
         }
     }, [fileId, currentPage]);
 
-    // Debounced save on page change
     const setCurrentPage = useCallback((page: number) => {
         setCurrentPageState(page);
 
-        // Clear existing timeout
         if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current);
         }
 
-        // Save after 2 seconds of no page changes
         saveTimeoutRef.current = setTimeout(() => {
             void saveProgress();
         }, 2000);
     }, [saveProgress]);
 
-    // Auto-save periodically
     useEffect(() => {
         const interval = setInterval(() => {
             void saveProgress();
@@ -120,10 +111,8 @@ export function useDocumentProgress({
         return () => clearInterval(interval);
     }, [autoSaveIntervalMs, saveProgress]);
 
-    // Save on unmount / page leave
     useEffect(() => {
         const handleBeforeUnload = () => {
-            // Use sendBeacon for reliable save on page leave
             const url = `${process.env.NEXT_PUBLIC_API_URL}/api/Document/files/${fileId}/progress`;
             const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
 

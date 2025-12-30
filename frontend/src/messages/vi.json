@@ -214,6 +214,7 @@
         "trustLevelMaster": "Bậc thầy",
         "emailConfirmed": "Email đã xác nhận",
         "isDeleted": "Đã xóa",
+        "isBanned": "Đang bị khóa",
         "status": "Trạng thái",
         "createdAt": "Ngày tạo",
         "actions": "Thao tác",

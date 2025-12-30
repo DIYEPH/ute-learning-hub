@@ -45,22 +45,11 @@ export const authEvents = {
 // ============ Token Refresh Logic ============
 
 let isRefreshing = false;
-let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshPromise: Promise<string | null> | null = null;
 
-function subscribeToRefresh(callback: (token: string) => void) {
-  refreshSubscribers.push(callback);
-}
-
-function onRefreshComplete(newToken: string) {
-  refreshSubscribers.forEach((callback) => callback(newToken));
-  refreshSubscribers = [];
-}
-
-async function tryRefreshToken(): Promise<string | null> {
+async function refreshToken(): Promise<string | null> {
   try {
-    // No body needed - backend reads refresh token from httpOnly cookie
     const response = await postApiAuthRefreshToken();
-
     const data = response.data as { accessToken?: string } | undefined;
     if (data?.accessToken) {
       setAccessToken(data.accessToken);
@@ -75,26 +64,21 @@ async function tryRefreshToken(): Promise<string | null> {
 
 // ============ Axios Configuration ============
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL !== undefined
-  ? process.env.NEXT_PUBLIC_API_URL
-  : 'https://localhost:7080';
+const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://localhost:7080').replace(/\/+$/, '');
 
 client.setConfig({
   baseURL: apiBaseUrl,
 });
 
 if (typeof window !== 'undefined') {
-  // Enable sending cookies with requests (for httpOnly refresh token)
   client.instance.defaults.withCredentials = true;
 
   // Request interceptor: Add Authorization header
   client.instance.interceptors.request.use(
     (config) => {
-      if (!config.headers.Authorization) {
-        const token = getAccessToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
+      const token = getAccessToken();
+      if (token && !config.headers.Authorization) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
     },
@@ -106,48 +90,33 @@ if (typeof window !== 'undefined') {
     (response) => response,
     async (error) => {
       const originalRequest = error.config;
+      const isAuthEndpoint = originalRequest?.url?.toLowerCase().includes('/api/auth/');
 
-      // Skip refresh for auth endpoints to avoid infinite loops
-      if (originalRequest?.url?.includes('/api/auth/')) {
-        if (error?.response?.status === 401) {
-          clearTokens();
-        }
+      // Skip refresh for auth endpoints
+      if (isAuthEndpoint) {
         return Promise.reject(error);
       }
 
-      // Handle 401 - try to refresh token
+      // Handle 401 - try refresh token once
       if (error?.response?.status === 401 && !originalRequest._retry) {
         originalRequest._retry = true;
 
-        // If already refreshing, wait for it to complete
-        if (isRefreshing) {
-          return new Promise((resolve) => {
-            subscribeToRefresh((newToken) => {
-              originalRequest.headers.Authorization = `Bearer ${newToken}`;
-              resolve(client.instance(originalRequest));
-            });
+        // Reuse existing refresh promise to avoid multiple calls
+        if (!isRefreshing) {
+          isRefreshing = true;
+          refreshPromise = refreshToken().finally(() => {
+            isRefreshing = false;
+            refreshPromise = null;
           });
         }
 
-        isRefreshing = true;
-
-        try {
-          const newToken = await tryRefreshToken();
-
-          if (newToken) {
-            onRefreshComplete(newToken);
-            originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            return client.instance(originalRequest);
-          } else {
-            // Refresh failed - logout
-            clearTokens();
-            if (window.location.pathname !== '/') {
-              window.location.href = '/';
-            }
-          }
-        } finally {
-          isRefreshing = false;
+        const newToken = await refreshPromise;
+        if (newToken) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return client.instance(originalRequest);
         }
+
+        clearTokens();
       }
 
       return Promise.reject(error);

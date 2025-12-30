@@ -7,7 +7,7 @@ import {
   postApiMajor,
   putApiMajorById,
   deleteApiMajorById,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
   GetApiMajorData,
   GetApiMajorResponse,

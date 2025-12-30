@@ -89,6 +89,7 @@ public class FileController : ControllerBase
             stream,
             file.FileName,
             file.ContentType,
+            normalizedCategory,
             cancellationToken);
 
         var entity = new UteLearningHub.Domain.Entities.File
@@ -124,8 +125,13 @@ public class FileController : ControllerBase
             var query = new GetFileByIdQuery { FileId = id };
             var response = await _mediator.Send(query, cancellationToken);
 
-            Response.Headers.Append("Content-Disposition", "inline");
+            if (response.IsRedirect && !string.IsNullOrEmpty(response.RedirectUrl))
+                return Redirect(response.RedirectUrl);
+                
+            if (response.Stream == null)
+                return NotFound("File content not found");
 
+            Response.Headers.Append("Content-Disposition", "inline");
             return File(response.Stream, response.MimeType);
         }
         catch (NotFoundException)

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import type { ConversationDto } from "@/src/api/database/types.gen";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 import { Button } from "@/src/components/ui/button";
-import { postApiConversationJoinRequest, postApiConversationByIdJoin } from "@/src/api/database/sdk.gen";
+import { postApiConversationJoinRequest, postApiConversationByIdJoin } from "@/src/api";
 import { useNotification } from "@/src/components/providers/notification-provider";
 import { JoinRequestModal } from "@/src/components/conversations/join-request-modal";
 
@@ -99,7 +99,7 @@ export function ConversationCard({
       onClick={handleCardClick}
     >
       <div className="flex items-start gap-3">
-        <Avatar className="h-12 w-12 flex-shrink-0">
+        <Avatar className="h-12 w-12 shrink-0">
           <AvatarImage
             src={conversation.avatarUrl || undefined}
             alt={conversation.conversationName || "Avatar"}
@@ -117,12 +117,12 @@ export function ConversationCard({
               </h3>
               <div className="flex items-center gap-2 flex-wrap">
                 {isPrivate ? (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-400 bg-amber-50/50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-500/50 dark:bg-amber-950/20 dark:text-amber-400">
                     <Lock className="h-3 w-3" />
                     Riêng tư
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400 bg-emerald-50/50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:border-emerald-500/50 dark:bg-emerald-950/20 dark:text-emerald-400">
                     <Globe className="h-3 w-3" />
                     Công khai
                   </span>
@@ -141,7 +141,7 @@ export function ConversationCard({
               {conversation.tags.slice(0, 3).map((tag) => (
                 <span
                   key={tag.id}
-                  className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
+                  className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground"
                 >
                   {tag.tagName}
                 </span>
@@ -176,7 +176,7 @@ export function ConversationCard({
             </div>
 
             {!isMember && (
-              <div className="flex-shrink-0">
+              <div className="shrink-0">
                 {isPrivate && hasPendingRequest ? (
                   <Button
                     size="sm"

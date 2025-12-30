@@ -4,7 +4,7 @@ import { useState } from "react";
 import { MessageCircle, X, Loader2, Search, Users, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { getApiConversation, getApiConversationRecommendations } from "@/src/api/database/sdk.gen";
+import { getApiConversation, getApiConversationRecommendations } from "@/src/api";
 import type {
   ConversationDto,
   PagedResponseOfConversationDto,

@@ -26,7 +26,7 @@ export function AppSidebar({ navItems, activePath }: SidebarProps) {
   const isInAdminPanel = activePath?.startsWith("/admin");
 
   return (
-    <aside className="hidden md:flex w-64 flex-shrink-0 border-r bg-card border-border h-full overflow-hidden flex-col">
+    <aside className="hidden md:flex w-72 shrink-0 border-r bg-card border-border h-full overflow-hidden flex-col">
       <ScrollArea className="w-full flex-1">
         <div className="p-4 space-y-4">
           {/* Show upload button only in user pages */}

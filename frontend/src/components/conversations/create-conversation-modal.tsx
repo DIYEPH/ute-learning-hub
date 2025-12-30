@@ -7,7 +7,7 @@ import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { Loader2, X, Image as ImageIcon } from "lucide-react";
 import { useSubjects } from "@/src/hooks/use-subjects";
-import { postApiConversation, getApiTag } from "@/src/api/database/sdk.gen";
+import { postApiConversation, getApiTag } from "@/src/api";
 import type { CreateConversationCommand, SubjectDto2, TagDto } from "@/src/api/database/types.gen";
 import { useFileUpload } from "@/src/hooks/use-file-upload";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";

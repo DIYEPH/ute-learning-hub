@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { DocumentMenu } from "@/src/components/documents/document-menu";
-import { FileText, MessageSquare, ThumbsUp, ThumbsDown, Eye, BookOpen } from "lucide-react";
+import { FileText, ThumbsUp, Bookmark, Eye } from "lucide-react";
 import { getFileUrlById } from "@/src/lib/file-url";
+import { Button } from "@/src/components/ui/button";
 
 export interface DocumentCardProps {
   id?: string;
@@ -25,6 +26,7 @@ export interface DocumentCardProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onReport?: () => void;
+  onSave?: () => void;
 }
 
 export function DocumentCard({
@@ -37,7 +39,6 @@ export function DocumentCard({
   href,
   className,
   fileCount,
-  commentCount,
   usefulCount,
   notUsefulCount,
   totalViewCount,
@@ -46,26 +47,29 @@ export function DocumentCard({
   onEdit,
   onDelete,
   onReport,
+  onSave,
 }: DocumentCardProps) {
   const resolvedHref = href ?? (id ? `/documents/${id}` : "#");
 
   const showMenu = Boolean(onEdit || onDelete || onReport);
-  const hasSubject = Boolean(subjectName);
-  const visibleTags = tags?.filter(Boolean) ?? [];
-  const mainTags = visibleTags.slice(0, 2);
-  const extraTagCount = visibleTags.length > 2 ? visibleTags.length - 2 : 0;
   const thumbnailUrl = getFileUrlById(thumbnailFileId);
+
+  // Calculate rating percentage
+  const totalReviews = (usefulCount || 0) + (notUsefulCount || 0);
+  const ratingPercent = totalReviews > 0
+    ? Math.round((usefulCount || 0) / totalReviews * 100)
+    : null;
 
   const content = (
     <div
       className={cn(
-        "relative flex h-full flex-col border border-border bg-card shadow-sm transition-all duration-200 cursor-pointer overflow-hidden",
-        "hover:shadow-lg hover:border-primary/50",
+        "group relative flex h-full flex-col bg-card rounded-xl border border-border/50 shadow-sm transition-all duration-200 cursor-pointer overflow-hidden",
+        "hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5",
         className
       )}
     >
       {showMenu && (
-        <div className="absolute right-2 top-2 z-10">
+        <div className="absolute right-2 top-2 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
           <DocumentMenu
             onEdit={onEdit}
             onDelete={onDelete}
@@ -75,102 +79,96 @@ export function DocumentCard({
       )}
 
       {/* Thumbnail */}
-      <div className="relative p-1 pb-1">
-        <div className="aspect-[5/3] w-full bg-muted flex items-center justify-center overflow-hidden border border-border">
+      <div className="relative p-3 pb-2">
+        <div className="aspect-4/3 w-full bg-linear-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center overflow-hidden rounded-lg">
           {thumbnailUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={thumbnailUrl}
               alt={title}
-              className="h-full w-full object-contain"
+              className="h-full w-full object-cover"
             />
           ) : (
-            <div className="h-full w-full flex flex-col items-center justify-center gap-1 text-muted-foreground px-2 text-center leading-snug">
-              <span className="text-xs font-semibold uppercase tracking-wide">
-                {normalizeMimeType(fileMimeType) ?? "FILE"}
+            <div className="h-full w-full flex flex-col items-center justify-center gap-2 text-muted-foreground/60">
+              <FileText className="h-10 w-10" />
+              <span className="text-xs font-medium uppercase tracking-wider">
+                {normalizeMimeType(fileMimeType) ?? "PDF"}
               </span>
             </div>
           )}
         </div>
-        {fileCount !== undefined && (
-          <div className="absolute bottom-2 right-2 bg-black/60 backdrop-blur-sm text-white text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-0.5">
-            <FileText className="h-2.5 w-2.5" />
-            <span>{fileCount}</span>
-          </div>
-        )}
-        {/* Reading progress badge */}
-        {lastPage !== undefined && lastPage > 0 && (
-          <div className="absolute bottom-2 left-2 bg-primary/90 backdrop-blur-sm text-primary-foreground text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1">
-            <BookOpen className="h-2.5 w-2.5" />
-            <span>
-              Trang {lastPage}{totalPages ? `/${totalPages}` : ""}
-            </span>
+
+        {/* File count badge */}
+        {fileCount !== undefined && fileCount > 0 && (
+          <div className="absolute bottom-4 right-5 bg-black/70 backdrop-blur-sm text-white text-xs font-medium px-2 py-1 rounded-md">
+            {fileCount} file
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div className="px-2 pb-2 pt-0.5 flex flex-col gap-0.5 min-h-[60px]">
-        <p className="text-xs font-semibold text-primary leading-tight line-clamp-2">
+      <div className="px-3 pb-3 flex flex-col gap-1.5 flex-1">
+        {/* Title */}
+        <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
           {title}
-        </p>
-        <p
-          className={cn(
-            "mt-1 text-[10px] font-medium text-muted-foreground line-clamp-1",
-            !hasSubject && "invisible"
+        </h3>
+
+        {/* Subject */}
+        {subjectName && (
+          <p className="text-xs text-muted-foreground line-clamp-1">
+            {subjectName}
+          </p>
+        )}
+
+        {/* Tags */}
+        {tags && tags.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {tags.slice(0, 2).map((tag) => (
+              <span
+                key={tag}
+                className="px-1.5 py-0.5 text-[10px] font-medium bg-muted text-muted-foreground rounded"
+              >
+                {tag}
+              </span>
+            ))}
+            {tags.length > 2 && (
+              <span className="text-[10px] text-muted-foreground">+{tags.length - 2}</span>
+            )}
+          </div>
+        )}
+
+        {/* Stats: Rating & Views */}
+        <div className="flex items-center gap-3 mt-auto pt-2">
+          {ratingPercent !== null && (
+            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <ThumbsUp className="h-3.5 w-3.5" />
+              <span className="text-xs font-semibold">{ratingPercent}%</span>
+              <span className="text-xs text-muted-foreground">({totalReviews})</span>
+            </div>
           )}
-        >
-          {hasSubject ? subjectName : "placeholder-subject"}
-        </p>
-        <div
-          className={cn(
-            "mt-1 flex flex-wrap gap-0.5 min-h-[14px]",
-            visibleTags.length === 0 && "invisible"
-          )}
-        >
-          {mainTags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full bg-secondary px-1.5 py-0 text-[9px] font-semibold uppercase tracking-wide text-secondary-foreground"
-            >
-              {tag}
-            </span>
-          ))}
-          {extraTagCount > 0 && (
-            <span className="text-[9px] font-medium text-muted-foreground">
-              +{extraTagCount} …
-            </span>
+          {totalViewCount !== undefined && totalViewCount > 0 && (
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Eye className="h-3.5 w-3.5" />
+              <span className="text-xs font-medium">{formatViewCount(totalViewCount)}</span>
+            </div>
           )}
         </div>
 
-        {/* Stats */}
-        {(commentCount !== undefined || usefulCount !== undefined || notUsefulCount !== undefined) && (
-          <div className="mt-1 flex items-center gap-2 text-[10px] text-muted-foreground pt-1 border-t border-border">
-            {usefulCount !== undefined && (
-              <div className="flex items-center gap-1" title="Hữu ích">
-                <ThumbsUp className="h-3 w-3 flex-shrink-0" />
-                <span className="font-medium">{usefulCount}</span>
-              </div>
-            )}
-            {notUsefulCount !== undefined && (
-              <div className="flex items-center gap-1" title="Không hữu ích">
-                <ThumbsDown className="h-3 w-3 flex-shrink-0" />
-                <span className="font-medium">{notUsefulCount}</span>
-              </div>
-            )}
-            {commentCount !== undefined && (
-              <div className="flex items-center gap-1" title="Số bình luận">
-                <MessageSquare className="h-3 w-3 flex-shrink-0" />
-                <span className="font-medium">{commentCount}</span>
-              </div>
-            )}
-            {totalViewCount !== undefined && (
-              <div className="flex items-center gap-1" title="Lượt xem">
-                <Eye className="h-3 w-3 flex-shrink-0" />
-                <span className="font-medium">{totalViewCount}</span>
-              </div>
-            )}
-          </div>
+        {/* Save button */}
+        {onSave && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2 w-full gap-1.5 text-xs"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onSave();
+            }}
+          >
+            <Bookmark className="h-3.5 w-3.5" />
+            Save
+          </Button>
         )}
       </div>
     </div>
@@ -199,5 +197,12 @@ function normalizeMimeType(mimeType?: string) {
   return mimeType.split("/").pop()?.toUpperCase() ?? "FILE";
 }
 
-
-
+function formatViewCount(count: number): string {
+  if (count >= 1000000) {
+    return (count / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+  }
+  if (count >= 1000) {
+    return (count / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+  }
+  return count.toString();
+}

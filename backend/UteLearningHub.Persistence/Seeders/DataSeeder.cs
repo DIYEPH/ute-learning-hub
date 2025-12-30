@@ -88,7 +88,7 @@ public class DataSeeder
                 Id = Guid.NewGuid(),
                 FacultyName = "Khoa Cơ Khí",
                 FacultyCode = "CK",
-                Logo = "/images/faculties/logo_ck.png",
+                Logo = "http://localhost:7080/images/faculties/logo_ck.png",
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
@@ -97,7 +97,7 @@ public class DataSeeder
                 Id = Guid.NewGuid(),
                 FacultyName = "Khoa Điện - Điện tử",
                 FacultyCode = "DDT",
-                Logo = "/images/faculties/logo_ddt.png",
+                Logo = "http://localhost:7080/images/faculties/logo_ddt.png",
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
@@ -106,7 +106,7 @@ public class DataSeeder
                 Id = Guid.NewGuid(),
                 FacultyName = "Khoa Kỹ Thuật Xây Dựng",
                 FacultyCode = "KTXD",
-                Logo = "/images/faculties/logo_ktxd.png",
+                Logo = "http://localhost:7080/images/faculties/logo_ktxd.png",
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
@@ -115,7 +115,7 @@ public class DataSeeder
                 Id = Guid.NewGuid(),
                 FacultyName = "Khoa Công Nghệ Hóa Học - Môi Trường",
                 FacultyCode = "CNHHMT",
-                Logo = "/images/faculties/logo_cnhhmt.png",
+                Logo = "http://localhost:7080/images/faculties/logo_cnhhmt.png",
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
@@ -124,7 +124,7 @@ public class DataSeeder
                 Id = Guid.NewGuid(),
                 FacultyName = "Khoa Sư Phạm Công Nghiệp",
                 FacultyCode = "SPCN",
-                Logo = "/images/faculties/logo_spcn.png",
+                Logo = "http://localhost:7080/images/faculties/logo_spcn.png",
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             },
@@ -133,11 +133,12 @@ public class DataSeeder
                 Id = Guid.NewGuid(),
                 FacultyName = "Khoa Công Nghệ Số",
                 FacultyCode = "CNS",
-                Logo = "/images/faculties/logo_cns.png",
+                Logo = "http://localhost:7080/images/faculties/logo_cns.png",
                 CreatedById = adminId,
                 CreatedAt = DateTimeOffset.UtcNow
             }
         };
+
 
         await _context.Faculty.AddRangeAsync(faculties);
         await _context.SaveChangesAsync();

@@ -15,7 +15,7 @@ import {
 import {
   deleteApiConversationsByConversationIdMessagesById,
   putApiConversationsByConversationIdMessagesById,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import { Input } from "@/src/components/ui/input";
 import { usePinMessage } from "@/src/hooks/use-pin-message";
 import { getFileUrlById } from "@/src/lib/file-url";

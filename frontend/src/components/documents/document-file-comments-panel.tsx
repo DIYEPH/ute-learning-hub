@@ -20,7 +20,7 @@ import {
   getApiDocumentById,
   postApiComment,
   postApiDocumentReview,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
   CommentDetailDto,
   CreateCommentCommand,

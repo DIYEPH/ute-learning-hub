@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
 import { Input } from "@/src/components/ui/input";
 import { useNotification } from "@/src/components/providers/notification-provider";
 import { getFileUrlById } from "@/src/lib/file-url";
-import { putApiAccountProfile, getApiUserByIdTrustHistory, postApiAuthChangeUsername } from "@/src/api/database/sdk.gen";
+import { putApiAccountProfile, getApiUserByIdTrustHistory, postApiAuthChangeUsername } from "@/src/api";
 import type { UpdateProfileCommandRequest, MajorDetailDto, UserTrustHistoryDto } from "@/src/api/database/types.gen";
 
 const ProfilePage = () => {

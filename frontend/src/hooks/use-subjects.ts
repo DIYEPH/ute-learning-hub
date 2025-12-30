@@ -7,7 +7,7 @@ import {
   postApiSubject,
   putApiSubjectById,
   deleteApiSubjectById,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
   GetApiSubjectData,
   GetApiSubjectResponse,

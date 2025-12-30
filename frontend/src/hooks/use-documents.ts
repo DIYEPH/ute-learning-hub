@@ -7,7 +7,7 @@ import {
     putApiDocumentById,
     deleteApiDocumentById,
     postApiDocumentFilesByFileIdReview,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
     DocumentDto,
     DocumentDetailDto,

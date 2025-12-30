@@ -58,6 +58,7 @@ public class DocumentRepository : Repository<Document, Guid>, IDocumentRepositor
                 .ThenInclude(df => df.File)
             .Include(d => d.DocumentFiles)
                 .ThenInclude(df => df.CoverFile)
+            .Include(d => d.Reviews)
             .AsSplitQuery();
     }
 

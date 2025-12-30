@@ -7,7 +7,7 @@ import {
     postApiAuthor,
     putApiAuthorById,
     deleteApiAuthorById,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
     AuthorDto,
     AuthorDetailDto,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { postApiFile } from "@/src/api/database/sdk.gen";
+import { postApiFile } from "@/src/api";
 import type { FileDto } from "@/src/api/database/types.gen";
 import { useNotification } from "@/src/components/providers/notification-provider";
 

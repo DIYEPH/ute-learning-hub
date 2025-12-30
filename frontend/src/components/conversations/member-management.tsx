@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { MoreVertical, Loader2, Sparkles } from "lucide-react";
-import { putApiConversationByIdMembersByMemberIdRole } from "@/src/api/database/sdk.gen";
+import { putApiConversationByIdMembersByMemberIdRole } from "@/src/api";
 import type { ConversationMemberDto, ConversationMemberRoleType, ConversationDetailDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import {

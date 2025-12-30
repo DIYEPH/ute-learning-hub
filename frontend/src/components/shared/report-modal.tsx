@@ -19,7 +19,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/src/components/ui/select";
-import { postApiReport } from "@/src/api/database/sdk.gen";
+import { postApiReport } from "@/src/api";
 import { useNotification } from "@/src/components/providers/notification-provider";
 
 export type ReportTargetType = "documentFile" | "comment" | "document" | "user" | "conversation";

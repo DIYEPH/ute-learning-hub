@@ -6,7 +6,7 @@ import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useMajors } from "@/src/hooks/use-majors";
 import { useDebounce } from "@/src/hooks/use-debounce";
-import { getApiSubject } from "@/src/api/database/sdk.gen";
+import { getApiSubject } from "@/src/api";
 import type { UpdateSubjectCommandRequest, CreateSubjectCommand, MajorDetailDto, SubjectDto2 } from "@/src/api/database/types.gen";
 import { AlertCircle, Loader2 } from "lucide-react";
 

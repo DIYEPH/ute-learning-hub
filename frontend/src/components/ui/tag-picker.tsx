@@ -39,8 +39,7 @@ export function TagPicker({
     className,
     disabled = false,
     maxVisibleTags = 8,
-    placeholder = "Tìm thẻ...",
-    addNewPlaceholder = "Nhập tên tag mới",
+    addNewPlaceholder = "Nhập tên chủ đề mới",
     debounceMs = 300,
     showAddNew = true,
 }: TagPickerProps) {
@@ -83,11 +82,6 @@ export function TagPicker({
         } else {
             onChange([...selected, value]);
         }
-    };
-
-    const handleRemove = (value: string) => {
-        if (disabled) return;
-        onChange(selected.filter((v) => v !== value));
     };
 
     const handleAddNew = () => {

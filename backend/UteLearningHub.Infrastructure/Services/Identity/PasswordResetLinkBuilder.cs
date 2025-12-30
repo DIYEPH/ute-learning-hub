@@ -20,7 +20,7 @@ public class PasswordResetLinkBuilder : IPasswordResetLinkBuilder
         var encodedEmail = HttpUtility.UrlEncode(email);
         var encodedToken = HttpUtility.UrlEncode(token);
 
-        return $"{baseUrl}/auth/reset-password?token={encodedToken}&email={encodedEmail}";
+        return $"{baseUrl}/reset-password?token={encodedToken}&email={encodedEmail}";
     }
 }
 

@@ -6,7 +6,7 @@ import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useFaculties } from "@/src/hooks/use-faculties";
 import { useDebounce } from "@/src/hooks/use-debounce";
-import { getApiMajor } from "@/src/api/database/sdk.gen";
+import { getApiMajor } from "@/src/api";
 import type { UpdateMajorCommandRequest, CreateMajorCommand, FacultyDetailDto, MajorDetailDto } from "@/src/api/database/types.gen";
 import { AlertCircle, Loader2 } from "lucide-react";
 

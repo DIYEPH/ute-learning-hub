@@ -1,6 +1,7 @@
 import { AppShell } from "../components/layout/app-shell";
 import { getTranslations } from 'next-intl/server';
 import { HomePageSections } from "../components/home/home-page-sections";
+import { AppFooter } from "../components/layout/app-footer";
 
 export default async function HomePage() {
   const t = await getTranslations('home');
@@ -19,6 +20,8 @@ export default async function HomePage() {
 
         <HomePageSections />
       </section>
+
+      <AppFooter className="mt-8 -mx-4 md:-mx-6" />
     </AppShell>
   );
 }

@@ -47,19 +47,19 @@ public class GetHomepageHandler : IRequestHandler<GetHomepageQuery, HomepageDto>
                 d.Visibility == VisibilityStatus.Internal);
         }
 
-        // 1. Latest 12 documents
+        // 1. Latest 4 documents
         var latestDocs = await baseQuery
             .OrderByDescending(d => d.CreatedAt)
-            .Take(12)
+            .Take(4)
             .Select(d => MapToDocumentDto(d))
             .ToListAsync(cancellationToken);
 
-        // 2. Popular 12 documents (by useful count)
+        // 2. Popular 4 documents (by useful count)
         var popularDocIds = await _documentReviewRepository.GetQueryableSet()
             .Where(r => r.DocumentReviewType == DocumentReviewType.Useful)
             .GroupBy(r => r.DocumentId)
             .OrderByDescending(g => g.Count())
-            .Take(12)
+            .Take(4)
             .Select(g => g.Key)
             .ToListAsync(cancellationToken);
 
@@ -74,56 +74,19 @@ public class GetHomepageHandler : IRequestHandler<GetHomepageQuery, HomepageDto>
             .Where(d => d != null)
             .ToList()!;
 
-        // 3. Most viewed 12 documents (by total view count of all files)
+        // 3. Most viewed 4 documents (by total view count of all files)
         var mostViewedDocs = await baseQuery
             .OrderByDescending(d => d.DocumentFiles.Where(f => !f.IsDeleted).Sum(f => f.ViewCount))
-            .Take(12)
+            .Take(4)
             .Select(d => MapToDocumentDto(d))
             .ToListAsync(cancellationToken);
-
-        // 4. Top 5 subjects by document count
-        var topSubjectIds = await baseQuery
-            .Where(d => d.SubjectId != null)
-            .GroupBy(d => d.SubjectId)
-            .OrderByDescending(g => g.Count())
-            .Take(5)
-            .Select(g => g.Key!.Value)
-            .ToListAsync(cancellationToken);
-
-        var topSubjects = new List<SubjectWithDocsDto>();
-
-        foreach (var subjectId in topSubjectIds)
-        {
-            var subjectInfo = await _subjectRepository.GetQueryableSet()
-                .AsNoTracking()
-                .Where(s => s.Id == subjectId)
-                .Select(s => new { s.Id, s.SubjectName, s.SubjectCode })
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (subjectInfo == null) continue;
-
-            var docs = await baseQuery
-                .Where(d => d.SubjectId == subjectId)
-                .OrderByDescending(d => d.CreatedAt)
-                .Take(10)
-                .Select(d => MapToDocumentDto(d))
-                .ToListAsync(cancellationToken);
-
-            topSubjects.Add(new SubjectWithDocsDto
-            {
-                SubjectId = subjectInfo.Id,
-                SubjectName = subjectInfo.SubjectName,
-                SubjectCode = subjectInfo.SubjectCode,
-                Documents = docs
-            });
-        }
 
         return new HomepageDto
         {
             LatestDocuments = latestDocs,
             PopularDocuments = popularDocs,
             MostViewedDocuments = mostViewedDocs,
-            TopSubjects = topSubjects
+            TopSubjects = new List<SubjectWithDocsDto>() // Empty - not used
         };
     }
 

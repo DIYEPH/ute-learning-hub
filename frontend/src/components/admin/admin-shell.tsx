@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 
 import { AppHeader } from "../layout/app-header";
 import { AppSidebar } from "../layout/app-sidebar";
-import { AppFooter } from "../layout/app-footer";
 import { ADMIN_NAV_CONFIG } from "./admin-nav-config";
 import type { AdminNavItem } from "./admin-nav-config";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
@@ -25,26 +24,19 @@ export function AdminShell({ children }: AdminShellProps) {
   const { profile } = useUserProfile();
   const { pendingReports, pendingDocumentFiles } = useAdminBadges();
 
-  // Check if user has Admin role (not just trust level)
   const hasAdminRole = profile?.roles?.some(role => role === 'Admin') === true;
-  // Check if user has Moderator-level trust
   const isModerator = typeof profile?.trustLevel === 'number' && profile.trustLevel >= MODERATOR_MIN_LEVEL;
-
-  // Filter nav items based on user's permission level
   const filteredNavItems = ADMIN_NAV_CONFIG.filter(item => {
     if (item.minLevel === "Admin") {
-      // Admin-level pages require actual Admin role
       return hasAdminRole;
     }
     if (item.minLevel === "Moderator") {
-      // Moderator-level pages require Admin role OR Moderator+ trust level
       return hasAdminRole || isModerator;
     }
     return false;
   });
 
   const navItems: AdminNavItem[] = filteredNavItems.map(item => {
-    // Attach badges to specific nav items
     let badge: number | undefined;
     if (item.href === "/admin/reports") {
       badge = pendingReports;
@@ -61,7 +53,7 @@ export function AdminShell({ children }: AdminShellProps) {
 
   return (
     <div className="h-screen overflow-hidden bg-background flex flex-col">
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <AppHeader navItems={navItems} activePath={pathname} />
       </div>
 
@@ -74,8 +66,6 @@ export function AdminShell({ children }: AdminShellProps) {
           {children}
         </main>
       </div>
-
-      <AppFooter />
     </div>
   );
 }

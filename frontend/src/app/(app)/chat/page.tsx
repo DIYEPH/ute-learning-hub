@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, MessageCircle, Plus, Search } from "lucide-react";
 
-import { getApiConversation } from "@/src/api/database/sdk.gen";
+import { getApiConversation } from "@/src/api";
 import type {
   ConversationDto,
   PagedResponseOfConversationDto,

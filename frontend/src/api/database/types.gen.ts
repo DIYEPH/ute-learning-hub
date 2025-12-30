@@ -50,6 +50,12 @@ export type ChangeUsernameCommand = {
     newUsername?: string;
 };
 
+export type ChartDataItem = {
+    label?: string;
+    value?: number;
+    color?: string | null;
+};
+
 export type CommentDetailDto = {
     id?: string;
     documentId?: string;
@@ -143,6 +149,15 @@ export type ConversationRecommendationDto = {
     memberCount?: number;
     isCurrentUserMember?: boolean | null;
     hasPendingJoinRequest?: boolean | null;
+};
+
+export type ConversationStatsDto = {
+    totalConversations?: number;
+    activeConversations?: number;
+    totalMessagesLast7Days?: number;
+    avgMembersPerConversation?: number;
+    conversationsBySubject?: Array<ChartDataItem>;
+    messagesOverTime?: Array<TimeSeriesDataPoint>;
 };
 
 export type ConversationStatus = number;
@@ -337,6 +352,20 @@ export type DocumentFileProgressDto2 = {
 };
 
 export type DocumentReviewType = number;
+
+export type DocumentStatsDto = {
+    totalDocuments?: number;
+    approvedDocuments?: number;
+    pendingDocuments?: number;
+    totalViews?: number;
+    avgViewsPerDocument?: number;
+    totalUsefulReviews?: number;
+    totalNotUsefulReviews?: number;
+    documentsBySubject?: Array<ChartDataItem>;
+    documentsByType?: Array<unknown>;
+    topDocumentsByViews?: Array<TopDocumentDto>;
+    viewsOverTime?: Array<TimeSeriesDataPoint>;
+};
 
 export type EventDto = {
     id?: string;
@@ -535,6 +564,18 @@ export type MessageFileDto = {
     mimeType?: string;
 };
 
+export type ModerationStatsDto = {
+    totalReports?: number;
+    pendingReports?: number;
+    approvedReports?: number;
+    pendingComments?: number;
+    hiddenComments?: number;
+    pendingDocumentFiles?: number;
+    reportsByReason?: Array<ChartDataItem>;
+    reportsOverTime?: Array<TimeSeriesDataPoint>;
+    topReportedUsers?: Array<TopReportedUserDto>;
+};
+
 export type NotificationDto = {
     id?: string;
     objectId?: string;
@@ -564,6 +605,20 @@ export type NullableOfGender = number | null;
 export type NullableOfMessageType = number | null;
 
 export type NullableOfVisibilityStatus = number | null;
+
+export type OverviewStatsDto = {
+    totalUsers?: number;
+    newUsersLast7Days?: number;
+    totalDocuments?: number;
+    newDocumentsLast7Days?: number;
+    totalViews?: number;
+    pendingReports?: number;
+    pendingDocumentFiles?: number;
+    totalConversations?: number;
+    usersOverTime?: Array<TimeSeriesDataPoint>;
+    documentsOverTime?: Array<unknown>;
+    viewsOverTime?: Array<unknown>;
+};
 
 export type PagedResponseOfAuthorDto = {
     items?: Array<AuthorDto>;
@@ -890,6 +945,33 @@ export type TagDto = {
     tagName?: string;
 };
 
+export type TimeSeriesDataPoint = {
+    date?: string;
+    value?: number;
+};
+
+export type TopDocumentDto = {
+    id?: string;
+    name?: string;
+    viewCount?: number;
+    coverUrl?: string | null;
+};
+
+export type TopReportedUserDto = {
+    id?: string;
+    fullName?: string;
+    avatarUrl?: string | null;
+    reportCount?: number;
+};
+
+export type TopUserDto = {
+    id?: string;
+    fullName?: string;
+    avatarUrl?: string | null;
+    documentCount?: number;
+    trustScore?: number;
+};
+
 export type TrustLever = number;
 
 export type TypeDetailDto = {
@@ -1055,6 +1137,17 @@ export type UserDto = {
     deletedById?: string | null;
     lockoutEnabled?: boolean;
     lockoutEnd?: string | null;
+};
+
+export type UserStatsDto = {
+    totalUsers?: number;
+    activeUsersLast7Days?: number;
+    bannedUsers?: number;
+    avgTrustScore?: number;
+    usersByMajor?: Array<ChartDataItem>;
+    usersByTrustLevel?: Array<unknown>;
+    topContributors?: Array<TopUserDto>;
+    registrationsOverTime?: Array<TimeSeriesDataPoint>;
 };
 
 export type UserTrustHistoryDto = {
@@ -2689,6 +2782,96 @@ export type PostApiReportByIdReviewResponses = {
      */
     200: unknown;
 };
+
+export type GetApiStatisticsOverviewData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number;
+    };
+    url: '/api/Statistics/overview';
+};
+
+export type GetApiStatisticsOverviewResponses = {
+    /**
+     * OK
+     */
+    200: OverviewStatsDto;
+};
+
+export type GetApiStatisticsOverviewResponse = GetApiStatisticsOverviewResponses[keyof GetApiStatisticsOverviewResponses];
+
+export type GetApiStatisticsDocumentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number;
+    };
+    url: '/api/Statistics/documents';
+};
+
+export type GetApiStatisticsDocumentsResponses = {
+    /**
+     * OK
+     */
+    200: DocumentStatsDto;
+};
+
+export type GetApiStatisticsDocumentsResponse = GetApiStatisticsDocumentsResponses[keyof GetApiStatisticsDocumentsResponses];
+
+export type GetApiStatisticsUsersData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number;
+    };
+    url: '/api/Statistics/users';
+};
+
+export type GetApiStatisticsUsersResponses = {
+    /**
+     * OK
+     */
+    200: UserStatsDto;
+};
+
+export type GetApiStatisticsUsersResponse = GetApiStatisticsUsersResponses[keyof GetApiStatisticsUsersResponses];
+
+export type GetApiStatisticsModerationData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number;
+    };
+    url: '/api/Statistics/moderation';
+};
+
+export type GetApiStatisticsModerationResponses = {
+    /**
+     * OK
+     */
+    200: ModerationStatsDto;
+};
+
+export type GetApiStatisticsModerationResponse = GetApiStatisticsModerationResponses[keyof GetApiStatisticsModerationResponses];
+
+export type GetApiStatisticsConversationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number;
+    };
+    url: '/api/Statistics/conversations';
+};
+
+export type GetApiStatisticsConversationsResponses = {
+    /**
+     * OK
+     */
+    200: ConversationStatsDto;
+};
+
+export type GetApiStatisticsConversationsResponse = GetApiStatisticsConversationsResponses[keyof GetApiStatisticsConversationsResponses];
 
 export type GetApiSubjectData = {
     body?: never;

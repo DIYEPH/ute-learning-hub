@@ -5,7 +5,7 @@ import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
 import { useDebounce } from "@/src/hooks/use-debounce";
-import { getApiTag } from "@/src/api/database/sdk.gen";
+import { getApiTag } from "@/src/api";
 import type { TagDto } from "@/src/api/database/types.gen";
 import type { CreateTagCommand, UpdateTagCommand } from "@/src/hooks/use-tags";
 import { AlertCircle, Loader2 } from "lucide-react";

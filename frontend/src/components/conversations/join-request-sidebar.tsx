@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
 import {
     getApiConversationJoinRequest,
     postApiConversationJoinRequestByIdReview,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type { ConversationJoinRequestDto } from "@/src/api/database/types.gen";
 import { useNotification } from "@/src/components/providers/notification-provider";
 
@@ -139,7 +139,7 @@ export function JoinRequestSidebar({
                                             className="p-3 bg-muted rounded-lg"
                                         >
                                             <div className="flex items-start gap-3">
-                                                <Avatar className="h-10 w-10 flex-shrink-0">
+                                                <Avatar className="h-10 w-10 shrink-0">
                                                     <AvatarImage src={req.requesterAvatarUrl || undefined} />
                                                     <AvatarFallback>{req.requesterName?.[0] || "?"}</AvatarFallback>
                                                 </Avatar>

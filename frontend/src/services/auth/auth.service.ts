@@ -6,6 +6,7 @@ import { setAccessToken, clearTokens } from '@/src/api/client';
 import type { LoginResponse, LoginWithMicrosoftResponse } from '@/src/api/database/types.gen';
 
 // ============ MSAL Configuration ============
+
 const getMsalConfig = () => ({
     auth: {
         clientId: process.env.NEXT_PUBLIC_MICROSOFT_CLIENT_ID || '',
@@ -33,90 +34,75 @@ async function getMsalInstance(): Promise<PublicClientApplication | null> {
     return msalInstance;
 }
 
-// ============ Auth Service ============
+// ============ Helper ============
 
-/**
- * Login với email/password
- * Backend sets refresh token in httpOnly cookie automatically
- */
-export async function login(emailOrUsername: string, password: string): Promise<LoginResponse> {
-    try {
-        const response = await postApiAuthLogin({
-            body: { emailOrUsername, password },
-            throwOnError: true,
-        });
+function getErrorMessage(response: any, defaultMsg = 'Đăng nhập thất bại'): string | null {
+    // Check SDK error property
+    const errData = response?.error || response?.response?.data;
+    if (errData?.message) return errData.message;
+    if (errData?.title) return errData.title;
 
-        const data = (response.data ?? response) as LoginResponse;
-        if (!data?.accessToken) {
-            throw new Error('Đăng nhập thất bại');
-        }
-
-        // Only save access token - refresh token is in httpOnly cookie
-        setAccessToken(data.accessToken);
-        return data;
-    } catch (error: any) {
-        const message = error?.response?.data?.message || error?.message || 'Đăng nhập thất bại';
-        throw new Error(message);
+    // Check AxiosError
+    if (response?.isAxiosError || response?.status >= 400) {
+        return response?.response?.data?.message || response?.message || defaultMsg;
     }
+
+    return null;
 }
 
-/**
- * Login với Microsoft
- * Backend sets refresh token in httpOnly cookie automatically
- */
+// ============ Auth Service ============
+
+export async function login(emailOrUsername: string, password: string): Promise<LoginResponse> {
+    const response = await postApiAuthLogin({ body: { emailOrUsername, password } });
+
+    const error = getErrorMessage(response);
+    if (error) throw new Error(error);
+
+    const data = response.data as LoginResponse;
+    if (!data?.accessToken) throw new Error('Đăng nhập thất bại');
+
+    setAccessToken(data.accessToken);
+    return data;
+}
+
 export async function loginWithMicrosoft(): Promise<LoginWithMicrosoftResponse> {
     const instance = await getMsalInstance();
-    if (!instance) {
-        throw new Error('MSAL không khả dụng');
-    }
+    if (!instance) throw new Error('MSAL không khả dụng');
 
+    let idToken: string;
     try {
-        const loginResponse: AuthenticationResult = await instance.loginPopup({
+        const result: AuthenticationResult = await instance.loginPopup({
             scopes: ['openid', 'profile', 'email'],
             prompt: 'select_account',
         });
-
-        if (!loginResponse.idToken) {
-            throw new Error('Không nhận được ID token từ Microsoft');
-        }
-
-        const response = await postApiAuthLoginMicrosoft({
-            body: { idToken: loginResponse.idToken },
-            throwOnError: true,
-        });
-
-        const data = (response.data ?? response) as LoginWithMicrosoftResponse;
-        if (!data?.accessToken) {
-            throw new Error('Đăng nhập thất bại');
-        }
-
-        // Only save access token - refresh token is in httpOnly cookie
-        setAccessToken(data.accessToken);
-        return data;
-    } catch (error: any) {
-        const message = error?.response?.data?.message || error?.message || 'Đăng nhập thất bại';
-        throw new Error(message);
+        if (!result.idToken) throw new Error('Không nhận được ID token');
+        idToken = result.idToken;
+    } catch (e: any) {
+        throw new Error(e?.message || 'Đăng nhập Microsoft thất bại');
     }
+
+    const response = await postApiAuthLoginMicrosoft({ body: { idToken } });
+
+    const error = getErrorMessage(response);
+    if (error) throw new Error(error);
+
+    const data = response.data as LoginWithMicrosoftResponse;
+    if (!data?.accessToken) throw new Error('Đăng nhập thất bại');
+
+    setAccessToken(data.accessToken);
+    return data;
 }
 
-/**
- * Logout
- * Backend clears refresh token cookie automatically
- */
 export async function logout(): Promise<void> {
-    try {
-        await postApiAuthLogout();
-    } catch {
-    }
+    try { await postApiAuthLogout(); } catch { /* ignore */ }
+
     clearTokens();
+
     const instance = await getMsalInstance();
     if (instance) {
         const accounts = instance.getAllAccounts();
         if (accounts.length > 0) {
-            try {
-                await instance.logoutPopup({ account: accounts[0] });
-            } catch {
-            }
+            try { await instance.logoutPopup({ account: accounts[0] }); } catch { /* ignore */ }
         }
     }
 }

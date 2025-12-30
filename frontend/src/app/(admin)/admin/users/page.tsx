@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Pagination } from "@/src/components/ui/pagination";
-import { Plus, Upload, Trash2 } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { useUsers } from "@/src/hooks/use-users";
 import { useMajors } from "@/src/hooks/use-majors";
 import { useFaculties } from "@/src/hooks/use-faculties";
@@ -12,7 +12,7 @@ import { UserTable } from "@/src/components/admin/users/user-table";
 import { UserForm } from "@/src/components/admin/users/user-form";
 import { CreateModal } from "@/src/components/admin/modals/create-modal";
 import { EditModal } from "@/src/components/admin/modals/edit-modal";
-import { DeleteModal } from "@/src/components/admin/modals/delete-modal";
+
 import { ImportModal } from "@/src/components/admin/modals/import-modal";
 import { BanModal } from "@/src/components/admin/modals/ban-modal";
 import { AdvancedSearchFilter, type FilterOption } from "@/src/components/admin/advanced-search-filter";
@@ -40,13 +40,13 @@ export default function UsersManagementPage() {
   const [majorId, setMajorId] = useState<string | null>(null);
   const [trustLevel, setTrustLevel] = useState<string | null>(null);
   const [emailConfirmed, setEmailConfirmed] = useState<boolean | null>(null);
-  const [isDeleted, setIsDeleted] = useState<boolean | null>(null);
+  const [isBanned, setIsBanned] = useState<boolean | null>(null);
   const [majors, setMajors] = useState<MajorDetailDto[]>([]);
   const [faculties, setFaculties] = useState<FacultyDetailDto[]>([]);
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   const [importModalOpen, setImportModalOpen] = useState(false);
   const [banModalOpen, setBanModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserDto | null>(null);
@@ -59,7 +59,6 @@ export default function UsersManagementPage() {
         MajorId: majorId || undefined,
         TrustLevel: trustLevel || undefined,
         EmailConfirmed: emailConfirmed !== null ? emailConfirmed : undefined,
-        IsDeleted: isDeleted !== null ? isDeleted : undefined,
         SortBy: sortBy,
         SortDescending: sortDescending,
         Page: page,
@@ -67,13 +66,23 @@ export default function UsersManagementPage() {
       });
 
       if (response) {
-        setUsers(response.items || []);
-        setTotalCount(response.totalCount || 0);
+        let filteredUsers = response.items || [];
+
+        // Filter by banned status (frontend filter based on lockoutEnd)
+        if (isBanned !== null) {
+          filteredUsers = filteredUsers.filter((user) => {
+            const userIsBanned = user.lockoutEnd && new Date(user.lockoutEnd) > new Date();
+            return isBanned ? userIsBanned : !userIsBanned;
+          });
+        }
+
+        setUsers(filteredUsers);
+        setTotalCount(isBanned !== null ? filteredUsers.length : (response.totalCount || 0));
       }
     } catch (err) {
       console.error("Error loading users:", err);
     }
-  }, [fetchUsers, searchTerm, majorId, trustLevel, emailConfirmed, isDeleted, sortBy, sortDescending, page, pageSize]);
+  }, [fetchUsers, searchTerm, majorId, trustLevel, emailConfirmed, isBanned, sortBy, sortDescending, page, pageSize]);
 
   useEffect(() => {
     const loadFacultiesForFilter = async () => {
@@ -124,13 +133,11 @@ export default function UsersManagementPage() {
       loadUsers();
     }, 300); // Debounce 300ms
     return () => clearTimeout(timer);
-  }, [facultyId, majorId, trustLevel, emailConfirmed, isDeleted]);
+  }, [facultyId, majorId, trustLevel, emailConfirmed]);
 
   const handleCreate = async (command: UpdateUserRequest) => {
     setFormLoading(true);
     try {
-      // TODO: Implement create user API call when backend endpoint is available
-      // For now, just reload the list
       await loadUsers();
       setCreateModalOpen(false);
     } catch (err) {
@@ -155,20 +162,7 @@ export default function UsersManagementPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!selectedUser?.id) return;
-    setFormLoading(true);
-    try {
-      await banUser(selectedUser.id);
-      await loadUsers();
-      setDeleteModalOpen(false);
-      setSelectedUser(null);
-    } catch (err) {
-      console.error("Error deleting user:", err);
-    } finally {
-      setFormLoading(false);
-    }
-  };
+
 
   const handleBan = async (user: UserDto) => {
     if (!user.id) return;
@@ -209,33 +203,7 @@ export default function UsersManagementPage() {
     }
   };
 
-  const handleBulkDelete = async (ids: string[]) => {
-    setFormLoading(true);
-    try {
-      await Promise.all(ids.map((id) => banUser(id)));
-      await loadUsers();
-    } catch (err) {
-      console.error("Error bulk deleting users:", err);
-    } finally {
-      setFormLoading(false);
-    }
-  };
 
-  const handleDeleteAll = async () => {
-    if (users.length === 0) return;
-    if (!confirm(t("deleteAllConfirm", { count: users.length }))) return;
-
-    setFormLoading(true);
-    try {
-      const ids = users.map((u) => u.id).filter((id): id is string => !!id);
-      await Promise.all(ids.map((id) => banUser(id)));
-      await loadUsers();
-    } catch (err) {
-      console.error("Error deleting all users:", err);
-    } finally {
-      setFormLoading(false);
-    }
-  };
 
   const handleImport = async (file: File) => {
     setFormLoading(true);
@@ -276,8 +244,9 @@ export default function UsersManagementPage() {
       case "emailConfirmed":
         setEmailConfirmed(value);
         break;
-      case "isDeleted":
-        setIsDeleted(value);
+
+      case "isBanned":
+        setIsBanned(value);
         break;
     }
     setPage(1);
@@ -289,7 +258,7 @@ export default function UsersManagementPage() {
     setMajorId(null);
     setTrustLevel(null);
     setEmailConfirmed(null);
-    setIsDeleted(null);
+    setIsBanned(null);
     setPage(1);
   };
 
@@ -339,11 +308,12 @@ export default function UsersManagementPage() {
       value: emailConfirmed === true,
     },
     {
-      key: "isDeleted",
-      label: t("table.isDeleted"),
+      key: "isBanned",
+      label: t("table.isBanned"),
       type: "checkbox",
-      value: isDeleted === true,
+      value: isBanned === true,
     },
+
   ];
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -357,18 +327,7 @@ export default function UsersManagementPage() {
             <Upload size={16} className="mr-1" />
             {t("import")}
           </Button>
-          {users.length > 0 && (
-            <Button
-              onClick={handleDeleteAll}
-              variant="destructive"
-              size="sm"
-              className="text-xs sm:text-sm"
-              disabled={formLoading}
-            >
-              <Trash2 size={16} className="mr-1" />
-              {t("deleteAll")}
-            </Button>
-          )}
+
           <Button onClick={() => setCreateModalOpen(true)} size="sm" className="text-xs sm:text-sm">
             <Plus size={16} className="mr-1" />
             {tCommon("create")}
@@ -406,14 +365,11 @@ export default function UsersManagementPage() {
           setSelectedUser(user);
           setEditModalOpen(true);
         }}
-        onDelete={(user) => {
-          setSelectedUser(user);
-          setDeleteModalOpen(true);
-        }}
+
         onBan={handleBan}
         onUnban={handleUnban}
         currentUserId={currentUserProfile?.id}
-        onBulkDelete={handleBulkDelete}
+
         loading={loading}
       />
 
@@ -466,16 +422,7 @@ export default function UsersManagementPage() {
         />
       </EditModal>
 
-      <DeleteModal
-        open={deleteModalOpen}
-        onOpenChange={(open) => {
-          setDeleteModalOpen(open);
-          if (!open) setSelectedUser(null);
-        }}
-        itemName={selectedUser?.fullName}
-        onConfirm={handleDelete}
-        loading={formLoading}
-      />
+
 
       <ImportModal
         open={importModalOpen}

@@ -5,7 +5,7 @@ import { Loader2, UserPlus, Check, X, Search, Sparkles } from "lucide-react";
 import {
     getApiConversationByIdSuggestedUsers,
     postApiConversationByIdInvitations,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type { SuggestedUserDto, GetSuggestedUsersResponse } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";

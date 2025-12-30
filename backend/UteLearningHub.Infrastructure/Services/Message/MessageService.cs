@@ -390,18 +390,19 @@ public class MessageService(
         if (member == null)
             throw new ForbiddenException("You are not a member of this conversation");
 
-        // Update LastReadMessageId (only if the new message is newer than current)
-        if (member.LastReadMessageId == null ||
-            (message.CreatedAt > (await messageRepository.GetByIdAsync(
-                member.LastReadMessageId.Value,
-                disableTracking: true,
-                ct))?.CreatedAt))
+        // Update LastReadMessageId only if needed
+        if (member.LastReadMessageId != request.MessageId)
         {
-            member.LastReadMessageId = request.MessageId;
+            try
+            {
+                member.LastReadMessageId = request.MessageId;
+                await conversationRepository.UnitOfWork.SaveChangesAsync(ct);
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+            {
+                // Ignore concurrency conflict - another request already updated this
+            }
         }
-
-        conversationRepository.Update(conversation);
-        await conversationRepository.UnitOfWork.SaveChangesAsync(ct);
     }
 
     private static MessageDto CreateMessageDto(Domain.Entities.Message message, AppUserDto? sender)

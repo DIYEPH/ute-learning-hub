@@ -3,10 +3,10 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { ChevronRight, Loader2, FileText } from "lucide-react";
-import { getApiDocumentHomepage, getApiDocumentReadingHistory } from "@/src/api/database/sdk.gen";
+import { getApiDocumentHomepage, getApiDocumentReadingHistory } from "@/src/api";
 import { DocumentCard } from "@/src/components/documents/document-card";
 import { ScrollArea, ScrollBar } from "@/src/components/ui/scroll-area";
-import type { HomepageDto, ReadingHistoryItemDto, DocumentDto, SubjectWithDocsDto } from "@/src/api/database/types.gen";
+import type { HomepageDto, ReadingHistoryItemDto, DocumentDto } from "@/src/api/database/types.gen";
 import { useTranslations } from "next-intl";
 import { useAuthState } from "@/src/hooks/use-auth-state";
 
@@ -31,9 +31,16 @@ export function HomePageSections() {
 
             if (isAuthenticated) {
                 try {
-                    const historyRes = await getApiDocumentReadingHistory({ query: { PageSize: 8 } });
+                    const historyRes = await getApiDocumentReadingHistory({ query: { PageSize: 10 } });
                     const historyData = (historyRes as unknown as { data: PagedResponse<ReadingHistoryItemDto> })?.data || historyRes as PagedResponse<ReadingHistoryItemDto>;
-                    setRecentDocs(historyData.items || []);
+                    // Filter distinct documents by documentId for homepage
+                    const seen = new Set<string>();
+                    const distinctDocs = (historyData.items || []).filter(item => {
+                        if (seen.has(item.documentId!)) return false;
+                        seen.add(item.documentId!);
+                        return true;
+                    });
+                    setRecentDocs(distinctDocs);
                 } catch {
                     setRecentDocs([]);
                 }
@@ -60,132 +67,77 @@ export function HomePageSections() {
     }
 
     const latestDocs = homepageData?.latestDocuments || [];
-    const popularDocs = homepageData?.popularDocuments || [];
     const mostViewedDocs = homepageData?.mostViewedDocuments || [];
-    const topSubjects = homepageData?.topSubjects || [];
 
     return (
-        <div className="space-y-6">
-            {/* Đọc gần đây */}
+        <div className="space-y-10">
+            {/* 1. Tài liệu mới nhất */}
+            {latestDocs.length > 0 && (
+                <Section title={t("latestDocuments")} href="/search?sort=date">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {latestDocs.slice(0, 4).map((doc: DocumentDto) => (
+                            <DocumentCard
+                                key={doc.id}
+                                id={doc.id}
+                                title={doc.documentName || ""}
+                                subjectName={doc.subject?.subjectName || undefined}
+                                thumbnailFileId={doc.thumbnailFileId}
+                                tags={doc.tags?.map((t) => t.tagName || "").filter(Boolean)}
+                                fileCount={doc.fileCount}
+                                usefulCount={doc.usefulCount}
+                                notUsefulCount={doc.notUsefulCount}
+                                totalViewCount={doc.totalViewCount}
+                            />
+                        ))}
+                    </div>
+                </Section>
+            )}
+
+            {/* 2. Tài liệu phổ biến (theo lượt xem) */}
+            {mostViewedDocs.length > 0 && (
+                <Section title="Tài liệu phổ biến" href="/search?sort=popular">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {(mostViewedDocs as DocumentDto[]).slice(0, 4).map((doc: DocumentDto) => (
+                            <DocumentCard
+                                key={doc.id}
+                                id={doc.id}
+                                title={doc.documentName || ""}
+                                subjectName={doc.subject?.subjectName || undefined}
+                                thumbnailFileId={doc.thumbnailFileId}
+                                tags={doc.tags?.map((t) => t.tagName || "").filter(Boolean)}
+                                fileCount={doc.fileCount}
+                                usefulCount={doc.usefulCount}
+                                notUsefulCount={doc.notUsefulCount}
+                                totalViewCount={doc.totalViewCount}
+                            />
+                        ))}
+                    </div>
+                </Section>
+            )}
+
+            {/* 3. Đọc gần đây - cuối cùng */}
             {recentDocs.length > 0 && (
                 <Section title={t("recentlyViewed")} href="/recent">
-                    <HorizontalScroll>
-                        {recentDocs.map((item: ReadingHistoryItemDto) => (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {recentDocs.slice(0, 4).map((item: ReadingHistoryItemDto) => (
                             <DocumentCard
                                 key={item.documentFileId || item.documentId}
                                 id={item.documentId}
                                 title={item.documentName || ""}
                                 subjectName={item.subjectName || undefined}
                                 thumbnailFileId={item.coverFileId}
-                                totalViewCount={item.totalViewCount}
                                 usefulCount={item.usefulCount}
                                 notUsefulCount={item.notUsefulCount}
-                                lastPage={item.lastPage}
                                 totalPages={item.totalPages}
-                                className="w-40 flex-shrink-0"
+                                totalViewCount={item.totalViewCount}
                             />
                         ))}
-                    </HorizontalScroll>
+                    </div>
                 </Section>
             )}
-
-            {/* Được yêu thích */}
-            {popularDocs.length > 0 && (
-                <Section title="Được yêu thích" href="/search">
-                    <HorizontalScroll>
-                        {(popularDocs as DocumentDto[]).map((doc: DocumentDto) => (
-                            <DocumentCard
-                                key={doc.id}
-                                id={doc.id}
-                                title={doc.documentName || ""}
-                                subjectName={doc.subject?.subjectName || undefined}
-                                thumbnailFileId={doc.thumbnailFileId}
-                                tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
-                                fileCount={doc.fileCount}
-                                usefulCount={doc.usefulCount}
-                                totalViewCount={doc.totalViewCount}
-                                className="w-40 flex-shrink-0"
-                            />
-                        ))}
-                    </HorizontalScroll>
-                </Section>
-            )}
-
-            {/* Xem nhiều nhất */}
-            {mostViewedDocs.length > 0 && (
-                <Section title="Xem nhiều nhất" href="/search">
-                    <HorizontalScroll>
-                        {(mostViewedDocs as DocumentDto[]).map((doc: DocumentDto) => (
-                            <DocumentCard
-                                key={doc.id}
-                                id={doc.id}
-                                title={doc.documentName || ""}
-                                subjectName={doc.subject?.subjectName || undefined}
-                                thumbnailFileId={doc.thumbnailFileId}
-                                tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
-                                fileCount={doc.fileCount}
-                                usefulCount={doc.usefulCount}
-                                notUsefulCount={doc.notUsefulCount}
-                                totalViewCount={doc.totalViewCount}
-                                className="w-40 flex-shrink-0"
-                            />
-                        ))}
-                    </HorizontalScroll>
-                </Section>
-            )}
-
-            {/* Mới nhất */}
-            {latestDocs.length > 0 && (
-                <Section title={t("latestDocuments")} href="/search">
-                    <HorizontalScroll>
-                        {latestDocs.map((doc: DocumentDto) => (
-                            <DocumentCard
-                                key={doc.id}
-                                id={doc.id}
-                                title={doc.documentName || ""}
-                                subjectName={doc.subject?.subjectName || undefined}
-                                thumbnailFileId={doc.thumbnailFileId}
-                                tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
-                                fileCount={doc.fileCount}
-                                usefulCount={doc.usefulCount}
-                                totalViewCount={doc.totalViewCount}
-                                notUsefulCount={doc.notUsefulCount}
-                                className="w-40 flex-shrink-0"
-                            />
-                        ))}
-                    </HorizontalScroll>
-                </Section>
-            )}
-
-            {/* Theo môn học */}
-            {topSubjects.map((item: SubjectWithDocsDto) => (
-                <Section
-                    key={item.subjectId}
-                    title={item.subjectName || ""}
-                    href={`/search?subject=${item.subjectId}`}
-                >
-                    <HorizontalScroll>
-                        {((item.documents || []) as DocumentDto[]).map((doc: DocumentDto) => (
-                            <DocumentCard
-                                key={doc.id}
-                                id={doc.id}
-                                title={doc.documentName || ""}
-                                subjectName={doc.subject?.subjectName || undefined}
-                                thumbnailFileId={doc.thumbnailFileId}
-                                tags={doc.tags?.map((tag) => tag.tagName || "").filter(Boolean)}
-                                fileCount={doc.fileCount}
-                                usefulCount={doc.usefulCount}
-                                notUsefulCount={doc.notUsefulCount}
-                                totalViewCount={doc.totalViewCount}
-                                className="w-40 flex-shrink-0"
-                            />
-                        ))}
-                    </HorizontalScroll>
-                </Section>
-            ))}
 
             {/* Empty state */}
-            {topSubjects.length === 0 && latestDocs.length === 0 && popularDocs.length === 0 && mostViewedDocs.length === 0 && (
+            {latestDocs.length === 0 && mostViewedDocs.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
                     <FileText className="h-12 w-12 mx-auto mb-3 opacity-40" />
                     <p>{t("noDocuments")}</p>
@@ -199,25 +151,16 @@ function Section({ title, href, children }: { title: string; href?: string; chil
     const t = useTranslations("home");
     return (
         <section>
-            <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-semibold text-foreground">{title}</h2>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-foreground">{title}</h2>
                 {href && (
-                    <Link href={href} className="flex items-center gap-1 text-xs text-primary hover:underline">
+                    <Link href={href} className="flex items-center gap-1 text-sm text-primary hover:underline font-medium">
                         {t("viewMore")}
-                        <ChevronRight className="h-3 w-3" />
+                        <ChevronRight className="h-4 w-4" />
                     </Link>
                 )}
             </div>
             {children}
         </section>
-    );
-}
-
-function HorizontalScroll({ children }: { children: React.ReactNode }) {
-    return (
-        <ScrollArea className="w-full whitespace-nowrap">
-            <div className="flex gap-3 pb-2">{children}</div>
-            <ScrollBar orientation="horizontal" />
-        </ScrollArea>
     );
 }

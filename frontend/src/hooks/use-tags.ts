@@ -7,7 +7,7 @@ import {
     postApiTag,
     putApiTagById,
     deleteApiTagById,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
     GetApiTagData,
     GetApiTagResponse,

@@ -25,7 +25,9 @@ public record AppUserDto(
     bool EmailConfirmed,
     string? AvatarUrl,
     Guid? MajorId,
-    string? Introduction
+    string? Introduction,
+    bool LockoutEnabled,
+    DateTimeOffset? LockoutEnd
 );
 public record CreateUserDto(
     string Email,

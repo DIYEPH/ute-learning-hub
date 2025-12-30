@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getApiReport, getApiDocumentPendingFilesCount } from "@/src/api/database/sdk.gen";
+import { getApiReport, getApiDocumentPendingFilesCount } from "@/src/api";
 import type { PagedResponse } from "./use-crud";
 import type { ReportDto } from "@/src/api/database/types.gen";
 

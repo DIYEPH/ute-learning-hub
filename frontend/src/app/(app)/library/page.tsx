@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, RefreshCcw, FileText } from "lucide-react";
 
-import { getApiDocumentMy } from "@/src/api/database/sdk.gen";
+import { getApiDocumentMy } from "@/src/api";
 import type { DocumentDto, PagedResponseOfDocumentDto } from "@/src/api/database/types.gen";
 import { DocumentCard } from "@/src/components/documents/document-card";
 import { Input } from "@/src/components/ui/input";
@@ -88,7 +88,7 @@ export default function LibraryPage() {
           <p>Chưa có tài liệu nào</p>
         </div>
       ) : (
-        <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {docs.map(d => (
             <DocumentCard
               key={d.id}

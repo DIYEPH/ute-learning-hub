@@ -23,7 +23,7 @@ public class FileUsageService : IFileUsageService
 
     public async Task<DomainFile> EnsureFileAsync(Guid fileId, CancellationToken cancellationToken = default)
     {
-        var file = await _fileRepository.GetByIdAsync(fileId, disableTracking: true, cancellationToken);
+        var file = await _fileRepository.GetByIdAsync(fileId, disableTracking: false, cancellationToken);
         if (file == null)
             throw new NotFoundException($"File with id {fileId} not found");
 

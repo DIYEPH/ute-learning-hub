@@ -31,7 +31,7 @@ import {
   postApiNotificationMarkAllAsRead,
   getApiConversationMyInvitations,
   postApiConversationInvitationsByInvitationIdRespond,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 
 import type {
   NotificationDto,

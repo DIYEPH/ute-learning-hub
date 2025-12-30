@@ -8,7 +8,7 @@ import {
   postApiUserByIdBan,
   postApiUserByIdUnban,
   putApiUserByIdTrustScore,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
   GetApiUserData,
   GetApiUserResponse,

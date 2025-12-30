@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import {
     getApiReport,
     postApiReportByIdReview,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type {
     ReportDto,
     GetApiReportData,

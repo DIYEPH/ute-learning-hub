@@ -26,6 +26,7 @@ using UteLearningHub.Application.Services.Settings;
 using UteLearningHub.Application.Services.Subject;
 using UteLearningHub.Application.Services.Tag;
 using UteLearningHub.Application.Services.Report;
+using UteLearningHub.Application.Services.Statistics;
 using UteLearningHub.Application.Services.TrustScore;
 using UteLearningHub.Application.Services.Type;
 using UteLearningHub.Application.Services.User;
@@ -48,6 +49,7 @@ using UteLearningHub.Infrastructure.Services.Profile;
 using UteLearningHub.Infrastructure.Services.Recommendation;
 using UteLearningHub.Infrastructure.Services.Report;
 using UteLearningHub.Infrastructure.Services.Settings;
+using UteLearningHub.Infrastructure.Services.Statistics;
 using UteLearningHub.Infrastructure.Services.Subject;
 using UteLearningHub.Infrastructure.Services.Tag;
 using UteLearningHub.Infrastructure.Services.TrustScore;
@@ -162,6 +164,9 @@ public static class InfrastructureExtensions
 
         // Notification service
         services.AddScoped<INotificationService, NotificationService>();
+
+        // Statistics service
+        services.AddScoped<IStatisticsService, StatisticsService>();
 
         return services;
     }

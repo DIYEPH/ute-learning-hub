@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { getApiAccountProfile } from '@/src/api/database/sdk.gen';
+import { getApiAccountProfile } from '@/src/api';
 import type { GetApiAccountProfileResponse } from '@/src/api/database/types.gen';
 import { useAuthState } from './use-auth-state';
 

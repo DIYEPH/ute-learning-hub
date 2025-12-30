@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
 import {
     getApiConversationJoinRequest,
     postApiConversationJoinRequestByIdReview,
-} from "@/src/api/database/sdk.gen";
+} from "@/src/api";
 import type { ConversationJoinRequestDto } from "@/src/api/database/types.gen";
 import { useNotification } from "@/src/components/providers/notification-provider";
 

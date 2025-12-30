@@ -9,7 +9,7 @@ import { useTranslations } from "next-intl";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useTypes } from "@/src/hooks/use-types";
 import { useDebounce } from "@/src/hooks/use-debounce";
-import { getApiTag, getApiAuthor, getApiDocument } from "@/src/api/database/sdk.gen";
+import { getApiTag, getApiAuthor, getApiDocument } from "@/src/api";
 import type {
   SubjectDto2,
   TypeDto,

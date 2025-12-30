@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
-import { deleteApiConversationById, putApiConversationById, getApiTag, postApiConversationByIdLeave } from "@/src/api/database/sdk.gen";
+import { deleteApiConversationById, putApiConversationById, getApiTag, postApiConversationByIdLeave } from "@/src/api";
 import type { UpdateConversationCommandRequest, SubjectDto2, TagDto, ConversationDetailDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Label } from "@/src/components/ui/label";
