@@ -54,6 +54,8 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
 
         if (request.ConversationStatus.HasValue)
             query = query.Where(c => c.ConversationStatus == request.ConversationStatus.Value);
+        else
+            query = query.Where(c => c.ConversationStatus == Domain.Constaints.Enums.ConversationStatus.Active);
 
         if (request.CreatedById.HasValue)
             query = query.Where(c => c.CreatedById == request.CreatedById.Value);

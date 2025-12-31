@@ -2,6 +2,7 @@
 
 public enum ConversationStatus
 {
-    Active,
-    Ended
+    Active,     // Nhóm đang hoạt động
+    Ended,      // Nhóm đã kết thúc
+    Proposed    // Đề xuất bởi AI (chờ đủ người đồng ý)
 }

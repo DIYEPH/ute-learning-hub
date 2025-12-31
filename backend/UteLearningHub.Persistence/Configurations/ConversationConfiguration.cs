@@ -24,6 +24,8 @@ public class ConversationConfiguration : IEntityTypeConfiguration<Conversation>
         builder.Property(u => u.ConversationType).HasColumnName("LoaiCuocTroChuyen");
         builder.Property(u => u.Visibility).HasColumnName("CheDo");
         builder.Property(u => u.ConversationStatus).HasColumnName("TrangThai");
+        
+        builder.Property(u => u.ProposalExpiresAt).HasColumnName("ThoiHanDeXuat");
 
         builder.ApplySoftDelete<Conversation>()
             .ApplyTrack<Conversation>()

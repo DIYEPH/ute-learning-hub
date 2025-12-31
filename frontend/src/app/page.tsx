@@ -8,20 +8,22 @@ export default async function HomePage() {
 
   return (
     <AppShell>
-      <section className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">
-            {t('welcome')}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t('description')}
-          </p>
-        </div>
+      <div className="min-h-full flex flex-col">
+        <section className="flex-1 space-y-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">
+              {t('welcome')}
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {t('description')}
+            </p>
+          </div>
 
-        <HomePageSections />
-      </section>
+          <HomePageSections />
+        </section>
 
-      <AppFooter className="mt-8 -mx-4 md:-mx-6" />
+        <AppFooter className="shrink-0 mt-8 -mx-4 md:-mx-6" />
+      </div>
     </AppShell>
   );
 }

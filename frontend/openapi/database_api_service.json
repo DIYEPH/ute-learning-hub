@@ -126,6 +126,75 @@
         }
       }
     },
+    "/api/Account/stats": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Account/stats/{userId}": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserStatsDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Auth/login": {
       "post": {
         "tags": [
@@ -4193,6 +4262,95 @@
         }
       }
     },
+    "/api/Proposal/my": {
+      "get": {
+        "tags": [
+          "Proposal"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMyProposalsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMyProposalsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetMyProposalsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Proposal/{conversationId}/respond": {
+      "post": {
+        "tags": [
+          "Proposal"
+        ],
+        "parameters": [
+          {
+            "name": "conversationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondToProposalRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondToProposalRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RespondToProposalRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespondToProposalResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespondToProposalResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespondToProposalResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Report": {
       "post": {
         "tags": [
@@ -4478,17 +4636,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserStatsDto"
+                  "$ref": "#/components/schemas/UserStatsDto2"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserStatsDto"
+                  "$ref": "#/components/schemas/UserStatsDto2"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserStatsDto"
+                  "$ref": "#/components/schemas/UserStatsDto2"
                 }
               }
             }
@@ -6056,6 +6214,81 @@
           }
         }
       },
+      "ConversationDto2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationName": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagDto"
+            }
+          },
+          "conversationType": {
+            "$ref": "#/components/schemas/ConversitionType"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/ConversationVisibility"
+          },
+          "conversationStatus": {
+            "$ref": "#/components/schemas/ConversationStatus"
+          },
+          "isSuggestedByAI": {
+            "type": "boolean"
+          },
+          "isAllowMemberPin": {
+            "type": "boolean"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectDto"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "memberCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unreadCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastMessageId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "createdById": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isCurrentUserMember": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "hasPendingJoinRequest": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "nullable": true
+      },
       "ConversationJoinRequestDto": {
         "type": "object",
         "properties": {
@@ -7041,6 +7274,17 @@
           }
         }
       },
+      "GetMyProposalsResponse": {
+        "type": "object",
+        "properties": {
+          "proposals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProposalDto"
+            }
+          }
+        }
+      },
       "GetOnlineMembersResponse": {
         "type": "object",
         "properties": {
@@ -7396,6 +7640,9 @@
             "nullable": true
           }
         }
+      },
+      "MemberInviteStatus": {
+        "type": "integer"
       },
       "MessageDto": {
         "type": "object",
@@ -8296,6 +8543,9 @@
             "format": "uuid",
             "nullable": true
           },
+          "isSuggest": {
+            "type": "boolean"
+          },
           "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -8308,6 +8558,100 @@
           },
           "isLocked": {
             "type": "boolean",
+            "nullable": true
+          }
+        }
+      },
+      "ProposalDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationName": {
+            "type": "string"
+          },
+          "subjectName": {
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalMembers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "acceptedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pendingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "declinedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "myStatus": {
+            "$ref": "#/components/schemas/MemberInviteStatus"
+          },
+          "mySimilarityScore": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProposalMemberDto"
+            }
+          }
+        }
+      },
+      "ProposalMemberDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/MemberInviteStatus"
+          },
+          "similarityScore": {
+            "type": "number",
+            "format": "float",
+            "nullable": true
+          },
+          "respondedAt": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         }
@@ -8456,6 +8800,31 @@
           "note": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "RespondToProposalRequest": {
+        "type": "object",
+        "properties": {
+          "accept": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RespondToProposalResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "isActivated": {
+            "type": "boolean"
+          },
+          "conversation": {
+            "$ref": "#/components/schemas/ConversationDto2"
           }
         }
       },
@@ -9197,6 +9566,10 @@
           },
           "gender": {
             "$ref": "#/components/schemas/NullableOfGender"
+          },
+          "isSuggest": {
+            "type": "boolean",
+            "nullable": true
           }
         }
       },
@@ -9368,6 +9741,23 @@
       "UserStatsDto": {
         "type": "object",
         "properties": {
+          "uploads": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "upvotes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "comments": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "UserStatsDto2": {
+        "type": "object",
+        "properties": {
           "totalUsers": {
             "type": "integer",
             "format": "int32"
@@ -9508,6 +9898,9 @@
     },
     {
       "name": "Notification"
+    },
+    {
+      "name": "Proposal"
     },
     {
       "name": "Report"

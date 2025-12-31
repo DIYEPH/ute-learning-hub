@@ -17,6 +17,12 @@ public interface IRecommendationService
         int topK = 10,
         float minScore = 0.3f,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Cluster users tương tự để tạo proposal</summary>
+    Task<ClusterUsersResponse> ClusterSimilarUsersAsync(
+        IReadOnlyList<UserVectorData> userVectors,
+        int minClusterSize = 5,
+        CancellationToken cancellationToken = default);
 }
 
 public record ConversationVectorData(Guid Id, float[] Vector);
@@ -35,3 +41,15 @@ public record SimilarUsersResponse(
     double ProcessingTimeMs);
 
 public record SimilarUserItem(Guid UserId, float Similarity, int Rank);
+
+public record ClusterUsersResponse(
+    IReadOnlyList<UserCluster> Clusters,
+    int TotalProcessed,
+    double ProcessingTimeMs);
+
+public record UserCluster(
+    int ClusterId,
+    IReadOnlyList<ClusterMember> Members,
+    float[] Centroid);
+
+public record ClusterMember(Guid UserId, float SimilarityToCentroid);

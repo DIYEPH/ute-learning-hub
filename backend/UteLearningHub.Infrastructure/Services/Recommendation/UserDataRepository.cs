@@ -13,7 +13,6 @@ public class UserDataRepository : IUserDataRepository
     private const int DocumentCreatedScore = 3;
     private const int ConversationJoinedScore = 2;
     private const int UsefulVoteScore = 1;
-    private const int NotUsefulVoteScore = -1;
 
     public UserDataRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
     {
@@ -32,13 +31,24 @@ public class UserDataRepository : IUserDataRepository
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-        // Check if user exists
-        var userExists = await dbContext.Users.AnyAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
-        if (!userExists)
+        // Check if user exists and get Major info
+        var user = await dbContext.Users
+            .Include(u => u.Major)
+                .ThenInclude(m => m!.Faculty)
+            .AsNoTracking()
+            .Where(u => u.Id == userId && !u.IsDeleted)
+            .Select(u => new { u.Id, u.Major })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (user == null)
             return null;
 
         var subjectScores = new Dictionary<string, int>();
         var tagScores = new Dictionary<string, int>();
+
+        const int MajorScore = 5;
+        if (user.Major != null)
+            AddTextScore(subjectScores, user.Major.MajorName, MajorScore);
 
         // 1. Documents created by user
         var documents = await dbContext.Documents
@@ -97,21 +107,19 @@ public class UserDataRepository : IUserDataRepository
             .Where(dr => dr.CreatedById == userId && !dr.Document.IsDeleted)
             .ToListAsync(cancellationToken);
 
-        foreach (var review in reviews)
+        // Chỉ tính Useful reviews (Not Useful không phản ánh sở thích, chỉ đánh giá chất lượng tài liệu)
+        foreach (var review in reviews.Where(r => r.DocumentReviewType == DocumentReviewType.Useful))
         {
             var doc = review.Document;
-            var score = review.DocumentReviewType == DocumentReviewType.Useful
-                ? UsefulVoteScore
-                : NotUsefulVoteScore;
 
             // Subject score
             if (doc.Subject != null)
-                AddTextScore(subjectScores, doc.Subject.SubjectName, score);
+                AddTextScore(subjectScores, doc.Subject.SubjectName, UsefulVoteScore);
 
             // Tag scores
             foreach (var dt in doc.DocumentTags)
                 if (dt.Tag != null)
-                    AddTextScore(tagScores, dt.Tag.TagName, score);
+                    AddTextScore(tagScores, dt.Tag.TagName, UsefulVoteScore);
         }
 
         return new UserBehaviorTextDataDto(

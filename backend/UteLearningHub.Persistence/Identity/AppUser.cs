@@ -13,7 +13,7 @@ public class AppUser : IdentityUser<Guid>, ITrackable, ISoftDelete
     public string AvatarUrl { get; set; } = default!;
     public string FullName { get; set; } = default!;
     public int TrustScore { get; set; } = 0;
-    public bool IsSuggest { get; set; }
+    public bool IsSuggest { get; set; } = true;
     public TrustLever TrustLever { get; set; }
     public Gender Gender { get; set; } = Gender.Other;
     public Major? Major { get; set; }

@@ -4,7 +4,8 @@ using UteLearningHub.Application.Services.Document;
 
 namespace UteLearningHub.Application.Features.Document.Commands.AddDocumentFile;
 
-public class AddDocumentFileCommandHandler(IDocumentFileService documentFileService) : IRequestHandler<AddDocumentFileCommand, DocumentDetailDto>
+public class AddDocumentFileCommandHandler(
+    IDocumentFileService documentFileService) : IRequestHandler<AddDocumentFileCommand, DocumentDetailDto>
 {
     private readonly IDocumentFileService _documentFileService = documentFileService;
 

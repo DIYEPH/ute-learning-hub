@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/src/components/ui/dropdown-menu";
 import { ReportModal } from "@/src/components/shared/report-modal";
+import { getProfileLink } from "@/src/lib/profile-utils";
 import {
   getApiComment,
   getApiDocumentById,
@@ -239,9 +240,8 @@ export function DocumentFileCommentsPanel({
                   >
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-2 min-w-0">
-                        <Link href={`/profile/${c.createdById}`} className="flex items-center gap-2 min-w-0 hover:opacity-80">
+                        <Link href={getProfileLink(c.createdById, profile?.id)} className="flex items-center gap-2 min-w-0 hover:opacity-80">
                           {c.authorAvatarUrl && (
-                            // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={c.authorAvatarUrl}
                               alt={c.authorName}

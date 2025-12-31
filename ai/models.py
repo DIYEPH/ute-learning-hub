@@ -38,3 +38,10 @@ class SimilarUsersRequest(BaseModel):
 
     class Config:
         populate_by_name = True
+
+class ClusterUsersRequest(BaseModel):
+    UserVectors: list[dict] = Field(alias="userVectors")
+    MinClusterSize: int = Field(default=5, alias="minClusterSize")
+
+    class Config:
+        populate_by_name = True

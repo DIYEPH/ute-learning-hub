@@ -3,13 +3,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, Search, Filter, X, Sparkles, Mail, Check, Users } from "lucide-react";
-import { getApiConversation, getApiTag, getApiConversationRecommendations, getApiConversationMyInvitations, postApiConversationInvitationsByInvitationIdRespond } from "@/src/api";
+import { getApiConversation, getApiTag, getApiConversationRecommendations, getApiConversationMyInvitations, postApiConversationInvitationsByInvitationIdRespond, getApiProposalMy, postApiProposalByConversationIdRespond } from "@/src/api";
 import type {
   ConversationDto,
   PagedResponseOfConversationDto,
   TagDto,
   ConversationRecommendationDto,
   InvitationDto,
+  ProposalDto,
 } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -47,10 +48,16 @@ export default function ConversationsPage() {
   const [loadingInvitations, setLoadingInvitations] = useState(true);
   const [respondingInvitation, setRespondingInvitation] = useState<string | null>(null);
 
+  // Proposals (AI-suggested groups)
+  const [proposals, setProposals] = useState<ProposalDto[]>([]);
+  const [loadingProposals, setLoadingProposals] = useState(true);
+  const [respondingProposal, setRespondingProposal] = useState<string | null>(null);
+
   useEffect(() => {
     void loadFilterOptions();
     void fetchRecommendations();
     void fetchInvitations();
+    void fetchProposals();
   }, []);
 
   useEffect(() => {
@@ -131,6 +138,47 @@ export default function ConversationsPage() {
       console.error("Failed to respond to invitation:", err);
     } finally {
       setRespondingInvitation(null);
+    }
+  };
+
+  const fetchProposals = async () => {
+    setLoadingProposals(true);
+    try {
+      const response = await getApiProposalMy();
+      const payload = (response.data ?? response) as any;
+      // Filter only pending proposals (myStatus === 1 = Pending)
+      const items = (payload?.proposals ?? []).filter((p: ProposalDto) => p.myStatus === 1);
+      setProposals(items);
+    } catch (err) {
+      console.error("Error loading proposals:", err);
+      setProposals([]);
+    } finally {
+      setLoadingProposals(false);
+    }
+  };
+
+  const respondToProposal = async (proposal: ProposalDto, accept: boolean) => {
+    if (!proposal.conversationId) return;
+
+    setRespondingProposal(proposal.conversationId);
+    try {
+      const response = await postApiProposalByConversationIdRespond({
+        path: { conversationId: proposal.conversationId },
+        body: { accept },
+      });
+
+      const result = (response.data ?? response) as any;
+
+      // Remove from local state
+      setProposals((prev) => prev.filter((p) => p.conversationId !== proposal.conversationId));
+
+      if (accept && result.isActivated && result.conversation?.id) {
+        router.push(`/conversations/${result.conversation.id}`);
+      }
+    } catch (err) {
+      console.error("Failed to respond to proposal:", err);
+    } finally {
+      setRespondingProposal(null);
     }
   };
 
@@ -232,7 +280,7 @@ export default function ConversationsPage() {
                 className="border rounded-lg p-4 bg-accent/10 border-accent/30"
               >
                 <div className="flex items-start gap-3">
-                  <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-accent/20 flex items-center justify-center shrink-0">
                     <Users className="h-5 w-5 text-accent" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -274,6 +322,120 @@ export default function ConversationsPage() {
                     className="flex-1"
                     onClick={() => respondToInvitation(invitation, false)}
                     disabled={respondingInvitation === invitation.id}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Từ chối
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* AI Proposals Section */}
+      {!loadingProposals && proposals.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            {/* <Sparkles className="h-5 w-5 text-yellow-500" /> */}
+            <h2 className="text-lg font-semibold text-foreground">AI gợi ý tạo nhóm mới</h2>
+            <span className="bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full">
+              {proposals.length}
+            </span>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {proposals.map((proposal) => (
+              <div
+                key={proposal.conversationId}
+                className="border rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-yellow-200 dark:border-yellow-800"
+              >
+                <div className="mb-3">
+                  <h3 className="font-semibold text-foreground">
+                    {proposal.conversationName}
+                  </h3>
+                  {proposal.subjectName && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      📚 {proposal.subjectName}
+                    </p>
+                  )}
+                  {proposal.tags && proposal.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {proposal.tags.slice(0, 3).map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Members preview */}
+                <div className="mb-3">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Thành viên được ghép ({proposal.members?.length ?? 0}):
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="flex -space-x-2">
+                      {proposal.members?.slice(0, 4).map((member) => (
+                        <div
+                          key={member.userId}
+                          className="w-7 h-7 rounded-full bg-primary/20 border-2 border-background flex items-center justify-center text-xs font-medium overflow-hidden"
+                          title={member.fullName}
+                        >
+                          {member.avatarUrl ? (
+                            <img src={member.avatarUrl} alt={member.fullName} className="w-full h-full object-cover" />
+                          ) : (
+                            member.fullName?.charAt(0) || "?"
+                          )}
+                        </div>
+                      ))}
+                      {(proposal.members?.length ?? 0) > 4 && (
+                        <div className="w-7 h-7 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px]">
+                          +{(proposal.members?.length ?? 0) - 4}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                  <span>
+                    ✅ {proposal.acceptedCount ?? 0}/{proposal.totalMembers ?? 0} đã đồng ý
+                  </span>
+                  {proposal.mySimilarityScore && (
+                    <span className="text-primary font-medium">
+                      {Math.round((proposal.mySimilarityScore ?? 0) * 100)}% phù hợp
+                    </span>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => respondToProposal(proposal, true)}
+                    disabled={respondingProposal === proposal.conversationId}
+                  >
+                    {respondingProposal === proposal.conversationId ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4 mr-1" />
+                        Tham gia
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => respondToProposal(proposal, false)}
+                    disabled={respondingProposal === proposal.conversationId}
                   >
                     <X className="h-4 w-4 mr-1" />
                     Từ chối

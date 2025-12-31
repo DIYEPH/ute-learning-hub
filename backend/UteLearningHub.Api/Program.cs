@@ -94,6 +94,8 @@ services.AddSignalR();
 services.AddSingleton<IMessageHubService, SignalRMessageHubService>();
 // services.AddHostedService<KafkaMessageConsumerService>();
 services.AddHostedService<VectorUpdateService>();
+services.AddHostedService<AutoSuggestionService>();
+services.AddHostedService<ProposalExpirationService>();
 
 var app = builder.Build();
 

@@ -14,12 +14,15 @@ import type { DocumentDto, ProfileDetailDto } from "@/src/api/database/types.gen
 import { DocumentCard } from "@/src/components/documents/document-card";
 import { Button } from "@/src/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
+import { useUserProfile } from "@/src/hooks/use-user-profile";
+import { getProfileLink } from "@/src/lib/profile-utils";
 
 const PAGE_SIZE = 24;
 
 export default function UserDocumentsPage() {
     const { id: userId } = useParams<{ id: string }>();
     const router = useRouter();
+    const { profile: currentUser } = useUserProfile();
 
     const [profile, setProfile] = useState<ProfileDetailDto | null>(null);
     const [docs, setDocs] = useState<DocumentDto[]>([]);
@@ -87,14 +90,14 @@ export default function UserDocumentsPage() {
             </Button>
 
             <div className="flex items-center gap-4 border p-4 bg-card">
-                <Link href={`/profile/${userId}`}>
+                <Link href={getProfileLink(userId, currentUser?.id)}>
                     <Avatar className="h-12 w-12">
                         <AvatarImage src={profile?.avatarUrl || undefined} />
                         <AvatarFallback>{initials}</AvatarFallback>
                     </Avatar>
                 </Link>
                 <div className="flex-1 min-w-0">
-                    <Link href={`/profile/${userId}`} className="hover:underline">
+                    <Link href={getProfileLink(userId, currentUser?.id)} className="hover:underline">
                         <h1 className="text-lg font-semibold truncate">
                             {profile?.fullName || profile?.username}
                         </h1>
@@ -104,7 +107,7 @@ export default function UserDocumentsPage() {
                         {total} tài liệu
                     </p>
                 </div>
-                <Link href={`/profile/${userId}`}>
+                <Link href={getProfileLink(userId, currentUser?.id)}>
                     <Button variant="outline" size="sm">
                         <User className="h-4 w-4 mr-2" /> Hồ sơ
                     </Button>

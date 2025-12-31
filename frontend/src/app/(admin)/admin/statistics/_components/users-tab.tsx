@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import { Contact, Zap, ShieldOff, Award, Loader2 } from "lucide-react";
 import { StatCard, StatsBarChart, StatsPieChart, StatsLineChart, StatsTable, UserCell } from "@/src/components/statistics";
 import { getApiStatisticsUsers } from "@/src/api/database";
-import type { UserStatsDto, TopUserDto } from "@/src/api/database/types.gen";
+import type { UserStatsDto2, TopUserDto } from "@/src/api/database/types.gen";
 
 interface UsersTabProps {
     days: number;
 }
 
 export function UsersTab({ days }: UsersTabProps) {
-    const [data, setData] = useState<UserStatsDto | null>(null);
+    const [data, setData] = useState<UserStatsDto2 | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -24,7 +24,7 @@ export function UsersTab({ days }: UsersTabProps) {
                     query: { days },
                 });
                 if (response.data) {
-                    setData(response.data as UserStatsDto);
+                    setData(response.data as UserStatsDto2);
                 }
             } catch (err) {
                 setError("Không thể tải dữ liệu thống kê");

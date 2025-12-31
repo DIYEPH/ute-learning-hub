@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, FileText, Edit, Eye, ThumbsUp, BookOpen, Plus, ChevronUp } from "lucide-react";
 import { getFileUrlById } from "@/src/lib/file-url";
+import { getProfileLink } from "@/src/lib/profile-utils";
 
 import {
   getApiDocumentById,
@@ -161,7 +162,7 @@ export default function DocumentDetailPage() {
               {/* Author & metadata + Stats on same line */}
               <div className="flex flex-wrap items-center gap-2 mt-2 text-sm text-muted-foreground">
                 {data.createdById && (
-                  <Link href={`/profile/${data.createdById}`} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
+                  <Link href={getProfileLink(data.createdById, profile?.id)} className="flex items-center gap-1.5 hover:text-foreground transition-colors">
                     <span>by</span>
                     <Avatar className="h-5 w-5">
                       <AvatarImage src={data.createdByAvatarUrl || undefined} />

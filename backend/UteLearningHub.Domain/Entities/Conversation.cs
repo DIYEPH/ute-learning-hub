@@ -14,6 +14,7 @@ public class Conversation : SoftDeletableEntity<Guid>, IAggregateRoot, IAuditabl
     public ConversitionType ConversationType { get; set; }
     public ConversationVisibility Visibility { get; set; } = ConversationVisibility.Public;
     public ConversationStatus ConversationStatus { get; set; } = ConversationStatus.Active;
+    public DateTimeOffset? ProposalExpiresAt { get; set; }
     public Subject Subject { get; set; } = default!;
     public ICollection<ConversationTag> ConversationTags { get; set; } = [];
     public ICollection<ConversationMember> Members { get; set; } = [];

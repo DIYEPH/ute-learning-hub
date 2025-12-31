@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from 'next-intl';
 import type { ReactNode } from "react";
@@ -9,7 +10,10 @@ import { AppSidebar } from "./app-sidebar";
 import { MAIN_NAV_CONFIG } from "./nav-config";
 import type { NavItem } from "./nav-config";
 import { useAuthState } from "@/src/hooks/use-auth-state";
+import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { ChatWidgetProvider, ChatWidgetContainer, ChatFloatingButton } from "@/src/components/chat-widget";
+import ProfileCompletionDialog from "@/src/components/auth/profile-completion-dialog";
+import { ProposalFloatingCards } from "@/src/components/proposals/proposal-floating-cards";
 
 type AppShellProps = {
   children: ReactNode;
@@ -19,6 +23,22 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = usePathname();
   const t = useTranslations();
   const { authenticated: isAuthenticated } = useAuthState();
+  const { profile, loading: profileLoading } = useUserProfile();
+
+  const [showProfileCompletion, setShowProfileCompletion] = useState(false);
+
+  useEffect(() => {
+    const isAdmin = profile?.roles?.includes('Admin');
+    if (isAuthenticated && !profileLoading && profile && !profile.majorId && !isAdmin) {
+      console.log("Show profile completion dialog");
+      setShowProfileCompletion(true);
+    }
+  }, [isAuthenticated, profileLoading, profile]);
+
+  const handleProfileComplete = () => {
+    setShowProfileCompletion(false);
+    window.location.reload();
+  };
 
   const navItems: NavItem[] = MAIN_NAV_CONFIG
     .filter(item => !item.requiresAuth || isAuthenticated)
@@ -65,6 +85,15 @@ export function AppShell({ children }: AppShellProps) {
           <ChatWidgetContainer />
         </>
       )}
+
+      {/* Profile Completion Dialog */}
+      <ProfileCompletionDialog
+        open={showProfileCompletion}
+        onComplete={handleProfileComplete}
+      />
+
+      {/* AI Proposal Floating Cards */}
+      <ProposalFloatingCards />
     </ChatWidgetProvider>
   );
 }

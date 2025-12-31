@@ -16,6 +16,7 @@ public record ProfileDetailDto
     public Gender? Gender { get; init; }
     public IList<string> Roles { get; init; } = [];
     public Guid? MajorId { get; init; }
+    public bool IsSuggest { get; init; }
 
     public DateTimeOffset? CreatedAt { get; init; }
     public DateTimeOffset? LockoutEnd { get; init; }

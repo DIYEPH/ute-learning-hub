@@ -1,12 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { pdfjs } from "react-pdf";
+import { useState, useCallback, useRef, useEffect } from "react";
 
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    "pdfjs-dist/build/pdf.worker.min.mjs",
-    import.meta.url
-).toString();
+// Lazy load pdfjs to avoid SSR issues (DOMMatrix not defined)
+let pdfjs: typeof import("react-pdf").pdfjs | null = null;
 
 export function usePdfThumbnail({
     width = 400,
@@ -15,16 +12,35 @@ export function usePdfThumbnail({
 } = {}) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const pdfjsRef = useRef(pdfjs);
+
+    // Initialize pdfjs on client only
+    useEffect(() => {
+        if (typeof window !== "undefined" && !pdfjsRef.current) {
+            import("react-pdf").then((mod) => {
+                pdfjs = mod.pdfjs;
+                pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+                    "pdfjs-dist/build/pdf.worker.min.mjs",
+                    import.meta.url
+                ).toString();
+                pdfjsRef.current = pdfjs;
+            });
+        }
+    }, []);
 
     const extractThumbnail = useCallback(async (pdfFile: File) => {
         if (!pdfFile.type.includes("pdf")) return null;
+        if (!pdfjsRef.current) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            if (!pdfjsRef.current) return null;
+        }
 
         setLoading(true);
         setError(null);
 
         try {
             const buffer = await pdfFile.arrayBuffer();
-            const pdf = await pdfjs.getDocument({ data: buffer }).promise;
+            const pdf = await pdfjsRef.current.getDocument({ data: buffer }).promise;
             const page = await pdf.getPage(1);
 
             const viewport = page.getViewport({ scale: 1 });

@@ -113,6 +113,27 @@ export type ConversationDto = {
     hasPendingJoinRequest?: boolean | null;
 };
 
+export type ConversationDto2 = {
+    id?: string;
+    conversationName?: string;
+    tags?: Array<TagDto>;
+    conversationType?: ConversitionType;
+    visibility?: ConversationVisibility;
+    conversationStatus?: ConversationStatus;
+    isSuggestedByAI?: boolean;
+    isAllowMemberPin?: boolean;
+    subject?: SubjectDto;
+    avatarUrl?: string | null;
+    memberCount?: number;
+    unreadCount?: number;
+    lastMessageId?: string | null;
+    createdById?: string;
+    createdAt?: string;
+    updatedAt?: string | null;
+    isCurrentUserMember?: boolean | null;
+    hasPendingJoinRequest?: boolean | null;
+} | null;
+
 export type ConversationJoinRequestDto = {
     id?: string;
     conversationId?: string;
@@ -413,6 +434,10 @@ export type GetConversationRecommendationsResponse = {
     processingTimeMs?: number;
 };
 
+export type GetMyProposalsResponse = {
+    proposals?: Array<ProposalDto>;
+};
+
 export type GetOnlineMembersResponse = {
     conversationId?: string;
     onlineUserIds?: Array<string>;
@@ -525,6 +550,8 @@ export type ManageTrustScoreRequest = {
     trustScore?: number;
     reason?: string | null;
 };
+
+export type MemberInviteStatus = number;
 
 export type MessageDto = {
     id?: string;
@@ -799,9 +826,36 @@ export type ProfileDetailDto = {
     gender?: NullableOfGender;
     roles?: Array<string>;
     majorId?: string | null;
+    isSuggest?: boolean;
     createdAt?: string | null;
     lockoutEnd?: string | null;
     isLocked?: boolean | null;
+};
+
+export type ProposalDto = {
+    conversationId?: string;
+    conversationName?: string;
+    subjectName?: string | null;
+    tags?: Array<string>;
+    avatarUrl?: string | null;
+    totalMembers?: number;
+    acceptedCount?: number;
+    pendingCount?: number;
+    declinedCount?: number;
+    myStatus?: MemberInviteStatus;
+    mySimilarityScore?: number | null;
+    expiresAt?: string | null;
+    createdAt?: string;
+    members?: Array<ProposalMemberDto>;
+};
+
+export type ProposalMemberDto = {
+    userId?: string;
+    fullName?: string;
+    avatarUrl?: string | null;
+    status?: MemberInviteStatus;
+    similarityScore?: number | null;
+    respondedAt?: string | null;
 };
 
 export type ReadingHistoryItemDto = {
@@ -849,6 +903,17 @@ export type ResetPasswordCommand = {
 export type RespondToInvitationRequest = {
     accept: boolean;
     note: string | null;
+};
+
+export type RespondToProposalRequest = {
+    accept?: boolean;
+};
+
+export type RespondToProposalResponse = {
+    success?: boolean;
+    message?: string;
+    isActivated?: boolean;
+    conversation?: ConversationDto2;
 };
 
 export type ReviewConversationJoinRequestCommand = {
@@ -1087,6 +1152,7 @@ export type UpdateProfileCommandRequest = {
     avatarUrl?: string | null;
     majorId?: string | null;
     gender?: NullableOfGender;
+    isSuggest?: boolean | null;
 };
 
 export type UpdateSubjectCommandRequest = {
@@ -1140,6 +1206,12 @@ export type UserDto = {
 };
 
 export type UserStatsDto = {
+    uploads?: number;
+    upvotes?: number;
+    comments?: number;
+};
+
+export type UserStatsDto2 = {
     totalUsers?: number;
     activeUsersLast7Days?: number;
     bannedUsers?: number;
@@ -1213,6 +1285,40 @@ export type GetApiAccountProfileByUserIdResponses = {
 };
 
 export type GetApiAccountProfileByUserIdResponse = GetApiAccountProfileByUserIdResponses[keyof GetApiAccountProfileByUserIdResponses];
+
+export type GetApiAccountStatsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/Account/stats';
+};
+
+export type GetApiAccountStatsResponses = {
+    /**
+     * OK
+     */
+    200: UserStatsDto;
+};
+
+export type GetApiAccountStatsResponse = GetApiAccountStatsResponses[keyof GetApiAccountStatsResponses];
+
+export type GetApiAccountStatsByUserIdData = {
+    body?: never;
+    path: {
+        userId: string;
+    };
+    query?: never;
+    url: '/api/Account/stats/{userId}';
+};
+
+export type GetApiAccountStatsByUserIdResponses = {
+    /**
+     * OK
+     */
+    200: UserStatsDto;
+};
+
+export type GetApiAccountStatsByUserIdResponse = GetApiAccountStatsByUserIdResponses[keyof GetApiAccountStatsByUserIdResponses];
 
 export type PostApiAuthLoginData = {
     body: LoginCommand;
@@ -2726,6 +2832,40 @@ export type PutApiNotificationByIdResponses = {
 
 export type PutApiNotificationByIdResponse = PutApiNotificationByIdResponses[keyof PutApiNotificationByIdResponses];
 
+export type GetApiProposalMyData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/Proposal/my';
+};
+
+export type GetApiProposalMyResponses = {
+    /**
+     * OK
+     */
+    200: GetMyProposalsResponse;
+};
+
+export type GetApiProposalMyResponse = GetApiProposalMyResponses[keyof GetApiProposalMyResponses];
+
+export type PostApiProposalByConversationIdRespondData = {
+    body: RespondToProposalRequest;
+    path: {
+        conversationId: string;
+    };
+    query?: never;
+    url: '/api/Proposal/{conversationId}/respond';
+};
+
+export type PostApiProposalByConversationIdRespondResponses = {
+    /**
+     * OK
+     */
+    200: RespondToProposalResponse;
+};
+
+export type PostApiProposalByConversationIdRespondResponse = PostApiProposalByConversationIdRespondResponses[keyof PostApiProposalByConversationIdRespondResponses];
+
 export type GetApiReportData = {
     body?: never;
     path?: never;
@@ -2832,7 +2972,7 @@ export type GetApiStatisticsUsersResponses = {
     /**
      * OK
      */
-    200: UserStatsDto;
+    200: UserStatsDto2;
 };
 
 export type GetApiStatisticsUsersResponse = GetApiStatisticsUsersResponses[keyof GetApiStatisticsUsersResponses];

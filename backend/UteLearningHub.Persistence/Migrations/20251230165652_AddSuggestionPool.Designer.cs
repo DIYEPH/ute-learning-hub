@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using UteLearningHub.Persistence;
 
@@ -11,9 +12,11 @@ using UteLearningHub.Persistence;
 namespace UteLearningHub.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251230165652_AddSuggestionPool")]
+    partial class AddSuggestionPool
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1638,6 +1641,44 @@ namespace UteLearningHub.Persistence.Migrations
                     b.HasIndex("MajorId");
 
                     b.ToTable("MonHoc_Nganh", (string)null);
+                });
+
+            modelBuilder.Entity("UteLearningHub.Domain.Entities.SuggestionPoolEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ThoiGianThem");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsProcessed")
+                        .HasColumnType("bit")
+                        .HasColumnName("DaXuLy");
+
+                    b.Property<DateTimeOffset?>("ProcessedAt")
+                        .HasColumnType("datetimeoffset")
+                        .HasColumnName("ThoiGianXuLy");
+
+                    b.Property<byte[]>("RowVersion")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasColumnName("NguoiDungId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IsProcessed");
+
+                    b.ToTable("SuggestionPool", (string)null);
                 });
 
             modelBuilder.Entity("UteLearningHub.Domain.Entities.SystemSetting", b =>

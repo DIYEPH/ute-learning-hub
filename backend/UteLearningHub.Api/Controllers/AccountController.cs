@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
 using UteLearningHub.Application.Features.Account.Queries.GetProfile;
+using UteLearningHub.Application.Features.Account.Queries.GetUserStats;
 using UteLearningHub.Application.Services.FileStorage;
 
 namespace UteLearningHub.Api.Controllers
@@ -47,9 +48,27 @@ namespace UteLearningHub.Api.Controllers
                 Introduction = request.Introduction,
                 AvatarUrl = request.AvatarUrl,
                 MajorId = request.MajorId,
-                Gender = request.Gender
+                Gender = request.Gender,
+                IsSuggest = request.IsSuggest
             };
             var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpGet("stats")]
+        [Authorize]
+        public async Task<ActionResult<UserStatsDto>> GetUserStats()
+        {
+            var query = new GetUserStatsQuery { UserId = null };
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpGet("stats/{userId}")]
+        public async Task<ActionResult<UserStatsDto>> GetUserStatsById(Guid userId)
+        {
+            var query = new GetUserStatsQuery { UserId = userId };
+            var result = await _mediator.Send(query);
             return Ok(result);
         }
 

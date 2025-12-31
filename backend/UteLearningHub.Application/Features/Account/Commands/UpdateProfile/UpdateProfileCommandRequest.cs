@@ -8,4 +8,6 @@ public record UpdateProfileCommandRequest
     public string? AvatarUrl { get; init; }
     public Guid? MajorId { get; init; }
     public Gender? Gender { get; init; }
+    public bool? IsSuggest { get; init; }
 }
+

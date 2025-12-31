@@ -63,7 +63,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         <NotificationContext.Provider value={value}>
             {children}
             {/* Toast Container - góc trên bên phải */}
-            <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none">
+            <div className="fixed top-4 right-4 z-100 flex flex-col gap-2 pointer-events-none">
                 {items.map((item) => (
                     <ToastItem key={item.id} notification={item} onRemove={() => remove(item.id)} />
                 ))}

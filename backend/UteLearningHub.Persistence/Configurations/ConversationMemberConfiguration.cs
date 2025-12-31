@@ -19,6 +19,11 @@ public class ConversationMemberConfiguration : IEntityTypeConfiguration<Conversa
         builder.Property(u => u.LastReadMessageId).HasColumnName("TinNhanDocGanNhat");
         builder.Property(u => u.IsMuted).HasColumnName("CoBiChanChat");
         builder.Property(u => u.ConversationMemberRoleType).HasColumnName("QuyenNhom");
+        
+        // Proposal fields
+        builder.Property(u => u.InviteStatus).HasColumnName("TrangThaiLoiMoi");
+        builder.Property(u => u.RespondedAt).HasColumnName("ThoiDiemPhanHoi");
+        builder.Property(u => u.SimilarityScore).HasColumnName("DoTuongDong");
 
         builder.ApplySoftDelete<ConversationMember>()
             .ApplyTrack<ConversationMember>();

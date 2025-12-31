@@ -200,4 +200,86 @@ public class RecommendationService : IRecommendationService
         public float Similarity { get; set; }
         public int Rank { get; set; }
     }
+
+    // ===== Cluster Users =====
+
+    public async Task<ClusterUsersResponse> ClusterSimilarUsersAsync(
+        IReadOnlyList<UserVectorData> userVectors,
+        int minClusterSize = 5,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (userVectors.Count < minClusterSize)
+            {
+                return new ClusterUsersResponse([], 0, 0);
+            }
+
+            var request = new ClusterUsersRequestDto
+            {
+                UserVectors = userVectors.Select(uv => new UserVectorDto
+                {
+                    Id = uv.Id.ToString(),
+                    Vector = uv.Vector
+                }).ToList(),
+                MinClusterSize = minClusterSize
+            };
+
+            _logger.LogInformation("Calling AI /cluster/users with {Count} users, minClusterSize={Min}",
+                userVectors.Count, minClusterSize);
+
+            var response = await _httpClient.PostAsJsonAsync("/cluster/users", request, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadFromJsonAsync<ClusterUsersResponseDto>(
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
+                cancellationToken);
+
+            if (result == null || result.Clusters == null)
+            {
+                return new ClusterUsersResponse([], 0, 0);
+            }
+
+            var clusters = result.Clusters.Select((c, idx) => new UserCluster(
+                idx,
+                c.Users?.Select(u => new ClusterMember(
+                    Guid.Parse(u.UserId),
+                    u.SimilarityToCentroid
+                )).ToList() ?? [],
+                c.Centroid ?? []
+            )).ToList();
+
+            return new ClusterUsersResponse(clusters, result.TotalProcessed, result.ProcessingTimeMs);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "AI cluster users service failed");
+            return new ClusterUsersResponse([], 0, 0);
+        }
+    }
+
+    private record ClusterUsersRequestDto
+    {
+        public List<UserVectorDto> UserVectors { get; set; } = [];
+        public int MinClusterSize { get; set; } = 5;
+    }
+
+    private record ClusterUsersResponseDto
+    {
+        public List<ClusterDto>? Clusters { get; set; }
+        public int TotalProcessed { get; set; }
+        public double ProcessingTimeMs { get; set; }
+    }
+
+    private record ClusterDto
+    {
+        public List<ClusterMemberDto>? Users { get; set; }
+        public float[]? Centroid { get; set; }
+    }
+
+    private record ClusterMemberDto
+    {
+        public string UserId { get; set; } = "";
+        public float SimilarityToCentroid { get; set; }
+    }
 }

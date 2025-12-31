@@ -4,6 +4,7 @@ using UteLearningHub.Application.Features.Account.Commands.UpdateProfile;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Profile;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
+using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Policies;
 using UteLearningHub.Persistence;
@@ -32,6 +33,7 @@ public class ProfileService(ApplicationDbContext dbContext, IDateTimeProvider da
                 u.Gender,
                 u.TrustScore,
                 u.MajorId,
+                u.IsSuggest,
                 u.CreatedAt,
                 u.LockoutEnabled,
                 u.LockoutEnd
@@ -58,6 +60,7 @@ public class ProfileService(ApplicationDbContext dbContext, IDateTimeProvider da
             Gender = user.Gender,
             Roles = roles.ToList(),
             MajorId = user.MajorId,
+            IsSuggest = user.IsSuggest,
             CreatedAt = user.CreatedAt,
 
             LockoutEnd = isAdmin ? user.LockoutEnd : null,
@@ -91,10 +94,35 @@ public class ProfileService(ApplicationDbContext dbContext, IDateTimeProvider da
         if (request.Gender.HasValue)
             appUser.Gender = request.Gender.Value;
 
+        if (request.IsSuggest.HasValue)
+            appUser.IsSuggest = request.IsSuggest.Value;
+
         appUser.UpdatedAt = _dateTimeProvider.OffsetNow;
 
         await _dbContext.SaveChangesAsync(ct);
 
         return await GetProfileByIdAsync(appUser.Id, true, ct) ?? throw new NotFoundException("User not found");
+    }
+
+    public async Task<UserStatsDto> GetUserStatsAsync(Guid userId, CancellationToken ct = default)
+    {
+        var uploadsCount = await _dbContext.DocumentFiles
+            .Where(d => d.CreatedById == userId)
+            .CountAsync(ct);
+
+        var upvotesCount = await _dbContext.DocumentReviews
+            .Where(r => r.DocumentFile.CreatedById == userId && r.DocumentReviewType == DocumentReviewType.Useful)
+            .CountAsync(ct);
+
+        var commentsCount = await _dbContext.Comments
+            .Where(c => c.DocumentFile.CreatedById == userId)
+            .CountAsync(ct);
+
+        return new UserStatsDto
+        {
+            Uploads = uploadsCount,
+            Upvotes = upvotesCount,
+            Comments = commentsCount
+        };
     }
 }
