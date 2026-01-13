@@ -150,7 +150,7 @@ public class GetConversationsHandler : IRequestHandler<GetConversationsQuery, Pa
                     SubjectCode = c.Subject.SubjectCode
                 } : null,
                 AvatarUrl = c.AvatarUrl,
-                MemberCount = c.Members.Count(m => !m.IsDeleted),
+                MemberCount = c.Members.Count(m => !m.IsDeleted && m.InviteStatus == Domain.Constaints.Enums.MemberInviteStatus.Joined),
                 UnreadCount = unreadCount,
                 LastMessageId = c.LastMessage,
                 CreatedById = c.CreatedById,

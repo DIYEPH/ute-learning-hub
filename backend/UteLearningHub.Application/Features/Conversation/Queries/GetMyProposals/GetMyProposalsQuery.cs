@@ -42,3 +42,4 @@ public record ProposalMemberDto
     public DateTimeOffset? RespondedAt { get; init; }
 }
 
+

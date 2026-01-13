@@ -138,7 +138,7 @@ function ToastItem({
                 animation: `slideInRight 0.3s ease-out, fadeOut 0.3s ease-in ${(notification.duration || 3000) - 300}ms forwards`
             }}
         >
-            <Icon className={cn("h-5 w-5 flex-shrink-0", config.iconColor)} />
+            <Icon className={cn("h-5 w-5 shrink-0", config.iconColor)} />
             <span className={cn("text-sm font-medium", config.textColor)}>
                 {notification.message}
             </span>

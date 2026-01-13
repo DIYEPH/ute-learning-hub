@@ -16,7 +16,7 @@ public class DocumentReviewConfiguration : IEntityTypeConfiguration<DocumentRevi
         builder.HasKey(u => u.Id);
 
         builder.Property(u => u.DocumentId).HasColumnName("TaiLieuId");
-        builder.Property(u => u.DocumentFileId).HasColumnName("TaiLieu_TepId");
+        builder.Property(u => u.DocumentFileId).HasColumnName("ChuongId");
         builder.Property(u => u.DocumentReviewType).HasColumnName("LoaiDanhGia");
 
         builder.ApplyTrack<DocumentReview>()

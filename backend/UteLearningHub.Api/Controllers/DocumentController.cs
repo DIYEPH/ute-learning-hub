@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Document.Commands.AddDocumentFile;
+using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.DeleteDocuments;
@@ -19,6 +20,7 @@ using UteLearningHub.Application.Features.Document.Queries.GetHomepage;
 using UteLearningHub.Application.Features.Document.Queries.GetMyDocuments;
 using UteLearningHub.Application.Features.Document.Queries.GetPendingFilesCount;
 using UteLearningHub.Application.Features.Document.Queries.GetReadingHistory;
+using UteLearningHub.Application.Services.Document;
 
 namespace UteLearningHub.Api.Controllers
 {
@@ -27,9 +29,12 @@ namespace UteLearningHub.Api.Controllers
     public class DocumentController : ControllerBase
     {
         private readonly IMediator _mediator;
-        public DocumentController(IMediator mediator)
+        private readonly IDocumentQueryService _documentQueryService;
+        
+        public DocumentController(IMediator mediator, IDocumentQueryService documentQueryService)
         {
             _mediator = mediator;
+            _documentQueryService = documentQueryService;
         }
 
         [HttpGet]
@@ -67,6 +72,15 @@ namespace UteLearningHub.Api.Controllers
         {
             var query = new GetDocumentByIdQuery { Id = id };
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpGet("files/{fileId}")]
+        public async Task<ActionResult<DocumentFileDto>> GetDocumentFileById(Guid fileId)
+        {
+            var result = await _documentQueryService.GetDocumentFileByIdAsync(fileId);
+            if (result == null)
+                throw new NotFoundException("Không tìm thấy file tài liệu");
             return Ok(result);
         }
 

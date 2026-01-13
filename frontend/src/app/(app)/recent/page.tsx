@@ -128,7 +128,7 @@ export default function RecentPage() {
                                 className="flex items-center gap-4 p-4 border border-border bg-card hover:border-primary hover:shadow-sm transition-all"
                             >
                                 {/* Thumbnail */}
-                                <div className="flex-shrink-0 w-16 h-16 bg-muted overflow-hidden flex items-center justify-center">
+                                <div className="shrink-0 w-16 h-16 bg-muted overflow-hidden flex items-center justify-center">
                                     {coverUrl ? (
                                         <img
                                             src={coverUrl}
@@ -171,7 +171,7 @@ export default function RecentPage() {
                                 </div>
 
                                 {/* Time & Continue reading */}
-                                <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                                <div className="shrink-0 flex flex-col items-end gap-2">
                                     <span className="text-xs text-muted-foreground whitespace-nowrap">
                                         {formatRelativeTime(item.lastAccessedAt)}
                                     </span>

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.Comment.Commands.CreateComment;
 using UteLearningHub.Application.Features.Comment.Commands.DeleteComment;
@@ -37,6 +38,7 @@ public class CommentController : ControllerBase
 
     [HttpPost]
     [Authorize]
+    [EnableRateLimiting("comment")]
     public async Task<ActionResult<CommentDetailDto>> CreateComment([FromBody] CreateCommentCommand command)
     {
         var result = await _mediator.Send(command);

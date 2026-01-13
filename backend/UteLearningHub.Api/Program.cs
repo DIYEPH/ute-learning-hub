@@ -1,4 +1,7 @@
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using UteLearningHub.Api.BackgroundServices;
@@ -15,6 +18,11 @@ using UteLearningHub.Persistence;
 using UteLearningHub.Persistence.Seeders;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 100 * 1024 * 1024;
+});
 
 builder.Logging.AddConsole();
 
@@ -33,6 +41,11 @@ services.Configure<KafkaOptions>(configurations.GetSection(KafkaOptions.SectionN
 services.Configure<RecommendationOptions>(configurations.GetSection(RecommendationOptions.SectionName));
 services.Configure<RedisOptions>(configurations.GetSection(RedisOptions.SectionName));
 services.Configure<EmailOptions>(configurations.GetSection(EmailOptions.SectionName));
+
+services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 100 * 1024 * 1024;
+});
 
 services.AddApplication()
     .AddPersistence(appSettings.ConnectionStrings.DefaultConnection)
@@ -91,6 +104,45 @@ services.AddOpenApi(options =>
 });
 services.AddSignalR();
 
+// Rate Limiting configuration
+services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    
+    // Comment rate limit: 5 per minute per user
+    options.AddPolicy("comment", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.User?.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+    
+    // File upload rate limit: 10 per hour per user
+    options.AddPolicy("upload", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.User?.Identity?.Name ?? context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromHours(1),
+                QueueLimit = 0
+            }));
+    
+    // General API rate limit: 100 per minute per IP
+    options.AddPolicy("api", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+});
+
 services.AddSingleton<IMessageHubService, SignalRMessageHubService>();
 // services.AddHostedService<KafkaMessageConsumerService>();
 services.AddHostedService<VectorUpdateService>();
@@ -117,6 +169,7 @@ app.UseStaticFiles();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 app.MapControllers();
 app.MapHub<ChatHub>("/hubs/chat");

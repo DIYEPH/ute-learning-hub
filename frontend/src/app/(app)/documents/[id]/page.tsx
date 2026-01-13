@@ -138,16 +138,16 @@ export default function DocumentDetailPage() {
           {/* Left: Thumbnail + Info */}
           <div className="flex items-stretch gap-3 md:gap-4 flex-1">
             {/* Thumbnail */}
-            <div className="shrink-0 w-16 md:w-20 overflow-hidden flex items-center justify-center bg-muted">
+            <div className="shrink-0 w-20 md:w-24 aspect-3/4 overflow-hidden flex items-center justify-center bg-muted rounded-lg">
               {data.coverFileId ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={getFileUrlById(data.coverFileId)}
                   alt={data.documentName || ""}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-contain"
                 />
               ) : (
-                <BookOpen className="h-6 w-6 md:h-7 md:w-7 text-white" />
+                <BookOpen className="h-6 w-6 md:h-7 md:w-7 text-muted-foreground" />
               )}
             </div>
 

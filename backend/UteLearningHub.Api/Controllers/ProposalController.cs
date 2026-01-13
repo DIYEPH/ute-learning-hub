@@ -52,3 +52,4 @@ public record RespondToProposalRequest
     public bool Accept { get; init; }
 }
 
+

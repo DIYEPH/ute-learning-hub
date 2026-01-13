@@ -26,7 +26,7 @@ export function ProposalFloatingCards() {
     const handleAccept = async (conversationId: string) => {
         const result = await respond(conversationId, true);
         if (result.success && result.isActivated && result.conversationId) {
-            router.push(`/conversations/${result.conversationId}`);
+            router.push(`/chat?id=${result.conversationId}`);
         }
     };
 
@@ -43,7 +43,7 @@ export function ProposalFloatingCards() {
                     style={{ animationDelay: `${index * 100}ms` }}
                 >
                     {/* Header */}
-                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/50 dark:to-orange-950/50 px-4 py-2 flex items-center justify-between border-b border-yellow-100 dark:border-yellow-900">
+                    <div className="bg-linear-to-r from-yellow-50 to-orange-50 dark:from-yellow-950/50 dark:to-orange-950/50 px-4 py-2 flex items-center justify-between border-b border-yellow-100 dark:border-yellow-900">
                         <div className="flex items-center gap-2">
                             {/* <Sparkles className="h-4 w-4 text-yellow-600" /> */}
                             <span className="text-xs font-medium text-yellow-700 dark:text-yellow-300">

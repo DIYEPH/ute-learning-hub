@@ -16,7 +16,7 @@ public class CommentConfiguration : IEntityTypeConfiguration<Comment>
         builder.HasKey(e => e.Id);
 
         builder.Property(u => u.ParentId).HasColumnName("PhanTuChaId");
-        builder.Property(u => u.DocumentFileId).HasColumnName("TaiLieu_TepId");
+        builder.Property(u => u.DocumentFileId).HasColumnName("ChuongId");
         builder.Property(u => u.Content).HasColumnName("NoiDung");
         builder.Property(u => u.Status).HasColumnName("TrangThai");
 

@@ -30,7 +30,6 @@ export function AppShell({ children }: AppShellProps) {
   useEffect(() => {
     const isAdmin = profile?.roles?.includes('Admin');
     if (isAuthenticated && !profileLoading && profile && !profile.majorId && !isAdmin) {
-      console.log("Show profile completion dialog");
       setShowProfileCompletion(true);
     }
   }, [isAuthenticated, profileLoading, profile]);

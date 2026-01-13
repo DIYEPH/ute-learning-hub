@@ -471,7 +471,7 @@ public class DataSeeder
                 TrustScore = 3,
                 TrustLever = TrustLever.None,
                 Gender = Gender.Male,
-                MajorId = cnsMajor.Id,
+                MajorId = null,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new AppUser
@@ -486,7 +486,7 @@ public class DataSeeder
                 TrustScore = 6,
                 TrustLever = TrustLever.Contributor,
                 Gender = Gender.Female,
-                MajorId = cnsMajor.Id,
+                MajorId = null,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new AppUser
@@ -501,7 +501,7 @@ public class DataSeeder
                 TrustScore = 31,
                 TrustLever = TrustLever.TrustedMember,
                 Gender = Gender.Female,
-                MajorId = cnsMajor.Id,
+                MajorId = null,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new AppUser
@@ -516,7 +516,7 @@ public class DataSeeder
                 TrustScore = 61,
                 TrustLever = TrustLever.Moderator,
                 Gender = Gender.Female,
-                MajorId = cnsMajor.Id,
+                MajorId = null,
                 CreatedAt = DateTimeOffset.UtcNow
             }
         };

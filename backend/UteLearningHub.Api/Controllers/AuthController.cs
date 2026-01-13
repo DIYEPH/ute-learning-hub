@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Application.Features.Auth.Commands.ChangePassword;
 using UteLearningHub.Application.Features.Auth.Commands.ChangeUsername;
 using UteLearningHub.Application.Features.Auth.Commands.ForgotPassword;
@@ -49,7 +50,7 @@ public class AuthController : ControllerBase
         var refreshToken = Request.Cookies[RefreshTokenCookieName];
         if (string.IsNullOrEmpty(refreshToken))
         {
-            return Unauthorized(new { message = "Refresh token not found" });
+            throw new UnauthorizedException("Không tìm thấy refresh token");
         }
 
         var command = new RefreshTokenCommand { RefreshToken = refreshToken };

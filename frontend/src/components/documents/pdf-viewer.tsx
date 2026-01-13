@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Document, Page, pdfjs } from "react-pdf";
+import dynamic from "next/dynamic";
 import {
     ChevronLeft,
     ChevronRight,
@@ -16,13 +16,28 @@ import { Button } from "@/src/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useDocumentProgress } from "@/src/hooks/use-document-progress";
 
+// Dynamic import react-pdf to avoid SSR issues (DOMMatrix not defined)
+const Document = dynamic(
+    () => import("react-pdf").then((mod) => mod.Document),
+    { ssr: false }
+);
+const Page = dynamic(
+    () => import("react-pdf").then((mod) => mod.Page),
+    { ssr: false }
+);
+
+// Import pdfjs only on client side
+if (typeof window !== "undefined") {
+    import("react-pdf").then((mod) => {
+        mod.pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+            "pdfjs-dist/build/pdf.worker.min.mjs",
+            import.meta.url
+        ).toString();
+    });
+}
+
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-    "pdfjs-dist/build/pdf.worker.min.mjs",
-    import.meta.url
-).toString();
 
 interface PdfViewerProps {
     fileUrl: string;

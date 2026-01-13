@@ -137,8 +137,6 @@ export default function TypesManagementPage() {
   const handleImport = async (file: File) => {
     setImportLoading(true);
     try {
-      // TODO: Implement import logic
-      console.log("Import file:", file);
       setImportModalOpen(false);
       await loadTypes();
     } catch (err) {

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Document;
+using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Persistence;
 
@@ -9,14 +10,18 @@ namespace UteLearningHub.Infrastructure.Services.Document;
 public class DocumentQueryService : IDocumentQueryService
 {
     private readonly ApplicationDbContext _dbContext;
+    private readonly ICurrentUserService _currentUserService;
 
-    public DocumentQueryService(ApplicationDbContext dbContext)
+    public DocumentQueryService(ApplicationDbContext dbContext, ICurrentUserService currentUserService)
     {
         _dbContext = dbContext;
+        _currentUserService = currentUserService;
     }
 
     public async Task<DocumentDetailDto?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
+        var currentUserId = _currentUserService.UserId;
+        
         return await _dbContext.Documents
             .AsNoTracking()
             .Where(d => d.Id == id && !d.IsDeleted)
@@ -69,7 +74,12 @@ public class DocumentQueryService : IDocumentQueryService
                         CommentCount = df.Comments.Count(c => !c.IsDeleted),
                         UsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.Useful),
                         NotUsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.NotUseful),
-                        ViewCount = df.ViewCount
+                        ViewCount = df.ViewCount,
+                        MyReviewType = currentUserId.HasValue 
+                            ? d.Reviews.Where(r => r.DocumentFileId == df.Id && r.CreatedById == currentUserId.Value)
+                                .Select(r => (DocumentReviewType?)r.DocumentReviewType)
+                                .FirstOrDefault()
+                            : null
                     }).ToList(),
                 UsefulCount = d.Reviews.Count(r => r.DocumentReviewType == DocumentReviewType.Useful),
                 NotUsefulCount = d.Reviews.Count(r => r.DocumentReviewType == DocumentReviewType.NotUseful),
@@ -80,6 +90,40 @@ public class DocumentQueryService : IDocumentQueryService
                 CreatedByAvatarUrl = _dbContext.Users.Where(u => u.Id == d.CreatedById).Select(u => u.AvatarUrl).FirstOrDefault(),
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<DocumentFileDto?> GetDocumentFileByIdAsync(Guid fileId, CancellationToken cancellationToken = default)
+    {
+        var currentUserId = _currentUserService.UserId;
+
+        return await _dbContext.DocumentFiles
+            .AsNoTracking()
+            .Where(df => df.Id == fileId && !df.IsDeleted)
+            .Select(df => new DocumentFileDto
+            {
+                Id = df.Id,
+                FileId = df.FileId,
+                FileSize = df.File.FileSize,
+                MimeType = df.File.MimeType,
+                Title = df.Title,
+                Order = df.Order,
+                TotalPages = df.TotalPages,
+                CoverFileId = df.CoverFileId,
+                Status = df.Status,
+                ReviewedById = df.ReviewedById,
+                ReviewedAt = df.ReviewedAt,
+                ReviewNote = df.ReviewNote,
+                CommentCount = df.Comments.Count(c => !c.IsDeleted),
+                UsefulCount = df.Document.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.Useful),
+                NotUsefulCount = df.Document.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.NotUseful),
+                ViewCount = df.ViewCount,
+                MyReviewType = currentUserId.HasValue
+                    ? df.Document.Reviews.Where(r => r.DocumentFileId == df.Id && r.CreatedById == currentUserId.Value)
+                        .Select(r => (DocumentReviewType?)r.DocumentReviewType)
+                        .FirstOrDefault()
+                    : null
             })
             .FirstOrDefaultAsync(cancellationToken);
     }

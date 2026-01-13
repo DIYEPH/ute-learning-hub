@@ -1,12 +1,14 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Features.File.Queries.GetFile;
 using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
+using UteLearningHub.Application.Services.Document;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 
@@ -27,6 +29,7 @@ public class FileController : ControllerBase
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IUserService _userService;
     private readonly IMediator _mediator;
+    private readonly IDocumentPageCountService _documentPageCountService;
 
     public FileController(
         IFileStorageService fileStorageService,
@@ -34,7 +37,8 @@ public class FileController : ControllerBase
         ICurrentUserService currentUserService,
         IDateTimeProvider dateTimeProvider,
         IUserService userService,
-        IMediator mediator)
+        IMediator mediator,
+        IDocumentPageCountService documentPageCountService)
     {
         _fileStorageService = fileStorageService;
         _fileRepository = fileRepository;
@@ -42,21 +46,23 @@ public class FileController : ControllerBase
         _dateTimeProvider = dateTimeProvider;
         _userService = userService;
         _mediator = mediator;
+        _documentPageCountService = documentPageCountService;
     }
 
     [HttpPost]
     [RequestSizeLimit(MaxFileSizeBytes)]
     [Consumes("multipart/form-data")]
+    [EnableRateLimiting("upload")]
     public async Task<ActionResult<FileDto>> Upload(
         IFormFile file,
         [FromQuery] string? category,
         CancellationToken cancellationToken)
     {
         if (!_currentUserService.IsAuthenticated)
-            return Unauthorized();
+            throw new UnauthorizedException("Bạn cần đăng nhập để upload file");
 
         if (file == null || file.Length == 0)
-            return BadRequest("No file uploaded");
+            throw new BadRequestException("Không có file nào được upload");
 
         var normalizedCategory = category?.Trim();
         var isImageOnlyCategory = string.IsNullOrWhiteSpace(normalizedCategory) ||
@@ -74,17 +80,33 @@ public class FileController : ControllerBase
         if (!allowedExtensions.Contains(extension))
         {
             var message = isImageOnlyCategory
-                ? "Invalid file type. Only image files are allowed."
-                : "Invalid file type. Allowed types: jpg, jpeg, png, gif, webp, pdf.";
-            return BadRequest(message);
+                ? "Loại file không hợp lệ. Chỉ chấp nhận file ảnh."
+                : "Loại file không hợp lệ. Các loại được phép: jpg, jpeg, png, gif, webp, pdf.";
+            throw new BadRequestException(message);
         }
 
         if (file.Length > MaxFileSizeBytes)
-            return BadRequest("File size must be less than 100MB");
+            throw new BadRequestException("Kích thước file phải nhỏ hơn 100MB");
 
         var userId = _currentUserService.UserId ?? Guid.Empty;
 
+        // Đếm số trang từ stream gốc trước khi upload S3 (chỉ với PDF)
+        int? totalPages = null;
         await using var stream = file.OpenReadStream();
+        
+        if (file.ContentType == "application/pdf")
+        {
+            try
+            {
+                totalPages = await _documentPageCountService.GetPageCountAsync(stream, file.ContentType, cancellationToken);
+                stream.Position = 0; // Reset stream position after reading
+            }
+            catch
+            {
+                totalPages = null;
+            }
+        }
+
         var url = await _fileStorageService.UploadFileAsync(
             stream,
             file.FileName,
@@ -110,7 +132,8 @@ public class FileController : ControllerBase
         {
             Id = entity.Id,
             FileSize = entity.FileSize,
-            MimeType = entity.MimeType
+            MimeType = entity.MimeType,
+            TotalPages = totalPages
         };
 
         return Ok(dto);
@@ -120,32 +143,17 @@ public class FileController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetFile(Guid id, CancellationToken cancellationToken)
     {
-        try
-        {
-            var query = new GetFileByIdQuery { FileId = id };
-            var response = await _mediator.Send(query, cancellationToken);
+        var query = new GetFileByIdQuery { FileId = id };
+        var response = await _mediator.Send(query, cancellationToken);
 
-            if (response.IsRedirect && !string.IsNullOrEmpty(response.RedirectUrl))
-                return Redirect(response.RedirectUrl);
-                
-            if (response.Stream == null)
-                return NotFound("File content not found");
+        if (response.IsRedirect && !string.IsNullOrEmpty(response.RedirectUrl))
+            return Redirect(response.RedirectUrl);
+            
+        if (response.Stream == null)
+            throw new NotFoundException("Không tìm thấy nội dung file");
 
-            Response.Headers.Append("Content-Disposition", "inline");
-            return File(response.Stream, response.MimeType);
-        }
-        catch (NotFoundException)
-        {
-            return NotFound("File not found");
-        }
-        catch (ForbiddenException ex)
-        {
-            return StatusCode(403, ex.Message);
-        }
-        catch (UnauthorizedException ex)
-        {
-            return Unauthorized(ex.Message);
-        }
+        Response.Headers.Append("Content-Disposition", "inline");
+        return File(response.Stream, response.MimeType);
     }
 }
 

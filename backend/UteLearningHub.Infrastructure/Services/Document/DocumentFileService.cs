@@ -48,6 +48,7 @@ public class DocumentFileService(
     private readonly IDocumentReviewRepository _documentReviewRepository = documentReviewRepository;
     private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
     private readonly IMediator _mediator = mediator;
+
     public async Task<DocumentDetailDto> CreateAsync(AddDocumentFileCommand request, CancellationToken ct)
     {
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
@@ -81,22 +82,7 @@ public class DocumentFileService(
         }
 
         var nextOrder = document.DocumentFiles.Any() ? document.DocumentFiles.Max(df => df.Order) + 1 : 1;
-        int? totalPages = null;
-
-        var file = await _fileRepository.GetByIdAsync(request.FileId, true, ct);
-        if (file != null)
-        {
-            try
-            {
-                var fileStream = await _fileStorageService.GetFileAsync(file.FileUrl, ct);
-                if (fileStream != null)
-                    totalPages = await _documentPageCountService.GetPageCountAsync(fileStream, file.MimeType, ct);
-            }
-            catch
-            {
-                totalPages = 1;
-            }
-        }
+        int? totalPages = request.TotalPages;
 
         var createDocumentSetting = await _systemSettingService.GetIntAsync(SystemName.CreateDocument, 0, ct);
 
@@ -133,22 +119,9 @@ public class DocumentFileService(
         await _trustScoreService.AddTrustScoreAsync(userId, TrustScoreConstants.GetActionPoints("CreateDocumentFile"), "Thêm chương/file tài liệu", chapter.Id, TrustEntityType.DocumentFile, ct);
 
         var result = await _documentQueryService.GetDetailByIdAsync(request.DocumentId, ct);
-        try
-        {
-            await _mediator.Publish(new UserActivityEvent
-            {
-                UserId = userId,
-                ActivityType = "DocumentFileUploaded",
-                Metadata = new Dictionary<string, object>
-                {
-                    { "DocumentId", request.DocumentId },
-                    { "FileId", request.FileId }
-                }
-            }, ct);
-        }
-        catch
-        {
-        }
+
+        if (fileOrder == 1 && document.SubjectId.HasValue)
+            _ = _mediator.Publish(new DocumentFileCreatedEvent(request.DocumentId, chapter.Id, document.SubjectId, userId), ct);
 
         return result ?? throw new NotFoundException($"Document with id {request.DocumentId} not found after update");
     }

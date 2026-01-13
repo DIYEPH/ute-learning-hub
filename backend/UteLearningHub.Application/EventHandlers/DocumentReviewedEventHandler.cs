@@ -16,7 +16,7 @@ public class DocumentReviewedEventHandler(ITrustScoreService trustScoreService, 
         try
         {
             await HandleTrustScoreAsync(notification, ct);
-            await HandleVectorAsync(notification, ct);
+            _ = Task.Run(() => HandleVectorAsync(notification, ct));
         }
         catch
         {

@@ -14,7 +14,7 @@ public class ReportConfiguration : IEntityTypeConfiguration<Report>
 
         builder.HasKey(u => u.Id);
 
-        builder.Property(u => u.DocumentFileId).HasColumnName("TaiLieu_TepId");
+        builder.Property(u => u.DocumentFileId).HasColumnName("ChuongId");
         builder.Property(u => u.CommentId).HasColumnName("BinhLuanId");
         builder.Property(u => u.Content).HasColumnName("NoiDung");
         builder.Property(u => u.Status).HasColumnName("TrangThai");

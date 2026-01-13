@@ -213,7 +213,7 @@ const ProfilePage = () => {
           </div>
 
           {/* Right: Points & Level */}
-          <div className="bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4 min-w-[180px]">
+          <div className="bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4 min-w-[180px]">
             <div className="space-y-1">
               <div className="text-sm text-muted-foreground">
                 Điểm tổng: <span className="text-xl font-bold text-primary">{profile.trustScore || 0}</span>
@@ -263,7 +263,7 @@ const ProfilePage = () => {
       </div>
 
       {/* CTA Section */}
-      <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-linear-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
             <FileText className="h-5 w-5 text-primary" />

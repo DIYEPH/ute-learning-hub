@@ -92,7 +92,7 @@ export function JoinRequestList({ conversationId, onSuccess }: JoinRequestListPr
                     key={req.id}
                     className="flex items-start gap-3 p-3 bg-muted rounded-lg"
                 >
-                    <Avatar className="h-9 w-9 flex-shrink-0">
+                    <Avatar className="h-9 w-9 shrink-0">
                         <AvatarImage src={req.requesterAvatarUrl || undefined} />
                         <AvatarFallback>{req.requesterName?.[0] || "?"}</AvatarFallback>
                     </Avatar>
@@ -112,7 +112,7 @@ export function JoinRequestList({ conversationId, onSuccess }: JoinRequestListPr
                         </div>
                     </div>
 
-                    <div className="flex gap-1 flex-shrink-0">
+                    <div className="flex gap-1 shrink-0">
                         <Button
                             size="sm"
                             variant="ghost"

@@ -16,7 +16,7 @@ public static class DbTableNames
     public const string ConversationMember = "CuocTroChuyen_ThanhVien";
     public const string ConversationTag = "CuocTroChuyen_The";
     public const string Document = "TaiLieu";
-    public const string DocumentFile = "TaiLieu_Tep";
+    public const string DocumentFile = "Chuong";
     public const string DocumentReview = "DanhGiaTaiLieu";
     public const string DocumentTag = "TaiLieu_The";
     public const string Event = "SuKien";

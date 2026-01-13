@@ -180,8 +180,6 @@ export default function MajorsManagementPage() {
   const handleImport = async (file: File) => {
     setImportLoading(true);
     try {
-      // TODO: Implement import logic
-      console.log("Import file:", file);
       setImportModalOpen(false);
       await loadMajors();
     } catch (err) {

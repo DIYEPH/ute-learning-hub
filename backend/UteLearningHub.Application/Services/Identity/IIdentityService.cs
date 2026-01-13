@@ -10,6 +10,7 @@ public interface IIdentityService
     Task<(bool Succeeded, Guid UserId, IEnumerable<string> Errors)> CreateUserAsync(CreateUserDto dto);
     Task<bool> AddExternalLoginAsync(Guid userId, ExternalLoginInfoDto loginInfo);
     Task<IList<string>> GetRolesAsync(Guid userId);
+    Task<IDictionary<Guid, string?>> GetEmailsByUserIdsAsync(IEnumerable<Guid> userIds, CancellationToken ct = default);
     Task<bool> AddToRoleAsync(Guid userId, string roleName);
     Task UpdateLastLoginAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<(bool Succeeded, IEnumerable<string> Errors)> UpdateUsernameAsync(Guid userId, string newUsername);
@@ -17,6 +18,7 @@ public interface IIdentityService
     Task<(bool Succeeded, IEnumerable<string> Errors)> ResetPasswordAsync(string email, string token, string newPassword);
     Task<string> GeneratePasswordResetTokenAsync(Guid userId);
 }
+
 public record AppUserDto(
     Guid Id,
     string Email,
@@ -29,6 +31,7 @@ public record AppUserDto(
     bool LockoutEnabled,
     DateTimeOffset? LockoutEnd
 );
+
 public record CreateUserDto(
     string Email,
     string? UserName,
@@ -38,6 +41,7 @@ public record CreateUserDto(
     string? Introduction,
     string? AvatarUrl
 );
+
 public record ExternalLoginInfoDto(
     string LoginProvider,
     string ProviderKey,

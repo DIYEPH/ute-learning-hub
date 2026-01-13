@@ -16,7 +16,7 @@ public class UserDocumentProgressConfiguration : IEntityTypeConfiguration<UserDo
 
         builder.Property(u => u.UserId).HasColumnName("NguoiDungId");
         builder.Property(u => u.DocumentId).HasColumnName("TaiLieuId");
-        builder.Property(u => u.DocumentFileId).HasColumnName("TaiLieu_TepId");
+        builder.Property(u => u.DocumentFileId).HasColumnName("ChuongId");
         builder.Property(u => u.LastPage).HasColumnName("TrangCuoiCung");
         builder.Property(u => u.TotalPages).HasColumnName("TongSoTrang");
         builder.Property(u => u.LastAccessedAt).HasColumnName("LanTruyCapGanNhat");

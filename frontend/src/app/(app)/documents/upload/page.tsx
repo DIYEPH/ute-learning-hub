@@ -139,6 +139,7 @@ export default function UploadDocumentPage() {
           fileId: mainFile.id,
           coverFileId: chapterCoverId,
           title: pf.title || null,
+          totalPages: mainFile.totalPages,
         };
 
         await postApiDocumentByIdFiles({ path: { id: doc.id }, body: fileBody });

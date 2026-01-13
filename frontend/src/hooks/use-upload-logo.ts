@@ -24,7 +24,7 @@ export function useUploadLogo(): UseUploadLogoReturn {
       } catch (err: any) {
         const message =
           err?.response?.data?.message ||
-          err?.response?.data ||
+          err?.response?.data?.title ||
           err?.message ||
           "Không thể upload file";
         setLocalError(message);

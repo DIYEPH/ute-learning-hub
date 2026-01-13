@@ -13,17 +13,11 @@ export interface PagedResponse<T> {
 }
 
 export interface CrudConfig<TItem, TCreate, TUpdate, TQuery> {
-    /** Function to fetch all items with pagination */
-    fetchAll: (params?: TQuery) => Promise<PagedResponse<TItem> | null>;
-    /** Function to fetch single item by ID */
-    fetchById?: (id: string) => Promise<TItem | null>;
-    /** Function to create new item */
-    create: (data: TCreate) => Promise<TItem | null>;
-    /** Function to update existing item */
-    update: (id: string, data: TUpdate) => Promise<TItem | null>;
-    /** Function to delete item */
-    delete: (id: string) => Promise<void>;
-    /** Custom error messages */
+    fetchAll(params?: TQuery) : Promise<PagedResponse<TItem> | null>;
+    fetchById?(id: string) : Promise<TItem | null>;
+    create(data: TCreate) : Promise<TItem | null>;
+    update(id: string, data: TUpdate) : Promise<TItem | null>;
+    delete(id: string) : Promise<void>;
     errorMessages?: {
         fetch?: string;
         fetchById?: string;
@@ -54,10 +48,6 @@ export interface CrudActions<TItem, TCreate, TUpdate, TQuery> {
 
 // ============ Hook ============
 
-/**
- * Generic CRUD hook for admin pages
- * Reduces duplicate code across faculties, majors, subjects, types, users
- */
 export function useCrud<TItem, TCreate, TUpdate, TQuery = Record<string, unknown>>(
     config: CrudConfig<TItem, TCreate, TUpdate, TQuery>
 ): CrudState<TItem> & CrudActions<TItem, TCreate, TUpdate, TQuery> {
@@ -65,8 +55,7 @@ export function useCrud<TItem, TCreate, TUpdate, TQuery = Record<string, unknown
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-
-    // Use ref to store config to avoid dependency changes on every render
+    
     const configRef = useRef(config);
     configRef.current = config;
 

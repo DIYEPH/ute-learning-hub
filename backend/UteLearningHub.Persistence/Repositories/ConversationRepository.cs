@@ -90,5 +90,15 @@ public class ConversationRepository : Repository<Conversation, Guid>, IConversat
         return await _dbContext.ConversationInvitations
             .FirstOrDefaultAsync(i => i.Id == id && !i.IsDeleted, cancellationToken);
     }
+
+    public async Task<Conversation?> GetProposedBySubjectAsync(Guid subjectId, CancellationToken cancellationToken = default)
+    {
+        return await GetQueryableSet()
+            .Include(c => c.Members)
+            .Where(c => c.SubjectId == subjectId 
+                && c.ConversationStatus == Domain.Constaints.Enums.ConversationStatus.Proposed 
+                && !c.IsDeleted)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
 }
 

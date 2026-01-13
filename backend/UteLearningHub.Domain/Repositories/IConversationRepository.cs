@@ -15,5 +15,6 @@ public interface IConversationRepository : IRepository<Conversation, Guid>
     Task AddJoinRequestAsync(ConversationJoinRequest joinRequest, CancellationToken cancellationToken = default);
     Task AddInvitationAsync(ConversationInvitation invitation, CancellationToken cancellationToken = default);
     Task<ConversationInvitation?> GetInvitationByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Conversation?> GetProposedBySubjectAsync(Guid subjectId, CancellationToken cancellationToken = default);
 }
 

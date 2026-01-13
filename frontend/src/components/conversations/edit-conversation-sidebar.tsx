@@ -144,7 +144,7 @@ export function EditConversationSidebar({
     } catch (err: any) {
       const errorMessage =
         err?.response?.data?.message ||
-        err?.response?.data ||
+        err?.response?.data?.title ||
         err?.message ||
         "Không thể cập nhật cuộc trò chuyện";
       setError(errorMessage);
@@ -231,7 +231,7 @@ export function EditConversationSidebar({
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+          <div className="flex items-center justify-between p-4 border-b border-border shrink-0">
             <h3 className="text-lg font-semibold text-foreground">
               {isOwnerOrDeputy ? "Chỉnh sửa cuộc trò chuyện" : "Thông tin nhóm"}
             </h3>

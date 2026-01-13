@@ -168,7 +168,7 @@ export function ConversationFilesSidebar({
                           rel="noopener noreferrer"
                           className="flex items-center gap-3 p-3 border border-border hover:bg-muted transition-colors group"
                         >
-                          <div className="flex-shrink-0 w-10 h-10 bg-muted flex items-center justify-center">
+                          <div className="shrink-0 w-10 h-10 bg-muted flex items-center justify-center">
                             <File className="h-5 w-5 text-muted-foreground" />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -197,7 +197,7 @@ export function ConversationFilesSidebar({
                               )}
                             </div>
                           </div>
-                          <Download className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                          <Download className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
                         </a>
                       );
                     })}

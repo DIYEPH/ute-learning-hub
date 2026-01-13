@@ -29,12 +29,12 @@ export function BaseModal({open, onOpenChange, title, description, children, foo
         className={cn(sizeClasses[size], "max-h-[90vh] flex flex-col")}
         showCloseButton={showCloseButton}
       >
-        <DialogHeader className="flex-shrink-0">
+        <DialogHeader className="shrink-0">
           <DialogTitle>{title}</DialogTitle>
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <div className="py-4 overflow-y-auto flex-1 min-h-0">{children}</div>
-        {footer && <DialogFooter className="flex-shrink-0">{footer}</DialogFooter>}
+        {footer && <DialogFooter className="shrink-0">{footer}</DialogFooter>}
       </DialogContent>
     </Dialog>
   );

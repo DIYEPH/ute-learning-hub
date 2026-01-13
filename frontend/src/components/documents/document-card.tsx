@@ -86,7 +86,7 @@ export function DocumentCard({
             <img
               src={thumbnailUrl}
               alt={title}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain"
             />
           ) : (
             <div className="h-full w-full flex flex-col items-center justify-center gap-2 text-muted-foreground/60">

@@ -280,9 +280,9 @@ export function ChatWindow({
   return (
     <div className="flex flex-col h-full bg-background border border-border rounded-t-lg shadow-2xl overflow-hidden">
       {/* Header */}
-      <div className="flex-shrink-0 flex items-center justify-between px-3 py-2 bg-primary text-primary-foreground">
+      <div className="shrink-0 flex items-center justify-between px-3 py-2 bg-primary text-primary-foreground">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <Avatar className="h-8 w-8 flex-shrink-0">
+          <Avatar className="h-8 w-8 shrink-0">
             <AvatarImage
               src={conversation?.avatarUrl || undefined}
               alt={conversation?.conversationName || "Avatar"}
@@ -408,7 +408,7 @@ export function ChatWindow({
 
       {/* Reply preview */}
       {replyTo && (
-        <div className="flex-shrink-0 flex items-center justify-between bg-muted px-2 py-1 border-t border-border">
+        <div className="shrink-0 flex items-center justify-between bg-muted px-2 py-1 border-t border-border">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium truncate">Trả lời {replyTo.senderName}</p>
             <p className="text-xs text-muted-foreground truncate">{replyTo.content}</p>
@@ -421,9 +421,9 @@ export function ChatWindow({
 
       {/* File preview */}
       {selectedFiles.length > 0 && (
-        <div className="flex-shrink-0 flex gap-1 px-2 py-1 border-t border-border overflow-x-auto">
+        <div className="shrink-0 flex gap-1 px-2 py-1 border-t border-border overflow-x-auto">
           {selectedFiles.map((file, index) => (
-            <div key={index} className="relative group flex-shrink-0">
+            <div key={index} className="relative group shrink-0">
               {isImageFile(file) ? (
                 <div className="relative w-12 h-12">
                   <img
@@ -453,7 +453,7 @@ export function ChatWindow({
       )}
 
       {/* Input */}
-      <form onSubmit={handleSendMessage} className="flex-shrink-0 flex items-center gap-1 p-2 border-t border-border bg-card">
+      <form onSubmit={handleSendMessage} className="shrink-0 flex items-center gap-1 p-2 border-t border-border bg-card">
         <input
           type="file"
           ref={fileInputRef}
@@ -466,7 +466,7 @@ export function ChatWindow({
           type="button"
           variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 flex-shrink-0"
+          className="h-8 w-8 p-0 shrink-0"
           onClick={() => fileInputRef.current?.click()}
         >
           <Paperclip className="h-4 w-4" />
@@ -492,7 +492,7 @@ export function ChatWindow({
           type="submit"
           size="sm"
           disabled={sending || (!messageContent.trim() && selectedFiles.length === 0)}
-          className="h-8 w-8 p-0 flex-shrink-0"
+          className="h-8 w-8 p-0 shrink-0"
         >
           {sending ? (
             <Loader2 className="h-4 w-4 animate-spin" />

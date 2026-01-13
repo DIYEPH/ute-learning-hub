@@ -198,7 +198,7 @@ export function DocumentDetailModal({
                                             key={file.id}
                                             className="flex items-center gap-3 p-3 bg-muted rounded"
                                         >
-                                            <FileText size={20} className="text-muted-foreground flex-shrink-0" />
+                                            <FileText size={20} className="text-muted-foreground shrink-0" />
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-medium text-sm truncate">
@@ -213,7 +213,7 @@ export function DocumentDetailModal({
                                                     {file.totalPages && ` • ${file.totalPages} ${t("detailModal.pages")}`}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-1 flex-shrink-0">
+                                            <div className="flex items-center gap-1 shrink-0">
                                                 {/* Link to view file */}
                                                 <Button
                                                     variant="ghost"

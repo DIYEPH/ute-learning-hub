@@ -69,12 +69,9 @@ public class RespondToProposalHandler : IRequestHandler<RespondToProposalCommand
 
         if (request.Accept)
         {
-            // Đếm số người đã accept
+            // Đếm số người đã accept (bao gồm member hiện tại vì đã update status ở trên)
             var acceptedCount = conversation.Members.Count(m =>
                 !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Accepted);
-
-            // +1 vì member hiện tại vừa accept
-            acceptedCount++;
 
             if (acceptedCount >= ProposalSettings.MinMembersToActivate)
             {
@@ -121,21 +118,19 @@ public class RespondToProposalHandler : IRequestHandler<RespondToProposalCommand
             member.InviteStatus = MemberInviteStatus.Joined;
         }
 
-        // 3. Soft delete những người Pending/Declined
-        var otherMembers = conversation.Members
-            .Where(m => !m.IsDeleted && (m.InviteStatus == MemberInviteStatus.Pending || m.InviteStatus == MemberInviteStatus.Declined))
+        // 3. Soft delete những người Declined
+        var declinedMembers = conversation.Members
+            .Where(m => !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Declined)
             .ToList();
 
-        foreach (var member in otherMembers)
-        {
+        foreach (var member in declinedMembers)
             member.IsDeleted = true;
-        }
+        
+        // 4. Giữ lại Pending - họ vẫn có thể join sau khi nhóm được tạo
 
-        // 4. Gửi notification cho tất cả members đã join
+        // 5. Gửi notification cho tất cả members đã join
         foreach (var member in acceptedMembers)
-        {
             await SendGroupActivatedNotificationAsync(member.UserId, conversation, now, ct);
-        }
     }
 
     private async Task SendGroupActivatedNotificationAsync(Guid userId, Domain.Entities.Conversation conversation, DateTimeOffset now, CancellationToken ct)
@@ -143,13 +138,15 @@ public class RespondToProposalHandler : IRequestHandler<RespondToProposalCommand
         var notification = new Domain.Entities.Notification
         {
             Id = Guid.NewGuid(),
-            Title = "🎉 Nhóm học đã được tạo!",
+            Title = "Nhóm học đã được tạo!",
             Content = $"Nhóm \"{conversation.ConversationName}\" đã đủ người và được kích hoạt. Hãy bắt đầu thảo luận!",
-            Link = $"/conversations/{conversation.Id}",
+            Link = $"/chat/{conversation.Id}",
             IsGlobal = false,
             NotificationType = NotificationType.Conversation,
             NotificationPriorityType = NotificationPriorityType.Normal,
-            CreatedAt = now
+            ExpiredAt = now.AddDays(30),
+            CreatedAt = now,
+            CreatedById = conversation.CreatedById
         };
 
         _notificationRepo.Add(notification);
@@ -176,4 +173,5 @@ public class RespondToProposalHandler : IRequestHandler<RespondToProposalCommand
         };
     }
 }
+
 

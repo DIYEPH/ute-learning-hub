@@ -48,7 +48,7 @@ export default function ConversationsPage() {
   const [loadingInvitations, setLoadingInvitations] = useState(true);
   const [respondingInvitation, setRespondingInvitation] = useState<string | null>(null);
 
-  // Proposals (AI-suggested groups)
+  // Proposals (AI tự động gợi ý)
   const [proposals, setProposals] = useState<ProposalDto[]>([]);
   const [loadingProposals, setLoadingProposals] = useState(true);
   const [respondingProposal, setRespondingProposal] = useState<string | null>(null);
@@ -132,7 +132,7 @@ export default function ConversationsPage() {
       setInvitations((prev) => prev.filter((i) => i.id !== invitation.id));
 
       if (accept) {
-        router.push(`/conversations/${invitation.conversationId}`);
+        router.push(`/chat?id=${invitation.conversationId}`);
       }
     } catch (err) {
       console.error("Failed to respond to invitation:", err);
@@ -146,8 +146,8 @@ export default function ConversationsPage() {
     try {
       const response = await getApiProposalMy();
       const payload = (response.data ?? response) as any;
-      // Filter only pending proposals (myStatus === 1 = Pending)
-      const items = (payload?.proposals ?? []).filter((p: ProposalDto) => p.myStatus === 1);
+      // Filter pending and accepted proposals (1 = Pending, 2 = Accepted)
+      const items = (payload?.proposals ?? []).filter((p: ProposalDto) => p.myStatus === 1 || p.myStatus === 2);
       setProposals(items);
     } catch (err) {
       console.error("Error loading proposals:", err);
@@ -169,11 +169,16 @@ export default function ConversationsPage() {
 
       const result = (response.data ?? response) as any;
 
-      // Remove from local state
-      setProposals((prev) => prev.filter((p) => p.conversationId !== proposal.conversationId));
-
       if (accept && result.isActivated && result.conversation?.id) {
-        router.push(`/conversations/${result.conversation.id}`);
+        // Group activated - navigate to chat
+        setProposals((prev) => prev.filter((p) => p.conversationId !== proposal.conversationId));
+        router.push(`/chat?id=${result.conversation.id}`);
+      } else if (accept) {
+        // Accepted but not activated yet - refresh to show updated count
+        await fetchProposals();
+      } else {
+        // Declined - remove from list
+        setProposals((prev) => prev.filter((p) => p.conversationId !== proposal.conversationId));
       }
     } catch (err) {
       console.error("Failed to respond to proposal:", err);
@@ -239,7 +244,6 @@ export default function ConversationsPage() {
   };
 
   const handleJoinSuccess = () => {
-    // Refresh conversations to update join status
     void fetchConversations(page, true);
   };
 
@@ -263,7 +267,6 @@ export default function ConversationsPage() {
         </p>
       </div>
 
-      {/* Pending Invitations Section */}
       {!loadingInvitations && invitations.length > 0 && (
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
@@ -333,11 +336,10 @@ export default function ConversationsPage() {
         </div>
       )}
 
-      {/* AI Proposals Section */}
+      {/* Gợi ý AI */}
       {!loadingProposals && proposals.length > 0 && (
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            {/* <Sparkles className="h-5 w-5 text-yellow-500" /> */}
             <h2 className="text-lg font-semibold text-foreground">AI gợi ý tạo nhóm mới</h2>
             <span className="bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full">
               {proposals.length}
@@ -347,7 +349,7 @@ export default function ConversationsPage() {
             {proposals.map((proposal) => (
               <div
                 key={proposal.conversationId}
-                className="border rounded-lg p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-yellow-200 dark:border-yellow-800"
+                className="border rounded-lg p-4 bg-linear-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-yellow-200 dark:border-yellow-800"
               >
                 <div className="mb-3">
                   <h3 className="font-semibold text-foreground">
@@ -355,7 +357,7 @@ export default function ConversationsPage() {
                   </h3>
                   {proposal.subjectName && (
                     <p className="text-xs text-muted-foreground mt-1">
-                      📚 {proposal.subjectName}
+                      {proposal.subjectName}
                     </p>
                   )}
                   {proposal.tags && proposal.tags.length > 0 && (
@@ -372,10 +374,10 @@ export default function ConversationsPage() {
                   )}
                 </div>
 
-                {/* Members preview */}
+                {/* Thành viên */}
                 <div className="mb-3">
                   <p className="text-xs text-muted-foreground mb-2">
-                    Thành viên được ghép ({proposal.members?.length ?? 0}):
+                    Thành viên: ({proposal.members?.length ?? 0}):
                   </p>
                   <div className="flex items-center gap-2">
                     <div className="flex -space-x-2">
@@ -401,7 +403,7 @@ export default function ConversationsPage() {
                   </div>
                 </div>
 
-                {/* Status */}
+                {/* Trạng thái */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
                   <span>
                     ✅ {proposal.acceptedCount ?? 0}/{proposal.totalMembers ?? 0} đã đồng ý
@@ -413,33 +415,47 @@ export default function ConversationsPage() {
                   )}
                 </div>
 
-                {/* Actions */}
+                {/* Hành động */}
                 <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => respondToProposal(proposal, true)}
-                    disabled={respondingProposal === proposal.conversationId}
-                  >
-                    {respondingProposal === proposal.conversationId ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4 mr-1" />
-                        Tham gia
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => respondToProposal(proposal, false)}
-                    disabled={respondingProposal === proposal.conversationId}
-                  >
-                    <X className="h-4 w-4 mr-1" />
-                    Từ chối
-                  </Button>
+                  {proposal.myStatus === 2 ? (
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      variant="secondary"
+                      disabled
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      Đã đồng ý - Chờ thêm người
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => respondToProposal(proposal, true)}
+                        disabled={respondingProposal === proposal.conversationId}
+                      >
+                        {respondingProposal === proposal.conversationId ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <>
+                            <Check className="h-4 w-4 mr-1" />
+                            Tham gia
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex-1"
+                        onClick={() => respondToProposal(proposal, false)}
+                        disabled={respondingProposal === proposal.conversationId}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Từ chối
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -447,7 +463,7 @@ export default function ConversationsPage() {
         </div>
       )}
 
-      {/* Recommendations Section */}
+      {/* Gợi ý cho bạn */}
       {!loadingRecs && recommendations.length > 0 && (
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
@@ -485,10 +501,10 @@ export default function ConversationsPage() {
         </div>
       )}
 
-      {/* Filters */}
+      {/* Bộ lọc */}
       <div className="mb-6 space-y-4">
         <div className="flex flex-col md:flex-row gap-4">
-          {/* Search */}
+          {/* Tìm kiếm */}
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
@@ -500,7 +516,7 @@ export default function ConversationsPage() {
             />
           </div>
 
-          {/* Subject Filter */}
+          {/* Môn học */}
           <div className="w-full md:w-[200px]">
             <select
               value={subjectId || "all"}
@@ -518,7 +534,7 @@ export default function ConversationsPage() {
             </select>
           </div>
 
-          {/* Tag Filter */}
+          {/* Chủ đề */}
           <div className="w-full md:w-[200px]">
             <select
               value={tagId || "all"}
@@ -536,7 +552,7 @@ export default function ConversationsPage() {
             </select>
           </div>
 
-          {/* Clear Filters */}
+          {/* Xóa bộ lọc */}
           {hasActiveFilters && (
             <Button
               variant="outline"
@@ -551,7 +567,7 @@ export default function ConversationsPage() {
         </div>
       </div>
 
-      {/* Error */}
+      {/* Lỗi */}
       {error && (
         <div className="mb-4 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded">
           {error}
@@ -565,7 +581,7 @@ export default function ConversationsPage() {
         </div>
       )}
 
-      {/* Conversations Grid */}
+      {/* Không tìm thấy */}
       {!loading && conversations.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           <p>Không tìm thấy cuộc trò chuyện nào</p>

@@ -7,38 +7,26 @@ const NEXT_PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost
 const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 
 const nextConfig: NextConfig = {
-  output: 'standalone',  // Optimized for Docker deployment
+  output: 'standalone',
+
+  devIndicators: false,
+
   async rewrites() {
     if (NEXT_PUBLIC_API_URL.startsWith('/')) {
       return [];
     }
 
     return [
-      {
-        source: "/api/:path*",
-        destination: `${API_URL}/api/:path*`,
-      },
-      {
-        source: "/images/:path*",
-        destination: `${API_URL}/images/:path*`,
-      },
+      { source: "/api/:path*", destination: `${API_URL}/api/:path*` },
+      { source: "/images/:path*", destination: `${API_URL}/images/:path*` },
     ];
   },
+
   images: {
-    // Cho phép load ảnh từ cùng domain (qua Nginx hoặc rewrite)
     remotePatterns: [
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        pathname: '/images/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'localhost',
-        pathname: '/images/**',
-      },
+      { protocol: 'http', hostname: 'localhost', pathname: '/images/**' },
+      { protocol: 'https', hostname: 'localhost', pathname: '/images/**' },
     ],
-    // Cho phép load ảnh từ relative paths
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",

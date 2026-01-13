@@ -9,4 +9,5 @@ public record AddDocumentFileCommand : IRequest<DocumentDetailDto>
     public string? Title { get; init; }
     public Guid FileId { get; init; }
     public Guid? CoverFileId { get; init; }
+    public int? TotalPages { get; init; }
 }

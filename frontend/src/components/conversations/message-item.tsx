@@ -179,7 +179,7 @@ export function MessageItem({
     >
       {/* Avatar - chỉ hiển thị bên trái cho tin nhắn của người khác */}
       {!isOwnMessage && (
-        <Avatar className={cn("flex-shrink-0", compact ? "h-6 w-6" : "h-8 w-8")}>
+        <Avatar className={cn("shrink-0", compact ? "h-6 w-6" : "h-8 w-8")}>
           <AvatarImage
             src={message.senderAvatarUrl || undefined}
             alt={message.senderName || "User"}

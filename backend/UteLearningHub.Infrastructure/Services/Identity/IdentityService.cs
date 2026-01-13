@@ -99,6 +99,16 @@ public class IdentityService : IIdentityService
         return result.Succeeded;
     }
 
+    public Task<IDictionary<Guid, string?>> GetEmailsByUserIdsAsync(IEnumerable<Guid> userIds, CancellationToken ct = default)
+    {
+        var userIdList = userIds.ToList();
+        var result = _userManager.Users
+            .Where(u => userIdList.Contains(u.Id))
+            .ToDictionary(u => u.Id, u => u.Email);
+        
+        return Task.FromResult<IDictionary<Guid, string?>>(result);
+    }
+
     public async Task UpdateLastLoginAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());

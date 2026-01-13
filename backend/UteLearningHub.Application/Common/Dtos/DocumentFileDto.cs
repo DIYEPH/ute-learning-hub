@@ -24,6 +24,9 @@ public record DocumentFileDto
     public int UsefulCount { get; init; }
     public int NotUsefulCount { get; init; }
     public int ViewCount { get; init; }
+    
+    // Loại đánh giá của nd
+    public DocumentReviewType? MyReviewType { get; init; }
 
     // Progress tracking
     public DocumentFileProgressDto? Progress { get; init; }

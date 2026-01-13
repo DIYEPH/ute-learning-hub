@@ -173,8 +173,6 @@ export default function SubjectsManagementPage() {
   const handleImport = async (file: File) => {
     setImportLoading(true);
     try {
-      // TODO: Implement import logic
-      console.log("Import file:", file);
       setImportModalOpen(false);
       await loadSubjects();
     } catch (err) {
@@ -191,7 +189,6 @@ export default function SubjectsManagementPage() {
 
   const handleFilterChange = (key: string, value: any) => {
     if (key === "majorIds") {
-      // For multi-select, value should be an array
       if (Array.isArray(value)) {
         setMajorIds(value);
       } else if (value) {

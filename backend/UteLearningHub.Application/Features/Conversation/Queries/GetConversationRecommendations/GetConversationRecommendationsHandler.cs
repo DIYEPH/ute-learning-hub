@@ -5,6 +5,7 @@ using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Cache;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Recommendation;
+using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
@@ -60,7 +61,6 @@ public class GetConversationRecommendationsHandler
             throw new UnauthorizedException("You must be authenticated to get recommendations");
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
-        _logger.LogInformation("Getting recommendations for userId {UserId}", userId);
 
         // [DISABLED] Cache - uncomment to enable 15-minute cache
         // var cacheKey = $"recommendations:{userId}:{request.TopK}:{request.MinSimilarity}";
@@ -76,6 +76,7 @@ public class GetConversationRecommendationsHandler
         _logger.LogInformation("Got user vector: {Len} dims", userVector.Length);
 
         // Lấy tất cả conversations active và chưa join (bao gồm SubjectMajors để lấy FacultyId)
+        
         var activeConversations = await _conversationRepository.GetQueryableSet()
             .Include(c => c.Subject)
                 .ThenInclude(s => s!.SubjectMajors)
@@ -120,7 +121,6 @@ public class GetConversationRecommendationsHandler
         var recResponse = await _recommendationService.GetRecommendationsAsync(
             userVector, convVectors, topK, minSimilarity, cancellationToken);
 
-        // Map recommendations với conversation details
         var conversationDict = activeConversations.ToDictionary(c => c.Id);
         var currentUserId = _currentUserService.UserId;
 
@@ -158,7 +158,7 @@ public class GetConversationRecommendationsHandler
                         })
                         .ToList(),
                     AvatarUrl = conversation.AvatarUrl,
-                    MemberCount = conversation.Members.Count(m => !m.IsDeleted),
+                    MemberCount = conversation.Members.Count(m => !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Joined),
                     IsCurrentUserMember = currentUserId.HasValue ? isMember : null,
                     HasPendingJoinRequest = currentUserId.HasValue ? hasPendingJoinRequest : null
                 };

@@ -17,3 +17,4 @@ public record RespondToProposalResponse
     public ConversationDto? Conversation { get; init; }
 }
 
+

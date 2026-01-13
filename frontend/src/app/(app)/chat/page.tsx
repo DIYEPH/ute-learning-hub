@@ -97,14 +97,14 @@ export default function ChatPage() {
       <div
         className={cn(
           "border-r border-border bg-card flex flex-col h-full overflow-hidden transition-transform duration-300",
-          "w-full md:w-80 flex-shrink-0",
+          "w-full md:w-80 shrink-0",
           selectedConversationId
             ? "hidden md:flex"
             : "flex"
         )}
       >
         {/* Header */}
-        <div className="flex-shrink-0 p-4 border-b border-border">
+        <div className="shrink-0 p-4 border-b border-border">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-lg font-semibold text-foreground">
               Trò chuyện

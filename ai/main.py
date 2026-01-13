@@ -127,6 +127,11 @@ def cluster_users(req: ClusterUsersRequest):
         }
 
     vectors = np.array([u["vector"] for u in users])
+    
+    # Normalize vectors for cosine similarity
+    norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+    norms[norms == 0] = 1  # Avoid division by zero
+    vectors = vectors / norms
 
     K = n_users // req.MinClusterSize
     K = max(1, K)

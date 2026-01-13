@@ -217,8 +217,9 @@ public class S3FileStorageService : IFileStorageService
         try
         {
             var uri = new Uri(fileUrl);
-            // Remove leading slash
-            return uri.AbsolutePath.TrimStart('/');
+            // Remove leading slash and decode to get original key
+            var encodedPath = uri.AbsolutePath.TrimStart('/');
+            return Uri.UnescapeDataString(encodedPath);
         }
         catch
         {

@@ -1,6 +1,7 @@
 using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Comment;
+using UteLearningHub.Application.Services.ContentModeration;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
@@ -20,6 +21,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
     private readonly ICommentService _commentService;
     private readonly IDateTimeProvider _dateTimeProvider;
     private readonly IVectorMaintenanceService? _vectorMaintenanceService;
+    private readonly IProfanityFilterService _profanityFilterService;
 
     public CreateCommentCommandHandler(
         ICommentRepository commentRepository,
@@ -27,6 +29,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
         ICurrentUserService currentUserService,
         ICommentService commentService,
         IDateTimeProvider dateTimeProvider,
+        IProfanityFilterService profanityFilterService,
         IVectorMaintenanceService? vectorMaintenanceService = null)
     {
         _commentRepository = commentRepository;
@@ -34,6 +37,7 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
         _currentUserService = currentUserService;
         _commentService = commentService;
         _dateTimeProvider = dateTimeProvider;
+        _profanityFilterService = profanityFilterService;
         _vectorMaintenanceService = vectorMaintenanceService;
     }
 
@@ -43,6 +47,10 @@ public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand,
             throw new UnauthorizedException("You must be authenticated to create comments");
 
         var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+
+        // Validate content for profanity
+        if (_profanityFilterService.ContainsProfanity(request.Content))
+            throw new BadRequestException("Nội dung bình luận chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa lại.");
 
         // Validate document file exists and belongs to a non-deleted document
         var documentId = await _documentRepository.GetIdByDocumentFileIdAsync(request.DocumentFileId, cancellationToken);

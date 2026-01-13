@@ -48,7 +48,7 @@ public class ConversationQueryService : IConversationQueryService
                     TagName = ct.Tag.TagName
                 }).ToList(),
                 Members = c.Members
-                    .Where(m => !m.IsDeleted)
+                    .Where(m => !m.IsDeleted && m.InviteStatus == Domain.Constaints.Enums.MemberInviteStatus.Joined)
                     .Select(m => new
                     {
                         m.Id,

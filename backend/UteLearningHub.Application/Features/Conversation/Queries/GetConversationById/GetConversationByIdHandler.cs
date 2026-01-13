@@ -36,7 +36,7 @@ public class GetConversationByIdHandler : IRequestHandler<GetConversationByIdQue
 
         // Get member information
         var memberUserIds = conversation.Members
-            .Where(m => !m.IsDeleted)
+            .Where(m => !m.IsDeleted && m.InviteStatus == Domain.Constaints.Enums.MemberInviteStatus.Joined)
             .Select(m => m.UserId)
             .Distinct()
             .ToList();
@@ -76,7 +76,7 @@ public class GetConversationByIdHandler : IRequestHandler<GetConversationByIdQue
             } : null,
             AvatarUrl = conversation.AvatarUrl,
             Members = conversation.Members
-                .Where(m => !m.IsDeleted)
+                .Where(m => !m.IsDeleted && m.InviteStatus == Domain.Constaints.Enums.MemberInviteStatus.Joined)
                 .Select(m => new ConversationMemberDto
                 {
                     Id = m.Id,

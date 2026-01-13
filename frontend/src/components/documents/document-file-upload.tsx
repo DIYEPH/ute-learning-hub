@@ -10,8 +10,8 @@ import { usePdfThumbnail } from "@/src/hooks/use-pdf-thumbnail";
 import { postApiDocumentByIdFiles } from "@/src/api";
 import type { AddDocumentFileCommand } from "@/src/api/database/types.gen";
 import { useNotification } from "@/src/components/providers/notification-provider";
+import { getErrorMessage } from "@/src/lib/error-utils";
 
-// File size limit: 100MB (matches backend)
 const MAX_FILE_SIZE_MB = 100;
 const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
@@ -20,10 +20,7 @@ interface DocumentFileUploadProps {
   onUploadSuccess?: () => void;
 }
 
-export function DocumentFileUpload({
-  documentId,
-  onUploadSuccess,
-}: DocumentFileUploadProps) {
+export function DocumentFileUpload({ documentId, onUploadSuccess }: DocumentFileUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -34,106 +31,69 @@ export function DocumentFileUpload({
 
   const handleUpload = async () => {
     if (!selectedFile || !documentId) return;
-
     setUploading(true);
 
     try {
-      // Upload file chính
       const mainFile = await uploadFile(selectedFile, "DocumentFile");
-      console.log("[Upload] mainFile:", mainFile);
 
-      // Auto-extract cover
       let coverFileId: string | null = null;
       const isPdf = selectedFile.type.includes("pdf") || selectedFile.name.toLowerCase().endsWith(".pdf");
       const isImage = selectedFile.type.startsWith("image/");
-      console.log("[Upload] isPdf:", isPdf, "isImage:", isImage);
 
       if (isPdf) {
-        // Extract first page as cover
-        console.log("[Upload] Extracting thumbnail...");
         const thumbnail = await extractThumbnail(selectedFile);
-        console.log("[Upload] thumbnail:", thumbnail);
         if (thumbnail) {
-          console.log("[Upload] Uploading cover...");
           const coverFile = await uploadFile(thumbnail, "DocumentFileCover");
-          console.log("[Upload] coverFile:", coverFile);
           coverFileId = coverFile.id ?? null;
         }
       } else if (isImage) {
-        // For images, use the same file as cover
         coverFileId = mainFile.id ?? null;
       }
 
-      console.log("[Upload] Final coverFileId:", coverFileId);
-
-      // Gọi API thêm DocumentFile
       const body: AddDocumentFileCommand = {
         documentId,
         fileId: mainFile.id,
         coverFileId,
         title: uploadTitle.trim() || null,
+        totalPages: mainFile.totalPages,
       };
-      console.log("[Upload] body:", body);
 
-      await postApiDocumentByIdFiles({
-        path: { id: documentId },
-        body,
-        throwOnError: true,
-      });
+      await postApiDocumentByIdFiles({ path: { id: documentId }, body, throwOnError: true });
 
-      // Reset form
       setSelectedFile(null);
       setUploadTitle("");
-
       notifySuccess("Đã thêm file thành công");
       onUploadSuccess?.();
-    } catch (err: any) {
-      const errorMessage =
-        err?.response?.data?.message ||
-        err?.response?.data ||
-        err?.message ||
-        "Không thể upload file";
-      notifyError(errorMessage);
+    } catch (err: unknown) {
+      notifyError(getErrorMessage(err, "Không thể upload file"));
     } finally {
       setUploading(false);
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (file && file.size > MAX_FILE_SIZE_BYTES) {
+      setFileSizeError(`File quá lớn! Giới hạn ${MAX_FILE_SIZE_MB}MB, file của bạn ${(file.size / 1024 / 1024).toFixed(1)}MB`);
+      setSelectedFile(null);
+      e.target.value = "";
+      return;
+    }
+    setFileSizeError(null);
+    setSelectedFile(file);
+  };
+
   return (
     <div>
-      <h3 className="text-xs font-semibold text-foreground mb-3">
-        Thêm chương/file
-      </h3>
+      <h3 className="text-xs font-semibold text-foreground mb-3">Thêm chương/file</h3>
 
-      {/* 2-column grid layout */}
       <div className="grid gap-3 md:grid-cols-2 mb-3">
-        {/* File selection */}
         <div>
-          <Label className="text-[11px]">
-            Tệp chương/file <span className="text-red-500">*</span>
-          </Label>
-          <input
-            type="file"
-            accept=".pdf,image/*"
-            onChange={(e) => {
-              const file = e.target.files?.[0] || null;
-              if (file && file.size > MAX_FILE_SIZE_BYTES) {
-                setFileSizeError(`File quá lớn! Giới hạn ${MAX_FILE_SIZE_MB}MB, file của bạn ${(file.size / 1024 / 1024).toFixed(1)}MB`);
-                setSelectedFile(null);
-                e.target.value = "";
-                return;
-              }
-              setFileSizeError(null);
-              setSelectedFile(file);
-            }}
-            className="hidden"
-            id="upload-file"
-            disabled={uploading}
-          />
+          <Label className="text-[11px]">Tệp chương/file <span className="text-red-500">*</span></Label>
+          <input type="file" accept=".pdf,image/*" onChange={handleFileChange} className="hidden" id="upload-file" disabled={uploading} />
           <label
             htmlFor="upload-file"
-            className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-muted text-xs transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""
-              } ${fileSizeError ? "border-red-300 bg-red-50 dark:bg-red-950/30" : ""}`}
+            className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-muted text-xs transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""} ${fileSizeError ? "border-red-300 bg-red-50 dark:bg-red-950/30" : ""}`}
           >
             <Upload size={14} />
             <span className="truncate">{selectedFile ? selectedFile.name : "Chọn file"}</span>
@@ -141,13 +101,11 @@ export function DocumentFileUpload({
           <p className="mt-0.5 text-[10px] text-muted-foreground">Tối đa {MAX_FILE_SIZE_MB}MB</p>
           {fileSizeError && (
             <p className="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
-              <AlertCircle size={12} />
-              {fileSizeError}
+              <AlertCircle size={12} /> {fileSizeError}
             </p>
           )}
         </div>
 
-        {/* Title input */}
         <div>
           <Label className="text-[11px]">Tiêu đề (tùy chọn)</Label>
           <Input
@@ -161,23 +119,9 @@ export function DocumentFileUpload({
         </div>
       </div>
 
-      {/* Upload button */}
-      <Button
-        onClick={handleUpload}
-        disabled={!selectedFile || uploading}
-        size="sm"
-        className="w-full h-9"
-      >
-        {uploading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Đang upload...
-          </>
-        ) : (
-          "Upload"
-        )}
+      <Button onClick={handleUpload} disabled={!selectedFile || uploading} size="sm" className="w-full h-9">
+        {uploading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Đang upload...</>) : "Upload"}
       </Button>
     </div>
   );
 }
-

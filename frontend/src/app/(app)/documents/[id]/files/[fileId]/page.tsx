@@ -1,12 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, FileText, MessageSquare, X } from "lucide-react";
+import { ArrowLeft, FileText, MessageSquare, X, ThumbsUp, ThumbsDown } from "lucide-react";
 
 import {
   getApiDocumentById,
+  getApiDocumentFilesByFileId,
   postApiDocumentFilesByFileIdView,
+  postApiDocumentReview,
 } from "@/src/api";
 import type { DocumentDetailDto, DocumentFileDto } from "@/src/api/database/types.gen";
 
@@ -14,9 +16,13 @@ import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { DocumentFileCommentsPanel } from "@/src/components/documents/document-file-comments-panel";
 import { PdfViewer } from "@/src/components/documents/pdf-viewer";
+import { useNotification } from "@/src/components/providers/notification-provider";
+import { useAuthState } from "@/src/hooks/use-auth-state";
 
 import { getFileUrlById } from "@/src/lib/file-url";
 import { cn } from "@/lib/utils";
+
+const DocumentReviewType = { Useful: 0, NotUseful: 1 } as const;
 
 export default function DocumentFileDetailPage() {
   const { id: documentId, fileId: documentFileId } =
@@ -24,16 +30,24 @@ export default function DocumentFileDetailPage() {
 
   const router = useRouter();
   const viewCountedRef = useRef(false);
+  const { authenticated, ready } = useAuthState();
+  const { success: notifySuccess, error: notifyError } = useNotification();
 
   const [doc, setDoc] = useState<DocumentDetailDto | null>(null);
   const [file, setFile] = useState<DocumentFileDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [showComments, setShowComments] = useState(() => {
     if (typeof window !== 'undefined') {
-      return window.innerWidth >= 1024; // lg breakpoint
+      return window.innerWidth >= 1024;
     }
     return false;
   });
+
+  // Review state
+  const [localUseful, setLocalUseful] = useState(0);
+  const [localNotUseful, setLocalNotUseful] = useState(0);
+  const [myReviewType, setMyReviewType] = useState<number | null>(null);
+  const [reviewLoading, setReviewLoading] = useState<number | null>(null);
 
   /* ======================= DATA ======================= */
 
@@ -42,16 +56,21 @@ export default function DocumentFileDetailPage() {
 
     setLoading(true);
     try {
-      const res = await getApiDocumentById({ path: { id: documentId } });
-      const payload = (res.data ?? res) as DocumentDetailDto;
-      if (!payload) return;
+      const [docRes, fileRes] = await Promise.all([
+        getApiDocumentById({ path: { id: documentId } }),
+        getApiDocumentFilesByFileId({ path: { fileId: documentFileId } }),
+      ]);
 
-      const target = payload.files?.find(f => f.id === documentFileId) ?? null;
+      const docPayload = (docRes.data ?? docRes) as DocumentDetailDto;
+      const filePayload = (fileRes.data ?? fileRes) as DocumentFileDto;
 
-      setDoc(payload);
-      setFile(target);
+      setDoc(docPayload);
+      setFile(filePayload);
+      setLocalUseful(filePayload?.usefulCount ?? 0);
+      setLocalNotUseful(filePayload?.notUsefulCount ?? 0);
+      setMyReviewType(filePayload?.myReviewType ?? null);
 
-      if (target && !viewCountedRef.current) {
+      if (filePayload && !viewCountedRef.current) {
         viewCountedRef.current = true;
         void postApiDocumentFilesByFileIdView({ path: { fileId: documentFileId } });
       }
@@ -61,6 +80,50 @@ export default function DocumentFileDetailPage() {
   };
 
   useEffect(() => { void loadData(); }, [documentId, documentFileId]);
+
+  const handleReview = useCallback(async (type: number) => {
+    if (!authenticated || !documentFileId) {
+      notifyError("Vui lòng đăng nhập để đánh giá");
+      return;
+    }
+    if (reviewLoading !== null) return;
+
+    setReviewLoading(type);
+    const prevUseful = localUseful;
+    const prevNotUseful = localNotUseful;
+    const prevMyReview = myReviewType;
+
+    if (myReviewType === type) {
+      if (type === DocumentReviewType.Useful) setLocalUseful(prev => Math.max(0, prev - 1));
+      else setLocalNotUseful(prev => Math.max(0, prev - 1));
+      setMyReviewType(null);
+    } else if (myReviewType !== null) {
+      if (myReviewType === DocumentReviewType.Useful) {
+        setLocalUseful(prev => Math.max(0, prev - 1));
+        setLocalNotUseful(prev => prev + 1);
+      } else {
+        setLocalNotUseful(prev => Math.max(0, prev - 1));
+        setLocalUseful(prev => prev + 1);
+      }
+      setMyReviewType(type);
+    } else {
+      if (type === DocumentReviewType.Useful) setLocalUseful(prev => prev + 1);
+      else setLocalNotUseful(prev => prev + 1);
+      setMyReviewType(type);
+    }
+
+    try {
+      await postApiDocumentReview<true>({ body: { documentFileId, documentReviewType: type }, throwOnError: true });
+      notifySuccess(prevMyReview === type ? "Đã bỏ đánh giá" : (type === DocumentReviewType.Useful ? "Đã đánh dấu hữu ích" : "Đã đánh dấu không hữu ích"));
+    } catch {
+      setLocalUseful(prevUseful);
+      setLocalNotUseful(prevNotUseful);
+      setMyReviewType(prevMyReview);
+      notifyError("Không thể gửi đánh giá");
+    } finally {
+      setReviewLoading(null);
+    }
+  }, [authenticated, documentFileId, localUseful, localNotUseful, myReviewType, reviewLoading, notifyError, notifySuccess]);
 
   /* ======================= GUARDS ======================= */
 
@@ -87,10 +150,8 @@ export default function DocumentFileDetailPage() {
 
   return (
     <div className="flex h-full flex-col bg-secondary">
-
       {/* Header */}
       <div className="flex items-center justify-between px-2 py-1.5 border-b bg-card">
-
         <div className="flex items-center gap-2 min-w-0">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4" />
@@ -120,17 +181,12 @@ export default function DocumentFileDetailPage() {
             <MessageSquare className="h-4 w-4" />
           </Button>
         </div>
-
       </div>
 
       {/* Content */}
       <div className="flex flex-1 overflow-hidden">
-
         {/* Viewer */}
-        <div className={cn(
-          "flex-1 bg-muted transition-all",
-          showComments && "lg:mr-0"
-        )}>
+        <div className={cn("flex-1 bg-muted transition-all", showComments && "lg:mr-0")}>
           {fileUrl ? (
             file.mimeType === "application/pdf" ? (
               <PdfViewer
@@ -166,9 +222,39 @@ export default function DocumentFileDetailPage() {
               "lg:relative lg:w-[300px]",
               "border-l bg-card flex flex-col"
             )}>
-
               <div className="flex items-center justify-between px-3 py-2 border-b">
-                <h2 className="text-sm font-semibold">Bình luận</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-semibold">Bình luận</h2>
+                  {/* Review buttons */}
+                  <button
+                    type="button"
+                    disabled={!ready || !authenticated || reviewLoading !== null}
+                    onClick={() => handleReview(DocumentReviewType.Useful)}
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-medium transition-all
+                      ${reviewLoading === DocumentReviewType.Useful ? "opacity-70" : ""}
+                      ${myReviewType === DocumentReviewType.Useful
+                        ? "bg-green-500 text-white"
+                        : "bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400"}
+                      disabled:opacity-50`}
+                  >
+                    <ThumbsUp className="h-3 w-3" />
+                    <span>{localUseful}</span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!ready || !authenticated || reviewLoading !== null}
+                    onClick={() => handleReview(DocumentReviewType.NotUseful)}
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-medium transition-all
+                      ${reviewLoading === DocumentReviewType.NotUseful ? "opacity-70" : ""}
+                      ${myReviewType === DocumentReviewType.NotUseful
+                        ? "bg-red-500 text-white"
+                        : "bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400"}
+                      disabled:opacity-50`}
+                  >
+                    <ThumbsDown className="h-3 w-3" />
+                    <span>{localNotUseful}</span>
+                  </button>
+                </div>
                 <Button size="icon" variant="ghost" onClick={() => setShowComments(false)}>
                   <X className="h-4 w-4" />
                 </Button>
@@ -178,15 +264,11 @@ export default function DocumentFileDetailPage() {
                 <DocumentFileCommentsPanel
                   documentId={documentId}
                   documentFileId={documentFileId}
-                  initialUsefulCount={file.usefulCount ?? 0}
-                  initialNotUsefulCount={file.notUsefulCount ?? 0}
                 />
               </div>
-
             </div>
           </>
         )}
-
       </div>
     </div>
   );

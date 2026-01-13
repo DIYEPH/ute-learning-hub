@@ -67,7 +67,7 @@ public class GetMyInvitationsHandler : IRequestHandler<GetMyInvitationsQuery, Pa
             ConversationId = i.ConversationId,
             ConversationName = i.Conversation.ConversationName,
             ConversationAvatarUrl = i.Conversation.AvatarUrl,
-            MemberCount = i.Conversation.Members.Count(m => !m.IsDeleted),
+            MemberCount = i.Conversation.Members.Count(m => !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Joined),
             InvitedById = i.CreatedById,
             InvitedByName = inviters.TryGetValue(i.CreatedById, out var inviter) ? inviter.Name : "Unknown",
             InvitedByAvatarUrl = inviters.TryGetValue(i.CreatedById, out var inv) ? inv.Avatar : null,

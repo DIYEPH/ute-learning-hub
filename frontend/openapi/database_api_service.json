@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "https://localhost:7080/"
+      "url": "http://localhost:7080/"
     }
   ],
   "paths": {
@@ -2445,6 +2445,46 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/Document/files/{fileId}": {
+      "get": {
+        "tags": [
+          "Document"
+        ],
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentFileDto"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentFileDto"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentFileDto"
+                }
+              }
+            }
           }
         }
       }
@@ -5882,6 +5922,11 @@
             "type": "string",
             "format": "uuid",
             "nullable": true
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -7017,6 +7062,9 @@
             "type": "integer",
             "format": "int32"
           },
+          "myReviewType": {
+            "$ref": "#/components/schemas/NullableOfDocumentReviewType"
+          },
           "progress": {
             "$ref": "#/components/schemas/DocumentFileProgressDto"
           }
@@ -7241,6 +7289,11 @@
           },
           "mimeType": {
             "type": "string"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         }
       },
@@ -7883,6 +7936,10 @@
         "nullable": true
       },
       "NullableOfConversationVisibility": {
+        "type": "integer",
+        "nullable": true
+      },
+      "NullableOfDocumentReviewType": {
         "type": "integer",
         "nullable": true
       },

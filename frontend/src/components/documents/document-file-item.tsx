@@ -122,10 +122,10 @@ export function DocumentFileItem({
         <img
           src={coverUrl}
           alt={title}
-          className="w-20 h-14 object-contain flex-shrink-0 bg-muted"
+          className="w-20 h-14 object-contain shrink-0 bg-muted"
         />
       ) : (
-        <div className="w-20 h-14 bg-muted flex items-center justify-center flex-shrink-0">
+        <div className="w-20 h-14 bg-muted flex items-center justify-center shrink-0">
           <FileText className="h-6 w-6 text-muted-foreground" />
         </div>
       )}
@@ -145,7 +145,7 @@ export function DocumentFileItem({
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink-0">
+      <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
         <div className="flex items-center gap-1" title="Lượt xem">
           <Eye className="h-3.5 w-3.5" />
           <span>{viewCount}</span>
@@ -171,7 +171,7 @@ export function DocumentFileItem({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 flex-shrink-0"
+              className="h-8 w-8 shrink-0"
               onClick={(e) => e.stopPropagation()}
             >
               <MoreVertical className="h-4 w-4" />

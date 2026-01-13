@@ -13,7 +13,7 @@ export function useProposals() {
         try {
             const response = await getApiProposalMy();
             const payload = (response.data ?? response) as any;
-            // Only show pending proposals (myStatus === 1)
+            // Only show pending proposals for floating cards (1 = Pending)
             const items = (payload?.proposals ?? []).filter((p: ProposalDto) => p.myStatus === 1);
             setProposals(items);
         } catch (err) {

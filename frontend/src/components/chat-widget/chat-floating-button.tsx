@@ -184,7 +184,7 @@ export function ChatFloatingButton() {
                       onClick={() => handleSelectConversation(conversation)}
                       className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
                     >
-                      <Avatar className="h-10 w-10 flex-shrink-0">
+                      <Avatar className="h-10 w-10 shrink-0">
                         <AvatarImage
                           src={conversation.avatarUrl || undefined}
                           alt={conversation.conversationName || "Avatar"}
@@ -225,7 +225,7 @@ export function ChatFloatingButton() {
                     onClick={() => router.push(`/conversations`)}
                     className="w-full p-3 text-left hover:bg-muted transition-colors flex items-center gap-3"
                   >
-                    <Avatar className="h-10 w-10 flex-shrink-0">
+                    <Avatar className="h-10 w-10 shrink-0">
                       <AvatarImage
                         src={rec.avatarUrl || undefined}
                         alt={rec.conversationName || "Avatar"}
