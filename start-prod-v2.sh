@@ -1,5 +1,5 @@
 #!/bin/bash
-# Docker Compose V1 (docker-compose)
+# Docker Compose V2 (docker compose) - Ubuntu 24.04+
 
 echo "--> Starting UTE Learning Hub (Production)..."
 
@@ -11,8 +11,8 @@ if [ ! -f ".env.production" ]; then
     exit 1
 fi
 
-docker-compose $ENV_FILE $COMPOSE_FILES build --parallel
-docker-compose $ENV_FILE $COMPOSE_FILES up -d backend frontend ai nginx
+docker compose $ENV_FILE $COMPOSE_FILES build --parallel
+docker compose $ENV_FILE $COMPOSE_FILES up -d backend frontend ai nginx
 
 echo "--> Services started!"
-docker-compose $ENV_FILE $COMPOSE_FILES ps
+docker compose $ENV_FILE $COMPOSE_FILES ps
