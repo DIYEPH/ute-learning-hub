@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
@@ -60,7 +61,7 @@ export default function UploadDocumentPage() {
     setPendingFiles(prev => [
       ...prev,
       {
-        id: crypto.randomUUID(),
+        id: uuidv4(),
         file: currentFile,
         title: currentTitle.trim(),
       }

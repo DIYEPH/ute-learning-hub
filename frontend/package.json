@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@azure/msal-browser": "^4.26.2",
+    "uuid": "^11.1.0",
     "@microsoft/signalr": "^10.0.0",
     "@radix-ui/react-avatar": "^1.1.11",
     "@radix-ui/react-dialog": "^1.1.15",
@@ -34,6 +35,7 @@
   },
   "devDependencies": {
     "@hey-api/client-axios": "^0.9.1",
+    "@types/uuid": "^10.0.0",
     "@hey-api/openapi-ts": "^0.88.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

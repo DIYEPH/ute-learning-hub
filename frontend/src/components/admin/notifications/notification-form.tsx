@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { Label } from "@/src/components/ui/label";
 import { Input } from "@/src/components/ui/input";
 import { useTranslations } from "next-intl";
@@ -68,12 +69,12 @@ export function NotificationForm({
         if (initialData) {
             setFormData({
                 ...initialData,
-                objectId: initialData.objectId || crypto.randomUUID(),
+                objectId: initialData.objectId || uuidv4(),
             });
         } else {
             setFormData((prev) => ({
                 ...prev,
-                objectId: crypto.randomUUID(),
+                objectId: uuidv4(),
             }));
         }
     }, [initialData]);
