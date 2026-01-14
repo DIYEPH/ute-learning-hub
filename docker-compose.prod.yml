@@ -16,13 +16,24 @@ services:
       Microsoft__ClientId: ${MICROSOFT_CLIENT_ID}
       Microsoft__TenantId: ${MICROSOFT_TENANT_ID}
       Microsoft__ClientSecret: ${MICROSOFT_CLIENT_SECRET}
+      # AWS S3
+      AWS__AccessKeyId: ${AWS_ACCESS_KEY_ID}
+      AWS__SecretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+      AWS__Region: ${AWS_REGION}
+      AWS__S3BucketName: ${AWS_S3_BUCKET_NAME}
+      AWS__S3BaseUrl: ${AWS_S3_BASE_URL}
+      # Email
+      Email__SmtpServer: ${SMTP_SERVER}
+      Email__SmtpPort: ${SMTP_PORT}
       Email__SmtpUsername: ${SMTP_USERNAME}
       Email__SmtpPassword: ${SMTP_PASSWORD}
+      Email__EnableSsl: ${SMTP_ENABLE_SSL}
       Email__FromEmail: ${FROM_EMAIL}
+      Email__FromName: ${FROM_NAME}
       Email__BaseUrl: ${FRONTEND_URL}
-      FileStorage__BaseUrl: ${API_URL}/uploads
+      # File Storage
+      FileStorage__BaseUrl: ${AWS_S3_BASE_URL}
       Recommendation__AiServiceBaseUrl: "http://ai:8000"
-      # Disable Redis - use MemoryCache fallback
       Redis__ConnectionString: ""
 
   frontend:
