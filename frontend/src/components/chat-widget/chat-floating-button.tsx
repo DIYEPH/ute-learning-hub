@@ -84,20 +84,21 @@ export function ChatFloatingButton() {
 
   return (
     <>
-      {/* Floating Button */}
+      {/* Floating Button - nhỏ hơn trên mobile */}
       <button
         onClick={handleToggle}
         className={cn(
-          "fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all",
+          "fixed bottom-4 right-4 z-50 flex items-center justify-center rounded-full shadow-lg transition-all",
+          "h-11 w-11 md:h-12 md:w-12",
           "bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105",
           "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
           isOpen && "rotate-90"
         )}
       >
         {isOpen ? (
-          <X className="h-6 w-6" />
+          <X className="h-5 w-5 md:h-6 md:w-6" />
         ) : (
-          <MessageCircle className="h-6 w-6" />
+          <MessageCircle className="h-5 w-5 md:h-6 md:w-6" />
         )}
       </button>
 

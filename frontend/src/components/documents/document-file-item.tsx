@@ -116,17 +116,17 @@ export function DocumentFileItem({
   const hasMenuItems = true;
 
   return (
-    <div className="flex gap-3 p-3 border border-border bg-card hover:border-primary hover:shadow-md transition-all cursor-pointer ">
-      {/* Thumbnail */}
+    <div className="flex gap-2 md:gap-3 p-2 md:p-3 border border-border bg-card hover:border-primary hover:shadow-md transition-all cursor-pointer">
+      {/* Thumbnail - nhỏ hơn trên mobile */}
       {coverUrl ? (
         <img
           src={coverUrl}
           alt={title}
-          className="w-20 h-14 object-contain shrink-0 bg-muted"
+          className="w-14 h-10 md:w-20 md:h-14 object-contain shrink-0 bg-muted rounded"
         />
       ) : (
-        <div className="w-20 h-14 bg-muted flex items-center justify-center shrink-0">
-          <FileText className="h-6 w-6 text-muted-foreground" />
+        <div className="w-14 h-10 md:w-20 md:h-14 bg-muted flex items-center justify-center shrink-0 rounded">
+          <FileText className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
         </div>
       )}
 
@@ -144,8 +144,8 @@ export function DocumentFileItem({
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0">
+      {/* Stats - Ẩn trên mobile, hiện trên md+ */}
+      <div className="hidden md:flex items-center gap-3 text-xs text-muted-foreground shrink-0">
         <div className="flex items-center gap-1" title="Lượt xem">
           <Eye className="h-3.5 w-3.5" />
           <span>{viewCount}</span>
@@ -181,8 +181,8 @@ export function DocumentFileItem({
             {/* Download option - always available */}
             {fileUrl && (
               <DropdownMenuItem asChild>
-                <a 
-                  href={fileUrl} 
+                <a
+                  href={fileUrl}
                   download={title}
                   target="_blank"
                   rel="noopener noreferrer"

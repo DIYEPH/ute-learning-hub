@@ -67,9 +67,10 @@ export function AppShell({ children }: AppShellProps) {
             className={`flex-1 min-h-0 overflow-hidden ${isFullscreenPage ? '' : 'pt-4 px-4 md:pt-6 md:px-6 overflow-y-auto'}`}
             style={isFullscreenPage ? undefined : {
               backgroundImage: 'url(/images/cover_page.png)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundAttachment: 'fixed'
+              backgroundSize: 'contain',
+              backgroundPosition: 'top center',
+              backgroundRepeat: 'no-repeat',
+              backgroundColor: 'var(--background)'
             }}
           >
             {children}
