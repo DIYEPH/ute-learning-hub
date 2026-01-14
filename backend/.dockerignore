@@ -8,7 +8,13 @@
 **/node_modules/
 **/.git/
 **/.gitignore
-**/README.md
+**/*.md
 **/Dockerfile
 **/.dockerignore
-
+**/logs/
+**/*.log
+**/.env*
+**/Properties/launchSettings.json
+**/UteLearningHub.UnitTest/
+**/*.Tests/
+**/TestResults/

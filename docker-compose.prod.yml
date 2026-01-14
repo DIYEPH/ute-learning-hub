@@ -1,8 +1,6 @@
 # Production with External Database (Azure SQL / AWS RDS)
 # Lightweight deployment - No Redis, No Kafka
 
-version: '3.8'
-
 services:
   # SQL Server, Redis, Zookeeper, Kafka - ALL DISABLED
   # Using external database and NoOp message producer
