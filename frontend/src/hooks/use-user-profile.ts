@@ -1,46 +1,7 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { getApiAccountProfile } from '@/src/api';
-import type { GetApiAccountProfileResponse } from '@/src/api/database/types.gen';
-import { useAuthState } from './use-auth-state';
+import { useUserProfileContext } from '@/src/components/providers/user-profile-provider';
 
 export function useUserProfile() {
-  const [profile, setProfile] = useState<GetApiAccountProfileResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
-
-  useEffect(() => {
-    if (!authReady) {
-      return;
-    }
-
-    if (!isAuthenticated) {
-      setProfile(null);
-      setLoading(false);
-      return;
-    }
-
-    const fetchProfile = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await getApiAccountProfile();
-        if (response.data) {
-          setProfile(response.data);
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch profile');
-        console.error('Error fetching profile:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProfile();
-  }, [isAuthenticated, authReady]);
-
-  return { profile, loading, error };
+  return useUserProfileContext();
 }
-
