@@ -1,288 +1,370 @@
 -- =====================================================
 -- UTE Learning Hub - SQL Seed Data Script
--- Generated: 2025-12-30
--- Purpose: Insert test data (Vietnamese column names)
+-- Generated: 2026-01-14
+-- Purpose: Insert comprehensive test data
 -- Note: Run AFTER DataSeeder has created base data
 -- =====================================================
 
--- =====================================================
--- GET REFERENCE IDs
--- =====================================================
-
--- Get Student role ID
+-- Get Role IDs
 DECLARE @StudentRoleId UNIQUEIDENTIFIER;
 SELECT @StudentRoleId = Id FROM VaiTro WHERE TenChuanHoa = 'STUDENT';
 
--- Get Admin ID
 DECLARE @AdminId UNIQUEIDENTIFIER;
 SELECT @AdminId = Id FROM NguoiDung WHERE Email = 'admin@ute.edu.vn';
 
 -- Get Major IDs
-DECLARE @CNTT_MajorId UNIQUEIDENTIFIER;
-DECLARE @CK_MajorId UNIQUEIDENTIFIER;
-DECLARE @DDT_MajorId UNIQUEIDENTIFIER;
-DECLARE @XD_MajorId UNIQUEIDENTIFIER;
-DECLARE @HH_MajorId UNIQUEIDENTIFIER;
-DECLARE @SPCN_MajorId UNIQUEIDENTIFIER;
+DECLARE @CNTT UNIQUEIDENTIFIER, @CK UNIQUEIDENTIFIER, @DDT UNIQUEIDENTIFIER, @XD UNIQUEIDENTIFIER, @HH UNIQUEIDENTIFIER, @SPCN UNIQUEIDENTIFIER;
+SELECT @CNTT = Id FROM Nganh WHERE MaNganh = '7480201';
+SELECT @CK = Id FROM Nganh WHERE MaNganh = '7510201';
+SELECT @DDT = Id FROM Nganh WHERE MaNganh = '7510302';
+SELECT @XD = Id FROM Nganh WHERE MaNganh = '7510103';
+SELECT @HH = Id FROM Nganh WHERE MaNganh = '7510401';
+SELECT @SPCN = Id FROM Nganh WHERE MaNganh = '7140214';
 
-SELECT @CNTT_MajorId = Id FROM Nganh WHERE MaNganh = '7480201';
-SELECT @CK_MajorId = Id FROM Nganh WHERE MaNganh = '7510201';
-SELECT @DDT_MajorId = Id FROM Nganh WHERE MaNganh = '7510302';
-SELECT @XD_MajorId = Id FROM Nganh WHERE MaNganh = '7510103';
-SELECT @HH_MajorId = Id FROM Nganh WHERE MaNganh = '7510401';
-SELECT @SPCN_MajorId = Id FROM Nganh WHERE MaNganh = '7140214';
-
--- Get Type IDs
-DECLARE @Type1Id UNIQUEIDENTIFIER;
-DECLARE @Type2Id UNIQUEIDENTIFIER;
-DECLARE @Type3Id UNIQUEIDENTIFIER;
-SELECT TOP 1 @Type1Id = Id FROM LoaiTaiLieu ORDER BY NgayTao;
-SELECT TOP 1 @Type2Id = Id FROM LoaiTaiLieu WHERE Id != @Type1Id ORDER BY NgayTao;
-SELECT TOP 1 @Type3Id = Id FROM LoaiTaiLieu WHERE Id NOT IN (@Type1Id, @Type2Id) ORDER BY NgayTao;
+-- Get Type IDs  
+DECLARE @Type1 UNIQUEIDENTIFIER, @Type2 UNIQUEIDENTIFIER, @Type3 UNIQUEIDENTIFIER;
+SELECT TOP 1 @Type1 = Id FROM LoaiTaiLieu ORDER BY NgayTao;
+SELECT TOP 1 @Type2 = Id FROM LoaiTaiLieu WHERE Id != @Type1 ORDER BY NgayTao;
+SELECT TOP 1 @Type3 = Id FROM LoaiTaiLieu WHERE Id NOT IN (@Type1, @Type2) ORDER BY NgayTao;
 
 -- Get Subject IDs
-DECLARE @Subject1Id UNIQUEIDENTIFIER;
-DECLARE @Subject2Id UNIQUEIDENTIFIER;
-DECLARE @Subject3Id UNIQUEIDENTIFIER;
-DECLARE @Subject4Id UNIQUEIDENTIFIER;
-DECLARE @Subject5Id UNIQUEIDENTIFIER;
-SELECT @Subject1Id = Id FROM MonHoc WHERE MaMonHoc = '5505166'; -- Lập trình C
-SELECT @Subject2Id = Id FROM MonHoc WHERE MaMonHoc = '5505127'; -- CSDL I
-SELECT @Subject3Id = Id FROM MonHoc WHERE MaMonHoc = '5505181'; -- Mạng
-SELECT @Subject4Id = Id FROM MonHoc WHERE MaMonHoc = '5505168'; -- OOP
-SELECT @Subject5Id = Id FROM MonHoc WHERE MaMonHoc = '5505226'; -- AI
+DECLARE @Subj1 UNIQUEIDENTIFIER, @Subj2 UNIQUEIDENTIFIER, @Subj3 UNIQUEIDENTIFIER, @Subj4 UNIQUEIDENTIFIER, @Subj5 UNIQUEIDENTIFIER;
+DECLARE @Subj6 UNIQUEIDENTIFIER, @Subj7 UNIQUEIDENTIFIER, @Subj8 UNIQUEIDENTIFIER;
+SELECT @Subj1 = Id FROM MonHoc WHERE MaMonHoc = '5505166'; -- Lập trình C
+SELECT @Subj2 = Id FROM MonHoc WHERE MaMonHoc = '5505127'; -- CSDL I
+SELECT @Subj3 = Id FROM MonHoc WHERE MaMonHoc = '5505181'; -- Mạng
+SELECT @Subj4 = Id FROM MonHoc WHERE MaMonHoc = '5505168'; -- OOP
+SELECT @Subj5 = Id FROM MonHoc WHERE MaMonHoc = '5505226'; -- AI
+SELECT @Subj6 = Id FROM MonHoc WHERE MaMonHoc = '5505175'; -- Web
+SELECT @Subj7 = Id FROM MonHoc WHERE MaMonHoc = '5505119'; -- Toán rời rạc
+SELECT @Subj8 = Id FROM MonHoc WHERE MaMonHoc = '5505148'; -- Cấu trúc dữ liệu
 
 -- Get Tag IDs
-DECLARE @Tag1Id UNIQUEIDENTIFIER;
-DECLARE @Tag2Id UNIQUEIDENTIFIER;
-DECLARE @Tag3Id UNIQUEIDENTIFIER;
-DECLARE @Tag4Id UNIQUEIDENTIFIER;
-DECLARE @Tag5Id UNIQUEIDENTIFIER;
-SELECT @Tag1Id = Id FROM [The] WHERE TenTag = 'C#';
-SELECT @Tag2Id = Id FROM [The] WHERE TenTag = 'Java';
-SELECT @Tag3Id = Id FROM [The] WHERE TenTag = 'Python';
-SELECT @Tag4Id = Id FROM [The] WHERE TenTag = 'Machine Learning';
-SELECT @Tag5Id = Id FROM [The] WHERE TenTag = N'Cấu trúc dữ liệu';
+DECLARE @Tag1 UNIQUEIDENTIFIER, @Tag2 UNIQUEIDENTIFIER, @Tag3 UNIQUEIDENTIFIER, @Tag4 UNIQUEIDENTIFIER, @Tag5 UNIQUEIDENTIFIER;
+SELECT @Tag1 = Id FROM [The] WHERE TenTag = 'C#';
+SELECT @Tag2 = Id FROM [The] WHERE TenTag = 'Java';
+SELECT @Tag3 = Id FROM [The] WHERE TenTag = 'Python';
+SELECT @Tag4 = Id FROM [The] WHERE TenTag = 'Machine Learning';
+SELECT @Tag5 = Id FROM [The] WHERE TenTag = N'Cấu trúc dữ liệu';
+
+-- Password hash for all users (password: Test@123)
+DECLARE @Pwd NVARCHAR(MAX) = 'AQAAAAIAAYagAAAAEOCNOlUCTLnDzZABbb24M1L1V+5vKHk8xwSSxUiFN1XMHSO8hY/Ig2a4VO5q6kMCZA==';
 
 -- =====================================================
--- INSERT USERS (20 students)
+-- INSERT 50 USERS
 -- =====================================================
 
-DECLARE @User5Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-VALUES (@User5Id, 'nguyenvana', 'NGUYENVANA', 'nguyenvana@student.ute.edu.vn', 'NGUYENVANA@STUDENT.UTE.EDU.VN', 1, 'AQAAAAIAAYagAAAAEOXrWfWoQ2sBmKlKlXFYL5u5L5K3c8Q6p7R8S9T0U1V2W3X4Y5Z6a7b8c9d0e1f2g3h4', NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @CNTT_MajorId, N'Sinh viên năm 3 CNTT', 'https://i.pravatar.cc/150?img=1', N'Nguyễn Văn A', 15, 0, 2, 1, GETUTCDATE(), 0);
-INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@User5Id, @StudentRoleId);
+-- User table for easy reference
+DECLARE @Users TABLE (Idx INT, UserId UNIQUEIDENTIFIER, MajorId UNIQUEIDENTIFIER, TrustScore INT);
 
-DECLARE @User6Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-VALUES (@User6Id, 'tranthib', 'TRANTHIB', 'tranthib@student.ute.edu.vn', 'TRANTHIB@STUDENT.UTE.EDU.VN', 1, 'AQAAAAIAAYagAAAAEOXrWfWoQ2sBmKlKlXFYL5u5L5K3c8Q6p7R8S9T0U1V2W3X4Y5Z6a7b8c9d0e1f2g3h4', NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @CK_MajorId, N'Sinh viên năm 4 Cơ khí', 'https://i.pravatar.cc/150?img=2', N'Trần Thị B', 25, 0, 2, 2, GETUTCDATE(), 0);
-INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@User6Id, @StudentRoleId);
+-- Generate 50 users
+DECLARE @i INT = 1;
+WHILE @i <= 50
+BEGIN
+    DECLARE @UserId UNIQUEIDENTIFIER = NEWID();
+    DECLARE @Major UNIQUEIDENTIFIER = CASE (@i % 6) WHEN 0 THEN @CNTT WHEN 1 THEN @CK WHEN 2 THEN @DDT WHEN 3 THEN @XD WHEN 4 THEN @HH ELSE @SPCN END;
+    DECLARE @Gender INT = @i % 3;
+    DECLARE @TrustScore INT = (@i * 7) % 100;
+    DECLARE @TrustLevel INT = CASE WHEN @TrustScore < 10 THEN 1 WHEN @TrustScore < 30 THEN 2 WHEN @TrustScore < 60 THEN 3 ELSE 4 END;
+    DECLARE @Username NVARCHAR(50) = CONCAT('user', FORMAT(@i, '00'));
+    DECLARE @Email NVARCHAR(100) = CONCAT('21115053100', FORMAT(@i, '00'), '@ute.udn.vn');
+    DECLARE @FullName NVARCHAR(100) = CONCAT(N'Sinh viên ', @i);
+    DECLARE @Avatar NVARCHAR(200) = CONCAT('https://i.pravatar.cc/150?img=', (@i % 70) + 1);
+    
+    INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
+    VALUES (@UserId, @Username, UPPER(@Username), @Email, UPPER(@Email), 1, @Pwd, NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @Major, CONCAT(N'Sinh viên năm ', (@i % 4) + 1), @Avatar, @FullName, @TrustScore, 1, @TrustLevel, @Gender, DATEADD(DAY, -@i, GETUTCDATE()), 0);
+    
+    INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@UserId, @StudentRoleId);
+    INSERT INTO @Users (Idx, UserId, MajorId, TrustScore) VALUES (@i, @UserId, @Major, @TrustScore);
+    
+    SET @i = @i + 1;
+END
 
-DECLARE @User7Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-VALUES (@User7Id, 'levanhung', 'LEVANHUNG', 'levanhung@student.ute.edu.vn', 'LEVANHUNG@STUDENT.UTE.EDU.VN', 1, 'AQAAAAIAAYagAAAAEOXrWfWoQ2sBmKlKlXFYL5u5L5K3c8Q6p7R8S9T0U1V2W3X4Y5Z6a7b8c9d0e1f2g3h4', NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @DDT_MajorId, N'Sinh viên năm 2 Điện tử', 'https://i.pravatar.cc/150?img=3', N'Lê Văn Hùng', 8, 0, 1, 1, GETUTCDATE(), 0);
-INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@User7Id, @StudentRoleId);
+PRINT N'Đã thêm 50 users!';
 
-DECLARE @User8Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-VALUES (@User8Id, 'phamthilan', 'PHAMTHILAN', 'phamthilan@student.ute.edu.vn', 'PHAMTHILAN@STUDENT.UTE.EDU.VN', 1, 'AQAAAAIAAYagAAAAEOXrWfWoQ2sBmKlKlXFYL5u5L5K3c8Q6p7R8S9T0U1V2W3X4Y5Z6a7b8c9d0e1f2g3h4', NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @XD_MajorId, N'Sinh viên năm 3 Xây dựng', 'https://i.pravatar.cc/150?img=4', N'Phạm Thị Lan', 35, 0, 3, 2, GETUTCDATE(), 0);
-INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@User8Id, @StudentRoleId);
-
-DECLARE @User9Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-VALUES (@User9Id, 'hoangvanduc', 'HOANGVANDUC', 'hoangvanduc@student.ute.edu.vn', 'HOANGVANDUC@STUDENT.UTE.EDU.VN', 1, 'AQAAAAIAAYagAAAAEOXrWfWoQ2sBmKlKlXFYL5u5L5K3c8Q6p7R8S9T0U1V2W3X4Y5Z6a7b8c9d0e1f2g3h4', NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @HH_MajorId, N'Sinh viên năm 4 Hóa học', 'https://i.pravatar.cc/150?img=5', N'Hoàng Văn Đức', 50, 0, 3, 1, GETUTCDATE(), 0);
-INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@User9Id, @StudentRoleId);
-
-DECLARE @User10Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-VALUES (@User10Id, 'vuthimai', 'VUTHIMAI', 'vuthimai@student.ute.edu.vn', 'VUTHIMAI@STUDENT.UTE.EDU.VN', 1, 'AQAAAAIAAYagAAAAEOXrWfWoQ2sBmKlKlXFYL5u5L5K3c8Q6p7R8S9T0U1V2W3X4Y5Z6a7b8c9d0e1f2g3h4', NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @SPCN_MajorId, N'Sinh viên năm 3 SPKT', 'https://i.pravatar.cc/150?img=6', N'Vũ Thị Mai', 20, 0, 2, 2, GETUTCDATE(), 0);
-INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@User10Id, @StudentRoleId);
-
-DECLARE @User11Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-VALUES (@User11Id, 'dangvantuan', 'DANGVANTUAN', 'dangvantuan@student.ute.edu.vn', 'DANGVANTUAN@STUDENT.UTE.EDU.VN', 1, 'AQAAAAIAAYagAAAAEOXrWfWoQ2sBmKlKlXFYL5u5L5K3c8Q6p7R8S9T0U1V2W3X4Y5Z6a7b8c9d0e1f2g3h4', NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @CNTT_MajorId, N'Sinh viên năm 4 CNTT, AI/ML', 'https://i.pravatar.cc/150?img=7', N'Đặng Văn Tuấn', 70, 0, 4, 1, GETUTCDATE(), 0);
-INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@User11Id, @StudentRoleId);
-
-DECLARE @User12Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-VALUES (@User12Id, 'ngothihuong', 'NGOTHIHUONG', 'ngothihuong@student.ute.edu.vn', 'NGOTHIHUONG@STUDENT.UTE.EDU.VN', 1, 'AQAAAAIAAYagAAAAEOXrWfWoQ2sBmKlKlXFYL5u5L5K3c8Q6p7R8S9T0U1V2W3X4Y5Z6a7b8c9d0e1f2g3h4', NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @CK_MajorId, N'Sinh viên năm 2 Cơ khí', 'https://i.pravatar.cc/150?img=8', N'Ngô Thị Hương', 5, 0, 1, 2, GETUTCDATE(), 0);
-INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@User12Id, @StudentRoleId);
-
-DECLARE @User13Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-VALUES (@User13Id, 'buivankhanh', 'BUIVANKHANH', 'buivankhanh@student.ute.edu.vn', 'BUIVANKHANH@STUDENT.UTE.EDU.VN', 1, 'AQAAAAIAAYagAAAAEOXrWfWoQ2sBmKlKlXFYL5u5L5K3c8Q6p7R8S9T0U1V2W3X4Y5Z6a7b8c9d0e1f2g3h4', NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @DDT_MajorId, N'Sinh viên năm 3 Điện tử', 'https://i.pravatar.cc/150?img=9', N'Bùi Văn Khánh', 28, 0, 2, 1, GETUTCDATE(), 0);
-INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@User13Id, @StudentRoleId);
-
-DECLARE @User14Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-VALUES (@User14Id, 'dothithuy', 'DOTHITHUY', 'dothithuy@student.ute.edu.vn', 'DOTHITHUY@STUDENT.UTE.EDU.VN', 1, 'AQAAAAIAAYagAAAAEOXrWfWoQ2sBmKlKlXFYL5u5L5K3c8Q6p7R8S9T0U1V2W3X4Y5Z6a7b8c9d0e1f2g3h4', NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @XD_MajorId, N'Sinh viên năm 2 Xây dựng', 'https://i.pravatar.cc/150?img=10', N'Đỗ Thị Thủy', 12, 0, 2, 2, GETUTCDATE(), 0);
-INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@User14Id, @StudentRoleId);
-
-PRINT N'Đã thêm 10 users!';
+-- Get user references
+DECLARE @U1 UNIQUEIDENTIFIER, @U2 UNIQUEIDENTIFIER, @U3 UNIQUEIDENTIFIER, @U4 UNIQUEIDENTIFIER, @U5 UNIQUEIDENTIFIER;
+DECLARE @U6 UNIQUEIDENTIFIER, @U7 UNIQUEIDENTIFIER, @U8 UNIQUEIDENTIFIER, @U9 UNIQUEIDENTIFIER, @U10 UNIQUEIDENTIFIER;
+SELECT @U1 = UserId FROM @Users WHERE Idx = 1;
+SELECT @U2 = UserId FROM @Users WHERE Idx = 2;
+SELECT @U3 = UserId FROM @Users WHERE Idx = 3;
+SELECT @U4 = UserId FROM @Users WHERE Idx = 4;
+SELECT @U5 = UserId FROM @Users WHERE Idx = 5;
+SELECT @U6 = UserId FROM @Users WHERE Idx = 6;
+SELECT @U7 = UserId FROM @Users WHERE Idx = 7;
+SELECT @U8 = UserId FROM @Users WHERE Idx = 8;
+SELECT @U9 = UserId FROM @Users WHERE Idx = 9;
+SELECT @U10 = UserId FROM @Users WHERE Idx = 10;
 
 -- =====================================================
--- INSERT DOCUMENTS (10 documents)
+-- INSERT AUTHORS
 -- =====================================================
+DECLARE @Auth1 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Auth2 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Auth3 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Auth4 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Auth5 UNIQUEIDENTIFIER = NEWID();
 
-DECLARE @Doc1Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TaiLieu (Id, MonHocId, LoaiTaiLieuId, MoTa, DocumentName, TenChuanHoa, CoHienThi, TepBiaId, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Doc1Id, @Subject1Id, @Type1Id, N'Hướng dẫn lập trình C', N'Giáo trình Lập trình C', N'GIAO TRINH LAP TRINH C', 0, NULL, @User5Id, DATEADD(DAY, -30, GETUTCDATE()), 0);
+INSERT INTO TacGia (Id, TenTacGia, MoTa, TrangThai, NgayTao, TaoBoi, CoDaXoa) VALUES 
+(@Auth1, N'Nguyễn Văn Minh', N'Giảng viên Khoa CNTT', 0, GETUTCDATE(), @AdminId, 0),
+(@Auth2, N'Trần Thị Hương', N'Giảng viên Khoa CNTT', 0, GETUTCDATE(), @AdminId, 0),
+(@Auth3, N'Lê Văn Đức', N'Giảng viên Khoa Điện tử', 0, GETUTCDATE(), @AdminId, 0),
+(@Auth4, N'Phạm Thị Lan', N'Giảng viên Khoa Xây dựng', 0, GETUTCDATE(), @AdminId, 0),
+(@Auth5, N'Hoàng Văn Nam', N'Giảng viên Khoa CNTT', 0, GETUTCDATE(), @AdminId, 0);
 
-DECLARE @Doc2Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TaiLieu (Id, MonHocId, LoaiTaiLieuId, MoTa, DocumentName, TenChuanHoa, CoHienThi, TepBiaId, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Doc2Id, @Subject2Id, @Type1Id, N'Bài tập SQL và thiết kế CSDL', N'Bài tập CSDL có lời giải', N'BAI TAP CSDL CO LOI GIAI', 0, NULL, @User11Id, DATEADD(DAY, -28, GETUTCDATE()), 0);
+PRINT N'Đã thêm 5 tác giả!';
 
-DECLARE @Doc3Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TaiLieu (Id, MonHocId, LoaiTaiLieuId, MoTa, DocumentName, TenChuanHoa, CoHienThi, TepBiaId, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Doc3Id, @Subject3Id, @Type2Id, N'Slide bài giảng mạng máy tính', N'Slide Mạng máy tính', N'SLIDE MANG MAY TINH', 1, NULL, @User8Id, DATEADD(DAY, -25, GETUTCDATE()), 0);
+-- =====================================================
+-- INSERT 10 DOCUMENTS
+-- =====================================================
+DECLARE @Doc1 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Doc2 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Doc3 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Doc4 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Doc5 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Doc6 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Doc7 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Doc8 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Doc9 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Doc10 UNIQUEIDENTIFIER = NEWID();
 
-DECLARE @Doc4Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TaiLieu (Id, MonHocId, LoaiTaiLieuId, MoTa, DocumentName, TenChuanHoa, CoHienThi, TepBiaId, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Doc4Id, @Subject4Id, @Type1Id, N'Giáo trình OOP với Java', N'Lập trình hướng đối tượng Java', N'LAP TRINH HUONG DOI TUONG JAVA', 0, NULL, @User11Id, DATEADD(DAY, -22, GETUTCDATE()), 0);
+INSERT INTO TaiLieu (Id, MonHocId, LoaiTaiLieuId, MoTa, TenTaiLieu, TenChuanHoa, CoHienThi, TepBiaId, TaoBoi, NgayTao, CoDaXoa) VALUES 
+(@Doc1, @Subj1, @Type1, N'Hướng dẫn lập trình C từ cơ bản đến nâng cao', N'Giáo trình Lập trình C', N'GIAO TRINH LAP TRINH C', 0, NULL, @U1, DATEADD(DAY, -30, GETUTCDATE()), 0),
+(@Doc2, @Subj2, @Type1, N'Bài tập SQL và thiết kế CSDL đầy đủ', N'Bài tập CSDL có lời giải', N'BAI TAP CSDL CO LOI GIAI', 0, NULL, @U2, DATEADD(DAY, -28, GETUTCDATE()), 0),
+(@Doc3, @Subj3, @Type2, N'Slide bài giảng mạng máy tính học kỳ 1', N'Slide Mạng máy tính', N'SLIDE MANG MAY TINH', 1, NULL, @U3, DATEADD(DAY, -25, GETUTCDATE()), 0),
+(@Doc4, @Subj4, @Type1, N'Giáo trình OOP với Java đầy đủ', N'Lập trình hướng đối tượng Java', N'LAP TRINH HUONG DOI TUONG JAVA', 0, NULL, @U4, DATEADD(DAY, -22, GETUTCDATE()), 0),
+(@Doc5, @Subj5, @Type3, N'Đồ án Machine Learning với Python', N'Đồ án AI - Face Recognition', N'DO AN AI FACE RECOGNITION', 1, NULL, @U5, DATEADD(DAY, -20, GETUTCDATE()), 0),
+(@Doc6, @Subj6, @Type2, N'Slide ReactJS và NodeJS cơ bản', N'Slide Lập trình Web', N'SLIDE LAP TRINH WEB', 1, NULL, @U6, DATEADD(DAY, -18, GETUTCDATE()), 0),
+(@Doc7, @Subj7, @Type1, N'Giáo trình toán rời rạc ứng dụng', N'Toán rời rạc cho CNTT', N'TOAN ROI RAC CHO CNTT', 0, NULL, @U7, DATEADD(DAY, -15, GETUTCDATE()), 0),
+(@Doc8, @Subj8, @Type1, N'Cấu trúc dữ liệu và giải thuật với C++', N'Cấu trúc dữ liệu và Giải thuật', N'CAU TRUC DU LIEU VA GIAI THUAT', 0, NULL, @U8, DATEADD(DAY, -12, GETUTCDATE()), 0),
+(@Doc9, @Subj1, @Type3, N'Đồ án quản lý sinh viên bằng C', N'Đồ án Lập trình C', N'DO AN LAP TRINH C', 1, NULL, @U9, DATEADD(DAY, -10, GETUTCDATE()), 0),
+(@Doc10, @Subj5, @Type2, N'Slide Deep Learning với TensorFlow', N'Deep Learning cơ bản', N'DEEP LEARNING CO BAN', 1, NULL, @U10, DATEADD(DAY, -8, GETUTCDATE()), 0);
 
-DECLARE @Doc5Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TaiLieu (Id, MonHocId, LoaiTaiLieuId, MoTa, DocumentName, TenChuanHoa, CoHienThi, TepBiaId, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Doc5Id, @Subject5Id, @Type3Id, N'Đồ án Machine Learning', N'Đồ án AI - Face Recognition', N'DO AN AI FACE RECOGNITION', 1, NULL, @User11Id, DATEADD(DAY, -20, GETUTCDATE()), 0);
-
-PRINT N'Đã thêm 5 documents!';
+PRINT N'Đã thêm 10 documents!';
 
 -- =====================================================
 -- INSERT DOCUMENT TAGS
 -- =====================================================
-INSERT INTO [TaiLieu_The] (TaiLieuId, TheId) VALUES (@Doc1Id, @Tag1Id);
-INSERT INTO [TaiLieu_The] (TaiLieuId, TheId) VALUES (@Doc1Id, @Tag5Id);
-INSERT INTO [TaiLieu_The] (TaiLieuId, TheId) VALUES (@Doc2Id, @Tag1Id);
-INSERT INTO [TaiLieu_The] (TaiLieuId, TheId) VALUES (@Doc3Id, @Tag3Id);
-INSERT INTO [TaiLieu_The] (TaiLieuId, TheId) VALUES (@Doc4Id, @Tag2Id);
-INSERT INTO [TaiLieu_The] (TaiLieuId, TheId) VALUES (@Doc5Id, @Tag3Id);
-INSERT INTO [TaiLieu_The] (TaiLieuId, TheId) VALUES (@Doc5Id, @Tag4Id);
-
-PRINT N'Đã thêm document tags!';
-
--- =====================================================
--- INSERT CONVERSATIONS (10 conversations)
--- =====================================================
-
-DECLARE @Conv1Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO CuocTroChuyen (Id, MonHocId, TinNhanMoiNhat, TenCuocTroChuyen, AnhDaiDien, CoDuocTaoBoiAI, CoChoThanhVienGhimTinNhan, LoaiCuocTroChuyen, CheDo, TrangThai, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Conv1Id, @Subject1Id, NULL, N'Nhóm học Lập trình C', 'https://i.pravatar.cc/150?img=30', 0, 1, 1, 1, 0, @User5Id, DATEADD(DAY, -25, GETUTCDATE()), 0);
-
-DECLARE @Conv2Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO CuocTroChuyen (Id, MonHocId, TinNhanMoiNhat, TenCuocTroChuyen, AnhDaiDien, CoDuocTaoBoiAI, CoChoThanhVienGhimTinNhan, LoaiCuocTroChuyen, CheDo, TrangThai, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Conv2Id, @Subject2Id, NULL, N'CSDL - Lớp 21ĐHCNTT01', 'https://i.pravatar.cc/150?img=31', 0, 1, 1, 1, 0, @User11Id, DATEADD(DAY, -23, GETUTCDATE()), 0);
-
-DECLARE @Conv3Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO CuocTroChuyen (Id, MonHocId, TinNhanMoiNhat, TenCuocTroChuyen, AnhDaiDien, CoDuocTaoBoiAI, CoChoThanhVienGhimTinNhan, LoaiCuocTroChuyen, CheDo, TrangThai, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Conv3Id, @Subject3Id, NULL, N'Mạng máy tính - HK1 2024', 'https://i.pravatar.cc/150?img=32', 0, 0, 1, 1, 0, @User8Id, DATEADD(DAY, -20, GETUTCDATE()), 0);
-
-DECLARE @Conv4Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO CuocTroChuyen (Id, MonHocId, TinNhanMoiNhat, TenCuocTroChuyen, AnhDaiDien, CoDuocTaoBoiAI, CoChoThanhVienGhimTinNhan, LoaiCuocTroChuyen, CheDo, TrangThai, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Conv4Id, @Subject5Id, NULL, N'AI/ML Research Group', 'https://i.pravatar.cc/150?img=33', 1, 1, 1, 1, 0, @User11Id, DATEADD(DAY, -18, GETUTCDATE()), 0);
-
-DECLARE @Conv5Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO CuocTroChuyen (Id, MonHocId, TinNhanMoiNhat, TenCuocTroChuyen, AnhDaiDien, CoDuocTaoBoiAI, CoChoThanhVienGhimTinNhan, LoaiCuocTroChuyen, CheDo, TrangThai, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Conv5Id, @Subject4Id, NULL, N'OOP Java Study', 'https://i.pravatar.cc/150?img=34', 0, 1, 1, 0, 0, @User11Id, DATEADD(DAY, -15, GETUTCDATE()), 0);
-
-PRINT N'Đã thêm 5 conversations!';
+INSERT INTO [TaiLieu_The] (TaiLieuId, TheId) VALUES 
+(@Doc1, @Tag1), (@Doc1, @Tag5),
+(@Doc2, @Tag1),
+(@Doc3, @Tag3),
+(@Doc4, @Tag2),
+(@Doc5, @Tag3), (@Doc5, @Tag4),
+(@Doc6, @Tag3),
+(@Doc7, @Tag5),
+(@Doc8, @Tag1), (@Doc8, @Tag5),
+(@Doc9, @Tag1),
+(@Doc10, @Tag3), (@Doc10, @Tag4);
 
 -- =====================================================
--- INSERT CONVERSATION MEMBERS
+-- INSERT DOCUMENT AUTHORS
 -- =====================================================
+INSERT INTO [TaiLieu_TacGia] (TaiLieuId, TacGiaId) VALUES 
+(@Doc1, @Auth1),
+(@Doc2, @Auth2),
+(@Doc3, @Auth3),
+(@Doc4, @Auth1), (@Doc4, @Auth4),
+(@Doc5, @Auth5),
+(@Doc6, @Auth2),
+(@Doc7, @Auth3),
+(@Doc8, @Auth1),
+(@Doc9, @Auth4),
+(@Doc10, @Auth5);
 
--- Conv1 members (QuyenNhom: 0=Admin, 1=Member)
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User5Id, @Conv1Id, NULL, 0, 0, DATEADD(DAY, -25, GETUTCDATE()), 0);
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User6Id, @Conv1Id, NULL, 0, 1, DATEADD(DAY, -24, GETUTCDATE()), 0);
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User7Id, @Conv1Id, NULL, 0, 1, DATEADD(DAY, -23, GETUTCDATE()), 0);
+PRINT N'Đã thêm document tags và authors!';
 
--- Conv2 members
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User11Id, @Conv2Id, NULL, 0, 0, DATEADD(DAY, -23, GETUTCDATE()), 0);
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User5Id, @Conv2Id, NULL, 0, 1, DATEADD(DAY, -22, GETUTCDATE()), 0);
+-- =====================================================
+-- INSERT FILES (Real external PDF URLs)
+-- =====================================================
+DECLARE @File1 UNIQUEIDENTIFIER = NEWID();
+DECLARE @File2 UNIQUEIDENTIFIER = NEWID();
+DECLARE @File3 UNIQUEIDENTIFIER = NEWID();
+DECLARE @File4 UNIQUEIDENTIFIER = NEWID();
+DECLARE @File5 UNIQUEIDENTIFIER = NEWID();
+DECLARE @File6 UNIQUEIDENTIFIER = NEWID();
+DECLARE @File7 UNIQUEIDENTIFIER = NEWID();
+DECLARE @File8 UNIQUEIDENTIFIER = NEWID();
+DECLARE @File9 UNIQUEIDENTIFIER = NEWID();
+DECLARE @File10 UNIQUEIDENTIFIER = NEWID();
 
--- Conv3 members
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User8Id, @Conv3Id, NULL, 0, 0, DATEADD(DAY, -20, GETUTCDATE()), 0);
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User13Id, @Conv3Id, NULL, 0, 1, DATEADD(DAY, -19, GETUTCDATE()), 0);
+-- Using real external PDF URLs for testing
+INSERT INTO TepDinhKem (Id, TenTep, KichThuoc, LoaiFile, LinkTruyCap, TaoBoi, NgayTao, CoDaXoa) VALUES 
+(@File1, 'c_programming.pdf', 1048576, 'application/pdf', 'https://www.africau.edu/images/default/sample.pdf', @U1, DATEADD(DAY, -30, GETUTCDATE()), 0),
+(@File2, 'sql_exercises.pdf', 2097152, 'application/pdf', 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/img/table-word.pdf', @U2, DATEADD(DAY, -28, GETUTCDATE()), 0),
+(@File3, 'network_slides.pdf', 3145728, 'application/pdf', 'https://www.clickdimensions.com/links/TestPDFfile.pdf', @U3, DATEADD(DAY, -25, GETUTCDATE()), 0),
+(@File4, 'oop_java.pdf', 2621440, 'application/pdf', 'https://www.africau.edu/images/default/sample.pdf', @U4, DATEADD(DAY, -22, GETUTCDATE()), 0),
+(@File5, 'face_recognition.pdf', 5242880, 'application/pdf', 'https://www.clickdimensions.com/links/TestPDFfile.pdf', @U5, DATEADD(DAY, -20, GETUTCDATE()), 0),
+(@File6, 'web_slides.pdf', 1572864, 'application/pdf', 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/img/table-word.pdf', @U6, DATEADD(DAY, -18, GETUTCDATE()), 0),
+(@File7, 'discrete_math.pdf', 2097152, 'application/pdf', 'https://www.africau.edu/images/default/sample.pdf', @U7, DATEADD(DAY, -15, GETUTCDATE()), 0),
+(@File8, 'data_structures.pdf', 3670016, 'application/pdf', 'https://www.clickdimensions.com/links/TestPDFfile.pdf', @U8, DATEADD(DAY, -12, GETUTCDATE()), 0),
+(@File9, 'c_project.pdf', 1048576, 'application/pdf', 'https://www.africau.edu/images/default/sample.pdf', @U9, DATEADD(DAY, -10, GETUTCDATE()), 0),
+(@File10, 'deep_learning.pdf', 4194304, 'application/pdf', 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/img/table-word.pdf', @U10, DATEADD(DAY, -8, GETUTCDATE()), 0);
 
--- Conv4 members (AI group)
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User11Id, @Conv4Id, NULL, 0, 0, DATEADD(DAY, -18, GETUTCDATE()), 0);
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User5Id, @Conv4Id, NULL, 0, 1, DATEADD(DAY, -15, GETUTCDATE()), 0);
+PRINT N'Đã thêm 10 files!';
 
--- Conv5 members
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User11Id, @Conv5Id, NULL, 0, 0, DATEADD(DAY, -15, GETUTCDATE()), 0);
-INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, NgayTao, CoDaXoa) VALUES (NEWID(), @User9Id, @Conv5Id, NULL, 0, 1, DATEADD(DAY, -13, GETUTCDATE()), 0);
+-- =====================================================
+-- INSERT DOCUMENT FILES (Chapters) - Status 1 = Approved
+-- =====================================================
+DECLARE @DocFile1 UNIQUEIDENTIFIER = NEWID();
+DECLARE @DocFile2 UNIQUEIDENTIFIER = NEWID();
+DECLARE @DocFile3 UNIQUEIDENTIFIER = NEWID();
+DECLARE @DocFile4 UNIQUEIDENTIFIER = NEWID();
+DECLARE @DocFile5 UNIQUEIDENTIFIER = NEWID();
+DECLARE @DocFile6 UNIQUEIDENTIFIER = NEWID();
+DECLARE @DocFile7 UNIQUEIDENTIFIER = NEWID();
+DECLARE @DocFile8 UNIQUEIDENTIFIER = NEWID();
+DECLARE @DocFile9 UNIQUEIDENTIFIER = NEWID();
+DECLARE @DocFile10 UNIQUEIDENTIFIER = NEWID();
+
+INSERT INTO Chuong (Id, TaiLieuId, TepDinhKemId, TieuDe, TongSoTrang, ThuTu, TrangThai, TaoBoi, NgayTao, CoDaXoa) VALUES 
+(@DocFile1, @Doc1, @File1, N'Chương 1 - Nhập môn C', 25, 1, 1, @U1, DATEADD(DAY, -30, GETUTCDATE()), 0),
+(@DocFile2, @Doc2, @File2, N'Bài tập SQL cơ bản', 45, 1, 1, @U2, DATEADD(DAY, -28, GETUTCDATE()), 0),
+(@DocFile3, @Doc3, @File3, N'Slide tổng quan Mạng', 80, 1, 1, @U3, DATEADD(DAY, -25, GETUTCDATE()), 0),
+(@DocFile4, @Doc4, @File4, N'Phần 1 - Class và Object', 35, 1, 1, @U4, DATEADD(DAY, -22, GETUTCDATE()), 0),
+(@DocFile5, @Doc5, @File5, N'Đồ án Face Recognition', 120, 1, 1, @U5, DATEADD(DAY, -20, GETUTCDATE()), 0),
+(@DocFile6, @Doc6, @File6, N'Slide ReactJS cơ bản', 60, 1, 1, @U6, DATEADD(DAY, -18, GETUTCDATE()), 0),
+(@DocFile7, @Doc7, @File7, N'Chương 1 - Logic mệnh đề', 40, 1, 1, @U7, DATEADD(DAY, -15, GETUTCDATE()), 0),
+(@DocFile8, @Doc8, @File8, N'Phần 1 - Mảng và Danh sách', 55, 1, 1, @U8, DATEADD(DAY, -12, GETUTCDATE()), 0),
+(@DocFile9, @Doc9, @File9, N'Báo cáo đồ án', 30, 1, 1, @U9, DATEADD(DAY, -10, GETUTCDATE()), 0),
+(@DocFile10, @Doc10, @File10, N'Slide Neural Networks', 90, 1, 1, @U10, DATEADD(DAY, -8, GETUTCDATE()), 0);
+
+PRINT N'Đã thêm 10 document files!';
+
+-- =====================================================
+-- INSERT 8 CONVERSATIONS (Active groups)
+-- =====================================================
+DECLARE @Conv1 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Conv2 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Conv3 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Conv4 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Conv5 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Conv6 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Conv7 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Conv8 UNIQUEIDENTIFIER = NEWID();
+
+INSERT INTO CuocTroChuyen (Id, MonHocId, TinNhanMoiNhat, TenCuocTroChuyen, AnhDaiDien, CoDuocTaoBoiAI, CoChoThanhVienGhimTinNhan, LoaiCuocTroChuyen, CheDo, TrangThai, TaoBoi, NgayTao, CoDaXoa) VALUES 
+(@Conv1, @Subj1, NULL, N'Nhóm học Lập trình C', 'https://i.pravatar.cc/150?img=30', 0, 1, 1, 1, 0, @U1, DATEADD(DAY, -25, GETUTCDATE()), 0),
+(@Conv2, @Subj2, NULL, N'CSDL - Lớp 21ĐHCNTT01', 'https://i.pravatar.cc/150?img=31', 0, 1, 1, 1, 0, @U2, DATEADD(DAY, -23, GETUTCDATE()), 0),
+(@Conv3, @Subj3, NULL, N'Mạng máy tính - HK1 2024', 'https://i.pravatar.cc/150?img=32', 0, 0, 1, 1, 0, @U3, DATEADD(DAY, -20, GETUTCDATE()), 0),
+(@Conv4, @Subj5, NULL, N'AI/ML Research Group', 'https://i.pravatar.cc/150?img=33', 1, 1, 1, 1, 0, @U5, DATEADD(DAY, -18, GETUTCDATE()), 0),
+(@Conv5, @Subj4, NULL, N'OOP Java Study', 'https://i.pravatar.cc/150?img=34', 0, 1, 1, 0, 0, @U4, DATEADD(DAY, -15, GETUTCDATE()), 0),
+(@Conv6, @Subj6, NULL, N'Web Development Club', 'https://i.pravatar.cc/150?img=35', 1, 1, 1, 1, 0, @U6, DATEADD(DAY, -12, GETUTCDATE()), 0),
+(@Conv7, @Subj8, NULL, N'DSA Practice Group', 'https://i.pravatar.cc/150?img=36', 0, 1, 1, 1, 0, @U8, DATEADD(DAY, -10, GETUTCDATE()), 0),
+(@Conv8, @Subj7, NULL, N'Toán rời rạc K21', 'https://i.pravatar.cc/150?img=37', 0, 0, 1, 0, 0, @U7, DATEADD(DAY, -8, GETUTCDATE()), 0);
+
+PRINT N'Đã thêm 8 conversations!';
+
+-- =====================================================
+-- INSERT CONVERSATION MEMBERS (Multiple members per group)
+-- QuyenNhom: 0=Owner, 1=Admin, 2=Member | TrangThaiLoiMoi: 3=Joined
+-- =====================================================
+-- Conv1: 5 members
+INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, TrangThaiLoiMoi, NgayTao, CoDaXoa) VALUES
+(NEWID(), @U1, @Conv1, NULL, 0, 0, 3, DATEADD(DAY, -25, GETUTCDATE()), 0),
+(NEWID(), @U2, @Conv1, NULL, 0, 2, 3, DATEADD(DAY, -24, GETUTCDATE()), 0),
+(NEWID(), @U3, @Conv1, NULL, 0, 2, 3, DATEADD(DAY, -23, GETUTCDATE()), 0),
+(NEWID(), @U4, @Conv1, NULL, 0, 2, 3, DATEADD(DAY, -22, GETUTCDATE()), 0),
+(NEWID(), @U5, @Conv1, NULL, 0, 2, 3, DATEADD(DAY, -21, GETUTCDATE()), 0);
+
+-- Conv2: 4 members
+INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, TrangThaiLoiMoi, NgayTao, CoDaXoa) VALUES
+(NEWID(), @U2, @Conv2, NULL, 0, 0, 3, DATEADD(DAY, -23, GETUTCDATE()), 0),
+(NEWID(), @U1, @Conv2, NULL, 0, 2, 3, DATEADD(DAY, -22, GETUTCDATE()), 0),
+(NEWID(), @U6, @Conv2, NULL, 0, 2, 3, DATEADD(DAY, -21, GETUTCDATE()), 0),
+(NEWID(), @U7, @Conv2, NULL, 0, 2, 3, DATEADD(DAY, -20, GETUTCDATE()), 0);
+
+-- Conv3: 3 members
+INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, TrangThaiLoiMoi, NgayTao, CoDaXoa) VALUES
+(NEWID(), @U3, @Conv3, NULL, 0, 0, 3, DATEADD(DAY, -20, GETUTCDATE()), 0),
+(NEWID(), @U8, @Conv3, NULL, 0, 2, 3, DATEADD(DAY, -19, GETUTCDATE()), 0),
+(NEWID(), @U9, @Conv3, NULL, 0, 2, 3, DATEADD(DAY, -18, GETUTCDATE()), 0);
+
+-- Conv4: AI Group - 6 members
+INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, TrangThaiLoiMoi, NgayTao, CoDaXoa) VALUES
+(NEWID(), @U5, @Conv4, NULL, 0, 0, 3, DATEADD(DAY, -18, GETUTCDATE()), 0),
+(NEWID(), @U1, @Conv4, NULL, 0, 1, 3, DATEADD(DAY, -17, GETUTCDATE()), 0),
+(NEWID(), @U2, @Conv4, NULL, 0, 2, 3, DATEADD(DAY, -16, GETUTCDATE()), 0),
+(NEWID(), @U10, @Conv4, NULL, 0, 2, 3, DATEADD(DAY, -15, GETUTCDATE()), 0);
+
+-- Conv5-8: 3 members each
+INSERT INTO [CuocTroChuyen_ThanhVien] (Id, NguoiDungId, CuocTroChuyenId, TinNhanDocGanNhat, CoBiChanChat, QuyenNhom, TrangThaiLoiMoi, NgayTao, CoDaXoa) VALUES
+(NEWID(), @U4, @Conv5, NULL, 0, 0, 3, DATEADD(DAY, -15, GETUTCDATE()), 0),
+(NEWID(), @U9, @Conv5, NULL, 0, 2, 3, DATEADD(DAY, -14, GETUTCDATE()), 0),
+(NEWID(), @U6, @Conv6, NULL, 0, 0, 3, DATEADD(DAY, -12, GETUTCDATE()), 0),
+(NEWID(), @U7, @Conv6, NULL, 0, 2, 3, DATEADD(DAY, -11, GETUTCDATE()), 0),
+(NEWID(), @U8, @Conv7, NULL, 0, 0, 3, DATEADD(DAY, -10, GETUTCDATE()), 0),
+(NEWID(), @U3, @Conv7, NULL, 0, 2, 3, DATEADD(DAY, -9, GETUTCDATE()), 0),
+(NEWID(), @U7, @Conv8, NULL, 0, 0, 3, DATEADD(DAY, -8, GETUTCDATE()), 0),
+(NEWID(), @U4, @Conv8, NULL, 0, 2, 3, DATEADD(DAY, -7, GETUTCDATE()), 0);
 
 PRINT N'Đã thêm conversation members!';
 
 -- =====================================================
 -- INSERT CONVERSATION TAGS
 -- =====================================================
-INSERT INTO [CuocTroChuyen_The] (CuocTroChuyenId, TheId) VALUES (@Conv1Id, @Tag1Id);
-INSERT INTO [CuocTroChuyen_The] (CuocTroChuyenId, TheId) VALUES (@Conv1Id, @Tag5Id);
-INSERT INTO [CuocTroChuyen_The] (CuocTroChuyenId, TheId) VALUES (@Conv2Id, @Tag1Id);
-INSERT INTO [CuocTroChuyen_The] (CuocTroChuyenId, TheId) VALUES (@Conv3Id, @Tag3Id);
-INSERT INTO [CuocTroChuyen_The] (CuocTroChuyenId, TheId) VALUES (@Conv4Id, @Tag3Id);
-INSERT INTO [CuocTroChuyen_The] (CuocTroChuyenId, TheId) VALUES (@Conv4Id, @Tag4Id);
-INSERT INTO [CuocTroChuyen_The] (CuocTroChuyenId, TheId) VALUES (@Conv5Id, @Tag2Id);
+INSERT INTO [CuocTroChuyen_The] (CuocTroChuyenId, TheId) VALUES 
+(@Conv1, @Tag1), (@Conv1, @Tag5),
+(@Conv2, @Tag1),
+(@Conv3, @Tag3),
+(@Conv4, @Tag3), (@Conv4, @Tag4),
+(@Conv5, @Tag2),
+(@Conv6, @Tag3),
+(@Conv7, @Tag1), (@Conv7, @Tag5),
+(@Conv8, @Tag5);
 
 PRINT N'Đã thêm conversation tags!';
 
 -- =====================================================
--- INSERT MESSAGES (LoaiTinNhan: 0=ConversationCreated, NULL=normal message)
+-- INSERT MESSAGES (Sample messages)
 -- =====================================================
-
-DECLARE @Msg1Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Msg1Id, @Conv1Id, NULL, N'Chào mọi người! Nhóm học Lập trình C!', 0, 0, 0, @User5Id, DATEADD(DAY, -25, GETUTCDATE()), 0);
-
-DECLARE @Msg2Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Msg2Id, @Conv1Id, NULL, N'Xin chào! Em mới join nhóm ạ', 0, 0, NULL, @User6Id, DATEADD(DAY, -24, GETUTCDATE()), 0);
-
-DECLARE @Msg3Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Msg3Id, @Conv1Id, NULL, N'Có ai có tài liệu về pointer không ạ?', 0, 0, NULL, @User7Id, DATEADD(DAY, -23, GETUTCDATE()), 0);
-
-DECLARE @Msg4Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Msg4Id, @Conv1Id, @Msg3Id, N'Có nè! Em check trong Documents nhé', 0, 0, NULL, @User5Id, DATEADD(DAY, -23, GETUTCDATE()), 0);
-
-DECLARE @Msg5Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Msg5Id, @Conv2Id, NULL, N'Welcome to CSDL group!', 0, 0, 0, @User11Id, DATEADD(DAY, -23, GETUTCDATE()), 0);
-
-DECLARE @Msg6Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Msg6Id, @Conv2Id, NULL, N'Bài tập về normalization khó quá 😭', 0, 0, NULL, @User5Id, DATEADD(DAY, -21, GETUTCDATE()), 0);
-
-DECLARE @Msg7Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Msg7Id, @Conv3Id, NULL, N'Nhóm Mạng máy tính - Chào mọi người!', 0, 0, 0, @User8Id, DATEADD(DAY, -20, GETUTCDATE()), 0);
-
-DECLARE @Msg8Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Msg8Id, @Conv4Id, NULL, N'AI/ML Research Group - Share papers hàng tuần!', 0, 0, 0, @User11Id, DATEADD(DAY, -18, GETUTCDATE()), 0);
-
-DECLARE @Msg9Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Msg9Id, @Conv4Id, NULL, N'Paper hay: Attention Is All You Need', 0, 1, NULL, @User11Id, DATEADD(DAY, -16, GETUTCDATE()), 0);
-
-DECLARE @Msg10Id UNIQUEIDENTIFIER = NEWID();
-INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa)
-VALUES (@Msg10Id, @Conv5Id, NULL, N'OOP Study Group created!', 0, 0, 0, @User11Id, DATEADD(DAY, -15, GETUTCDATE()), 0);
+INSERT INTO TinNhan (Id, CuocTroChuyenId, PhanTuChaId, NoiDung, CoChinhSua, CoDaGhim, LoaiTinNhan, TaoBoi, NgayTao, CoDaXoa) VALUES 
+(NEWID(), @Conv1, NULL, N'Chào mọi người! Nhóm học Lập trình C!', 0, 0, 0, @U1, DATEADD(DAY, -25, GETUTCDATE()), 0),
+(NEWID(), @Conv1, NULL, N'Xin chào! Em mới join nhóm ạ', 0, 0, NULL, @U2, DATEADD(DAY, -24, GETUTCDATE()), 0),
+(NEWID(), @Conv1, NULL, N'Có ai có tài liệu về pointer không ạ?', 0, 0, NULL, @U3, DATEADD(DAY, -23, GETUTCDATE()), 0),
+(NEWID(), @Conv2, NULL, N'Welcome to CSDL group!', 0, 0, 0, @U2, DATEADD(DAY, -23, GETUTCDATE()), 0),
+(NEWID(), @Conv2, NULL, N'Bài tập về normalization khó quá 😭', 0, 0, NULL, @U1, DATEADD(DAY, -21, GETUTCDATE()), 0),
+(NEWID(), @Conv3, NULL, N'Nhóm Mạng máy tính - Chào mọi người!', 0, 0, 0, @U3, DATEADD(DAY, -20, GETUTCDATE()), 0),
+(NEWID(), @Conv4, NULL, N'AI/ML Research Group - Share papers hàng tuần!', 0, 0, 0, @U5, DATEADD(DAY, -18, GETUTCDATE()), 0),
+(NEWID(), @Conv4, NULL, N'Paper hay: Attention Is All You Need', 0, 1, NULL, @U5, DATEADD(DAY, -16, GETUTCDATE()), 0),
+(NEWID(), @Conv5, NULL, N'OOP Study Group created!', 0, 0, 0, @U4, DATEADD(DAY, -15, GETUTCDATE()), 0),
+(NEWID(), @Conv6, NULL, N'Web Dev Club - ReactJS, NodeJS, Next.js!', 0, 0, 0, @U6, DATEADD(DAY, -12, GETUTCDATE()), 0);
 
 PRINT N'Đã thêm 10 messages!';
+
+-- =====================================================
+-- INSERT DOCUMENT REVIEWS (Some users review documents)
+-- LoaiDanhGia: 0=NotUseful, 1=Useful
+-- =====================================================
+INSERT INTO DanhGiaTaiLieu (Id, TaiLieuId, ChuongId, LoaiDanhGia, TaoBoi, NgayTao) VALUES
+(NEWID(), @Doc1, @DocFile1, 1, @U2, DATEADD(DAY, -28, GETUTCDATE())),
+(NEWID(), @Doc1, @DocFile1, 1, @U3, DATEADD(DAY, -27, GETUTCDATE())),
+(NEWID(), @Doc1, @DocFile1, 1, @U4, DATEADD(DAY, -26, GETUTCDATE())),
+(NEWID(), @Doc2, @DocFile2, 1, @U1, DATEADD(DAY, -26, GETUTCDATE())),
+(NEWID(), @Doc2, @DocFile2, 1, @U5, DATEADD(DAY, -25, GETUTCDATE())),
+(NEWID(), @Doc3, @DocFile3, 1, @U4, DATEADD(DAY, -23, GETUTCDATE())),
+(NEWID(), @Doc4, @DocFile4, 1, @U1, DATEADD(DAY, -20, GETUTCDATE())),
+(NEWID(), @Doc4, @DocFile4, 1, @U3, DATEADD(DAY, -19, GETUTCDATE())),
+(NEWID(), @Doc5, @DocFile5, 1, @U1, DATEADD(DAY, -18, GETUTCDATE())),
+(NEWID(), @Doc5, @DocFile5, 1, @U6, DATEADD(DAY, -17, GETUTCDATE()));
+
+PRINT N'Đã thêm 10 document reviews!';
 
 -- =====================================================
 -- SUMMARY
 -- =====================================================
 PRINT N'';
 PRINT N'===========================================';
-PRINT N'KẾT QUẢ SEED DATA (Vietnamese columns):';
-PRINT N'- 10 Users mới';
-PRINT N'- 5 Documents';
-PRINT N'- 7 Document Tags';
-PRINT N'- 5 Conversations';
-PRINT N'- 12 Conversation Members';
-PRINT N'- 7 Conversation Tags';
+PRINT N'KẾT QUẢ SEED DATA:';
+PRINT N'- 50 Users';
+PRINT N'- 5 Authors';
+PRINT N'- 10 Documents với tags và authors';
+PRINT N'- 10 Files (external PDF URLs)';
+PRINT N'- 10 Document Files (chapters)';
+PRINT N'- 8 Conversations';
+PRINT N'- 28 Conversation Members';
+PRINT N'- 11 Conversation Tags';
 PRINT N'- 10 Messages';
+PRINT N'- 10 Document Reviews';
 PRINT N'===========================================';
 GO

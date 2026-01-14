@@ -2,7 +2,7 @@ namespace UteLearningHub.Application.Services.Recommendation;
 
 public interface IRecommendationService
 {
-    /// <summary>Gọi AI service để lấy danh sách nhóm học được gợi ý</summary>
+    /// <summary>Gọi AI lấy ds nhóm học được gợi ý</summary>
     Task<RecommendationResponse> GetRecommendationsAsync(
         float[] userVector,
         IReadOnlyList<ConversationVectorData> conversationVectors,
@@ -10,18 +10,12 @@ public interface IRecommendationService
         float minSimilarity = 0.3f,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Gọi AI service để tìm users tương tự với conversation</summary>
+    /// <summary>Gọi AI tìm users tương tự với conversation</summary>
     Task<SimilarUsersResponse> GetSimilarUsersAsync(
         float[] convVector,
         IReadOnlyList<UserVectorData> userVectors,
         int topK = 10,
         float minScore = 0.3f,
-        CancellationToken cancellationToken = default);
-
-    /// <summary>Cluster users tương tự để tạo proposal</summary>
-    Task<ClusterUsersResponse> ClusterSimilarUsersAsync(
-        IReadOnlyList<UserVectorData> userVectors,
-        int minClusterSize = 5,
         CancellationToken cancellationToken = default);
 }
 
@@ -41,15 +35,3 @@ public record SimilarUsersResponse(
     double ProcessingTimeMs);
 
 public record SimilarUserItem(Guid UserId, float Similarity, int Rank);
-
-public record ClusterUsersResponse(
-    IReadOnlyList<UserCluster> Clusters,
-    int TotalProcessed,
-    double ProcessingTimeMs);
-
-public record UserCluster(
-    int ClusterId,
-    IReadOnlyList<ClusterMember> Members,
-    float[] Centroid);
-
-public record ClusterMember(Guid UserId, float SimilarityToCentroid);

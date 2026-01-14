@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2, FileText, Edit, Eye, ThumbsUp, BookOpen, Plus, ChevronUp } from "lucide-react";
+import { ArrowLeft, Loader2, FileText, Edit, Eye, ThumbsUp, BookOpen, Plus, ChevronUp, Share2 } from "lucide-react";
 import { getFileUrlById } from "@/src/lib/file-url";
 import { getProfileLink } from "@/src/lib/profile-utils";
 
@@ -134,6 +134,20 @@ export default function DocumentDetailPage() {
             <Edit className="h-4 w-4 mr-1" /> Sửa
           </Button>
         )}
+
+        {/* Share button - visible to all */}
+        {/* <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            const url = `${window.location.origin}/documents/${documentId}`;
+            navigator.clipboard.writeText(url);
+            success("Đã sao chép link tài liệu!");
+          }}
+          className={isOwner ? "absolute top-3 right-20" : "absolute top-3 right-3"}
+        >
+          <Share2 className="h-4 w-4 mr-1" /> Chia sẻ
+        </Button> */}
         <div className="flex flex-col md:flex-row gap-4 md:gap-6">
           {/* Left: Thumbnail + Info */}
           <div className="flex items-stretch gap-3 md:gap-4 flex-1">

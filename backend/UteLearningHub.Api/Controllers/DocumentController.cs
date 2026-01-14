@@ -15,6 +15,7 @@ using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentFile;
 using UteLearningHub.Application.Features.Document.Commands.UpdateDocumentProgress;
 using UteLearningHub.Application.Features.Document.Queries.GetDocumentById;
 using UteLearningHub.Application.Features.Document.Queries.GetDocumentProgress;
+using UteLearningHub.Application.Features.Document.Queries.GetDocumentRecommendations;
 using UteLearningHub.Application.Features.Document.Queries.GetDocuments;
 using UteLearningHub.Application.Features.Document.Queries.GetHomepage;
 using UteLearningHub.Application.Features.Document.Queries.GetMyDocuments;
@@ -56,6 +57,14 @@ namespace UteLearningHub.Api.Controllers
         public async Task<ActionResult<HomepageDto>> GetHomepage()
         {
             var result = await _mediator.Send(new GetHomepageQuery());
+            return Ok(result);
+        }
+
+        [HttpGet("recommendations")]
+        [Authorize]
+        public async Task<ActionResult<GetDocumentRecommendationsResponse>> GetRecommendations([FromQuery] GetDocumentRecommendationsQuery query)
+        {
+            var result = await _mediator.Send(query);
             return Ok(result);
         }
 

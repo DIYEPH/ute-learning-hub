@@ -32,6 +32,12 @@ export type AuthorDto = {
     description?: string;
 };
 
+export type AuthorDto2 = {
+    id?: string;
+    fullName?: string;
+    description?: string;
+} | null;
+
 export type AuthorInput = {
     fullName?: string;
     description?: string | null;
@@ -374,6 +380,20 @@ export type DocumentFileProgressDto2 = {
     lastAccessedAt?: string | null;
 };
 
+export type DocumentRecommendationDto = {
+    documentId?: string;
+    documentName?: string;
+    description?: string | null;
+    similarity?: number;
+    rank?: number;
+    subject?: SubjectDto;
+    tags?: Array<TagDto>;
+    coverUrl?: string | null;
+    fileCount?: number;
+    usefulCount?: number;
+    author?: AuthorDto2;
+};
+
 export type DocumentReviewType = number;
 
 export type DocumentStatsDto = {
@@ -433,6 +453,12 @@ export type Gender = number;
 
 export type GetConversationRecommendationsResponse = {
     recommendations?: Array<ConversationRecommendationDto>;
+    totalProcessed?: number;
+    processingTimeMs?: number;
+};
+
+export type GetDocumentRecommendationsResponse = {
+    recommendations?: Array<DocumentRecommendationDto>;
     totalProcessed?: number;
     processingTimeMs?: number;
 };
@@ -590,6 +616,7 @@ export type MessageDto2 = {
 
 export type MessageFileDto = {
     fileId?: string;
+    fileName?: string;
     fileSize?: number;
     mimeType?: string;
 };
@@ -2046,6 +2073,25 @@ export type GetApiDocumentHomepageResponses = {
 };
 
 export type GetApiDocumentHomepageResponse = GetApiDocumentHomepageResponses[keyof GetApiDocumentHomepageResponses];
+
+export type GetApiDocumentRecommendationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        TopK?: number;
+        MinSimilarity?: number;
+    };
+    url: '/api/Document/recommendations';
+};
+
+export type GetApiDocumentRecommendationsResponses = {
+    /**
+     * OK
+     */
+    200: GetDocumentRecommendationsResponse;
+};
+
+export type GetApiDocumentRecommendationsResponse = GetApiDocumentRecommendationsResponses[keyof GetApiDocumentRecommendationsResponses];
 
 export type GetApiDocumentMyData = {
     body?: never;

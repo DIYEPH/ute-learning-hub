@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from sentence_transformers import SentenceTransformer
-from sklearn.cluster import KMeans
 import numpy as np
 import time
 
@@ -112,75 +111,6 @@ def similar_users(req: SimilarUsersRequest):
         "processingTimeMs": round(elapsed, 2)
     }
 
-@app.post("/cluster/users")
-def cluster_users(req: ClusterUsersRequest):
-    start = time.perf_counter()
-
-    users = req.UserVectors
-    n_users = len(users)
-
-    if n_users < req.MinClusterSize:
-        return {
-            "clusters": [],
-            "totalProcessed": n_users,
-            "processingTimeMs": 0
-        }
-
-    vectors = np.array([u["vector"] for u in users])
-    
-    # Normalize vectors for cosine similarity
-    norms = np.linalg.norm(vectors, axis=1, keepdims=True)
-    norms[norms == 0] = 1  # Avoid division by zero
-    vectors = vectors / norms
-
-    K = n_users // req.MinClusterSize
-    K = max(1, K)
-
-    kmeans = KMeans(
-        n_clusters=K,
-        init="k-means++",
-        n_init=10,
-        random_state=42
-    )
-
-    labels = kmeans.fit_predict(vectors)
-    centroids = kmeans.cluster_centers_
-
-    centroids = centroids / np.linalg.norm(centroids, axis=1, keepdims=True)
-
-    clusters = []
-
-    for i in range(K):
-        members = []
-        centroid = centroids[i]
-
-        for idx, label in enumerate(labels):
-            if label == i:
-                sim = float(np.dot(vectors[idx], centroid))  # cosine
-                members.append({
-                    "userId": users[idx]["id"],
-                    "similarityToCentroid": round(sim, 4)
-                })
-
-        if len(members) >= req.MinClusterSize:
-            members.sort(
-                key=lambda x: x["similarityToCentroid"],
-                reverse=True
-            )
-            clusters.append({
-                "centroid": centroid.tolist(),
-                "users": members
-            })
-
-    elapsed = (time.perf_counter() - start) * 1000
-
-    return {
-        "clusters": clusters,
-        "totalProcessed": n_users,
-        "processingTimeMs": round(elapsed, 2)
-    }
-
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-

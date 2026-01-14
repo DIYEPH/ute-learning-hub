@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using UteLearningHub.Application.Events;
+using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Entities;
@@ -11,12 +12,19 @@ namespace UteLearningHub.Application.EventHandlers;
 public class DocumentFileCreatedEventHandler(
     IConversationRepository conversationRepository,
     INotificationRepository notificationRepository,
+    IVectorMaintenanceService vectorService,
     IDateTimeProvider dateTimeProvider,
     ILogger<DocumentFileCreatedEventHandler> logger
 ) : INotificationHandler<DocumentFileCreatedEvent>
 {
     public async Task Handle(DocumentFileCreatedEvent e, CancellationToken ct)
     {
+        _ = Task.Run(async () =>
+        {
+            try { await vectorService.UpdateUserVectorAsync(e.UserId, CancellationToken.None); }
+            catch (Exception ex) { logger.LogWarning(ex, "Failed to update user vector for {UserId}", e.UserId); }
+        });
+
         if (!e.SubjectId.HasValue) return;
 
         var proposal = await conversationRepository.GetProposedBySubjectAsync(e.SubjectId.Value, ct);

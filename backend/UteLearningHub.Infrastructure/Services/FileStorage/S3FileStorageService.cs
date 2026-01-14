@@ -192,6 +192,13 @@ public class S3FileStorageService : IFileStorageService
     {
         try
         {
+            if (!fileUrl.Contains(_options.S3BucketName))
+            {
+                if (fileUrl.StartsWith("http://") || fileUrl.StartsWith("https://"))
+                    return fileUrl;
+                return null;
+            }
+
             var key = ExtractKeyFromUrl(fileUrl);
             if (string.IsNullOrEmpty(key))
                 return null;

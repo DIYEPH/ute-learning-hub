@@ -41,13 +41,14 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
             .ToListAsync(ct);
         if (subjects.Count == 0) return;
 
-        // 2. Lấy SubjectIds đã có Conversation Active
-        var subjectsActive = await db.Conversations
-            .Where(c => !c.IsDeleted && c.SubjectId != null && c.ConversationStatus == ConversationStatus.Active)
+        // 2. Lấy SubjectIds đã có Conversation Active hoặc Proposed
+        var subjectsWithConversation = await db.Conversations
+            .Where(c => !c.IsDeleted && c.SubjectId != null && 
+                (c.ConversationStatus == ConversationStatus.Active || c.ConversationStatus == ConversationStatus.Proposed))
             .Select(c => c.SubjectId!.Value)
             .Distinct()
             .ToListAsync(ct);
-        var subjectsActiveSet = subjectsActive.ToHashSet();
+        var subjectsWithConversationSet = subjectsWithConversation.ToHashSet();
 
         // 3. Lấy tất cả user vectors (users eligible)
         var userVectors = await db.ProfileVectors
@@ -70,7 +71,7 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         var now = DateTimeOffset.UtcNow;
         foreach (var subject in subjects)
         {
-            if (subjectsActiveSet.Contains(subject.Id)) continue;
+            if (subjectsWithConversationSet.Contains(subject.Id)) continue;
 
             // Tạo topic vector cho subject
             var topicVector = await embeddingService.ConvVectorAsync(
@@ -101,19 +102,7 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         var now = DateTimeOffset.UtcNow;
         var cooldownThreshold = now.AddDays(-ProposalSettings.CooldownDaysAfterDecline);
 
-        // Lấy users không đủ điều kiện (quá nhiều active/pending groups hoặc trong cooldown)
-        var ineligibleUsers = await db.Set<ConversationMember>()
-            .Where(m => userIds.Contains(m.UserId) && !m.IsDeleted && !m.Conversation.IsDeleted)
-            .GroupBy(m => m.UserId)
-            .Where(g =>
-                g.Count(m => m.InviteStatus == MemberInviteStatus.Joined && 
-                    m.Conversation.ConversationStatus == ConversationStatus.Active) >= ProposalSettings.MaxActiveConversations ||
-                g.Count(m => (m.InviteStatus == MemberInviteStatus.Pending || m.InviteStatus == MemberInviteStatus.Accepted) && 
-                    m.Conversation.ConversationStatus == ConversationStatus.Proposed) >= ProposalSettings.MaxPendingProposals)
-            .Select(g => g.Key)
-            .ToListAsync(ct);
-
-        // Lấy users trong cooldown
+        // Lấy users trong cooldown (vừa decline proposal)
         var usersInCooldown = await db.Set<ConversationMember>()
             .Where(m => userIds.Contains(m.UserId) && m.InviteStatus == MemberInviteStatus.Declined && 
                 m.RespondedAt > cooldownThreshold)
@@ -121,7 +110,7 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
             .Distinct()
             .ToListAsync(ct);
 
-        var ineligibleSet = ineligibleUsers.Concat(usersInCooldown).ToHashSet();
+        var ineligibleSet = usersInCooldown.ToHashSet();
         return userIds.Where(id => !ineligibleSet.Contains(id)).ToList();
     }
 
@@ -147,7 +136,7 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
 
         // Thêm members
         var similarityMap = similarUsers.ToDictionary(u => u.UserId, u => u.Similarity);
-        foreach (var userId in eligibleUserIds.Take(ProposalSettings.MaxMembersPerProposal))
+        foreach (var userId in eligibleUserIds)
         {
             db.Set<ConversationMember>().Add(new ConversationMember
             {

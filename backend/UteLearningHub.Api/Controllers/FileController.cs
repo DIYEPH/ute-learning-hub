@@ -99,7 +99,7 @@ public class FileController : ControllerBase
             try
             {
                 totalPages = await _documentPageCountService.GetPageCountAsync(stream, file.ContentType, cancellationToken);
-                stream.Position = 0; // Reset stream position after reading
+                stream.Position = 0; 
             }
             catch
             {

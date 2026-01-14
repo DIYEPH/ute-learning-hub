@@ -108,27 +108,33 @@ public class RespondToProposalHandler : IRequestHandler<RespondToProposalCommand
         conversation.ConversationStatus = ConversationStatus.Active;
         conversation.ProposalExpiresAt = null;
 
-        // 2. Chuyển Accepted → Joined
+        // 2. Lấy danh sách members đã accept, sắp xếp theo thời gian accept
         var acceptedMembers = conversation.Members
             .Where(m => !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Accepted)
+            .OrderBy(m => m.RespondedAt)
             .ToList();
 
-        foreach (var member in acceptedMembers)
+        // 3. Người accept đầu tiên trở thành Leader
+        for (int i = 0; i < acceptedMembers.Count; i++)
         {
+            var member = acceptedMembers[i];
             member.InviteStatus = MemberInviteStatus.Joined;
+            member.ConversationMemberRoleType = i == 0 
+                ? ConversationMemberRoleType.Owner 
+                : ConversationMemberRoleType.Member;
         }
 
-        // 3. Soft delete những người Declined
+        // 4. Xóa luôn những người Declined (không cần giữ lại)
         var declinedMembers = conversation.Members
             .Where(m => !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Declined)
             .ToList();
 
         foreach (var member in declinedMembers)
-            member.IsDeleted = true;
+            conversation.Members.Remove(member);
         
-        // 4. Giữ lại Pending - họ vẫn có thể join sau khi nhóm được tạo
+        // 5. Giữ lại Pending - họ vẫn có thể join sau khi nhóm được tạo
 
-        // 5. Gửi notification cho tất cả members đã join
+        // 6. Gửi notification cho tất cả members đã join
         foreach (var member in acceptedMembers)
             await SendGroupActivatedNotificationAsync(member.UserId, conversation, now, ct);
     }
@@ -173,5 +179,6 @@ public class RespondToProposalHandler : IRequestHandler<RespondToProposalCommand
         };
     }
 }
+
 
 

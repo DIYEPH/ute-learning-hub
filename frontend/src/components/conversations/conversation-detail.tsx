@@ -290,7 +290,7 @@ export function ConversationDetail({
         body: {
           conversationId,
           parentId: replyTo?.id,
-          content: messageContent.trim() || undefined,
+          content: messageContent.trim(),
           fileIds: fileIds.length > 0 ? fileIds : undefined,
         },
       });
@@ -478,6 +478,12 @@ export function ConversationDetail({
                 !previousDate ||
                 currentDate.toDateString() !== previousDate.toDateString();
 
+              // Ẩn sender nếu tin nhắn trước cùng người và trong vòng 5 phút
+              const isSameSender = previousMessage?.createdById === message.createdById;
+              const isWithin5Min = currentDate && previousDate &&
+                (currentDate.getTime() - previousDate.getTime()) < 5 * 60 * 1000;
+              const showSender = index === 0 || showDate || !isSameSender || !isWithin5Min;
+
               return (
                 <div key={message.id} data-message-id={message.id}>
                   <MessageItem
@@ -485,6 +491,7 @@ export function ConversationDetail({
                     conversationId={conversationId}
                     currentUserId={profile?.id}
                     showDate={showDate}
+                    showSender={showSender}
                     allMessages={messages}
                     onReply={(m) => setReplyTo(m)}
                     onScrollToMessage={(messageId) => {

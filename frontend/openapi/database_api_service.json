@@ -2208,6 +2208,53 @@
         }
       }
     },
+    "/api/Document/recommendations": {
+      "get": {
+        "tags": [
+          "Document"
+        ],
+        "parameters": [
+          {
+            "name": "TopK",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "MinSimilarity",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "format": "float"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDocumentRecommendationsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDocumentRecommendationsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDocumentRecommendationsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Document/my": {
       "get": {
         "tags": [
@@ -5999,6 +6046,22 @@
           }
         }
       },
+      "AuthorDto2": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "nullable": true
+      },
       "AuthorInput": {
         "type": "object",
         "properties": {
@@ -7117,6 +7180,54 @@
           }
         }
       },
+      "DocumentRecommendationDto": {
+        "type": "object",
+        "properties": {
+          "documentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "documentName": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "similarity": {
+            "type": "number",
+            "format": "float"
+          },
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "subject": {
+            "$ref": "#/components/schemas/SubjectDto"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagDto"
+            }
+          },
+          "coverUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "fileCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usefulCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto2"
+          }
+        }
+      },
       "DocumentReviewType": {
         "type": "integer"
       },
@@ -7315,6 +7426,25 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ConversationRecommendationDto"
+            }
+          },
+          "totalProcessed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "processingTimeMs": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "GetDocumentRecommendationsResponse": {
+        "type": "object",
+        "properties": {
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentRecommendationDto"
             }
           },
           "totalProcessed": {
@@ -7816,6 +7946,9 @@
           "fileId": {
             "type": "string",
             "format": "uuid"
+          },
+          "fileName": {
+            "type": "string"
           },
           "fileSize": {
             "type": "integer",

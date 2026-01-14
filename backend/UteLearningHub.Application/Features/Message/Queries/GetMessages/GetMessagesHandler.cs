@@ -104,6 +104,7 @@ public class GetMessagesHandler : IRequestHandler<GetMessagesQuery, PagedRespons
             Files = m.MessageFiles.Select(mf => new MessageFileDto
             {
                 FileId = mf.File.Id,
+                FileName = mf.File.FileName,
                 FileSize = mf.File.FileSize,
                 MimeType = mf.File.MimeType
             }).ToList(),
