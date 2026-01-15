@@ -1,5 +1,5 @@
 #!/bin/bash
-DOMAIN="ute-learning-hub.duckdns.org"
+DOMAIN="utelearninghub.duckdns.org"
 EMAIL="dinhyenphan@gmail.com"
 
 mkdir -p certbot/www certbot/conf
