@@ -111,8 +111,8 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
             return;
         }
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7080";
-        const hubUrl = `${apiUrl}/hubs/chat`;
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
+        const hubUrl = apiUrl ? `${apiUrl}/hubs/chat` : "/hubs/chat";
 
         console.log("[SignalR] Creating connection to:", hubUrl);
 

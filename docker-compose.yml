@@ -105,7 +105,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ""  # Empty = relative path, goes through nginx
+        NEXT_PUBLIC_API_URL: ${PUBLIC_URL:-}
         NEXT_PUBLIC_MICROSOFT_CLIENT_ID: ${MICROSOFT_CLIENT_ID}
         NEXT_PUBLIC_MICROSOFT_TENANT_ID: ${MICROSOFT_TENANT_ID}
     expose:
@@ -113,8 +113,8 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
-      API_URL: "http://backend:7080"
-      NEXT_PUBLIC_API_URL: ""
+      API_URL: "http://backend:7080"  
+      NEXT_PUBLIC_API_URL: ${PUBLIC_URL:-}
     depends_on:
       backend:
         condition: service_started
