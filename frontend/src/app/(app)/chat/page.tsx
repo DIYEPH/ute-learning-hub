@@ -37,6 +37,18 @@ export default function ChatPage() {
     }
   }, [searchTerm, profile?.id]);
 
+  useEffect(() => {
+    if (selectedConversationId) {
+      setConversations((prev) =>
+        prev.map((conv) =>
+          conv.id === selectedConversationId
+            ? { ...conv, unreadCount: 0 }
+            : conv
+        )
+      );
+    }
+  }, [selectedConversationId]);
+
   const fetchConversations = async () => {
     if (!profile?.id) return;
 
@@ -160,7 +172,10 @@ export default function ChatPage() {
         {selectedConversationId ? (
           <ConversationDetail
             conversationId={selectedConversationId}
-            onBack={() => router.push("/chat")}
+            onBack={() => {
+              void fetchConversations();
+              router.push("/chat");
+            }}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">

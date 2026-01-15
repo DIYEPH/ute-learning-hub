@@ -26,7 +26,7 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     const [showPassword, setShowPassword] = useState(false);
     const [emailOrUsername, setEmailOrUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [loadingType, setLoadingType] = useState<'email' | 'microsoft' | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const clearError = () => {
@@ -43,10 +43,10 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
 
     const handleEmailPasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!emailOrUsername.trim() || !password.trim() || isSubmitting) return;
+        if (!emailOrUsername.trim() || !password.trim() || loadingType) return;
 
         setErrorMessage(null);
-        setIsSubmitting(true);
+        setLoadingType('email');
 
         try {
             await handleLogin(emailOrUsername.trim(), password);
@@ -55,15 +55,15 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             const err = error as Error;
             setErrorMessage(err?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
         } finally {
-            setIsSubmitting(false);
+            setLoadingType(null);
         }
     };
 
     const handleMicrosoftLoginClick = async () => {
-        if (isSubmitting) return;
+        if (loadingType) return;
 
         setErrorMessage(null);
-        setIsSubmitting(true);
+        setLoadingType('microsoft');
 
         try {
             await handleMicrosoftLogin();
@@ -72,11 +72,11 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             const err = error as Error;
             setErrorMessage(err?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
         } finally {
-            setIsSubmitting(false);
+            setLoadingType(null);
         }
     };
 
-    const canSubmit = emailOrUsername.trim() && password.trim() && !isSubmitting;
+    const canSubmit = emailOrUsername.trim() && password.trim() && !loadingType;
 
     return (
         <AuthDialog open={open} onOpenChange={onOpenChange} title={t('loginTitle')}>
@@ -96,7 +96,7 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         value={emailOrUsername}
                         onChange={(e) => { setEmailOrUsername(e.target.value); clearError(); }}
                         required
-                        disabled={isSubmitting}
+                        disabled={!!loadingType}
                     />
                 </div>
 
@@ -111,7 +111,7 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         value={password}
                         onChange={(e) => { setPassword(e.target.value); clearError(); }}
                         required
-                        disabled={isSubmitting}
+                        disabled={!!loadingType}
                     />
                     <div
                         className="text-right text-sm text-primary cursor-pointer mt-1 hover:underline"
@@ -126,7 +126,7 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                     className="w-full h-11 rounded-full text-base"
                     disabled={!canSubmit}
                 >
-                    {isSubmitting ? (
+                    {loadingType === 'email' ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             {tCommon('loading')}
@@ -151,10 +151,10 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                     type="button"
                     className="w-full h-11 rounded-full text-base"
                     onClick={handleMicrosoftLoginClick}
-                    disabled={isSubmitting}
+                    disabled={!!loadingType}
                     variant="outline"
                 >
-                    {isSubmitting ? (
+                    {loadingType === 'microsoft' ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             {tCommon('loading')}

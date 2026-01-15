@@ -130,8 +130,22 @@ export function ConversationDetail({
     const unsubReceived = onMessageReceived((message) => {
       if (message.conversationId === conversationId) {
         setMessages((prev) => {
-          // Avoid duplicates
+          // Avoid duplicates by ID
           if (prev.some((m) => m.id === message.id)) return prev;
+          
+          // Nếu là tin nhắn của chính mình, replace tin nhắn temp (optimistic)
+          if (message.createdById === profile?.id) {
+            const tempIndex = prev.findIndex(
+              (m) => m.id?.startsWith("temp-") && m.content === message.content
+            );
+            if (tempIndex !== -1) {
+              // Replace optimistic message với real message
+              const updated = [...prev];
+              updated[tempIndex] = message;
+              return updated;
+            }
+          }
+          
           return [...prev, message];
         });
 
@@ -273,12 +287,36 @@ export function ConversationDetail({
     e.preventDefault();
     if ((!messageContent.trim() && selectedFiles.length === 0) || sending) return;
 
+    // Optimistic UI: tạo tin nhắn tạm và hiển thị ngay
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMessage: MessageDto = {
+      id: tempId,
+      conversationId,
+      content: messageContent.trim(),
+      createdById: profile?.id,
+      senderName: profile?.fullName,
+      senderAvatarUrl: profile?.avatarUrl,
+      createdAt: new Date().toISOString(),
+      parentId: replyTo?.id,
+      files: [],
+    };
+    const content = messageContent.trim();
+    const files = [...selectedFiles];
+    const parent = replyTo;
+    setMessageContent("");
+    setSelectedFiles([]);
+    setReplyTo(null);
+
+    if (files.length === 0) 
+      setMessages((prev) => [...prev, optimisticMessage]);
+
     setSending(true);
     setError(null);
+
     try {
       const fileIds: string[] = [];
-      if (selectedFiles.length > 0) {
-        const uploaded = await uploadFiles(selectedFiles, "Message");
+      if (files.length > 0) {
+        const uploaded = await uploadFiles(files, "Message");
         const ids = uploaded
           .map((f) => f.id)
           .filter((id): id is string => typeof id === "string" && id.length > 0);
@@ -289,20 +327,26 @@ export function ConversationDetail({
         path: { conversationId },
         body: {
           conversationId,
-          parentId: replyTo?.id,
-          content: messageContent.trim(),
+          parentId: parent?.id,
+          content,
           fileIds: fileIds.length > 0 ? fileIds : undefined,
         },
       });
 
       const newMessage = (response.data ?? response) as MessageDto | undefined;
+      
       if (newMessage) {
-        setMessageContent("");
-        setSelectedFiles([]);
-        setReplyTo(null);
-        void fetchConversation();
+        if (files.length === 0) {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === tempId ? newMessage : m))
+          );
+        }
       }
     } catch (err: any) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setMessageContent(content);
+      if (parent) setReplyTo(parent);
+      
       const message =
         err?.response?.data?.message ||
         err?.message ||
