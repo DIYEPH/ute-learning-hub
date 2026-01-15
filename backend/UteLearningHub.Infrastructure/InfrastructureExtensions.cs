@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
@@ -97,7 +97,7 @@ public static class InfrastructureExtensions
         });
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
-        services.AddScoped<IMicrosoftTokenValidator, MicrosoftTokenValidator>();
+        services.AddSingleton<IMicrosoftTokenValidator, MicrosoftTokenValidator>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IPasswordResetLinkBuilder, PasswordResetLinkBuilder>();
