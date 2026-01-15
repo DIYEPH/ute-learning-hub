@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Loader2, MessageCircle, Plus, Search } from "lucide-react";
+import { Loader2, MessageCircle, Plus, Search, PanelLeftClose, PanelLeft } from "lucide-react";
 
 import { getApiConversation } from "@/src/api";
 import type {
@@ -16,6 +16,7 @@ import { ConversationDetail } from "@/src/components/conversations/conversation-
 import { CreateConversationModal } from "@/src/components/conversations/create-conversation-modal";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/src/components/ui/tooltip";
 
 const PAGE_SIZE = 20;
 
@@ -30,6 +31,7 @@ export default function ChatPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     if (profile?.id) {
@@ -108,55 +110,89 @@ export default function ChatPage() {
       {/* Sidebar: Danh sách conversations */}
       <div
         className={cn(
-          "border-r border-border bg-card flex flex-col h-full overflow-hidden transition-transform duration-300",
-          "w-full md:w-80 shrink-0",
-          selectedConversationId
-            ? "hidden md:flex"
-            : "flex"
+          "border-r border-border bg-card flex flex-col h-full overflow-hidden transition-all duration-300 shrink-0",
+          collapsed ? "w-16" : "w-full md:w-72 lg:w-80",
+          selectedConversationId ? "hidden md:flex" : "flex"
         )}
       >
         {/* Header */}
-        <div className="shrink-0 p-4 border-b border-border">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-lg font-semibold text-foreground">
-              Trò chuyện
-            </h1>
-            <Button
-              size="sm"
-              onClick={() => setShowCreateModal(true)}
-              className="h-8 w-8 p-0"
-            >
-              <Plus className="h-4 w-4" />
-            </Button>
+        <div className={cn(
+          "shrink-0 border-b border-border",
+          collapsed ? "p-2" : "p-4"
+        )}>
+          <div className={cn(
+            "flex items-center",
+            collapsed ? "flex-col gap-2" : "justify-between mb-4"
+          )}>
+            {!collapsed && (
+              <h1 className="text-lg font-semibold text-foreground">
+                Trò chuyện
+              </h1>
+            )}
+            <div className={cn("flex items-center", collapsed ? "flex-col gap-2" : "gap-1")}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setCollapsed(!collapsed)}
+                    className="h-8 w-8 p-0"
+                  >
+                    {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  {collapsed ? "Mở rộng" : "Thu gọn"}
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowCreateModal(true)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">Tạo mới</TooltipContent>
+              </Tooltip>
+            </div>
           </div>
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Tìm kiếm cuộc trò chuyện..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-8 h-9"
-            />
-          </div>
+          {!collapsed && (
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="Tìm kiếm..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 h-9"
+              />
+            </div>
+          )}
         </div>
 
         {/* Conversation List */}
         <div className="flex-1 min-h-0 overflow-y-auto">
           {error ? (
-            <div className="p-6 text-sm text-red-600 dark:text-red-400">
-              {error}
+            <div className={cn("text-sm text-red-600 dark:text-red-400", collapsed ? "p-2" : "p-6")}>
+              {collapsed ? "!" : error}
             </div>
           ) : conversations.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 px-6 text-center text-sm text-muted-foreground">
-              <MessageCircle className="h-12 w-12 mb-4 opacity-40" />
-              <p>Chưa có cuộc trò chuyện nào</p>
+            <div className={cn(
+              "flex flex-col items-center justify-center text-center text-sm text-muted-foreground",
+              collapsed ? "py-4" : "py-16 px-6"
+            )}>
+              <MessageCircle className={cn("opacity-40", collapsed ? "h-6 w-6" : "h-12 w-12 mb-4")} />
+              {!collapsed && <p>Chưa có cuộc trò chuyện nào</p>}
             </div>
           ) : (
             <ConversationList
               conversations={conversations}
               selectedId={selectedConversationId || undefined}
               onSelect={handleSelectConversation}
+              collapsed={collapsed}
             />
           )}
         </div>

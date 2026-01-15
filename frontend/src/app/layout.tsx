@@ -6,6 +6,7 @@ import { ThemeProvider } from '@/src/components/providers/theme-provider';
 import { NotificationProvider } from '@/src/components/providers/notification-provider';
 import { SignalRProvider } from '@/src/components/providers/signalr-provider';
 import { UserProfileProvider } from '@/src/components/providers/user-profile-provider';
+import { TooltipProvider } from '@/src/components/ui/tooltip';
 import "./globals.css";
 
 const beVietnamPro = Be_Vietnam_Pro({
@@ -37,13 +38,15 @@ export default async function RootLayout({
       <body className={`${beVietnamPro.variable} font-sans antialiased`}>
         <ThemeProvider>
           <NextIntlClientProvider messages={messages}>
-            <UserProfileProvider>
-              <SignalRProvider>
-                <NotificationProvider>
-                  {children}
-                </NotificationProvider>
-              </SignalRProvider>
-            </UserProfileProvider>
+            <TooltipProvider>
+              <UserProfileProvider>
+                <SignalRProvider>
+                  <NotificationProvider>
+                    {children}
+                  </NotificationProvider>
+                </SignalRProvider>
+              </UserProfileProvider>
+            </TooltipProvider>
           </NextIntlClientProvider>
         </ThemeProvider>
       </body>

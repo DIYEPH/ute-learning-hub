@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useSubjects } from "@/src/hooks/use-subjects";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
+import { useFileUpload } from "@/src/hooks/use-file-upload";
 import { deleteApiConversationById, putApiConversationById, getApiTag, postApiConversationByIdLeave } from "@/src/api";
 import type { UpdateConversationCommandRequest, SubjectDto2, TagDto, ConversationDetailDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
@@ -14,6 +15,7 @@ import { Input } from "@/src/components/ui/input";
 import { ScrollArea } from "@/src/components/ui/scroll-area";
 import { MemberManagement } from "@/src/components/conversations/member-management";
 import { TagPicker } from "@/src/components/ui/tag-picker";
+import { getFileUrlById } from "@/src/lib/file-url";
 
 interface EditConversationSidebarProps {
   open: boolean;
@@ -31,6 +33,7 @@ export function EditConversationSidebar({
   const router = useRouter();
   const { fetchSubjects, loading: loadingSubjects } = useSubjects();
   const { profile } = useUserProfile();
+  const { uploadFile, uploading: uploadingAvatar } = useFileUpload();
 
   const currentUserMember = conversation?.members?.find(
     (m) => m.userId === profile?.id
@@ -123,6 +126,12 @@ export function EditConversationSidebar({
     try {
       const tagNamesToSubmit = [...(formData.tagNames || [])];
 
+      let avatarUrl: string | null = null;
+      if (avatarFile) {
+        const uploaded = await uploadFile(avatarFile, "AvatarConversation");
+        avatarUrl = uploaded.id ? getFileUrlById(uploaded.id) : null;
+      }
+
       const submitData: UpdateConversationCommandRequest = {
         conversationName: formData.conversationName || null,
         tagIds: selectedTagIds.length > 0 ? selectedTagIds : null,
@@ -130,6 +139,7 @@ export function EditConversationSidebar({
         visibility: formData.visibility ?? null,
         subjectId: formData.subjectId || null,
         isAllowMemberPin: formData.isAllowMemberPin ?? null,
+        avatarUrl: avatarUrl,
       };
 
       const response = await putApiConversationById({
@@ -475,16 +485,16 @@ export function EditConversationSidebar({
                       type="button"
                       variant="outline"
                       onClick={onClose}
-                      disabled={loading || leaving}
+                      disabled={loading || leaving || uploadingAvatar}
                       className="flex-1"
                     >
                       Hủy
                     </Button>
-                    <Button type="submit" disabled={loading || leaving} className="flex-1">
-                      {loading ? (
+                    <Button type="submit" disabled={loading || leaving || uploadingAvatar} className="flex-1">
+                      {loading || uploadingAvatar ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Đang cập nhật...
+                          {uploadingAvatar ? "Đang tải ảnh..." : "Đang cập nhật..."}
                         </>
                       ) : (
                         "Cập nhật"
