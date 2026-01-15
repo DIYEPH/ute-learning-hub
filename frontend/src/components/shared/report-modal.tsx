@@ -2,29 +2,16 @@
 
 import { useState } from "react";
 import { Flag, Loader2 } from "lucide-react";
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/src/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/src/components/ui/dialog";
 import { Button } from "@/src/components/ui/button";
 import { Textarea } from "@/src/components/ui/textarea";
 import { Label } from "@/src/components/ui/label";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/src/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import { postApiReport } from "@/src/api";
 import { useNotification } from "@/src/components/providers/notification-provider";
 
 export type ReportTargetType = "documentFile" | "comment" | "document" | "user" | "conversation";
 
-// Map ReportReason enum values to Vietnamese labels
 const REPORT_REASONS = [
     { value: 0, label: "Khác" },
     { value: 1, label: "Vi phạm bản quyền" },
@@ -42,16 +29,10 @@ interface ReportModalProps {
     onOpenChange: (open: boolean) => void;
     targetType: ReportTargetType;
     targetId: string;
-    targetTitle?: string; 
+    targetTitle?: string;
 }
 
-export function ReportModal({
-    open,
-    onOpenChange,
-    targetType,
-    targetId,
-    targetTitle,
-}: ReportModalProps) {
+export function ReportModal({ open, onOpenChange, targetType, targetId, targetTitle }: ReportModalProps) {
     const [reason, setReason] = useState<number | null>(null);
     const [content, setContent] = useState("");
     const [submitting, setSubmitting] = useState(false);
@@ -59,57 +40,37 @@ export function ReportModal({
 
     const getTargetLabel = () => {
         switch (targetType) {
-            case "documentFile":
-                return "tài liệu";
-            case "comment":
-                return "bình luận";
-            case "document":
-                return "tài liệu";
-            case "user":
-                return "người dùng";
-            case "conversation":
-                return "cuộc trò chuyện";
-            default:
-                return "nội dung";
+            case "documentFile": return "tài liệu";
+            case "comment": return "bình luận";
+            case "document": return "tài liệu";
+            case "user": return "người dùng";
+            case "conversation": return "cuộc trò chuyện";
+            default: return "nội dung";
         }
     };
 
+    // Submit report
     const handleSubmit = async () => {
-        if (reason === null) {
-            error("Vui lòng chọn lý do báo cáo");
-            return;
-        }
-
+        if (reason === null) { error("Vui lòng chọn lý do báo cáo"); return; }
         setSubmitting(true);
         try {
-            // Map targetType to API body fields
             const body: Record<string, unknown> = {
                 reason: reason,
                 content: content.trim() || REPORT_REASONS.find(r => r.value === reason)?.label || "",
             };
-
-            if (targetType === "documentFile") {
-                body.documentFileId = targetId;
-            } else if (targetType === "comment") {
-                body.commentId = targetId;
-            }
-            // Add more target types as needed when API supports them
+            if (targetType === "documentFile") body.documentFileId = targetId;
+            else if (targetType === "comment") body.commentId = targetId;
 
             await postApiReport({
                 body: body as { documentFileId?: string | null; commentId?: string | null; reason?: number; content?: string },
                 throwOnError: true,
             });
-
             success("Đã gửi báo cáo thành công. Chúng tôi sẽ xem xét trong thời gian sớm nhất.");
             setReason(null);
             setContent("");
             onOpenChange(false);
         } catch (err: any) {
-            const errorMessage =
-                err?.response?.data?.message ||
-                err?.message ||
-                "Không thể gửi báo cáo";
-            error(errorMessage);
+            error(err?.response?.data?.message || err?.message || "Không thể gửi báo cáo");
         } finally {
             setSubmitting(false);
         }
@@ -128,19 +89,15 @@ export function ReportModal({
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
-                        <Flag className="h-5 w-5 text-red-500" />
-                        Báo cáo vi phạm
+                        <Flag className="h-5 w-5 text-red-500" />Báo cáo vi phạm
                     </DialogTitle>
                 </DialogHeader>
-
                 <div className="space-y-4">
                     {targetTitle && (
                         <p className="text-sm text-muted-foreground">
-                            Báo cáo {getTargetLabel()}:{" "}
-                            <span className="font-medium text-foreground">{targetTitle}</span>
+                            Báo cáo {getTargetLabel()}: <span className="font-medium text-foreground">{targetTitle}</span>
                         </p>
                     )}
-
                     <div>
                         <Label htmlFor="report-reason">Lý do báo cáo <span className="text-red-500">*</span></Label>
                         <Select
@@ -152,22 +109,19 @@ export function ReportModal({
                                 <SelectValue placeholder="Chọn lý do báo cáo..." />
                             </SelectTrigger>
                             <SelectContent>
-                                {REPORT_REASONS.map((item) => (
-                                    <SelectItem key={item.value} value={String(item.value)}>
-                                        {item.label}
-                                    </SelectItem>
+                                {REPORT_REASONS.map(item => (
+                                    <SelectItem key={item.value} value={String(item.value)}>{item.label}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>
                     </div>
-
                     <div>
                         <Label htmlFor="report-content">Mô tả chi tiết (không bắt buộc)</Label>
                         <Textarea
                             id="report-content"
                             value={content}
-                            onChange={(e) => setContent(e.target.value)}
-                            placeholder={`Mô tả thêm chi tiết về vi phạm...`}
+                            onChange={e => setContent(e.target.value)}
+                            placeholder="Mô tả thêm chi tiết về vi phạm..."
                             rows={3}
                             className="mt-1.5"
                             disabled={submitting}
@@ -177,32 +131,13 @@ export function ReportModal({
                         </p>
                     </div>
                 </div>
-
                 <DialogFooter className="gap-2 sm:gap-0">
-                    <Button
-                        variant="outline"
-                        onClick={handleClose}
-                        disabled={submitting}
-                    >
-                        Hủy
-                    </Button>
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={reason === null || submitting}
-                        variant="destructive"
-                    >
-                        {submitting ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Đang gửi...
-                            </>
-                        ) : (
-                            "Gửi báo cáo"
-                        )}
+                    <Button variant="outline" onClick={handleClose} disabled={submitting}>Hủy</Button>
+                    <Button onClick={handleSubmit} disabled={reason === null || submitting} variant="destructive">
+                        {submitting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Đang gửi...</> : "Gửi báo cáo"}
                     </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
     );
 }
-

@@ -20,43 +20,25 @@ interface FileItem extends MessageFileDto {
   senderName?: string;
 }
 
-export function ConversationFilesSidebar({
-  open,
-  onClose,
-  messages,
-}: ConversationFilesSidebarProps) {
-  // Lấy tất cả files từ messages
+export function ConversationFilesSidebar({ open, onClose, messages }: ConversationFilesSidebarProps) {
   const allFiles = useMemo(() => {
     const files: FileItem[] = [];
-    messages.forEach((message) => {
-      if (message.files && message.files.length > 0) {
-        message.files.forEach((file) => {
-          files.push({
-            ...file,
-            messageId: message.id,
-            messageDate: message.createdAt,
-            senderName: message.senderName,
-          });
-        });
-      }
+    messages.forEach(message => {
+      message.files?.forEach(file => {
+        files.push({ ...file, messageId: message.id, messageDate: message.createdAt, senderName: message.senderName });
+      });
     });
-    return files.reverse(); // Mới nhất trước
+    return files.reverse();
   }, [messages]);
 
-  // Phân loại files thành images và files khác
   const { images, otherFiles } = useMemo(() => {
     const imagesList: FileItem[] = [];
     const filesList: FileItem[] = [];
-
-    allFiles.forEach((file) => {
+    allFiles.forEach(file => {
       const mimeType = file.mimeType?.toLowerCase() || "";
-      if (mimeType.startsWith("image/")) {
-        imagesList.push(file);
-      } else {
-        filesList.push(file);
-      }
+      if (mimeType.startsWith("image/")) imagesList.push(file);
+      else filesList.push(file);
     });
-
     return { images: imagesList, otherFiles: filesList };
   }, [allFiles]);
 
@@ -69,77 +51,39 @@ export function ConversationFilesSidebar({
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    return new Date(dateString).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
   };
 
   return (
     <>
-      {/* Overlay cho mobile */}
-      {open && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={onClose}
-        />
-      )}
+      {open && <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={onClose} />}
 
-      {/* Sidebar */}
-      <div
-        className={cn(
-          "fixed top-0 right-0 h-full bg-card border-l border-border z-50 transition-transform duration-300 ease-in-out",
-          "w-full md:w-80",
-          open ? "translate-x-0" : "translate-x-full"
-        )}
-      >
+      <div className={cn(
+        "fixed top-0 right-0 h-full bg-card border-l border-border z-50 transition-transform duration-300 ease-in-out w-full md:w-80",
+        open ? "translate-x-0" : "translate-x-full"
+      )}>
         <div className="flex flex-col h-full">
-          {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-border">
-            <h3 className="text-lg font-semibold text-foreground">
-              Tệp đã gửi
-            </h3>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0"
-            >
+            <h3 className="text-lg font-semibold text-foreground">Tệp đã gửi</h3>
+            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
               <X className="h-4 w-4" />
             </Button>
           </div>
 
-          {/* Content */}
           <ScrollArea className="flex-1">
             <div className="p-4 space-y-6">
-              {/* Images Section */}
               {images.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <ImageIcon className="h-4 w-4 text-muted-foreground" />
-                    <h4 className="text-sm font-semibold text-foreground">
-                      Hình ảnh ({images.length})
-                    </h4>
+                    <h4 className="text-sm font-semibold text-foreground">Hình ảnh ({images.length})</h4>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {images.map((image, idx) => {
                       const imageUrl = getFileUrlById(image.fileId);
                       return (
-                        <a
-                          key={image.fileId || idx}
-                          href={imageUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group relative aspect-square overflow-hidden border border-border hover:border-primary transition-colors"
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            src={imageUrl}
-                            alt="Image"
-                            className="w-full h-full object-cover"
-                          />
+                        <a key={image.fileId || idx} href={imageUrl} target="_blank" rel="noopener noreferrer" className="group relative aspect-square overflow-hidden border border-border hover:border-primary transition-colors">
+                          <img src={imageUrl} alt="Image" className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                         </a>
                       );
@@ -148,53 +92,26 @@ export function ConversationFilesSidebar({
                 </div>
               )}
 
-              {/* Files Section */}
               {otherFiles.length > 0 && (
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <File className="h-4 w-4 text-muted-foreground" />
-                    <h4 className="text-sm font-semibold text-foreground">
-                      Tệp khác ({otherFiles.length})
-                    </h4>
+                    <h4 className="text-sm font-semibold text-foreground">Tệp khác ({otherFiles.length})</h4>
                   </div>
                   <div className="space-y-2">
                     {otherFiles.map((file, idx) => {
                       const fileUrl = getFileUrlById(file.fileId);
                       return (
-                        <a
-                          key={file.fileId || idx}
-                          href={fileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3 border border-border hover:bg-muted transition-colors group"
-                        >
+                        <a key={file.fileId || idx} href={fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 border border-border hover:bg-muted transition-colors group">
                           <div className="shrink-0 w-10 h-10 bg-muted flex items-center justify-center">
                             <File className="h-5 w-5 text-muted-foreground" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-foreground truncate">
-                              Tệp đính kèm
-                            </p>
+                            <p className="text-sm font-medium text-foreground truncate">Tệp đính kèm</p>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs text-muted-foreground">
-                                {formatFileSize(file.fileSize)}
-                              </span>
-                              {file.senderName && (
-                                <>
-                                  <span className="text-xs text-muted-foreground">•</span>
-                                  <span className="text-xs text-muted-foreground truncate">
-                                    {file.senderName}
-                                  </span>
-                                </>
-                              )}
-                              {file.messageDate && (
-                                <>
-                                  <span className="text-xs text-muted-foreground">•</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {formatDate(file.messageDate)}
-                                  </span>
-                                </>
-                              )}
+                              <span className="text-xs text-muted-foreground">{formatFileSize(file.fileSize)}</span>
+                              {file.senderName && <><span className="text-xs text-muted-foreground">•</span><span className="text-xs text-muted-foreground truncate">{file.senderName}</span></>}
+                              {file.messageDate && <><span className="text-xs text-muted-foreground">•</span><span className="text-xs text-muted-foreground">{formatDate(file.messageDate)}</span></>}
                             </div>
                           </div>
                           <Download className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
@@ -205,13 +122,10 @@ export function ConversationFilesSidebar({
                 </div>
               )}
 
-              {/* Empty State */}
               {images.length === 0 && otherFiles.length === 0 && (
                 <div className="text-center py-12">
                   <File className="h-12 w-12 mx-auto mb-3 text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground">
-                    Chưa có tệp nào được gửi
-                  </p>
+                  <p className="text-sm text-muted-foreground">Chưa có tệp nào được gửi</p>
                 </div>
               )}
             </div>
@@ -221,6 +135,3 @@ export function ConversationFilesSidebar({
     </>
   );
 }
-
-
-

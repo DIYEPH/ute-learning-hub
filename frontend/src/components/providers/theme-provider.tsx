@@ -42,12 +42,8 @@ export function ThemeProvider({
   // Initialize on mount
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
     const stored = localStorage.getItem(storageKey) as Theme | null;
-    const initialTheme = (stored && ["light", "dark", "system"].includes(stored))
-      ? stored
-      : defaultTheme;
-
+    const initialTheme = (stored && ["light", "dark", "system"].includes(stored)) ? stored : defaultTheme;
     const resolved = resolveTheme(initialTheme);
     applyTheme(resolved);
     setResolvedTheme(resolved);
@@ -55,10 +51,9 @@ export function ThemeProvider({
     setMounted(true);
   }, [storageKey, defaultTheme]);
 
-  // Handle theme changes (after mount)
+  // Set theme
   const setTheme = useCallback((newTheme: Theme) => {
     if (typeof window === 'undefined') return;
-
     localStorage.setItem(storageKey, newTheme);
     const resolved = resolveTheme(newTheme);
     applyTheme(resolved);
@@ -69,14 +64,12 @@ export function ThemeProvider({
   // Listen for system theme changes
   useEffect(() => {
     if (theme !== "system" || !mounted || typeof window === 'undefined') return;
-
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
       const resolved = mediaQuery.matches ? "dark" : "light";
       applyTheme(resolved);
       setResolvedTheme(resolved);
     };
-
     mediaQuery.addEventListener("change", handleChange);
     return () => mediaQuery.removeEventListener("change", handleChange);
   }, [theme, mounted]);
@@ -90,10 +83,6 @@ export function ThemeProvider({
 
 export function useTheme() {
   const context = useContext(ThemeProviderContext);
-  if (context === undefined) {
-    throw new Error("useTheme must be used within a ThemeProvider");
-  }
+  if (context === undefined) throw new Error("useTheme must be used within a ThemeProvider");
   return context;
 }
-
-

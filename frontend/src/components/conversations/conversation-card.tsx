@@ -17,51 +17,36 @@ interface ConversationCardProps {
   similarity?: number;
 }
 
-export function ConversationCard({
-  conversation,
-  onJoinSuccess,
-  similarity,
-}: ConversationCardProps) {
+export function ConversationCard({ conversation, onJoinSuccess, similarity }: ConversationCardProps) {
   const router = useRouter();
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const { error: notifyError, success: notifySuccess } = useNotification();
 
-  const isPrivate = conversation.visibility === 0; // 0 = Private
+  const isPrivate = conversation.visibility === 0;
   const isMember = conversation.isCurrentUserMember ?? false;
   const hasPendingRequest = conversation.hasPendingJoinRequest ?? false;
 
   const handleJoin = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click
-
+    e.stopPropagation();
     if (!conversation.id) return;
 
     if (isPrivate) {
-      // Private: show join request modal
       setShowJoinModal(true);
       return;
     }
 
-    // Public: join directly
     setJoining(true);
     setError(null);
 
     try {
-      await postApiConversationByIdJoin<true>({
-        path: {
-          id: conversation.id,
-        },
-        throwOnError: true,
-      });
+      await postApiConversationByIdJoin<true>({ path: { id: conversation.id }, throwOnError: true });
       notifySuccess("Tham gia nhóm thành công");
       onJoinSuccess?.();
       router.push(`/chat?id=${conversation.id}`);
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Không thể tham gia nhóm";
+      const message = err?.response?.data?.message || err?.message || "Không thể tham gia nhóm";
       setError(message);
       notifyError(message);
     } finally {
@@ -71,12 +56,8 @@ export function ConversationCard({
 
   const handleJoinRequest = async (content: string) => {
     if (!conversation.id) return;
-
     await postApiConversationJoinRequest<true>({
-      body: {
-        conversationId: conversation.id,
-        content: content || undefined,
-      },
+      body: { conversationId: conversation.id, content: content || undefined },
       throwOnError: true,
     });
     notifySuccess("Đã gửi yêu cầu tham gia nhóm");
@@ -84,29 +65,18 @@ export function ConversationCard({
   };
 
   const handleCardClick = () => {
-    // Only allow clicking if user is already a member
-    if (conversation.id && isMember) {
-      router.push(`/chat?id=${conversation.id}`);
-    }
+    if (conversation.id && isMember) router.push(`/chat?id=${conversation.id}`);
   };
 
   return (
     <div
-      className={cn(
-        "border border-border bg-card p-4 shadow-sm transition-all hover:shadow-md",
-        isMember && "cursor-pointer"
-      )}
+      className={cn("border border-border bg-card p-4 shadow-sm transition-all hover:shadow-md", isMember && "cursor-pointer")}
       onClick={handleCardClick}
     >
       <div className="flex items-start gap-3">
         <Avatar className="h-12 w-12 shrink-0">
-          <AvatarImage
-            src={conversation.avatarUrl || undefined}
-            alt={conversation.conversationName || "Avatar"}
-          />
-          <AvatarFallback>
-            <MessageCircle className="h-6 w-6" />
-          </AvatarFallback>
+          <AvatarImage src={conversation.avatarUrl || undefined} alt={conversation.conversationName || "Avatar"} />
+          <AvatarFallback><MessageCircle className="h-6 w-6" /></AvatarFallback>
         </Avatar>
 
         <div className="flex-1 min-w-0">
@@ -118,39 +88,26 @@ export function ConversationCard({
               <div className="flex items-center gap-2 flex-wrap">
                 {isPrivate ? (
                   <span className="inline-flex items-center gap-1 rounded-full border border-amber-400 bg-amber-50/50 px-2 py-0.5 text-[10px] font-medium text-amber-700 dark:border-amber-500/50 dark:bg-amber-950/20 dark:text-amber-400">
-                    <Lock className="h-3 w-3" />
-                    Riêng tư
+                    <Lock className="h-3 w-3" />Riêng tư
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 rounded-full border border-emerald-400 bg-emerald-50/50 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:border-emerald-500/50 dark:bg-emerald-950/20 dark:text-emerald-400">
-                    <Globe className="h-3 w-3" />
-                    Công khai
+                    <Globe className="h-3 w-3" />Công khai
                   </span>
                 )}
-                {conversation.subject && (
-                  <span className="text-xs text-muted-foreground">
-                    {conversation.subject.subjectName}
-                  </span>
-                )}
+                {conversation.subject && <span className="text-xs text-muted-foreground">{conversation.subject.subjectName}</span>}
               </div>
             </div>
           </div>
 
           {conversation.tags && conversation.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-2">
-              {conversation.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag.id}
-                  className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground"
-                >
+              {conversation.tags.slice(0, 3).map(tag => (
+                <span key={tag.id} className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground">
                   {tag.tagName}
                 </span>
               ))}
-              {conversation.tags.length > 3 && (
-                <span className="text-[10px] font-medium text-muted-foreground">
-                  +{conversation.tags.length - 3}
-                </span>
-              )}
+              {conversation.tags.length > 3 && <span className="text-[10px] font-medium text-muted-foreground">+{conversation.tags.length - 3}</span>}
             </div>
           )}
 
@@ -158,14 +115,12 @@ export function ConversationCard({
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
               {conversation.memberCount !== undefined && (
                 <div className="flex items-center gap-1">
-                  <Users className="h-3 w-3" />
-                  <span>{conversation.memberCount} thành viên</span>
+                  <Users className="h-3 w-3" /><span>{conversation.memberCount} thành viên</span>
                 </div>
               )}
               {similarity !== undefined && similarity > 0 && (
                 <div className="flex items-center gap-1 text-primary font-medium">
-                  <Sparkles className="h-3 w-3" />
-                  <span>{Math.round(similarity * 100)}% phù hợp</span>
+                  <Sparkles className="h-3 w-3" /><span>{Math.round(similarity * 100)}% phù hợp</span>
                 </div>
               )}
               {conversation.unreadCount !== undefined && conversation.unreadCount > 0 && (
@@ -178,31 +133,12 @@ export function ConversationCard({
             {!isMember && (
               <div className="shrink-0">
                 {isPrivate && hasPendingRequest ? (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled
-                    className="text-xs"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <Button size="sm" variant="outline" disabled className="text-xs" onClick={e => e.stopPropagation()}>
                     Đã gửi yêu cầu
                   </Button>
                 ) : (
-                  <Button
-                    size="sm"
-                    variant="default"
-                    onClick={handleJoin}
-                    disabled={joining}
-                    className="text-xs"
-                  >
-                    {joining ? (
-                      <>
-                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                        Đang tham gia...
-                      </>
-                    ) : (
-                      "Tham gia"
-                    )}
+                  <Button size="sm" variant="default" onClick={handleJoin} disabled={joining} className="text-xs">
+                    {joining ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" />Đang tham gia...</> : "Tham gia"}
                   </Button>
                 )}
               </div>
@@ -213,27 +149,17 @@ export function ConversationCard({
                 size="sm"
                 variant="ghost"
                 className="text-xs"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (conversation.id) {
-                    router.push(`/chat?id=${conversation.id}`);
-                  }
-                }}
+                onClick={e => { e.stopPropagation(); if (conversation.id) router.push(`/chat?id=${conversation.id}`); }}
               >
                 Mở
               </Button>
             )}
           </div>
 
-          {error && (
-            <div className="mt-2 text-xs text-red-600 dark:text-red-400">
-              {error}
-            </div>
-          )}
+          {error && <div className="mt-2 text-xs text-red-600 dark:text-red-400">{error}</div>}
         </div>
       </div>
 
-      {/* Join Request Modal for private groups */}
       <JoinRequestModal
         open={showJoinModal}
         onClose={() => setShowJoinModal(false)}
@@ -243,6 +169,3 @@ export function ConversationCard({
     </div>
   );
 }
-
-
-

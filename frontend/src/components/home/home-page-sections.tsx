@@ -9,10 +9,7 @@ import type { HomepageDto, ReadingHistoryItemDto, DocumentDto } from "@/src/api/
 import { useTranslations } from "next-intl";
 import { useAuthState } from "@/src/hooks/use-auth-state";
 
-interface PagedResponse<T> {
-    items?: T[];
-    totalCount?: number;
-}
+interface PagedResponse<T> { items?: T[]; totalCount?: number; }
 
 export function HomePageSections() {
     const t = useTranslations("home");
@@ -28,12 +25,10 @@ export function HomePageSections() {
             const homepageRes = await getApiDocumentHomepage();
             const homepage = (homepageRes as any)?.data || homepageRes as HomepageDto;
             setHomepageData(homepage);
-
             if (isAuthenticated) {
                 try {
                     const historyRes = await getApiDocumentReadingHistory({ query: { PageSize: 10 } });
                     const historyData = (historyRes as unknown as { data: PagedResponse<ReadingHistoryItemDto> })?.data || historyRes as PagedResponse<ReadingHistoryItemDto>;
-                    // Filter distinct documents by documentId for homepage
                     const seen = new Set<string>();
                     const distinctDocs = (historyData.items || []).filter(item => {
                         if (seen.has(item.documentId!)) return false;
@@ -41,32 +36,20 @@ export function HomePageSections() {
                         return true;
                     });
                     setRecentDocs(distinctDocs);
-                } catch {
-                    setRecentDocs([]);
-                }
-
-                // Load recommendations
+                } catch { setRecentDocs([]); }
                 try {
                     const recRes = await getApiDocumentRecommendations({ query: { TopK: 4, MinSimilarity: 0.3 } });
                     const recData = (recRes as any)?.data || recRes;
                     setRecommendedDocs(recData?.recommendations || []);
-                } catch {
-                    setRecommendedDocs([]);
-                }
+                } catch { setRecommendedDocs([]); }
             } else {
                 setRecentDocs([]);
                 setRecommendedDocs([]);
             }
-        } catch (err) {
-            console.error("Error loading homepage data:", err);
-        } finally {
-            setLoading(false);
-        }
+        } catch { } finally { setLoading(false); }
     }, [isAuthenticated]);
 
-    useEffect(() => {
-        loadData();
-    }, [loadData]);
+    useEffect(() => { loadData(); }, [loadData]);
 
     if (loading) {
         return (
@@ -81,21 +64,17 @@ export function HomePageSections() {
 
     return (
         <div className="space-y-10">
-            {/* 0. Gợi ý cho bạn - Chỉ hiển thị khi đã đăng nhập và có recommendations */}
             {recommendedDocs.length > 0 && (
-                <Section
-                    title="Tài liệu gợi ý"
-                    icon={<Sparkles className="h-5 w-5 text-amber-500" />}
-                >
+                <Section title="Tài liệu gợi ý" icon={<Sparkles className="h-5 w-5 text-amber-500" />}>
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {recommendedDocs.slice(0, 4).map((doc) => (
+                        {recommendedDocs.slice(0, 4).map(doc => (
                             <DocumentCard
                                 key={doc.id}
                                 id={doc.id}
                                 title={doc.documentName || ""}
                                 subjectName={doc.subject?.subjectName || undefined}
                                 thumbnailFileId={doc.thumbnailFileId}
-                                tags={doc.tags?.map((t) => t.tagName || "").filter(Boolean)}
+                                tags={doc.tags?.map(t => t.tagName || "").filter(Boolean)}
                                 fileCount={doc.fileCount}
                                 usefulCount={doc.usefulCount}
                                 notUsefulCount={doc.notUsefulCount}
@@ -105,8 +84,6 @@ export function HomePageSections() {
                     </div>
                 </Section>
             )}
-
-            {/* 1. Tài liệu mới nhất */}
             {latestDocs.length > 0 && (
                 <Section title={t("latestDocuments")} href="/search?sort=date">
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -117,7 +94,7 @@ export function HomePageSections() {
                                 title={doc.documentName || ""}
                                 subjectName={doc.subject?.subjectName || undefined}
                                 thumbnailFileId={doc.thumbnailFileId}
-                                tags={doc.tags?.map((t) => t.tagName || "").filter(Boolean)}
+                                tags={doc.tags?.map(t => t.tagName || "").filter(Boolean)}
                                 fileCount={doc.fileCount}
                                 usefulCount={doc.usefulCount}
                                 notUsefulCount={doc.notUsefulCount}
@@ -127,8 +104,6 @@ export function HomePageSections() {
                     </div>
                 </Section>
             )}
-
-            {/* 2. Tài liệu phổ biến (theo lượt xem) */}
             {mostViewedDocs.length > 0 && (
                 <Section title="Tài liệu phổ biến" href="/search?sort=popular">
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -139,7 +114,7 @@ export function HomePageSections() {
                                 title={doc.documentName || ""}
                                 subjectName={doc.subject?.subjectName || undefined}
                                 thumbnailFileId={doc.thumbnailFileId}
-                                tags={doc.tags?.map((t) => t.tagName || "").filter(Boolean)}
+                                tags={doc.tags?.map(t => t.tagName || "").filter(Boolean)}
                                 fileCount={doc.fileCount}
                                 usefulCount={doc.usefulCount}
                                 notUsefulCount={doc.notUsefulCount}
@@ -149,8 +124,6 @@ export function HomePageSections() {
                     </div>
                 </Section>
             )}
-
-            {/* 3. Đọc gần đây - cuối cùng */}
             {recentDocs.length > 0 && (
                 <Section title={t("recentlyViewed")} href="/recent">
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -170,8 +143,6 @@ export function HomePageSections() {
                     </div>
                 </Section>
             )}
-
-            {/* Empty state */}
             {latestDocs.length === 0 && mostViewedDocs.length === 0 && (
                 <div className="text-center py-12 text-muted-foreground">
                     <FileText className="h-12 w-12 mx-auto mb-3 opacity-40" />
@@ -187,14 +158,10 @@ function Section({ title, href, icon, children }: { title: string; href?: string
     return (
         <section>
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                    {icon}
-                    {title}
-                </h2>
+                <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">{icon}{title}</h2>
                 {href && (
                     <Link href={href} className="flex items-center gap-1 text-sm text-primary hover:underline font-medium">
-                        {t("viewMore")}
-                        <ChevronRight className="h-4 w-4" />
+                        {t("viewMore")}<ChevronRight className="h-4 w-4" />
                     </Link>
                 )}
             </div>
@@ -202,4 +169,3 @@ function Section({ title, href, icon, children }: { title: string; href?: string
         </section>
     );
 }
-

@@ -21,4 +21,3 @@ export const ADMIN_NAV_CONFIG = [
   { labelKey: "admin.nav.conversations", href: "/admin/conversations", icon: MessageCircle, minLevel: "Admin" },
   { labelKey: "admin.nav.reports", href: "/admin/reports", icon: Flag, minLevel: "Moderator" },
 ] as const;
-

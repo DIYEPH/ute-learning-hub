@@ -14,25 +14,18 @@ export function useUploadLogo(): UseUploadLogoReturn {
   const { uploadFile, uploading, error } = useFileUpload();
   const [localError, setLocalError] = useState<string | null>(null);
 
-  const uploadLogo = useCallback(
-    async (file: File): Promise<string | null> => {
-      setLocalError(null);
-      try {
-        // Không truyền category để FileController dùng rule ảnh mặc định
-        const uploaded = await uploadFile(file);
-        return uploaded.id ? getFileUrlById(uploaded.id) : null;
-      } catch (err: any) {
-        const message =
-          err?.response?.data?.message ||
-          err?.response?.data?.title ||
-          err?.message ||
-          "Không thể upload file";
-        setLocalError(message);
-        throw err;
-      }
-    },
-    [uploadFile],
-  );
+  // Upload logo
+  const uploadLogo = useCallback(async (file: File): Promise<string | null> => {
+    setLocalError(null);
+    try {
+      const uploaded = await uploadFile(file);
+      return uploaded.id ? getFileUrlById(uploaded.id) : null;
+    } catch (err: any) {
+      const message = err?.response?.data?.message || err?.response?.data?.title || err?.message || "Không thể upload file";
+      setLocalError(message);
+      throw err;
+    }
+  }, [uploadFile]);
 
   return { uploadLogo, uploading, error: error ?? localError };
 }

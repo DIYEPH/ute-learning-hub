@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import {
-    putApiDocumentFilesByFileIdProgress,
-    getApiDocumentFilesByFileIdProgress
-} from "@/src/api";
+import { putApiDocumentFilesByFileIdProgress, getApiDocumentFilesByFileIdProgress } from "@/src/api";
 
 interface UseDocumentProgressOptions {
     fileId: string;
@@ -22,7 +19,6 @@ interface UseDocumentProgressReturn {
     saveProgress: () => Promise<void>;
 }
 
-// Check if user is authenticated
 function isAuthenticated(): boolean {
     if (typeof window === "undefined") return false;
     return !!localStorage.getItem("access_token");
@@ -38,117 +34,74 @@ export function useDocumentProgress({
     const [initialPage, setInitialPage] = useState(1);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
-
-    const lastSavedPageRef = useRef(0); 
+    const lastSavedPageRef = useRef(0);
     const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+    // Load progress
     useEffect(() => {
         const loadProgress = async () => {
-            if (!isAuthenticated()) {
-                setIsLoading(false);
-                return;
-            }
-
+            if (!isAuthenticated()) { setIsLoading(false); return; }
             try {
                 setIsLoading(true);
-                const response = await getApiDocumentFilesByFileIdProgress({
-                    path: { fileId },
-                });
+                const response = await getApiDocumentFilesByFileIdProgress({ path: { fileId } });
                 const data = response.data as { lastPage?: number } | undefined;
                 if (data?.lastPage && data.lastPage > 0) {
                     setCurrentPageState(data.lastPage);
                     setInitialPage(data.lastPage);
                     lastSavedPageRef.current = data.lastPage;
                 }
-            } catch {
-            } finally {
-                setIsLoading(false);
-            }
+            } catch { }
+            finally { setIsLoading(false); }
         };
-
-        if (fileId) {
-            void loadProgress();
-        }
+        if (fileId) void loadProgress();
     }, [fileId]);
 
+    // Save progress
     const saveProgress = useCallback(async () => {
-        if (!isAuthenticated()) return;
-        if (currentPage === lastSavedPageRef.current) return;
-
+        if (!isAuthenticated() || currentPage === lastSavedPageRef.current) return;
         try {
             setIsSaving(true);
-            await putApiDocumentFilesByFileIdProgress({
-                path: { fileId },
-                body: {
-                    lastPage: currentPage,
-                },
-            });
+            await putApiDocumentFilesByFileIdProgress({ path: { fileId }, body: { lastPage: currentPage } });
             lastSavedPageRef.current = currentPage;
-        } catch (err) {
-            console.error("Failed to save reading progress:", err);
-        } finally {
-            setIsSaving(false);
-        }
+        } catch { }
+        finally { setIsSaving(false); }
     }, [fileId, currentPage]);
 
     const setCurrentPage = useCallback((page: number) => {
         setCurrentPageState(page);
-
-        if (saveTimeoutRef.current) {
-            clearTimeout(saveTimeoutRef.current);
-        }
-
-        saveTimeoutRef.current = setTimeout(() => {
-            void saveProgress();
-        }, 2000);
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = setTimeout(() => { void saveProgress(); }, 2000);
     }, [saveProgress]);
 
+    // Auto save interval
     useEffect(() => {
-        const interval = setInterval(() => {
-            void saveProgress();
-        }, autoSaveIntervalMs);
-
+        const interval = setInterval(() => { void saveProgress(); }, autoSaveIntervalMs);
         return () => clearInterval(interval);
     }, [autoSaveIntervalMs, saveProgress]);
 
+    // Save on unload
     useEffect(() => {
         const handleBeforeUnload = () => {
             const url = `${process.env.NEXT_PUBLIC_API_URL}/api/Document/files/${fileId}/progress`;
             const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
-
             if (currentPage !== lastSavedPageRef.current && token) {
                 navigator.sendBeacon(
                     url,
-                    new Blob(
-                        [JSON.stringify({ documentFileId: fileId, lastPage: currentPage })],
-                        { type: "application/json" }
-                    )
+                    new Blob([JSON.stringify({ documentFileId: fileId, lastPage: currentPage })], { type: "application/json" })
                 );
             }
         };
-
         window.addEventListener("beforeunload", handleBeforeUnload);
         return () => {
             window.removeEventListener("beforeunload", handleBeforeUnload);
-            void saveProgress(); // Save on component unmount
+            void saveProgress();
         };
     }, [fileId, currentPage, saveProgress]);
 
-    // Cleanup timeout on unmount
+    // Cleanup timeout
     useEffect(() => {
-        return () => {
-            if (saveTimeoutRef.current) {
-                clearTimeout(saveTimeoutRef.current);
-            }
-        };
+        return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
     }, []);
 
-    return {
-        currentPage,
-        setCurrentPage,
-        initialPage,
-        isLoading,
-        isSaving,
-        saveProgress,
-    };
+    return { currentPage, setCurrentPage, initialPage, isLoading, isSaving, saveProgress };
 }

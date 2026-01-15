@@ -1,17 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, MessageSquare } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
-import { Label } from "@/src/components/ui/label";
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/src/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/src/components/ui/dialog";
 
 interface JoinRequestModalProps {
     open: boolean;
@@ -20,11 +12,7 @@ interface JoinRequestModalProps {
     onSubmit: (content: string) => Promise<void>;
 }
 
-export function JoinRequestModal({
-    open,
-    onClose,
-    onSubmit,
-}: JoinRequestModalProps) {
+export function JoinRequestModal({ open, onClose, onSubmit }: JoinRequestModalProps) {
     const [content, setContent] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -33,7 +21,6 @@ export function JoinRequestModal({
         e.preventDefault();
         setError(null);
         setLoading(true);
-
         try {
             await onSubmit(content);
             setContent("");
@@ -46,34 +33,22 @@ export function JoinRequestModal({
     };
 
     const handleClose = () => {
-        if (!loading) {
-            setContent("");
-            setError(null);
-            onClose();
-        }
+        if (!loading) { setContent(""); setError(null); onClose(); }
     };
 
     return (
         <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        Xin tham gia nhóm chat
-                    </DialogTitle>
-                </DialogHeader>
+                <DialogHeader><DialogTitle className="flex items-center gap-2">Xin tham gia nhóm chat</DialogTitle></DialogHeader>
 
                 <form onSubmit={handleSubmit}>
-                    {error && (
-                        <div className="mb-4 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded">
-                            {error}
-                        </div>
-                    )}
+                    {error && <div className="mb-4 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded">{error}</div>}
 
                     <div className="mb-4">
                         <textarea
                             id="content"
                             value={content}
-                            onChange={(e) => setContent(e.target.value)}
+                            onChange={e => setContent(e.target.value)}
                             placeholder="Xin chào, mình..."
                             disabled={loading}
                             rows={3}
@@ -82,24 +57,8 @@ export function JoinRequestModal({
                     </div>
 
                     <DialogFooter>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={handleClose}
-                            disabled={loading}
-                        >
-                            Hủy
-                        </Button>
-                        <Button type="submit" disabled={loading}>
-                            {loading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Đang gửi...
-                                </>
-                            ) : (
-                                "Gửi yêu cầu"
-                            )}
-                        </Button>
+                        <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>Hủy</Button>
+                        <Button type="submit" disabled={loading}>{loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Đang gửi...</> : "Gửi yêu cầu"}</Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

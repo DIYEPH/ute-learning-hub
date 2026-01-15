@@ -1,19 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback, useMemo } from "react";
-import { ArrowLeft, Send, Loader2, Paperclip, List, Settings, FolderOpen, X, Image as ImageIcon, UserPlus } from "lucide-react";
-
-import {
-  getApiConversationById,
-  getApiConversationsByConversationIdMessages,
-  postApiConversationsByConversationIdMessages,
-  postApiConversationsByConversationIdMessagesByIdMarkAsRead,
-} from "@/src/api";
-import type {
-  ConversationDetailDto,
-  MessageDto2 as MessageDto,
-  PagedResponseOfMessageDto,
-} from "@/src/api/database/types.gen";
+import { ArrowLeft, Send, Loader2, Paperclip, List, Settings, FolderOpen, X, UserPlus } from "lucide-react";
+import { getApiConversationById, getApiConversationsByConversationIdMessages, postApiConversationsByConversationIdMessages, postApiConversationsByConversationIdMessagesByIdMarkAsRead } from "@/src/api";
+import type { ConversationDetailDto, MessageDto2 as MessageDto, PagedResponseOfMessageDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { VirtualMessageList } from "@/src/components/conversations/virtual-message-list";
@@ -31,10 +21,7 @@ interface ConversationDetailProps {
   onBack: () => void;
 }
 
-export function ConversationDetail({
-  conversationId,
-  onBack,
-}: ConversationDetailProps) {
+export function ConversationDetail({ conversationId, onBack }: ConversationDetailProps) {
   const { profile } = useUserProfile();
   const [conversation, setConversation] = useState<ConversationDetailDto | null>(null);
   const [messages, setMessages] = useState<MessageDto[]>([]);
@@ -54,55 +41,31 @@ export function ConversationDetail({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check if current user is owner or deputy
   const isOwnerOrDeputy = useMemo(() => {
     if (!conversation?.members || !profile?.id) return false;
     const currentMember = conversation.members.find(m => m.userId === profile.id);
-    return currentMember?.roleType === 2 || currentMember?.roleType === 1; // Owner = 2, Deputy = 1
+    return currentMember?.roleType === 2 || currentMember?.roleType === 1;
   }, [conversation?.members, profile?.id]);
 
-  // Check if conversation is private
   const isPrivate = conversation?.visibility === 0;
 
-  // SignalR integration
-  const {
-    isConnected,
-    joinConversation,
-    leaveConversation,
-    sendTyping,
-    onMessageReceived,
-    onMessageUpdated,
-    onMessageDeleted,
-    onMessagePinned,
-    onMessageUnpinned,
-    onUserTyping,
-  } = useSignalR();
+  const { isConnected, joinConversation, leaveConversation, sendTyping, onMessageReceived, onMessageUpdated, onMessageDeleted, onMessagePinned, onMessageUnpinned, onUserTyping } = useSignalR();
 
-  const { togglePin } = usePinMessage(conversationId, (updatedMessage) => {
+  const { togglePin } = usePinMessage(conversationId, updatedMessage => {
     if (!updatedMessage) return;
-    setMessages((prev) =>
-      prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
-    );
+    setMessages(prev => prev.map(m => m.id === updatedMessage.id ? updatedMessage : m));
   });
 
-  const pinnedMessages = messages
-    .filter((m) => m.isPined)
-    .sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA; // Mới nhất trước
-    });
+  const pinnedMessages = messages.filter(m => m.isPined).sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+    return dateB - dateA;
+  });
 
-  // Mark message as read callback
   const markLastMessageAsRead = useCallback(async (messageId: string) => {
     try {
-      await postApiConversationsByConversationIdMessagesByIdMarkAsRead({
-        path: { conversationId, id: messageId },
-      });
-    } catch (err) {
-      // Silently fail - not critical
-      console.error("Failed to mark message as read:", err);
-    }
+      await postApiConversationsByConversationIdMessagesByIdMarkAsRead({ path: { conversationId, id: messageId } });
+    } catch { }
   }, [conversationId]);
 
   useEffect(() => {
@@ -110,206 +73,111 @@ export function ConversationDetail({
     void fetchMessages();
   }, [conversationId]);
 
-  // Auto-scroll is now handled by VirtualMessageList
-
-  // SignalR: Join/Leave conversation
   useEffect(() => {
     if (isConnected && conversationId) {
       joinConversation(conversationId);
-      return () => {
-        leaveConversation(conversationId);
-      };
+      return () => { leaveConversation(conversationId); };
     }
   }, [isConnected, conversationId, joinConversation, leaveConversation]);
 
-  // SignalR: Subscribe to message events
   useEffect(() => {
-    // Message received
-    const unsubReceived = onMessageReceived((message) => {
+    const unsubReceived = onMessageReceived(message => {
       if (message.conversationId === conversationId) {
-        setMessages((prev) => {
-          // Avoid duplicates by ID
-          if (prev.some((m) => m.id === message.id)) return prev;
-
-          // Nếu là tin nhắn của chính mình, replace tin nhắn temp (optimistic)
+        setMessages(prev => {
+          if (prev.some(m => m.id === message.id)) return prev;
           if (message.createdById === profile?.id) {
-            const tempIndex = prev.findIndex(
-              (m) => m.id?.startsWith("temp-") && m.content === message.content
-            );
+            const tempIndex = prev.findIndex(m => m.id?.startsWith("temp-") && m.content === message.content);
             if (tempIndex !== -1) {
-              // Replace optimistic message với real message
               const updated = [...prev];
               updated[tempIndex] = message;
               return updated;
             }
           }
-
           return [...prev, message];
         });
-
-        // Mark as read if not own message
-        if (message.id && message.createdById !== profile?.id) {
-          void markLastMessageAsRead(message.id);
-        }
+        if (message.id && message.createdById !== profile?.id) void markLastMessageAsRead(message.id);
       }
     });
 
-    // Message updated
-    const unsubUpdated = onMessageUpdated((message) => {
-      if (message.conversationId === conversationId) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === message.id ? message : m))
-        );
-      }
+    const unsubUpdated = onMessageUpdated(message => {
+      if (message.conversationId === conversationId) setMessages(prev => prev.map(m => m.id === message.id ? message : m));
     });
 
-    // Message deleted
-    const unsubDeleted = onMessageDeleted((data) => {
-      if (data.conversationId === conversationId) {
-        setMessages((prev) => prev.filter((m) => m.id !== data.messageId));
-      }
+    const unsubDeleted = onMessageDeleted(data => {
+      if (data.conversationId === conversationId) setMessages(prev => prev.filter(m => m.id !== data.messageId));
     });
 
-    // Message pinned
-    const unsubPinned = onMessagePinned((message) => {
-      if (message.conversationId === conversationId) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === message.id ? message : m))
-        );
-      }
+    const unsubPinned = onMessagePinned(message => {
+      if (message.conversationId === conversationId) setMessages(prev => prev.map(m => m.id === message.id ? message : m));
     });
 
-    // Message unpinned
-    const unsubUnpinned = onMessageUnpinned((message) => {
-      if (message.conversationId === conversationId) {
-        setMessages((prev) =>
-          prev.map((m) => (m.id === message.id ? message : m))
-        );
-      }
+    const unsubUnpinned = onMessageUnpinned(message => {
+      if (message.conversationId === conversationId) setMessages(prev => prev.map(m => m.id === message.id ? message : m));
     });
 
-    // User typing
-    const unsubTyping = onUserTyping((data) => {
+    const unsubTyping = onUserTyping(data => {
       if (data.conversationId === conversationId && data.userId !== profile?.id) {
-        setTypingUsers((prev) => {
+        setTypingUsers(prev => {
           const next = new Map(prev);
-          if (data.isTyping) {
-            next.set(data.userId, data.userId);
-          } else {
-            next.delete(data.userId);
-          }
+          if (data.isTyping) next.set(data.userId, data.userId);
+          else next.delete(data.userId);
           return next;
         });
       }
     });
 
-    return () => {
-      unsubReceived();
-      unsubUpdated();
-      unsubDeleted();
-      unsubPinned();
-      unsubUnpinned();
-      unsubTyping();
-    };
-  }, [conversationId, profile?.id, onMessageReceived, onMessageUpdated, onMessageDeleted, onMessagePinned, onMessageUnpinned, onUserTyping]);
+    return () => { unsubReceived(); unsubUpdated(); unsubDeleted(); unsubPinned(); unsubUnpinned(); unsubTyping(); };
+  }, [conversationId, profile?.id, onMessageReceived, onMessageUpdated, onMessageDeleted, onMessagePinned, onMessageUnpinned, onUserTyping, markLastMessageAsRead]);
 
   const fetchConversation = async () => {
     try {
-      const response = await getApiConversationById({
-        path: { id: conversationId },
-      });
+      const response = await getApiConversationById({ path: { id: conversationId } });
       const payload = (response.data ?? response) as ConversationDetailDto | undefined;
-      if (payload) {
-        setConversation(payload);
-      }
-    } catch (err: any) {
-      console.error("Error fetching conversation:", err);
-    }
+      if (payload) setConversation(payload);
+    } catch { }
   };
 
   const fetchMessages = async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const response = await getApiConversationsByConversationIdMessages({
-        path: { conversationId },
-        query: {
-          Page: 1,
-          PageSize: 50,
-        },
-      });
-
-      const payload = (response.data ??
-        response) as PagedResponseOfMessageDto | undefined;
+      const response = await getApiConversationsByConversationIdMessages({ path: { conversationId }, query: { Page: 1, PageSize: 50 } });
+      const payload = (response.data ?? response) as PagedResponseOfMessageDto | undefined;
       const items = payload?.items ?? [];
-
       setMessages(items);
-      setHasMore(items.length >= 50);  // Has more if we got a full page
-
-      // Mark last message as read
+      setHasMore(items.length >= 50);
       if (items.length > 0) {
         const lastMessage = items[items.length - 1];
-        if (lastMessage.id && lastMessage.createdById !== profile?.id) {
-          void markLastMessageAsRead(lastMessage.id);
-        }
+        if (lastMessage.id && lastMessage.createdById !== profile?.id) void markLastMessageAsRead(lastMessage.id);
       }
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Không thể tải tin nhắn";
-      setError(message);
+      setError(err?.response?.data?.message || err?.message || "Không thể tải tin nhắn");
     } finally {
       setLoading(false);
     }
   };
 
-  // tải tn cũ 
   const loadOlderMessages = async () => {
     if (loadingMore || !hasMore || messages.length === 0) return;
-
     const oldestMessage = messages[0];
     if (!oldestMessage?.createdAt) return;
-
     setLoadingMore(true);
     try {
-      const response = await getApiConversationsByConversationIdMessages({
-        path: { conversationId },
-        query: {
-          PageSize: 50,
-          Before: oldestMessage.createdAt,
-        },
-      });
-
+      const response = await getApiConversationsByConversationIdMessages({ path: { conversationId }, query: { PageSize: 50, Before: oldestMessage.createdAt } });
       const payload = (response.data ?? response) as PagedResponseOfMessageDto | undefined;
       const olderItems = payload?.items ?? [];
-
-      if (olderItems.length > 0) {
-        setMessages((prev) => [...olderItems, ...prev]);
-      }
+      if (olderItems.length > 0) setMessages(prev => [...olderItems, ...prev]);
       setHasMore(olderItems.length >= 50);
-    } catch (err) {
-      console.error("Error loading older messages:", err);
-    } finally {
-      setLoadingMore(false);
-    }
+    } catch { }
+    finally { setLoadingMore(false); }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      setSelectedFiles((prev) => [...prev, ...files]);
-    }
-    // Reset input để có thể chọn lại file giống nhau
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
+    if (e.target.files) setSelectedFiles(prev => [...prev, ...Array.from(e.target.files!)]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleRemoveFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
+  const handleRemoveFile = (index: number) => setSelectedFiles(prev => prev.filter((_, i) => i !== index));
 
   const { uploadFiles } = useFileUpload();
 
@@ -317,7 +185,6 @@ export function ConversationDetail({
     e.preventDefault();
     if ((!messageContent.trim() && selectedFiles.length === 0) || sending) return;
 
-    // Optimistic UI: tạo tin nhắn tạm và hiển thị ngay
     const tempId = `temp-${Date.now()}`;
     const optimisticMessage: MessageDto = {
       id: tempId,
@@ -337,8 +204,7 @@ export function ConversationDetail({
     setSelectedFiles([]);
     setReplyTo(null);
 
-    if (files.length === 0)
-      setMessages((prev) => [...prev, optimisticMessage]);
+    if (files.length === 0) setMessages(prev => [...prev, optimisticMessage]);
 
     setSending(true);
     setError(null);
@@ -347,293 +213,137 @@ export function ConversationDetail({
       const fileIds: string[] = [];
       if (files.length > 0) {
         const uploaded = await uploadFiles(files, "Message");
-        const ids = uploaded
-          .map((f) => f.id)
-          .filter((id): id is string => typeof id === "string" && id.length > 0);
-        fileIds.push(...ids);
+        fileIds.push(...uploaded.map(f => f.id).filter((id): id is string => typeof id === "string" && id.length > 0));
       }
 
       const response = await postApiConversationsByConversationIdMessages({
         path: { conversationId },
-        body: {
-          conversationId,
-          parentId: parent?.id,
-          content,
-          fileIds: fileIds.length > 0 ? fileIds : undefined,
-        },
+        body: { conversationId, parentId: parent?.id, content, fileIds: fileIds.length > 0 ? fileIds : undefined },
       });
 
       const newMessage = (response.data ?? response) as MessageDto | undefined;
-
-      if (newMessage) {
-        if (files.length === 0) {
-          setMessages((prev) =>
-            prev.map((m) => (m.id === tempId ? newMessage : m))
-          );
-        }
-      }
+      if (newMessage && files.length === 0) setMessages(prev => prev.map(m => m.id === tempId ? newMessage : m));
     } catch (err: any) {
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setMessages(prev => prev.filter(m => m.id !== tempId));
       setMessageContent(content);
       if (parent) setReplyTo(parent);
-
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Không thể gửi tin nhắn";
-      setError(message);
+      setError(err?.response?.data?.message || err?.message || "Không thể gửi tin nhắn");
     } finally {
       setSending(false);
     }
   };
 
-  const isImageFile = (file: File) => {
-    return file.type.startsWith("image/");
-  };
+  const isImageFile = (file: File) => file.type.startsWith("image/");
 
-  // Handle typing indicator
   const handleTyping = useCallback(() => {
     if (!isConnected) return;
-
-    // Send typing = true
     sendTyping(conversationId, true);
-
-    // Clear previous timeout
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // Set timeout to send typing = false after 2 seconds of no typing
-    typingTimeoutRef.current = setTimeout(() => {
-      sendTyping(conversationId, false);
-    }, 2000);
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => sendTyping(conversationId, false), 2000);
   }, [isConnected, conversationId, sendTyping]);
 
-  // scrollToBottom is now handled internally by VirtualMessageList
-
   if (loading && !conversation) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-primary" />
-      </div>
-    );
+    return <div className="flex h-full items-center justify-center"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
   }
 
   if (!conversation) {
-    return (
-      <div className="flex h-full items-center justify-center">
-        <p className="text-muted-foreground">
-          Không tìm thấy cuộc trò chuyện
-        </p>
-      </div>
-    );
+    return <div className="flex h-full items-center justify-center"><p className="text-muted-foreground">Không tìm thấy cuộc trò chuyện</p></div>;
   }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* Header */}
       <div className="shrink-0 border-b border-border bg-card px-4 py-3">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onBack}
-            className="h-8 w-8 p-0"
-            title="Quay lại danh sách"
-          >
+          <Button variant="ghost" size="sm" onClick={onBack} className="h-8 w-8 p-0" title="Quay lại danh sách">
             <ArrowLeft className="h-4 w-4 md:hidden" />
             <List className="h-4 w-4 hidden md:block" />
           </Button>
           <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold text-foreground truncate">
-              {conversation.conversationName || "Cuộc trò chuyện"}
-            </h2>
+            <h2 className="text-sm font-semibold text-foreground truncate">{conversation.conversationName || "Cuộc trò chuyện"}</h2>
             {conversation.tags && conversation.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-1">
-                {conversation.tags.map((tag) => (
-                  <span
-                    key={tag.id}
-                    className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground"
-                  >
-                    {tag.tagName}
-                  </span>
+                {conversation.tags.map(tag => (
+                  <span key={tag.id} className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground">{tag.tagName}</span>
                 ))}
               </div>
             )}
           </div>
           <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowFilesSidebar(true)}
-              className="h-8 w-8 p-0"
-              title="Xem tệp đã gửi"
-            >
-              <FolderOpen className="h-4 w-4" />
-            </Button>
-            {/* Join Requests Button - Only for private groups and owner/deputy */}
-            {isPrivate && isOwnerOrDeputy && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowJoinRequestSidebar(true)}
-                className="h-8 w-8 p-0"
-                title="Yêu cầu tham gia"
-              >
-                <UserPlus className="h-4 w-4" />
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowEditSidebar(true)}
-              className="h-8 w-8 p-0"
-              title="Chỉnh sửa cuộc trò chuyện"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setShowFilesSidebar(true)} className="h-8 w-8 p-0" title="Xem tệp đã gửi"><FolderOpen className="h-4 w-4" /></Button>
+            {isPrivate && isOwnerOrDeputy && <Button variant="ghost" size="sm" onClick={() => setShowJoinRequestSidebar(true)} className="h-8 w-8 p-0" title="Yêu cầu tham gia"><UserPlus className="h-4 w-4" /></Button>}
+            <Button variant="ghost" size="sm" onClick={() => setShowEditSidebar(true)} className="h-8 w-8 p-0" title="Chỉnh sửa cuộc trò chuyện"><Settings className="h-4 w-4" /></Button>
           </div>
         </div>
       </div>
 
-      {/* Pinned Messages Section */}
       {pinnedMessages.length > 0 && (
         <div className="shrink-0">
           <PinnedMessagesSection
             pinnedMessages={pinnedMessages}
             conversationId={conversationId}
-            onMessageClick={(messageId) => {
-              // Scroll to message
-              const element = document.querySelector(`[data-message-id="${messageId}"]`);
-              if (element) {
-                element.scrollIntoView({ behavior: "smooth", block: "center" });
-              }
-            }}
-            onUnpin={(message) => {
-              void togglePin(message);
-            }}
+            onMessageClick={messageId => document.querySelector(`[data-message-id="${messageId}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+            onUnpin={message => void togglePin(message)}
           />
         </div>
       )}
 
-      {/* Messages */}
       <div className="flex-1 min-h-0 flex flex-col">
-        {error && (
-          <div className="shrink-0 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950">
-            {error}
-          </div>
-        )}
+        {error && <div className="shrink-0 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950">{error}</div>}
 
         {messages.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            <p>Chưa có tin nhắn nào</p>
-          </div>
+          <div className="flex-1 flex items-center justify-center text-muted-foreground"><p>Chưa có tin nhắn nào</p></div>
         ) : (
           <VirtualMessageList
             messages={messages}
             conversationId={conversationId}
             currentUserId={profile?.id}
-            onReply={(m) => setReplyTo(m)}
-            onScrollToMessage={(messageId) => {
-              const element = document.querySelector(`[data-message-id="${messageId}"]`);
-              if (element) {
-                element.scrollIntoView({ behavior: "smooth", block: "center" });
-              }
-            }}
-            onUpdate={(updatedMessage) => {
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === updatedMessage.id ? updatedMessage : m
-                )
-              );
-            }}
-            onDelete={(messageId) => {
-              setMessages((prev) => prev.filter((m) => m.id !== messageId));
-            }}
+            onReply={m => setReplyTo(m)}
+            onScrollToMessage={messageId => document.querySelector(`[data-message-id="${messageId}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" })}
+            onUpdate={updatedMessage => setMessages(prev => prev.map(m => m.id === updatedMessage.id ? updatedMessage : m))}
+            onDelete={messageId => setMessages(prev => prev.filter(m => m.id !== messageId))}
             onLoadMore={loadOlderMessages}
             hasMore={hasMore}
             isLoadingMore={loadingMore}
-            typingIndicator={
-              typingUsers.size > 0 ? (
-                <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
-                  <span>
-                    {typingUsers.size === 1
-                      ? "Ai đó đang nhập..."
-                      : `${typingUsers.size} người đang nhập...`}
-                  </span>
+            typingIndicator={typingUsers.size > 0 ? (
+              <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
+                <div className="flex gap-1">
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
-              ) : undefined
-            }
+                <span>{typingUsers.size === 1 ? "Ai đó đang nhập..." : `${typingUsers.size} người đang nhập...`}</span>
+              </div>
+            ) : undefined}
           />
         )}
       </div>
 
-      {/* Message Input */}
       <div className="shrink-0 border-t border-border bg-card p-2 md:p-4">
-        {/* Reply preview */}
         {replyTo && (
           <div className="mb-2 flex items-start justify-between bg-muted px-3 py-2 text-xs text-foreground">
             <div className="mr-2 min-w-0">
-              <div className="font-semibold truncate">
-                Trả lời {replyTo.senderName || "người dùng"}
-              </div>
-              <div className="truncate text-[11px] opacity-80">
-                {replyTo.content}
-              </div>
+              <div className="font-semibold truncate">Trả lời {replyTo.senderName || "người dùng"}</div>
+              <div className="truncate text-[11px] opacity-80">{replyTo.content}</div>
             </div>
-            <button
-              type="button"
-              onClick={() => setReplyTo(null)}
-              className="ml-2 text-muted-foreground hover:text-foreground"
-              title="Hủy trả lời"
-            >
-              <X className="h-3 w-3" />
-            </button>
+            <button type="button" onClick={() => setReplyTo(null)} className="ml-2 text-muted-foreground hover:text-foreground" title="Hủy trả lời"><X className="h-3 w-3" /></button>
           </div>
         )}
 
-        {/* Preview selected files */}
         {selectedFiles.length > 0 && (
           <div className="mb-2 space-y-2">
             <div className="flex flex-wrap gap-2">
               {selectedFiles.map((file, index) => (
-                <div
-                  key={index}
-                  className="relative group border border-border overflow-hidden"
-                >
+                <div key={index} className="relative group border border-border overflow-hidden">
                   {isImageFile(file) ? (
                     <div className="relative">
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt={file.name}
-                        className="h-20 w-20 object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFile(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      <img src={URL.createObjectURL(file)} alt={file.name} className="h-20 w-20 object-cover" />
+                      <button type="button" onClick={() => handleRemoveFile(index)} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="h-3 w-3" /></button>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 p-2 bg-muted">
                       <Paperclip className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-xs text-foreground truncate max-w-[120px]">
-                        {file.name}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveFile(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
+                      <span className="text-xs text-foreground truncate max-w-[120px]">{file.name}</span>
+                      <button type="button" onClick={() => handleRemoveFile(index)} className="text-red-500 hover:text-red-700"><X className="h-3 w-3" /></button>
                     </div>
                   )}
                 </div>
@@ -644,85 +354,21 @@ export function ConversationDetail({
 
         <form onSubmit={handleSendMessage} className="space-y-2">
           <div className="flex gap-2">
-            <input
-              type="file"
-              ref={fileInputRef}
-              multiple
-              onChange={handleFileSelect}
-              className="hidden"
-              id="message-file-input"
-              accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
-            />
-            <label
-              htmlFor="message-file-input"
-              className="flex items-center justify-center p-2 border border-border hover:bg-muted cursor-pointer transition-colors"
-              title="Đính kèm file"
-            >
+            <input type="file" ref={fileInputRef} multiple onChange={handleFileSelect} className="hidden" id="message-file-input" accept="image/*,application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt" />
+            <label htmlFor="message-file-input" className="flex items-center justify-center p-2 border border-border hover:bg-muted cursor-pointer transition-colors" title="Đính kèm file">
               <Paperclip className="h-5 w-5 text-muted-foreground" />
             </label>
-            <Input
-              type="text"
-              placeholder="Nhập tin nhắn..."
-              value={messageContent}
-              onChange={(e) => {
-                setMessageContent(e.target.value);
-                handleTyping();
-              }}
-              disabled={sending}
-              className="flex-1 text-sm md:text-base"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  void handleSendMessage(e);
-                }
-              }}
-            />
-            <Button
-              type="submit"
-              disabled={sending || (!messageContent.trim() && selectedFiles.length === 0)}
-              size="sm"
-              className="md:size-default"
-            >
-              {sending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
+            <Input type="text" placeholder="Nhập tin nhắn..." value={messageContent} onChange={e => { setMessageContent(e.target.value); handleTyping(); }} disabled={sending} className="flex-1 text-sm md:text-base" onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); void handleSendMessage(e); } }} />
+            <Button type="submit" disabled={sending || (!messageContent.trim() && selectedFiles.length === 0)} size="sm" className="md:size-default">
+              {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             </Button>
           </div>
         </form>
       </div>
 
-      {/* Edit Conversation Sidebar */}
-      <EditConversationSidebar
-        open={showEditSidebar}
-        onClose={() => setShowEditSidebar(false)}
-        conversation={conversation}
-        onSuccess={() => {
-          void fetchConversation();
-        }}
-      />
-
-      {/* Files Sidebar */}
-      <ConversationFilesSidebar
-        open={showFilesSidebar}
-        onClose={() => setShowFilesSidebar(false)}
-        messages={messages}
-      />
-
-      {/* Join Requests Sidebar */}
-      <JoinRequestSidebar
-        open={showJoinRequestSidebar}
-        onClose={() => setShowJoinRequestSidebar(false)}
-        conversationId={conversationId}
-        conversationName={conversation.conversationName || "Cuộc trò chuyện"}
-        onSuccess={() => {
-          void fetchConversation();
-        }}
-      />
+      <EditConversationSidebar open={showEditSidebar} onClose={() => setShowEditSidebar(false)} conversation={conversation} onSuccess={() => void fetchConversation()} />
+      <ConversationFilesSidebar open={showFilesSidebar} onClose={() => setShowFilesSidebar(false)} messages={messages} />
+      <JoinRequestSidebar open={showJoinRequestSidebar} onClose={() => setShowJoinRequestSidebar(false)} conversationId={conversationId} conversationName={conversation.conversationName || "Cuộc trò chuyện"} onSuccess={() => void fetchConversation()} />
     </div>
   );
 }
-
-
-

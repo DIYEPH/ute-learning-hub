@@ -19,14 +19,7 @@ interface DocumentFileListProps {
   onRefresh?: () => void;
 }
 
-export function DocumentFileList({
-  files,
-  document: doc,
-  onEdit,
-  onDelete,
-  onReorder,
-  onRefresh,
-}: DocumentFileListProps) {
+export function DocumentFileList({ files, document: doc, onEdit, onDelete, onReorder, onRefresh }: DocumentFileListProps) {
   const documentId = doc.id;
   const { profile } = useUserProfile();
   const { success: notifySuccess, error: notifyError } = useNotification();
@@ -35,25 +28,20 @@ export function DocumentFileList({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  // Check if current user is owner of the document
   const isOwner = profile?.id === doc.createdById;
   const canReorder = isOwner && !!onReorder;
 
+  // Report file
   const handleReport = (fileId: string) => {
-    const file = files.find((f) => f.id === fileId);
-    if (file) {
-      setReportingFile(file);
-      setReportModalOpen(true);
-    }
+    const file = files.find(f => f.id === fileId);
+    if (file) { setReportingFile(file); setReportModalOpen(true); }
   };
 
+  // Resubmit for review
   const handleResubmit = async (fileId: string) => {
     if (!documentId) return;
-
     try {
-      await postApiDocumentByDocumentIdFilesByFileIdResubmit({
-        path: { documentId, fileId },
-      });
+      await postApiDocumentByDocumentIdFilesByFileIdResubmit({ path: { documentId, fileId } });
       notifySuccess("Đã gửi yêu cầu duyệt lại. Admin sẽ xem xét file của bạn.");
       onRefresh?.();
     } catch (err: any) {
@@ -61,6 +49,7 @@ export function DocumentFileList({
     }
   };
 
+  // Drag handlers
   const handleDragStart = useCallback((e: React.DragEvent, index: number) => {
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", index.toString());
@@ -70,9 +59,7 @@ export function DocumentFileList({
   const handleDragOver = useCallback((e: React.DragEvent, index: number) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
-    if (draggedIndex !== null && draggedIndex !== index) {
-      setDragOverIndex(index);
-    }
+    if (draggedIndex !== null && draggedIndex !== index) setDragOverIndex(index);
   }, [draggedIndex]);
 
   const handleDragEnd = useCallback(() => {
@@ -80,25 +67,14 @@ export function DocumentFileList({
     setDragOverIndex(null);
   }, []);
 
+  // Drop and reorder
   const handleDrop = useCallback((e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
-    if (draggedIndex === null || draggedIndex === targetIndex) {
-      handleDragEnd();
-      return;
-    }
-
-    // Reorder files
+    if (draggedIndex === null || draggedIndex === targetIndex) { handleDragEnd(); return; }
     const newFiles = [...files];
     const [draggedItem] = newFiles.splice(draggedIndex, 1);
     newFiles.splice(targetIndex, 0, draggedItem);
-
-    // Update order values
-    const reorderedFiles = newFiles.map((f, idx) => ({
-      ...f,
-      order: idx,
-    }));
-
-    onReorder?.(reorderedFiles);
+    onReorder?.(newFiles.map((f, idx) => ({ ...f, order: idx })));
     handleDragEnd();
   }, [draggedIndex, files, onReorder, handleDragEnd]);
 
@@ -106,15 +82,9 @@ export function DocumentFileList({
     <>
       <div className="flex flex-col gap-2">
         {files.map((file, index) => {
-          const detailHref =
-            documentId && file.id
-              ? `/documents/${documentId}/files/${file.id}`
-              : undefined;
-
+          const detailHref = documentId && file.id ? `/documents/${documentId}/files/${file.id}` : undefined;
           const isDragging = draggedIndex === index;
           const isDragOver = dragOverIndex === index;
-
-          // File item content
           const fileContent = (
             <DocumentFileItem
               file={file}
@@ -127,42 +97,33 @@ export function DocumentFileList({
               onResubmit={handleResubmit}
             />
           );
-
-          // Wrapped with link if detail href exists
           const linkedContent = detailHref ? (
-            <Link href={detailHref} className="block flex-1">
-              {fileContent}
-            </Link>
+            <Link href={detailHref} className="block flex-1">{fileContent}</Link>
           ) : (
             <div className="flex-1">{fileContent}</div>
           );
-
           return (
             <div
               key={file.id}
               className={`flex items-center gap-2 ${isDragging ? "opacity-50" : ""} ${isDragOver ? "border-t-2 border-primary" : ""}`}
-              onDragOver={(e) => canReorder && handleDragOver(e, index)}
-              onDrop={(e) => canReorder && handleDrop(e, index)}
+              onDragOver={e => canReorder && handleDragOver(e, index)}
+              onDrop={e => canReorder && handleDrop(e, index)}
             >
-              {/* Drag handle - only show for owner */}
               {canReorder && (
                 <div
                   draggable
-                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragStart={e => handleDragStart(e, index)}
                   onDragEnd={handleDragEnd}
                   className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground shrink-0"
                 >
                   <GripVertical className="h-5 w-5" />
                 </div>
               )}
-
               {linkedContent}
             </div>
           );
         })}
       </div>
-
-      {/* Report Modal */}
       <ReportModal
         open={reportModalOpen}
         onOpenChange={setReportModalOpen}

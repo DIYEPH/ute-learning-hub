@@ -16,29 +16,11 @@ interface TypeTableProps {
   enableClientSort?: boolean;
 }
 
-export function TypeTable({
-  types,
-  onEdit,
-  onDelete,
-  onBulkDelete,
-  loading,
-  onSort,
-  sortKey,
-  sortDirection,
-  enableClientSort,
-}: TypeTableProps) {
+export function TypeTable({ types, onEdit, onDelete, onBulkDelete, loading, onSort, sortKey, sortDirection, enableClientSort }: TypeTableProps) {
   const t = useTranslations("admin.types");
 
   const columns: BaseTableColumn<TypeDto>[] = [
-    {
-      key: "typeName",
-      header: t("table.typeName"),
-      className: "min-w-[200px]",
-      sortable: true,
-      render: (type) => (
-        <div className="font-medium text-foreground">{type.typeName}</div>
-      ),
-    },
+    { key: "typeName", header: t("table.typeName"), className: "min-w-[200px]", sortable: true, render: type => <div className="font-medium text-foreground">{type.typeName}</div> },
   ];
 
   return (
@@ -62,5 +44,3 @@ export function TypeTable({
     />
   );
 }
-
-

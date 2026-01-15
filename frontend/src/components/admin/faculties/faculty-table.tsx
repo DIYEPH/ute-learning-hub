@@ -18,17 +18,7 @@ interface FacultyTableProps {
   enableClientSort?: boolean;
 }
 
-export function FacultyTable({
-  faculties,
-  onEdit,
-  onDelete,
-  onBulkDelete,
-  loading,
-  onSort,
-  sortKey,
-  sortDirection,
-  enableClientSort,
-}: FacultyTableProps) {
+export function FacultyTable({ faculties, onEdit, onDelete, onBulkDelete, loading, onSort, sortKey, sortDirection, enableClientSort }: FacultyTableProps) {
   const t = useTranslations("admin.faculties");
 
   const columns: BaseTableColumn<FacultyDetailDto>[] = [
@@ -36,46 +26,17 @@ export function FacultyTable({
       key: "logo",
       header: t("table.logo"),
       className: "min-w-[80px]",
-      sortable: false, // Image field, disable sorting
-      render: (faculty) => (
-        <>
-          {faculty.logo ? (
-            <div className="relative h-10 w-10">
-              <img
-                src={faculty.logo}
-                alt={faculty.facultyName || "Logo"}
-                className="h-10 w-10 object-contain rounded"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
-              />
-            </div>
-          ) : (
-            <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">
-              -
-            </div>
-          )}
-        </>
+      sortable: false,
+      render: (faculty) => faculty.logo ? (
+        <div className="relative h-10 w-10">
+          <img src={faculty.logo} alt={faculty.facultyName || "Logo"} className="h-10 w-10 object-contain rounded" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+        </div>
+      ) : (
+        <div className="h-10 w-10 bg-muted rounded flex items-center justify-center text-xs text-muted-foreground">-</div>
       ),
     },
-    {
-      key: "facultyName",
-      header: t("table.facultyName"),
-      className: "min-w-[200px]",
-      sortable: true,
-      render: (faculty) => (
-        <div className="font-medium text-foreground">{faculty.facultyName}</div>
-      ),
-    },
-    {
-      key: "facultyCode",
-      header: t("table.facultyCode"),
-      className: "min-w-[120px]",
-      sortable: true,
-      render: (faculty) => (
-        <div className="text-sm text-foreground">{faculty.facultyCode}</div>
-      ),
-    },
+    { key: "facultyName", header: t("table.facultyName"), className: "min-w-[200px]", sortable: true, render: (faculty) => <div className="font-medium text-foreground">{faculty.facultyName}</div> },
+    { key: "facultyCode", header: t("table.facultyCode"), className: "min-w-[120px]", sortable: true, render: (faculty) => <div className="text-sm text-foreground">{faculty.facultyCode}</div> },
     {
       key: "majorCount",
       header: t("table.majorCount"),
@@ -111,4 +72,3 @@ export function FacultyTable({
     />
   );
 }
-

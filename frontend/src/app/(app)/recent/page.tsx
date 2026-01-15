@@ -2,13 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Loader2, Clock, FileText } from "lucide-react";
-
+import { Loader2, FileText } from "lucide-react";
 import { getApiDocumentReadingHistory } from "@/src/api";
-import type {
-    ReadingHistoryItemDto,
-    PagedResponseOfReadingHistoryItemDto,
-} from "@/src/api/database/types.gen";
+import type { ReadingHistoryItemDto, PagedResponseOfReadingHistoryItemDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { getFileUrlById } from "@/src/lib/file-url";
 
@@ -22,7 +18,6 @@ function formatRelativeTime(dateString?: string | null): string {
     const diffMinutes = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-
     if (diffMinutes < 1) return "Vừa xong";
     if (diffMinutes < 60) return `${diffMinutes} phút trước`;
     if (diffHours < 24) return `${diffHours} giờ trước`;
@@ -38,52 +33,29 @@ export default function RecentPage() {
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        void fetchHistory(1, false);
-    }, []);
+    useEffect(() => { void fetchHistory(1, false); }, []);
 
     const fetchHistory = async (pageNumber: number, append: boolean) => {
-        if (append) {
-            setIsLoadingMore(true);
-        } else {
-            setIsLoading(true);
-        }
+        append ? setIsLoadingMore(true) : setIsLoading(true);
         setError(null);
-
         try {
             const response = await getApiDocumentReadingHistory({
-                query: {
-                    Page: pageNumber,
-                    PageSize: PAGE_SIZE,
-                },
+                query: { Page: pageNumber, PageSize: PAGE_SIZE }
             });
-
-            const payload = (response.data ??
-                response) as PagedResponseOfReadingHistoryItemDto | undefined;
+            const payload = (response.data ?? response) as PagedResponseOfReadingHistoryItemDto | undefined;
             const fetchedItems = payload?.items ?? [];
-
-            setItems((prev) => (append ? [...prev, ...fetchedItems] : fetchedItems));
+            setItems(prev => append ? [...prev, ...fetchedItems] : fetchedItems);
             setPage(pageNumber);
             setHasNextPage(Boolean(payload?.hasNextPage));
         } catch (err: any) {
-            const message =
-                err?.response?.data?.message ||
-                err?.message ||
-                "Không thể tải lịch sử đọc";
-            setError(message);
+            setError(err?.response?.data?.message || err?.message || "Không thể tải lịch sử đọc");
         } finally {
-            if (append) {
-                setIsLoadingMore(false);
-            } else {
-                setIsLoading(false);
-            }
+            append ? setIsLoadingMore(false) : setIsLoading(false);
         }
     };
 
     const handleLoadMore = () => {
-        if (hasNextPage && !isLoadingMore) {
-            void fetchHistory(page + 1, true);
-        }
+        if (hasNextPage && !isLoadingMore) void fetchHistory(page + 1, true);
     };
 
     const showSkeleton = isLoading && items.length === 0;
@@ -91,16 +63,12 @@ export default function RecentPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-2xl font-semibold text-foreground">
-                    Gần đây
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                    Những tài liệu bạn đã đọc gần đây
-                </p>
+                <h1 className="text-2xl font-semibold text-foreground">Gần đây</h1>
+                <p className="text-sm text-muted-foreground mt-1">Những tài liệu bạn đã đọc gần đây</p>
             </div>
 
             {error && (
-                <div className=" border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+                <div className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
                     {error}
                 </div>
             )}
@@ -115,36 +83,25 @@ export default function RecentPage() {
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {items.map((item) => {
+                    {items.map(item => {
                         const coverUrl = getFileUrlById(item.coverFileId);
-                        const progress = item.totalPages
-                            ? Math.round(((item.lastPage ?? 0) / item.totalPages) * 100)
-                            : 0;
-
+                        const progress = item.totalPages ? Math.round(((item.lastPage ?? 0) / item.totalPages) * 100) : 0;
                         return (
                             <Link
                                 key={`${item.documentId}-${item.documentFileId}`}
                                 href={`/documents/${item.documentId}`}
                                 className="flex items-center gap-4 p-4 border border-border bg-card hover:border-primary hover:shadow-sm transition-all"
                             >
-                                {/* Thumbnail */}
                                 <div className="shrink-0 w-16 h-16 bg-muted overflow-hidden flex items-center justify-center">
                                     {coverUrl ? (
-                                        <img
-                                            src={coverUrl}
-                                            alt={item.documentName}
-                                            className="w-full h-full object-contain"
-                                        />
+                                        <img src={coverUrl} alt={item.documentName} className="w-full h-full object-contain" />
                                     ) : (
                                         <FileText className="h-8 w-8 text-muted-foreground" />
                                     )}
                                 </div>
 
-                                {/* Content */}
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-medium text-foreground truncate">
-                                        {item.documentName}
-                                    </h3>
+                                    <h3 className="font-medium text-foreground truncate">{item.documentName}</h3>
                                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
                                         {item.subjectName && <span>{item.subjectName}</span>}
                                         {item.fileTitle && (
@@ -154,7 +111,6 @@ export default function RecentPage() {
                                             </>
                                         )}
                                     </div>
-                                    {/* Progress bar */}
                                     {item.totalPages && item.totalPages > 0 && (
                                         <div className="mt-2 flex items-center gap-2">
                                             <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
@@ -170,7 +126,6 @@ export default function RecentPage() {
                                     )}
                                 </div>
 
-                                {/* Time & Continue reading */}
                                 <div className="shrink-0 flex flex-col items-end gap-2">
                                     <span className="text-xs text-muted-foreground whitespace-nowrap">
                                         {formatRelativeTime(item.lastAccessedAt)}
@@ -198,15 +153,8 @@ export default function RecentPage() {
 
             {hasNextPage && (
                 <div className="flex justify-center">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={handleLoadMore}
-                        disabled={isLoadingMore}
-                    >
-                        {isLoadingMore && (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
+                    <Button type="button" variant="outline" onClick={handleLoadMore} disabled={isLoadingMore}>
+                        {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Tải thêm
                     </Button>
                 </div>
@@ -214,4 +162,3 @@ export default function RecentPage() {
         </div>
     );
 }
-

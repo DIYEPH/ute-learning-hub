@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Star } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { DropdownMenuWrapper } from "@/src/components/ui/dropdown-menu-wrapper";
-import {
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-} from "@/src/components/ui/dropdown-menu";
+import { DropdownMenuLabel, DropdownMenuSeparator } from "@/src/components/ui/dropdown-menu";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { getApiUserByIdTrustHistory } from "@/src/api";
 import type { UserTrustHistoryDto } from "@/src/api/database/types.gen";
@@ -19,13 +16,12 @@ export function TrustPointsBadge() {
 
     const trustPoints = (profile as any)?.trustScore ?? 0;
 
+    // Fetch trust history
     const fetchHistory = useCallback(async () => {
         if (!profile?.id) return;
         setLoadingHistory(true);
         try {
-            const res = await getApiUserByIdTrustHistory({
-                path: { id: profile.id! },
-            });
+            const res = await getApiUserByIdTrustHistory({ path: { id: profile.id! } });
             setHistory(res.data ?? []);
         } catch {
             setHistory([]);
@@ -35,9 +31,7 @@ export function TrustPointsBadge() {
     }, [profile?.id]);
 
     const handleOpenChange = useCallback((open: boolean) => {
-        if (open) {
-            fetchHistory();
-        }
+        if (open) fetchHistory();
     }, [fetchHistory]);
 
     if (profileLoading || !profile) return null;
@@ -67,16 +61,14 @@ export function TrustPointsBadge() {
                     <p className="p-3 text-sm text-muted-foreground">Chưa có lịch sử</p>
                 ) : (
                     <div className="divide-y">
-                        {history.slice(0, 10).map((item) => (
+                        {history.slice(0, 10).map(item => (
                             <div key={item.id} className="p-3 flex justify-between items-start text-sm">
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2">
                                         <span className={item.score && item.score > 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
                                             {item.score && item.score > 0 ? `+${item.score}` : item.score}
                                         </span>
-                                        <span className="text-xs text-muted-foreground">
-                                            ({item.oldScore} → {item.newScore})
-                                        </span>
+                                        <span className="text-xs text-muted-foreground">({item.oldScore} → {item.newScore})</span>
                                     </div>
                                     <p className="text-muted-foreground text-xs mt-0.5 truncate">{item.reason}</p>
                                 </div>

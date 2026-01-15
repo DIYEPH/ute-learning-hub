@@ -18,79 +18,29 @@ interface SubjectTableProps {
   enableClientSort?: boolean;
 }
 
-export function SubjectTable({
-  subjects,
-  onEdit,
-  onDelete,
-  onBulkDelete,
-  loading,
-  onSort,
-  sortKey,
-  sortDirection,
-  enableClientSort,
-}: SubjectTableProps) {
+export function SubjectTable({ subjects, onEdit, onDelete, onBulkDelete, loading, onSort, sortKey, sortDirection, enableClientSort }: SubjectTableProps) {
   const t = useTranslations("admin.subjects");
 
   const columns: BaseTableColumn<SubjectDetailDto>[] = [
+    { key: "subjectName", header: t("table.subjectName"), className: "min-w-[200px]", sortable: true, render: s => <div className="font-medium text-foreground">{s.subjectName}</div> },
+    { key: "subjectCode", header: t("table.subjectCode"), className: "min-w-[120px]", sortable: true, render: s => <div className="text-sm text-foreground">{s.subjectCode}</div> },
     {
-      key: "subjectName",
-      header: t("table.subjectName"),
-      className: "min-w-[200px]",
-      sortable: true,
-      render: (subject) => (
-        <div className="font-medium text-foreground">{subject.subjectName}</div>
-      ),
-    },
-    {
-      key: "subjectCode",
-      header: t("table.subjectCode"),
-      className: "min-w-[120px]",
-      sortable: true,
-      render: (subject) => (
-        <div className="text-sm text-foreground">{subject.subjectCode}</div>
-      ),
-    },
-    {
-      key: "majors",
-      header: t("table.majors"),
-      className: "min-w-[250px]",
-      sortable: false, // Complex field, disable sorting
-      render: (subject) => (
+      key: "majors", header: t("table.majors"), className: "min-w-[250px]", sortable: false,
+      render: s => (
         <div className="text-sm text-foreground">
-          {subject.majors && subject.majors.length > 0 ? (
+          {s.majors && s.majors.length > 0 ? (
             <div className="flex flex-wrap gap-1">
-              {subject.majors.map((major: { id?: string; majorName?: string; majorCode?: string; facultyCode?: string | null }, index: number) => (
-                <span
-                  key={major.id || index}
-                  className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-secondary text-secondary-foreground"
-                >
-                  {major.majorName}
-                  {major.facultyCode && (
-                    <span className="ml-1 text-muted-foreground">
-                      ({major.facultyCode})
-                    </span>
-                  )}
+              {s.majors.map((m: { id?: string; majorName?: string; majorCode?: string; facultyCode?: string | null }, i: number) => (
+                <span key={m.id || i} className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-secondary text-secondary-foreground">
+                  {m.majorName}{m.facultyCode && <span className="ml-1 text-muted-foreground">({m.facultyCode})</span>}
                 </span>
               ))}
             </div>
-          ) : (
-            <span className="text-muted-foreground">-</span>
-          )}
+          ) : <span className="text-muted-foreground">-</span>}
         </div>
       ),
     },
-    {
-      key: "documentCount",
-      header: t("table.documentCount"),
-      className: "min-w-[100px]",
-      sortable: true,
-      render: (subject) => (
-        <div className="flex items-center gap-1 text-sm">
-          <FileText className="h-4 w-4 text-muted-foreground" />
-          <Badge variant="secondary">{subject.documentCount ?? 0}</Badge>
-        </div>
-      ),
-    },
+    { key: "documentCount", header: t("table.documentCount"), className: "min-w-[100px]", sortable: true, render: s => <div className="flex items-center gap-1 text-sm"><FileText className="h-4 w-4 text-muted-foreground" /><Badge variant="secondary">{s.documentCount ?? 0}</Badge></div> },
   ];
 
   return (
@@ -114,4 +64,3 @@ export function SubjectTable({
     />
   );
 }
-

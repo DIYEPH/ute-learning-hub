@@ -23,112 +23,56 @@ interface SubjectFormProps {
   loading?: boolean;
 }
 
-export function SubjectForm({
-  initialData,
-  onSubmit,
-  loading,
-}: SubjectFormProps) {
+export function SubjectForm({ initialData, onSubmit, loading }: SubjectFormProps) {
   const t = useTranslations("admin.subjects");
   const { fetchMajors, loading: loadingMajors } = useMajors();
-  const [formData, setFormData] = useState<SubjectFormData>({
-    subjectName: null,
-    subjectCode: null,
-    majorIds: [],
-  });
+  const [formData, setFormData] = useState<SubjectFormData>({ subjectName: null, subjectCode: null, majorIds: [] });
   const [majors, setMajors] = useState<MajorDetailDto[]>([]);
-
-  // Debounce search state
   const [searching, setSearching] = useState(false);
   const [matchingSubjects, setMatchingSubjects] = useState<SubjectDto2[]>([]);
   const [isDuplicate, setIsDuplicate] = useState(false);
-
   const debouncedName = useDebounce(formData.subjectName || "", 400);
 
-  useEffect(() => {
-    if (initialData) {
-      setFormData({
-        id: initialData.id,
-        subjectName: initialData.subjectName || null,
-        subjectCode: initialData.subjectCode || null,
-        majorIds: initialData.majorIds || [],
-      });
-    }
-  }, [initialData]);
+  useEffect(() => { if (initialData) setFormData({ id: initialData.id, subjectName: initialData.subjectName || null, subjectCode: initialData.subjectCode || null, majorIds: initialData.majorIds || [] }); }, [initialData]);
 
   useEffect(() => {
     const loadMajors = async () => {
       try {
         const response = await fetchMajors({ Page: 1, PageSize: 1000 });
-        if (response?.items) {
-          setMajors(response.items);
-        }
-      } catch (err) {
-        console.error("Error loading majors:", err);
-      }
+        if (response?.items) setMajors(response.items);
+      } catch { }
     };
     loadMajors();
   }, [fetchMajors]);
 
-  // Search for matching subjects when name changes
   const searchSubjects = useCallback(async (searchTerm: string) => {
-    if (!searchTerm.trim()) {
-      setMatchingSubjects([]);
-      setIsDuplicate(false);
-      return;
-    }
-
+    if (!searchTerm.trim()) { setMatchingSubjects([]); setIsDuplicate(false); return; }
     setSearching(true);
     try {
       const response = await getApiSubject({ query: { SearchTerm: searchTerm, Page: 1, PageSize: 5 } });
       const data = (response as unknown as { data: { items?: SubjectDto2[] } })?.data || response as { items?: SubjectDto2[] };
       const items = data?.items || [];
-
-      // Filter out current item if editing
-      const filtered = initialData?.id
-        ? items.filter(item => item.id !== initialData.id)
-        : items;
-
+      const filtered = initialData?.id ? items.filter(item => item.id !== initialData.id) : items;
       setMatchingSubjects(filtered);
-
-      // Check for exact duplicate
-      const exactMatch = filtered.some(
-        item => item.subjectName?.toLowerCase() === searchTerm.toLowerCase()
-      );
-      setIsDuplicate(exactMatch);
-    } catch (error) {
-      console.error("Error searching subjects:", error);
-      setMatchingSubjects([]);
-      setIsDuplicate(false);
-    } finally {
-      setSearching(false);
-    }
+      setIsDuplicate(filtered.some(item => item.subjectName?.toLowerCase() === searchTerm.toLowerCase()));
+    } catch { setMatchingSubjects([]); setIsDuplicate(false); }
+    finally { setSearching(false); }
   }, [initialData?.id]);
 
   useEffect(() => {
-    // Skip search if the debounced value is the same as initial data (edit mode)
-    if (initialData?.subjectName && debouncedName === initialData.subjectName) {
-      setMatchingSubjects([]);
-      setIsDuplicate(false);
-      return;
-    }
+    if (initialData?.subjectName && debouncedName === initialData.subjectName) { setMatchingSubjects([]); setIsDuplicate(false); return; }
     searchSubjects(debouncedName);
   }, [debouncedName, searchSubjects, initialData?.subjectName]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isDuplicate) return;
-    const command: CreateSubjectCommand | UpdateSubjectCommandRequest = {
-      subjectName: formData.subjectName || undefined,
-      subjectCode: formData.subjectCode || undefined,
-      majorIds: formData.majorIds && formData.majorIds.length > 0 ? formData.majorIds : undefined,
-    };
-    await onSubmit(command);
+    await onSubmit({ subjectName: formData.subjectName || undefined, subjectCode: formData.subjectCode || undefined, majorIds: formData.majorIds && formData.majorIds.length > 0 ? formData.majorIds : undefined });
   };
 
   const handleMajorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(e.target.selectedOptions);
-    const selectedIds = selectedOptions.map((option) => option.value);
-    setFormData((prev) => ({ ...prev, majorIds: selectedIds }));
+    const selectedIds = Array.from(e.target.selectedOptions).map(opt => opt.value);
+    setFormData(prev => ({ ...prev, majorIds: selectedIds }));
   };
 
   const isDisabled = loading || loadingMajors;
@@ -139,87 +83,29 @@ export function SubjectForm({
         <div>
           <Label htmlFor="subjectName">{t("form.subjectName")} *</Label>
           <div className="relative">
-            <Input
-              id="subjectName"
-              value={formData.subjectName || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, subjectName: e.target.value }))
-              }
-              required
-              disabled={isDisabled}
-              className={`mt-1 ${isDuplicate ? "border-red-500 focus-visible:ring-red-500" : ""}`}
-              placeholder={t("form.subjectNamePlaceholder")}
-            />
-            {searching && (
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              </div>
-            )}
+            <Input id="subjectName" value={formData.subjectName || ""} onChange={e => setFormData(prev => ({ ...prev, subjectName: e.target.value }))} required disabled={isDisabled} className={`mt-1 ${isDuplicate ? "border-red-500 focus-visible:ring-red-500" : ""}`} placeholder={t("form.subjectNamePlaceholder")} />
+            {searching && <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-0.5"><Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /></div>}
           </div>
-
-          {/* Duplicate warning */}
-          {isDuplicate && (
-            <div className="mt-2 flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400">
-              <AlertCircle className="h-4 w-4" />
-              <span>{t("form.duplicateWarning")}</span>
-            </div>
-          )}
-
-          {/* Matching subjects list */}
+          {isDuplicate && <div className="mt-2 flex items-center gap-1.5 text-sm text-red-600 dark:text-red-400"><AlertCircle className="h-4 w-4" /><span>{t("form.duplicateWarning")}</span></div>}
           {matchingSubjects.length > 0 && !isDuplicate && (
             <div className="mt-2 p-2 bg-muted border border-border">
-              <p className="text-xs text-muted-foreground mb-1">
-                {t("form.similarSubjects")}:
-              </p>
-              <ul className="space-y-0.5">
-                {matchingSubjects.map((subject) => (
-                  <li key={subject.id} className="text-sm text-foreground">
-                    • {subject.subjectName} ({subject.subjectCode})
-                  </li>
-                ))}
-              </ul>
+              <p className="text-xs text-muted-foreground mb-1">{t("form.similarSubjects")}:</p>
+              <ul className="space-y-0.5">{matchingSubjects.map(s => <li key={s.id} className="text-sm text-foreground">• {s.subjectName} ({s.subjectCode})</li>)}</ul>
             </div>
           )}
         </div>
         <div>
           <Label htmlFor="subjectCode">{t("form.subjectCode")} *</Label>
-          <Input
-            id="subjectCode"
-            value={formData.subjectCode || ""}
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, subjectCode: e.target.value }))
-            }
-            required
-            disabled={isDisabled}
-            className="mt-1"
-          />
+          <Input id="subjectCode" value={formData.subjectCode || ""} onChange={e => setFormData(prev => ({ ...prev, subjectCode: e.target.value }))} required disabled={isDisabled} className="mt-1" />
         </div>
         <div className="md:col-span-2">
           <Label htmlFor="majorIds">{t("form.majors")}</Label>
-          <select
-            id="majorIds"
-            multiple
-            value={formData.majorIds || []}
-            onChange={handleMajorChange}
-            disabled={isDisabled}
-            size={5}
-            className="mt-1 flex w-full  border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {majors
-              .filter((major): major is MajorDetailDto & { id: string } => !!major?.id)
-              .map((major) => (
-                <option key={major.id} value={major.id}>
-                  {major.majorName || ""} ({major.majorCode || ""})
-                  {major.facultyName ? ` - ${major.facultyName}` : ""}
-                </option>
-              ))}
+          <select id="majorIds" multiple value={formData.majorIds || []} onChange={handleMajorChange} disabled={isDisabled} size={5} className="mt-1 flex w-full border border-input bg-background text-foreground px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50">
+            {majors.filter((m): m is MajorDetailDto & { id: string } => !!m?.id).map(m => <option key={m.id} value={m.id}>{m.majorName || ""} ({m.majorCode || ""}){m.facultyName ? ` - ${m.facultyName}` : ""}</option>)}
           </select>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {t("form.selectMultipleHint")}
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("form.selectMultipleHint")}</p>
         </div>
       </div>
     </form>
   );
 }
-

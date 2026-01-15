@@ -2,7 +2,9 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Loader2, Image as ImageIcon, Upload, FileText, ThumbsUp, MessageSquare, Heart, Settings, ChevronRight, GraduationCap, Building2 } from "lucide-react";
+import {
+  Loader2, Image as ImageIcon, Upload, FileText, Settings, ChevronRight, GraduationCap, Building2
+} from "lucide-react";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { useMajors } from "@/src/hooks/use-majors";
 import { useFileUpload } from "@/src/hooks/use-file-upload";
@@ -11,8 +13,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar"
 import { Input } from "@/src/components/ui/input";
 import { useNotification } from "@/src/components/providers/notification-provider";
 import { getFileUrlById } from "@/src/lib/file-url";
-import { putApiAccountProfile, getApiUserByIdTrustHistory, postApiAuthChangeUsername, getApiAccountStats } from "@/src/api";
-import type { UpdateProfileCommandRequest, MajorDetailDto, UserTrustHistoryDto, UserStatsDto } from "@/src/api/database/types.gen";
+import {
+  putApiAccountProfile, getApiUserByIdTrustHistory, postApiAuthChangeUsername, getApiAccountStats
+} from "@/src/api";
+import type { UpdateProfileCommandRequest, MajorDetailDto, UserTrustHistoryDto } from "@/src/api/database/types.gen";
 
 const ProfilePage = () => {
   const { profile, loading, error } = useUserProfile();
@@ -24,7 +28,9 @@ const ProfilePage = () => {
   const [majors, setMajors] = useState<MajorDetailDto[]>([]);
   const [trustHistory, setTrustHistory] = useState<UserTrustHistoryDto[]>([]);
   const [loadingTrust, setLoadingTrust] = useState(false);
-  const [form, setForm] = useState<UpdateProfileCommandRequest>({ introduction: "", majorId: null, gender: null, avatarUrl: null, isSuggest: false });
+  const [form, setForm] = useState<UpdateProfileCommandRequest>({
+    introduction: "", majorId: null, gender: null, avatarUrl: null, isSuggest: false
+  });
   const [saving, setSaving] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [pendingAvatarFile, setPendingAvatarFile] = useState<File | null>(null);
@@ -32,17 +38,21 @@ const ProfilePage = () => {
   const [newUsername, setNewUsername] = useState("");
   const [changingUsername, setChangingUsername] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-
-  // Stats
   const [stats, setStats] = useState({ uploads: 0, upvotes: 0, comments: 0 });
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
-    if (profile) setForm({ introduction: profile.introduction ?? "", majorId: profile.majorId ?? null, gender: (profile.gender as any) ?? null, avatarUrl: profile.avatarUrl ?? null, isSuggest: profile.isSuggest ?? false });
+    if (profile) setForm({
+      introduction: profile.introduction ?? "",
+      majorId: profile.majorId ?? null,
+      gender: (profile.gender as any) ?? null,
+      avatarUrl: profile.avatarUrl ?? null,
+      isSuggest: profile.isSuggest ?? false
+    });
   }, [profile]);
 
   useEffect(() => {
-    fetchMajors({ Page: 1, PageSize: 1000 }).then((res: any) => res?.items && setMajors(res.items)).catch(console.error);
+    fetchMajors({ Page: 1, PageSize: 1000 }).then((res: any) => res?.items && setMajors(res.items)).catch(() => { });
   }, [fetchMajors]);
 
   useEffect(() => {
@@ -50,29 +60,18 @@ const ProfilePage = () => {
     setLoadingTrust(true);
     getApiUserByIdTrustHistory({ path: { id: profile.id } })
       .then((res: any) => { const data = res?.data || res; Array.isArray(data) && setTrustHistory(data); })
-      .catch(console.error)
+      .catch(() => { })
       .finally(() => setLoadingTrust(false));
   }, [profile?.id]);
 
-  // Fetch user stats
   useEffect(() => {
     const fetchStats = async () => {
       setLoadingStats(true);
       try {
         const res = await getApiAccountStats();
         const data = (res as any)?.data || res;
-        if (data) {
-          setStats({
-            uploads: data.uploads ?? 0,
-            upvotes: data.upvotes ?? 0,
-            comments: data.comments ?? 0
-          });
-        }
-      } catch (err) {
-        console.error("Error fetching stats:", err);
-      } finally {
-        setLoadingStats(false);
-      }
+        if (data) setStats({ uploads: data.uploads ?? 0, upvotes: data.upvotes ?? 0, comments: data.comments ?? 0 });
+      } catch { } finally { setLoadingStats(false); }
     };
     if (profile?.id) fetchStats();
   }, [profile?.id]);
@@ -85,7 +84,9 @@ const ProfilePage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) { notifyError("Vui lòng chọn tệp hình ảnh hợp lệ."); e.target.value = ""; return; }
-    setPendingAvatarFile(file); setAvatarPreview(URL.createObjectURL(file)); e.target.value = "";
+    setPendingAvatarFile(file);
+    setAvatarPreview(URL.createObjectURL(file));
+    e.target.value = "";
   };
 
   const handleSubmit = async () => {
@@ -100,12 +101,14 @@ const ProfilePage = () => {
         avatarUrl = getFileUrlById(uploaded.id);
         setPendingAvatarFile(null); setAvatarPreview(null); setAvatarUploading(false);
       }
-      await putApiAccountProfile<true>({ body: { introduction: form.introduction, majorId: form.majorId, gender: form.gender, avatarUrl: avatarUrl ?? null, isSuggest: form.isSuggest }, throwOnError: true });
+      await putApiAccountProfile<true>({
+        body: { introduction: form.introduction, majorId: form.majorId, gender: form.gender, avatarUrl: avatarUrl ?? null, isSuggest: form.isSuggest },
+        throwOnError: true
+      });
       handleChange("avatarUrl", avatarUrl);
       notifySuccess("Đã lưu hồ sơ thành công.");
     } catch (err: any) {
-      const msg = err?.response?.data?.message || err?.message || "Không thể cập nhật hồ sơ";
-      notifyError(msg);
+      notifyError(err?.response?.data?.message || err?.message || "Không thể cập nhật hồ sơ");
       setAvatarUploading(false);
     } finally { setSaving(false); }
   };
@@ -117,41 +120,34 @@ const ProfilePage = () => {
       await postApiAuthChangeUsername<true>({ body: { newUsername }, throwOnError: true });
       notifySuccess("Đã đổi tên đăng nhập thành công.");
       setNewUsername("");
-    }
-    catch (err: any) { notifyError(err?.response?.data?.message || err?.message || "Không thể đổi tên đăng nhập"); }
-    finally { setChangingUsername(false); }
+    } catch (err: any) {
+      notifyError(err?.response?.data?.message || err?.message || "Không thể đổi tên đăng nhập");
+    } finally { setChangingUsername(false); }
   };
 
-  if (loading && !profile) return (
-    <div className="flex h-[50vh] items-center justify-center">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-    </div>
-  );
-
-  if (!profile || error) return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300 rounded-lg">
-        {!profile ? "Không thể tải thông tin hồ sơ. Vui lòng đăng nhập lại." : error}
+  if (loading && !profile) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (!profile || error) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-900 dark:bg-red-950 dark:text-red-300 rounded-lg">
+          {!profile ? "Không thể tải thông tin hồ sơ. Vui lòng đăng nhập lại." : error}
+        </div>
+      </div>
+    );
+  }
 
   const initials = (profile.fullName || profile.username || profile.email || "?").split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
   const majorInfo = majors.find(m => m.id === profile.majorId);
 
-  // Trust Level mapping based on backend TrustLever enum and TrustLevelPolicy
-  // None = 0 (< 5), Newbie = 1 (5-8), Contributor = 2 (9-28), TrustedMember = 3 (29-58), Moderator = 4 (>= 59), Master = 5
   const getTrustLevelInfo = (level: number | string | undefined, score: number) => {
-    // Map numeric enum values to string names
-    const numericToName: Record<number, string> = {
-      0: 'None',
-      1: 'Newbie',
-      2: 'Contributor',
-      3: 'TrustedMember',
-      4: 'Moderator',
-      5: 'Master',
-    };
-
+    const numericToName: Record<number, string> = { 0: 'None', 1: 'Newbie', 2: 'Contributor', 3: 'TrustedMember', 4: 'Moderator', 5: 'Master' };
     const levelMap: Record<string, { name: string; nextThreshold: number | null }> = {
       'None': { name: 'Người mới', nextThreshold: 5 },
       'Newbie': { name: 'Thành viên mới', nextThreshold: 9 },
@@ -160,8 +156,6 @@ const ProfilePage = () => {
       'Moderator': { name: 'Kiểm duyệt viên', nextThreshold: null },
       'Master': { name: 'Chuyên gia', nextThreshold: null },
     };
-
-    // Convert numeric to string if needed
     const levelName = typeof level === 'number' ? numericToName[level] : level;
     const info = levelMap[levelName || 'None'] || levelMap['None'];
     const pointsToNext = info.nextThreshold ? Math.max(0, info.nextThreshold - score) : 0;
@@ -172,10 +166,8 @@ const ProfilePage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header Section */}
       <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-start gap-6">
-          {/* Left: Avatar & Info */}
           <div className="flex items-start gap-4 flex-1">
             <div className="relative">
               <Avatar className="h-20 w-20 border-4 border-background shadow-lg">
@@ -212,31 +204,23 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Right: Points & Level */}
           <div className="bg-linear-to-br from-primary/5 to-primary/10 border border-primary/20 rounded-xl p-4 min-w-[180px]">
             <div className="space-y-1">
               <div className="text-sm text-muted-foreground">
                 Điểm tổng: <span className="text-xl font-bold text-primary">{profile.trustScore || 0}</span>
               </div>
-              <div className="text-sm text-foreground font-medium">
-                {trustInfo.name}
-              </div>
+              <div className="text-sm text-foreground font-medium">{trustInfo.name}</div>
               <div className="text-xs text-muted-foreground">
                 {trustInfo.isMaxLevel ? 'Đã đạt cấp cao nhất' : `${trustInfo.pointsToNext} điểm để lên cấp`}
               </div>
-              {/* <button className="text-xs text-primary hover:underline flex items-center gap-1 mt-1">
-                Tìm hiểu thêm <ChevronRight className="h-3 w-3" />
-              </button> */}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Statistics Section */}
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-4">Thống kê</h2>
         <div className="">
-          {/* My Uploads Card */}
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <FileText className="h-5 w-5 text-primary" />
@@ -262,7 +246,6 @@ const ProfilePage = () => {
         </div>
       </div>
 
-      {/* CTA Section */}
       <div className="bg-linear-to-r from-primary/5 via-primary/10 to-primary/5 border border-primary/20 rounded-xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
@@ -280,7 +263,6 @@ const ProfilePage = () => {
         </Link>
       </div>
 
-      {/* Settings Toggle */}
       <button
         onClick={() => setShowSettings(!showSettings)}
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -290,10 +272,8 @@ const ProfilePage = () => {
         <ChevronRight className={`h-4 w-4 transition-transform ${showSettings ? 'rotate-90' : ''}`} />
       </button>
 
-      {/* Settings Section */}
       {showSettings && (
         <div className="space-y-4 bg-card border border-border rounded-xl p-5 shadow-sm animate-in slide-in-from-top-2">
-          {/* Profile Edit */}
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Thông tin cá nhân</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -340,7 +320,6 @@ const ProfilePage = () => {
 
           <hr className="border-border" />
 
-          {/* AI Suggestion Toggle */}
           <div className="space-y-3">
             <h3 className="font-semibold text-foreground">Gợi ý nhóm học</h3>
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
@@ -358,7 +337,6 @@ const ProfilePage = () => {
             </div>
           </div>
 
-          {/* Username Change */}
           <div className="space-y-3">
             <h3 className="font-semibold text-foreground">Đổi tên đăng nhập</h3>
             <p className="text-xs text-muted-foreground">
@@ -386,7 +364,6 @@ const ProfilePage = () => {
 
           <hr className="border-border" />
 
-          {/* Trust History */}
           <div className="space-y-3">
             <h3 className="font-semibold text-foreground">Lịch sử điểm tin cậy</h3>
             {loadingTrust ? (
@@ -398,21 +375,24 @@ const ProfilePage = () => {
               <p className="text-xs text-muted-foreground">Chưa có lịch sử điểm tin cậy.</p>
             ) : (
               <ul className="space-y-2 max-h-40 overflow-y-auto">
-                {trustHistory.slice().sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()).map(item => (
-                  <li key={item.id} className="flex items-start justify-between gap-2 text-sm">
-                    <div>
-                      <span className={`font-semibold ${(item.score ?? 0) > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {(item.score ?? 0) > 0 ? '+' : ''}{item.score}
-                      </span>
-                      {item.reason && <span className="ml-1 text-muted-foreground">– {item.reason}</span>}
-                    </div>
-                    {item.createdAt && (
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        {new Date(item.createdAt).toLocaleDateString('vi-VN')}
-                      </span>
-                    )}
-                  </li>
-                ))}
+                {trustHistory
+                  .slice()
+                  .sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
+                  .map(item => (
+                    <li key={item.id} className="flex items-start justify-between gap-2 text-sm">
+                      <div>
+                        <span className={`font-semibold ${(item.score ?? 0) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {(item.score ?? 0) > 0 ? '+' : ''}{item.score}
+                        </span>
+                        {item.reason && <span className="ml-1 text-muted-foreground">– {item.reason}</span>}
+                      </div>
+                      {item.createdAt && (
+                        <span className="shrink-0 text-xs text-muted-foreground">
+                          {new Date(item.createdAt).toLocaleDateString('vi-VN')}
+                        </span>
+                      )}
+                    </li>
+                  ))}
               </ul>
             )}
           </div>

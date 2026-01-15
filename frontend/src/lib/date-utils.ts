@@ -1,6 +1,3 @@
-/**
- * Format date to Vietnamese relative time (e.g., "Vừa xong", "5 phút", "Hôm qua")
- */
 export function getRelativeTime(date: Date): string {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();

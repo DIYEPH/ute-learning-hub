@@ -13,54 +13,17 @@ export interface EditModalProps extends Omit<BaseModalProps, "footer"> {
   disabled?: boolean;
 }
 
-export function EditModal({open, onOpenChange, title, description, children, onSubmit, onCancel, submitLabel, cancelLabel, loading = false, disabled = false, size = "md"}: EditModalProps) {
+export function EditModal({ open, onOpenChange, title, description, children, onSubmit, onCancel, submitLabel, cancelLabel, loading = false, disabled = false, size = "md" }: EditModalProps) {
   const t = useTranslations("common");
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) 
-      e.preventDefault();
-    await onSubmit();
-  };
-
-  const handleCancel = () => {
-    if (onCancel) 
-      onCancel();
-    else 
-      onOpenChange(false);
-  };
+  const handleSubmit = async (e?: React.FormEvent) => { if (e) e.preventDefault(); await onSubmit(); };
+  const handleCancel = () => { if (onCancel) onCancel(); else onOpenChange(false); };
 
   const footer = (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={handleCancel}
-        disabled={loading}
-      >
-        {cancelLabel || t("cancel")}
-      </Button>
-      <Button
-        type="button"
-        onClick={handleSubmit}
-        disabled={loading || disabled}
-      >
-        {loading ? t("loading") : submitLabel || t("update")}
-      </Button>
+      <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>{cancelLabel || t("cancel")}</Button>
+      <Button type="button" onClick={handleSubmit} disabled={loading || disabled}>{loading ? t("loading") : submitLabel || t("update")}</Button>
     </>
   );
 
-  return (
-    <BaseModal
-      open={open}
-      onOpenChange={onOpenChange}
-      title={title}
-      description={description}
-      size={size}
-      footer={footer}
-    >
-      {children}
-    </BaseModal>
-  );
+  return <BaseModal open={open} onOpenChange={onOpenChange} title={title} description={description} size={size} footer={footer}>{children}</BaseModal>;
 }
-
-

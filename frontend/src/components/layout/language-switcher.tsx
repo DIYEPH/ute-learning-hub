@@ -2,12 +2,7 @@
 
 import { useLocale } from 'next-intl';
 import { useTranslations } from 'next-intl';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { Globe } from 'lucide-react';
 
@@ -16,10 +11,7 @@ export function LanguageSwitcher() {
   const t = useTranslations('language');
 
   const switchLocale = (newLocale: string) => {
-    // Store locale preference in cookie
     document.cookie = `NEXT_LOCALE=${newLocale};path=/;max-age=31536000;SameSite=Lax`;
-
-    // Reload page to apply new locale
     window.location.reload();
   };
 
@@ -32,20 +24,13 @@ export function LanguageSwitcher() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => switchLocale('vi')}
-          className={locale === 'vi' ? 'bg-accent' : ''}
-        >
+        <DropdownMenuItem onClick={() => switchLocale('vi')} className={locale === 'vi' ? 'bg-accent' : ''}>
           🇻🇳 {t('vietnamese')}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => switchLocale('en')}
-          className={locale === 'en' ? 'bg-accent' : ''}
-        >
+        <DropdownMenuItem onClick={() => switchLocale('en')} className={locale === 'en' ? 'bg-accent' : ''}>
           🇬🇧 {t('english')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
-

@@ -16,29 +16,11 @@ interface TagTableProps {
     enableClientSort?: boolean;
 }
 
-export function TagTable({
-    tags,
-    onEdit,
-    onDelete,
-    onBulkDelete,
-    loading,
-    onSort,
-    sortKey,
-    sortDirection,
-    enableClientSort,
-}: TagTableProps) {
+export function TagTable({ tags, onEdit, onDelete, onBulkDelete, loading, onSort, sortKey, sortDirection, enableClientSort }: TagTableProps) {
     const t = useTranslations("admin.tags");
 
     const columns: BaseTableColumn<TagDto>[] = [
-        {
-            key: "tagName",
-            header: t("table.tagName"),
-            className: "min-w-[200px]",
-            sortable: true,
-            render: (tag) => (
-                <div className="font-medium text-foreground">{tag.tagName}</div>
-            ),
-        },
+        { key: "tagName", header: t("table.tagName"), className: "min-w-[200px]", sortable: true, render: tag => <div className="font-medium text-foreground">{tag.tagName}</div> },
     ];
 
     return (
@@ -62,4 +44,3 @@ export function TagTable({
         />
     );
 }
-

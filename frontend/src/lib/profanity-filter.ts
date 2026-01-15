@@ -1,11 +1,3 @@
-/**
- * Profanity filter cho tiếng Việt với khả năng chống bypass
- * - Xử lý số thay chữ (1→i, 0→o, etc.)
- * - Xử lý ký tự đặc biệt (., *, !, @)
- * - Loại bỏ dấu tiếng Việt để so sánh
- */
-
-// Danh sách từ cấm đã normalize (không dấu, viết thường)
 const BANNED_PATTERNS = new Set([
     "dit", "dut", "dcm", "dm", "dmm", "dkm", "dcmm", "dtc", "dtm",
     "lon", "l0n", "buoi", "cc", "cac", "cak", "cuc", "cu",
@@ -16,14 +8,10 @@ const BANNED_PATTERNS = new Set([
     "ducme", "memay", "chamay", "bomay"
 ]);
 
-// Map số/ký tự đặc biệt → chữ
 const CHAR_SUBSTITUTIONS: Record<string, string> = {
-    "0": "o", "1": "i", "3": "e", "4": "a",
-    "5": "s", "7": "t", "8": "b", "@": "a",
-    "$": "s", "!": "i", "*": "a"
+    "0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "8": "b", "@": "a", "$": "s", "!": "i", "*": "a"
 };
 
-// Map dấu tiếng Việt → không dấu
 const VIETNAMESE_MAP: Record<string, string> = {
     "á": "a", "à": "a", "ả": "a", "ã": "a", "ạ": "a",
     "ă": "a", "ắ": "a", "ằ": "a", "ẳ": "a", "ẵ": "a", "ặ": "a",
@@ -40,50 +28,25 @@ const VIETNAMESE_MAP: Record<string, string> = {
     "đ": "d"
 };
 
-/**
- * Normalize text để bypass các kỹ thuật né tránh
- */
 function normalizeText(text: string): string {
     let result = "";
     for (const char of text.toLowerCase()) {
-        // Thay số/ký tự đặc biệt
-        if (CHAR_SUBSTITUTIONS[char]) {
-            result += CHAR_SUBSTITUTIONS[char];
-            continue;
-        }
-        // Thay dấu tiếng Việt
-        if (VIETNAMESE_MAP[char]) {
-            result += VIETNAMESE_MAP[char];
-            continue;
-        }
-        // Chỉ giữ chữ cái a-z
-        if (/[a-z]/.test(char)) {
-            result += char;
-        }
+        if (CHAR_SUBSTITUTIONS[char]) { result += CHAR_SUBSTITUTIONS[char]; continue; }
+        if (VIETNAMESE_MAP[char]) { result += VIETNAMESE_MAP[char]; continue; }
+        if (/[a-z]/.test(char)) result += char;
     }
     return result;
 }
 
-/**
- * Kiểm tra text có chứa từ tục tĩu không
- */
 export function containsProfanity(text: string): boolean {
     if (!text?.trim()) return false;
-
     const normalized = normalizeText(text);
-
     for (const pattern of BANNED_PATTERNS) {
-        if (normalized.includes(pattern)) {
-            return true;
-        }
+        if (normalized.includes(pattern)) return true;
     }
-
     return false;
 }
 
-/**
- * Lấy message lỗi cho user
- */
 export function getProfanityErrorMessage(): string {
     return "Nội dung chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa lại.";
 }

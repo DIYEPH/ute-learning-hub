@@ -20,23 +20,20 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const { authenticated: isAuthenticated, ready: authReady } = useAuthState();
 
+  // Fetch profile
   const fetchProfile = useCallback(async () => {
     if (!authReady || !isAuthenticated) {
       setProfile(null);
       setLoading(false);
       return;
     }
-
     setLoading(true);
     setError(null);
     try {
       const response = await getApiAccountProfile();
-      if (response.data) {
-        setProfile(response.data);
-      }
+      if (response.data) setProfile(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch profile');
-      console.error('Error fetching profile:', err);
     } finally {
       setLoading(false);
     }
@@ -44,13 +41,11 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!authReady) return;
-
     if (!isAuthenticated) {
       setProfile(null);
       setLoading(false);
       return;
     }
-
     fetchProfile();
   }, [isAuthenticated, authReady, fetchProfile]);
 
@@ -63,8 +58,6 @@ export function UserProfileProvider({ children }: { children: ReactNode }) {
 
 export function useUserProfileContext() {
   const context = useContext(UserProfileContext);
-  if (!context) {
-    throw new Error('useUserProfileContext must be used within UserProfileProvider');
-  }
+  if (!context) throw new Error('useUserProfileContext must be used within UserProfileProvider');
   return context;
 }

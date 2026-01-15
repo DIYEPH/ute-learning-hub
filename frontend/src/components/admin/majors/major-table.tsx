@@ -18,61 +18,14 @@ interface MajorTableProps {
   enableClientSort?: boolean;
 }
 
-export function MajorTable({
-  majors,
-  onEdit,
-  onDelete,
-  onBulkDelete,
-  loading,
-  onSort,
-  sortKey,
-  sortDirection,
-  enableClientSort,
-}: MajorTableProps) {
+export function MajorTable({ majors, onEdit, onDelete, onBulkDelete, loading, onSort, sortKey, sortDirection, enableClientSort }: MajorTableProps) {
   const t = useTranslations("admin.majors");
 
   const columns: BaseTableColumn<MajorDetailDto>[] = [
-    {
-      key: "majorName",
-      header: t("table.majorName"),
-      className: "min-w-[200px]",
-      sortable: true,
-      render: (major) => (
-        <div className="font-medium text-foreground">{major.majorName}</div>
-      ),
-    },
-    {
-      key: "majorCode",
-      header: t("table.majorCode"),
-      className: "min-w-[120px]",
-      sortable: true,
-      render: (major) => (
-        <div className="text-sm text-foreground">{major.majorCode}</div>
-      ),
-    },
-    {
-      key: "facultyName",
-      header: t("table.faculty"),
-      className: "min-w-[200px]",
-      sortable: true,
-      render: (major) => (
-        <div className="text-sm text-foreground">
-          {major.facultyName || "-"}
-        </div>
-      ),
-    },
-    {
-      key: "subjectCount",
-      header: t("table.subjectCount"),
-      className: "min-w-[100px]",
-      sortable: true,
-      render: (major) => (
-        <div className="flex items-center gap-1 text-sm">
-          <BookOpen className="h-4 w-4 text-muted-foreground" />
-          <Badge variant="secondary">{major.subjectCount ?? 0}</Badge>
-        </div>
-      ),
-    },
+    { key: "majorName", header: t("table.majorName"), className: "min-w-[200px]", sortable: true, render: m => <div className="font-medium text-foreground">{m.majorName}</div> },
+    { key: "majorCode", header: t("table.majorCode"), className: "min-w-[120px]", sortable: true, render: m => <div className="text-sm text-foreground">{m.majorCode}</div> },
+    { key: "facultyName", header: t("table.faculty"), className: "min-w-[200px]", sortable: true, render: m => <div className="text-sm text-foreground">{m.facultyName || "-"}</div> },
+    { key: "subjectCount", header: t("table.subjectCount"), className: "min-w-[100px]", sortable: true, render: m => <div className="flex items-center gap-1 text-sm"><BookOpen className="h-4 w-4 text-muted-foreground" /><Badge variant="secondary">{m.subjectCount ?? 0}</Badge></div> },
   ];
 
   return (
@@ -96,4 +49,3 @@ export function MajorTable({
     />
   );
 }
-

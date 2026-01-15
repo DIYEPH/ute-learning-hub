@@ -16,39 +16,12 @@ interface AuthorTableProps {
     enableClientSort?: boolean;
 }
 
-export function AuthorTable({
-    authors,
-    onEdit,
-    onDelete,
-    onBulkDelete,
-    loading,
-    onSort,
-    sortKey,
-    sortDirection,
-    enableClientSort,
-}: AuthorTableProps) {
+export function AuthorTable({ authors, onEdit, onDelete, onBulkDelete, loading, onSort, sortKey, sortDirection, enableClientSort }: AuthorTableProps) {
     const t = useTranslations("admin.authors");
 
     const columns: BaseTableColumn<AuthorDto>[] = [
-        {
-            key: "fullName",
-            header: t("table.fullName"),
-            className: "min-w-[200px]",
-            sortable: true,
-            render: (author) => (
-                <div className="font-medium text-foreground">{author.fullName}</div>
-            ),
-        },
-        {
-            key: "description",
-            header: t("table.description"),
-            className: "min-w-[300px]",
-            render: (author) => (
-                <span className="text-sm text-muted-foreground line-clamp-2">
-                    {author.description || "-"}
-                </span>
-            ),
-        },
+        { key: "fullName", header: t("table.fullName"), className: "min-w-[200px]", sortable: true, render: author => <div className="font-medium text-foreground">{author.fullName}</div> },
+        { key: "description", header: t("table.description"), className: "min-w-[300px]", render: author => <span className="text-sm text-muted-foreground line-clamp-2">{author.description || "-"}</span> },
     ];
 
     return (
@@ -72,4 +45,3 @@ export function AuthorTable({
         />
     );
 }
-

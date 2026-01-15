@@ -22,16 +22,13 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
     const router = useRouter();
     const { handleMicrosoftLogin, handleLogin } = useAuth();
     const { success: notifySuccess } = useNotification();
-
     const [showPassword, setShowPassword] = useState(false);
     const [emailOrUsername, setEmailOrUsername] = useState('');
     const [password, setPassword] = useState('');
     const [loadingType, setLoadingType] = useState<'email' | 'microsoft' | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-    const clearError = () => {
-        if (errorMessage) setErrorMessage(null);
-    };
+    const clearError = () => { if (errorMessage) setErrorMessage(null); };
 
     const handleSuccess = () => {
         notifySuccess("Đăng nhập thành công!");
@@ -41,39 +38,33 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         window.location.reload();
     };
 
+    // Email/password login
     const handleEmailPasswordSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!emailOrUsername.trim() || !password.trim() || loadingType) return;
-
         setErrorMessage(null);
         setLoadingType('email');
-
         try {
             await handleLogin(emailOrUsername.trim(), password);
             handleSuccess();
         } catch (error) {
             const err = error as Error;
             setErrorMessage(err?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
-        } finally {
-            setLoadingType(null);
-        }
+        } finally { setLoadingType(null); }
     };
 
+    // Microsoft login
     const handleMicrosoftLoginClick = async () => {
         if (loadingType) return;
-
         setErrorMessage(null);
         setLoadingType('microsoft');
-
         try {
             await handleMicrosoftLogin();
             handleSuccess();
         } catch (error) {
             const err = error as Error;
             setErrorMessage(err?.message || "Đăng nhập thất bại. Vui lòng thử lại.");
-        } finally {
-            setLoadingType(null);
-        }
+        } finally { setLoadingType(null); }
     };
 
     const canSubmit = emailOrUsername.trim() && password.trim() && !loadingType;
@@ -87,19 +78,17 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         <span>{errorMessage}</span>
                     </div>
                 )}
-
                 <div className="space-y-1">
                     <Label>{t('emailOrUsername')}</Label>
                     <InputWithIcon
                         prefixIcon={Mail}
                         placeholder={t('emailOrUsernamePlaceholder')}
                         value={emailOrUsername}
-                        onChange={(e) => { setEmailOrUsername(e.target.value); clearError(); }}
+                        onChange={e => { setEmailOrUsername(e.target.value); clearError(); }}
                         required
                         disabled={!!loadingType}
                     />
                 </div>
-
                 <div className="space-y-1">
                     <Label>{t('password')}</Label>
                     <InputWithIcon
@@ -109,59 +98,25 @@ export default function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
                         placeholder={t('passwordPlaceholder')}
                         onSuffixClick={() => setShowPassword(!showPassword)}
                         value={password}
-                        onChange={(e) => { setPassword(e.target.value); clearError(); }}
+                        onChange={e => { setPassword(e.target.value); clearError(); }}
                         required
                         disabled={!!loadingType}
                     />
-                    <div
-                        className="text-right text-sm text-primary cursor-pointer mt-1 hover:underline"
-                        onClick={() => { onOpenChange(false); router.push('/forgot-password'); }}
-                    >
+                    <div className="text-right text-sm text-primary cursor-pointer mt-1 hover:underline" onClick={() => { onOpenChange(false); router.push('/forgot-password'); }}>
                         {t('forgotPassword')}
                     </div>
                 </div>
-
-                <Button
-                    type="submit"
-                    className="w-full h-11 rounded-full text-base"
-                    disabled={!canSubmit}
-                >
-                    {loadingType === 'email' ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {tCommon('loading')}
-                        </>
-                    ) : (
-                        t('loginTitle')
-                    )}
+                <Button type="submit" className="w-full h-11 rounded-full text-base" disabled={!canSubmit}>
+                    {loadingType === 'email' ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />{tCommon('loading')}</>) : t('loginTitle')}
                 </Button>
-
                 <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-border" />
-                    </div>
+                    <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border" /></div>
                     <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">
-                            {tCommon('or') || 'Hoặc'}
-                        </span>
+                        <span className="bg-background px-2 text-muted-foreground">{tCommon('or')}</span>
                     </div>
                 </div>
-
-                <Button
-                    type="button"
-                    className="w-full h-11 rounded-full text-base"
-                    onClick={handleMicrosoftLoginClick}
-                    disabled={!!loadingType}
-                    variant="outline"
-                >
-                    {loadingType === 'microsoft' ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            {tCommon('loading')}
-                        </>
-                    ) : (
-                        t('loginWithSchoolEmail')
-                    )}
+                <Button type="button" className="w-full h-11 rounded-full text-base" onClick={handleMicrosoftLoginClick} disabled={!!loadingType} variant="outline">
+                    {loadingType === 'microsoft' ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />{tCommon('loading')}</>) : t('loginWithSchoolEmail')}
                 </Button>
             </form>
         </AuthDialog>

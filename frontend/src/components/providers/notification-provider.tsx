@@ -28,43 +28,32 @@ let idCounter = 0;
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
     const [items, setItems] = useState<AppNotification[]>([]);
 
+    // Remove notification
     const remove = useCallback((id: string) => {
-        setItems((prev) => prev.filter((n) => n.id !== id));
+        setItems(prev => prev.filter(n => n.id !== id));
     }, []);
 
-    const notify = useCallback(
-        (type: NotificationType, message: string, duration = 3000) => {
-            const id = `${Date.now()}_${idCounter++}`;
-
-            const item: AppNotification = {
-                id,
-                type,
-                message,
-                duration,
-            };
-            setItems((prev) => [...prev, item]);
-
-            if (duration > 0) {
-                setTimeout(() => remove(id), duration);
-            }
-        },
-        [remove]
-    );
+    // Show notification
+    const notify = useCallback((type: NotificationType, message: string, duration = 3000) => {
+        const id = `${Date.now()}_${idCounter++}`;
+        const item: AppNotification = { id, type, message, duration };
+        setItems(prev => [...prev, item]);
+        if (duration > 0) setTimeout(() => remove(id), duration);
+    }, [remove]);
 
     const value: NotificationContextValue = {
         notify,
-        success: (message) => notify("success", message),
-        error: (message) => notify("error", message),
-        warning: (message) => notify("warning", message),
-        info: (message) => notify("info", message),
+        success: message => notify("success", message),
+        error: message => notify("error", message),
+        warning: message => notify("warning", message),
+        info: message => notify("info", message),
     };
 
     return (
         <NotificationContext.Provider value={value}>
             {children}
-            {/* Toast Container - góc trên bên phải */}
             <div className="fixed top-4 right-4 z-100 flex flex-col gap-2 pointer-events-none">
-                {items.map((item) => (
+                {items.map(item => (
                     <ToastItem key={item.id} notification={item} onRemove={() => remove(item.id)} />
                 ))}
             </div>
@@ -74,54 +63,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
 export function useNotification() {
     const ctx = useContext(NotificationContext);
-    if (!ctx) {
-        throw new Error("useNotification must be used within NotificationProvider");
-    }
+    if (!ctx) throw new Error("useNotification must be used within NotificationProvider");
     return ctx;
 }
 
-const toastConfig: Record<
-    NotificationType,
-    {
-        icon: typeof CheckCircle;
-        bgColor: string;
-        iconColor: string;
-        textColor: string;
-    }
-> = {
-    success: {
-        icon: CheckCircle,
-        bgColor: "bg-emerald-500",
-        iconColor: "text-white",
-        textColor: "text-white",
-    },
-    error: {
-        icon: XCircle,
-        bgColor: "bg-red-500",
-        iconColor: "text-white",
-        textColor: "text-white",
-    },
-    warning: {
-        icon: AlertTriangle,
-        bgColor: "bg-amber-500",
-        iconColor: "text-white",
-        textColor: "text-white",
-    },
-    info: {
-        icon: Info,
-        bgColor: "bg-blue-500",
-        iconColor: "text-white",
-        textColor: "text-white",
-    },
+const toastConfig: Record<NotificationType, { icon: typeof CheckCircle; bgColor: string; iconColor: string; textColor: string }> = {
+    success: { icon: CheckCircle, bgColor: "bg-emerald-500", iconColor: "text-white", textColor: "text-white" },
+    error: { icon: XCircle, bgColor: "bg-red-500", iconColor: "text-white", textColor: "text-white" },
+    warning: { icon: AlertTriangle, bgColor: "bg-amber-500", iconColor: "text-white", textColor: "text-white" },
+    info: { icon: Info, bgColor: "bg-blue-500", iconColor: "text-white", textColor: "text-white" },
 };
 
-function ToastItem({
-    notification,
-    onRemove,
-}: {
-    notification: AppNotification;
-    onRemove: () => void;
-}) {
+function ToastItem({ notification, onRemove }: { notification: AppNotification; onRemove: () => void }) {
     const config = toastConfig[notification.type];
     const Icon = config.icon;
 
@@ -134,48 +87,27 @@ function ToastItem({
                 config.bgColor
             )}
             onClick={onRemove}
-            style={{
-                animation: `slideInRight 0.3s ease-out, fadeOut 0.3s ease-in ${(notification.duration || 3000) - 300}ms forwards`
-            }}
+            style={{ animation: `slideInRight 0.3s ease-out, fadeOut 0.3s ease-in ${(notification.duration || 3000) - 300}ms forwards` }}
         >
             <Icon className={cn("h-5 w-5 shrink-0", config.iconColor)} />
-            <span className={cn("text-sm font-medium", config.textColor)}>
-                {notification.message}
-            </span>
+            <span className={cn("text-sm font-medium", config.textColor)}>{notification.message}</span>
         </div>
     );
 }
 
-// CSS for animations - add to global styles or use style tag
 const styles = `
 @keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
 }
-
 @keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(50%) scale(0.8);
-    }
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to { opacity: 0; transform: translateX(50%) scale(0.8); }
 }
 `;
 
-// Inject styles
 if (typeof document !== 'undefined') {
     const styleEl = document.createElement('style');
     styleEl.textContent = styles;
     document.head.appendChild(styleEl);
 }
-
-

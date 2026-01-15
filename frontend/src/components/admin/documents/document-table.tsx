@@ -7,11 +7,7 @@ import { Badge } from "@/src/components/ui/badge";
 import { Eye, ThumbsUp, ThumbsDown, MessageSquare } from "lucide-react";
 import type { DocumentDto } from "@/src/api/database/types.gen";
 
-// VisibilityStatus enum mapping
-const VisibilityLabels: Record<number, string> = {
-    0: "Private",
-    1: "Public",
-};
+const VisibilityLabels: Record<number, string> = { 0: "Private", 1: "Public" };
 
 interface DocumentTableProps {
     documents: DocumentDto[];
@@ -26,140 +22,38 @@ interface DocumentTableProps {
     enableClientSort?: boolean;
 }
 
-export function DocumentTable({
-    documents,
-    onViewDetail,
-    onEdit,
-    onDelete,
-    onBulkDelete,
-    loading,
-    onSort,
-    sortKey,
-    sortDirection,
-    enableClientSort,
-}: DocumentTableProps) {
+export function DocumentTable({ documents, onViewDetail, onEdit, onDelete, onBulkDelete, loading, onSort, sortKey, sortDirection, enableClientSort }: DocumentTableProps) {
     const t = useTranslations("admin.documents");
 
-    const formatDate = (date?: string | null) => {
-        if (!date) return "-";
-        return new Date(date).toLocaleString("vi-VN", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-        });
-    };
+    const formatDate = (date?: string | null) => date ? new Date(date).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }) : "-";
 
     const columns: BaseTableColumn<DocumentDto>[] = [
+        { key: "documentName", header: t("table.documentName"), className: "min-w-[200px]", sortable: true, render: d => <div className="font-medium text-foreground line-clamp-2">{d.documentName}</div> },
+        { key: "subject", header: t("table.subject"), className: "min-w-[120px]", render: d => <span className="text-sm text-muted-foreground">{d.subject?.subjectName || "-"}</span> },
+        { key: "type", header: t("table.type"), className: "min-w-[100px]", render: d => <Badge variant="outline">{d.type?.typeName || "-"}</Badge> },
+        { key: "visibility", header: t("table.visibility"), className: "min-w-[80px]", render: d => <span className="text-sm">{VisibilityLabels[d.visibility ?? 0]}</span> },
+        { key: "fileCount", header: t("table.fileCount"), className: "min-w-[60px]", sortable: true, render: d => <Badge variant="secondary">{d.fileCount || 0}</Badge> },
         {
-            key: "documentName",
-            header: t("table.documentName"),
-            className: "min-w-[200px]",
-            sortable: true,
-            render: (doc) => (
-                <div className="font-medium text-foreground line-clamp-2">{doc.documentName}</div>
-            ),
-        },
-        {
-            key: "subject",
-            header: t("table.subject"),
-            className: "min-w-[120px]",
-            render: (doc) => (
-                <span className="text-sm text-muted-foreground">
-                    {doc.subject?.subjectName || "-"}
-                </span>
-            ),
-        },
-        {
-            key: "type",
-            header: t("table.type"),
-            className: "min-w-[100px]",
-            render: (doc) => (
-                <Badge variant="outline">{doc.type?.typeName || "-"}</Badge>
-            ),
-        },
-        {
-            key: "visibility",
-            header: t("table.visibility"),
-            className: "min-w-[80px]",
-            render: (doc) => (
-                <span className="text-sm">
-                    {VisibilityLabels[doc.visibility ?? 0]}
-                </span>
-            ),
-        },
-
-        {
-            key: "fileCount",
-            header: t("table.fileCount"),
-            className: "min-w-[60px]",
-            sortable: true,
-            render: (doc) => (
-                <Badge variant="secondary">{doc.fileCount || 0}</Badge>
-            ),
-        },
-        {
-            key: "stats",
-            header: t("table.stats"),
-            className: "min-w-[140px]",
-            render: (doc) => (
+            key: "stats", header: t("table.stats"), className: "min-w-[140px]",
+            render: d => (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-0.5" title="Lượt xem">
-                        <Eye className="h-3.5 w-3.5" />
-                        <span>{doc.totalViewCount || 0}</span>
-                    </div>
-                    <div className="flex items-center gap-0.5 text-emerald-600" title="Hữu ích">
-                        <ThumbsUp className="h-3.5 w-3.5" />
-                        <span>{doc.usefulCount || 0}</span>
-                    </div>
-                    <div className="flex items-center gap-0.5 text-red-500" title="Không hữu ích">
-                        <ThumbsDown className="h-3.5 w-3.5" />
-                        <span>{doc.notUsefulCount || 0}</span>
-                    </div>
-                    <div className="flex items-center gap-0.5" title="Bình luận">
-                        <MessageSquare className="h-3.5 w-3.5" />
-                        <span>{doc.commentCount || 0}</span>
-                    </div>
+                    <div className="flex items-center gap-0.5" title="Lượt xem"><Eye className="h-3.5 w-3.5" /><span>{d.totalViewCount || 0}</span></div>
+                    <div className="flex items-center gap-0.5 text-emerald-600" title="Hữu ích"><ThumbsUp className="h-3.5 w-3.5" /><span>{d.usefulCount || 0}</span></div>
+                    <div className="flex items-center gap-0.5 text-red-500" title="Không hữu ích"><ThumbsDown className="h-3.5 w-3.5" /><span>{d.notUsefulCount || 0}</span></div>
+                    <div className="flex items-center gap-0.5" title="Bình luận"><MessageSquare className="h-3.5 w-3.5" /><span>{d.commentCount || 0}</span></div>
                 </div>
             ),
         },
+        { key: "createdAt", header: t("table.createdAt"), className: "min-w-[100px]", sortable: true, render: d => <span className="text-sm text-muted-foreground">{formatDate(d.createdAt)}</span> },
         {
-            key: "createdAt",
-            header: t("table.createdAt"),
-            className: "min-w-[100px]",
-            sortable: true,
-            render: (doc) => (
-                <span className="text-sm text-muted-foreground">
-                    {formatDate(doc.createdAt)}
-                </span>
+            key: "quickActions", header: "", className: "min-w-[50px]",
+            render: d => onViewDetail ? (
+                <button onClick={() => onViewDetail(d)} className="inline-flex items-center justify-center h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted rounded transition-colors" title={t("table.viewDetail")}><Eye size={16} /></button>
+            ) : (
+                <Link href={`/documents/${d.id}`} className="inline-flex items-center justify-center h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted transition-colors" title={t("table.viewDetail")}><Eye size={16} /></Link>
             ),
         },
     ];
-
-    // Add view detail link/button
-    columns.push({
-        key: "quickActions",
-        header: "",
-        className: "min-w-[50px]",
-        render: (doc) => (
-            onViewDetail ? (
-                <button
-                    onClick={() => onViewDetail(doc)}
-                    className="inline-flex items-center justify-center h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted rounded transition-colors"
-                    title={t("table.viewDetail")}
-                >
-                    <Eye size={16} />
-                </button>
-            ) : (
-                <Link
-                    href={`/documents/${doc.id}`}
-                    className="inline-flex items-center justify-center h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted transition-colors"
-                    title={t("table.viewDetail")}
-                >
-                    <Eye size={16} />
-                </Link>
-            )
-        ),
-    });
 
     return (
         <BaseTable

@@ -13,11 +13,7 @@ import { CommentItem } from "@/src/components/documents/comment-item";
 import { getErrorMessage } from "@/src/lib/error-utils";
 import { containsProfanity, getProfanityErrorMessage } from "@/src/lib/profanity-filter";
 import { getApiComment, postApiComment } from "@/src/api";
-import type {
-  CommentDetailDto,
-  CreateCommentCommand,
-  PagedResponseOfCommentDetailDto,
-} from "@/src/api/database/types.gen";
+import type { CommentDetailDto, PagedResponseOfCommentDetailDto } from "@/src/api/database/types.gen";
 
 interface DocumentFileCommentsPanelProps {
   documentId: string;
@@ -26,9 +22,7 @@ interface DocumentFileCommentsPanelProps {
 
 const PAGE_SIZE = 20;
 
-export function DocumentFileCommentsPanel({
-  documentFileId,
-}: DocumentFileCommentsPanelProps) {
+export function DocumentFileCommentsPanel({ documentFileId }: DocumentFileCommentsPanelProps) {
   const { authenticated, ready } = useAuthState();
   const { profile } = useUserProfile();
   const { success: notifySuccess, error: notifyError } = useNotification();
@@ -39,123 +33,81 @@ export function DocumentFileCommentsPanel({
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [content, setContent] = useState("");
-
-  // Reply state
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [submittingReply, setSubmittingReply] = useState(false);
-
-  // Report modal state
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportingComment, setReportingComment] = useState<CommentDetailDto | null>(null);
 
-  // Reset when documentFileId changes
   useEffect(() => {
     if (!documentFileId) return;
-    setComments([]);
-    setPage(1);
-    setHasMore(true);
+    setComments([]); setPage(1); setHasMore(true);
     void loadComments(1, true);
   }, [documentFileId]);
 
+  // Load comments
   const loadComments = async (pageToLoad: number, replace = false) => {
     if (!documentFileId || loading) return;
     setLoading(true);
     try {
       const res = await getApiComment<true>({
-        query: {
-          DocumentFileId: documentFileId,
-          Page: pageToLoad,
-          PageSize: PAGE_SIZE,
-        },
-        throwOnError: true,
+        query: { DocumentFileId: documentFileId, Page: pageToLoad, PageSize: PAGE_SIZE },
+        throwOnError: true
       });
-
       const data = (res.data ?? res) as PagedResponseOfCommentDetailDto;
       const items = data.items ?? [];
-
-      setComments((prev) => (replace ? items : [...prev, ...items]));
+      setComments(prev => replace ? items : [...prev, ...items]);
       const total = data.totalCount ?? items.length;
-      const loaded = (pageToLoad - 1) * PAGE_SIZE + items.length;
-      setHasMore(loaded < total);
+      setHasMore((pageToLoad - 1) * PAGE_SIZE + items.length < total);
       setPage(pageToLoad);
     } catch (err: unknown) {
       notifyError(getErrorMessage(err, "Không thể tải bình luận"));
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
+  // Submit comment
   const handleSubmit = async () => {
-    if (!authenticated) {
-      notifyError("Vui lòng đăng nhập để bình luận");
-      return;
-    }
+    if (!authenticated) { notifyError("Vui lòng đăng nhập để bình luận"); return; }
     if (!content.trim()) return;
-    if (containsProfanity(content)) {
-      notifyError(getProfanityErrorMessage());
-      return;
-    }
-
+    if (containsProfanity(content)) { notifyError(getProfanityErrorMessage()); return; }
     setSubmitting(true);
     try {
-      const body: CreateCommentCommand = {
-        documentFileId,
-        content: content.trim(),
-        parentId: null,
-      };
-
-      await postApiComment<true>({ body, throwOnError: true });
+      await postApiComment<true>({
+        body: { documentFileId, content: content.trim(), parentId: null },
+        throwOnError: true
+      });
       setContent("");
       notifySuccess("Đã gửi bình luận");
       await loadComments(1, true);
     } catch (err: unknown) {
       notifyError(getErrorMessage(err, "Không thể gửi bình luận"));
-    } finally {
-      setSubmitting(false);
-    }
+    } finally { setSubmitting(false); }
   };
 
+  // Submit reply
   const handleSubmitReply = async (parentId: string) => {
     if (!authenticated || !replyContent.trim()) return;
-    if (containsProfanity(replyContent)) {
-      notifyError(getProfanityErrorMessage());
-      return;
-    }
-
+    if (containsProfanity(replyContent)) { notifyError(getProfanityErrorMessage()); return; }
     setSubmittingReply(true);
     try {
-      const body: CreateCommentCommand = {
-        documentFileId,
-        content: replyContent.trim(),
-        parentId,
-      };
-
-      await postApiComment<true>({ body, throwOnError: true });
+      await postApiComment<true>({
+        body: { documentFileId, content: replyContent.trim(), parentId },
+        throwOnError: true
+      });
       setReplyContent("");
       setReplyingTo(null);
       notifySuccess("Đã gửi phản hồi");
       await loadComments(1, true);
     } catch (err: unknown) {
       notifyError(getErrorMessage(err, "Không thể gửi phản hồi"));
-    } finally {
-      setSubmittingReply(false);
-    }
+    } finally { setSubmittingReply(false); }
   };
 
-  const handleReport = (c: CommentDetailDto) => {
-    setReportingComment(c);
-    setReportModalOpen(true);
-  };
-
-  const handleReply = (parentId: string) => {
-    setReplyingTo(parentId);
-    setReplyContent("");
-  };
+  const handleReport = (c: CommentDetailDto) => { setReportingComment(c); setReportModalOpen(true); };
+  const handleReply = (parentId: string) => { setReplyingTo(parentId); setReplyContent(""); };
 
   return (
     <div className="flex h-full flex-col bg-background">
-      {/* Comments list */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <ScrollArea className="flex-1 px-4 py-3">
           {comments.length === 0 && !loading ? (
@@ -166,7 +118,7 @@ export function DocumentFileCommentsPanel({
             </div>
           ) : (
             <div className="space-y-4">
-              {comments.map((c) => (
+              {comments.map(c => (
                 <div key={c.id}>
                   <CommentItem
                     comment={c}
@@ -177,8 +129,6 @@ export function DocumentFileCommentsPanel({
                     documentFileId={documentFileId}
                     profileId={profile?.id}
                   />
-
-                  {/* Inline reply input */}
                   {replyingTo === c.id && (
                     <div className="flex gap-2 mt-2 ml-10">
                       <Avatar className="h-6 w-6">
@@ -191,14 +141,11 @@ export function DocumentFileCommentsPanel({
                         <input
                           type="text"
                           value={replyContent}
-                          onChange={(e) => setReplyContent(e.target.value)}
+                          onChange={e => setReplyContent(e.target.value)}
                           placeholder="Viết phản hồi..."
                           className="flex-1 rounded-full bg-muted px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                              e.preventDefault();
-                              handleSubmitReply(c.id!);
-                            }
+                          onKeyDown={e => {
+                            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmitReply(c.id!); }
                             if (e.key === "Escape") setReplyingTo(null);
                           }}
                           autoFocus
@@ -217,16 +164,9 @@ export function DocumentFileCommentsPanel({
                   )}
                 </div>
               ))}
-
               {hasMore && (
                 <div className="flex justify-center pt-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    disabled={loading}
-                    onClick={() => loadComments(page + 1)}
-                    className="text-xs"
-                  >
+                  <Button variant="ghost" size="sm" disabled={loading} onClick={() => loadComments(page + 1)} className="text-xs">
                     {loading ? "Đang tải..." : "Xem thêm bình luận"}
                   </Button>
                 </div>
@@ -234,8 +174,6 @@ export function DocumentFileCommentsPanel({
             </div>
           )}
         </ScrollArea>
-
-        {/* Comment input */}
         <div className="border-t border-border p-3">
           {!ready ? (
             <p className="text-xs text-muted-foreground text-center">Đang kiểm tra đăng nhập...</p>
@@ -252,20 +190,17 @@ export function DocumentFileCommentsPanel({
               <div className="flex-1 flex gap-2">
                 <textarea
                   value={content}
-                  onChange={(e) => setContent(e.target.value)}
+                  onChange={e => setContent(e.target.value)}
                   placeholder="Viết bình luận..."
                   rows={1}
                   className="flex-1 resize-none rounded-2xl bg-muted px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary min-h-[36px] max-h-[120px]"
-                  onInput={(e) => {
+                  onInput={e => {
                     const target = e.target as HTMLTextAreaElement;
                     target.style.height = "auto";
                     target.style.height = Math.min(target.scrollHeight, 120) + "px";
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSubmit();
-                    }
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
                   }}
                 />
                 <Button
@@ -282,8 +217,6 @@ export function DocumentFileCommentsPanel({
           )}
         </div>
       </div>
-
-      {/* Report Modal */}
       <ReportModal
         open={reportModalOpen}
         onOpenChange={setReportModalOpen}

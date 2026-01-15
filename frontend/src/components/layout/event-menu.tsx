@@ -3,15 +3,9 @@
 import { Calendar } from "lucide-react";
 import { Button } from "../ui/button";
 import { DropdownMenuWrapper } from "../ui/dropdown-menu-wrapper";
-import {
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "../ui/dropdown-menu";
+import { DropdownMenuItem, DropdownMenuSeparator } from "../ui/dropdown-menu";
 import Link from "next/link";
 
-/**
- * Ví dụ sử dụng DropdownMenuWrapper cho events
- */
 export function EventMenu() {
   const upcomingEvents = [
     { id: 1, title: "Deadline nộp bài tập", date: "2025-12-01", time: "23:59" },
@@ -21,12 +15,7 @@ export function EventMenu() {
   return (
     <DropdownMenuWrapper
       trigger={
-        <Button
-          variant="ghost"
-          size="sm"
-          className="group h-9 w-9 rounded-full p-0 hover:bg-muted"
-          aria-label="Calendar"
-        >
+        <Button variant="ghost" size="sm" className="group h-9 w-9 rounded-full p-0 hover:bg-muted" aria-label="Calendar">
           <Calendar size={18} className="text-muted-foreground transition-colors group-hover:text-foreground" />
         </Button>
       }
@@ -39,21 +28,17 @@ export function EventMenu() {
       <DropdownMenuSeparator />
       {upcomingEvents.length > 0 ? (
         <>
-          {upcomingEvents.map((event) => (
+          {upcomingEvents.map(event => (
             <DropdownMenuItem key={event.id} asChild>
               <Link href={`/events/${event.id}`} className="flex flex-col items-start cursor-pointer">
                 <p className="text-sm font-medium">{event.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {event.date} lúc {event.time}
-                </p>
+                <p className="text-xs text-muted-foreground">{event.date} lúc {event.time}</p>
               </Link>
             </DropdownMenuItem>
           ))}
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/events" className="cursor-pointer text-center w-full">
-              Xem tất cả
-            </Link>
+            <Link href="/events" className="cursor-pointer text-center w-full">Xem tất cả</Link>
           </DropdownMenuItem>
         </>
       ) : (
@@ -64,5 +49,3 @@ export function EventMenu() {
     </DropdownMenuWrapper>
   );
 }
-
-

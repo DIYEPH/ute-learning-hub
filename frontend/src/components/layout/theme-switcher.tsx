@@ -2,12 +2,7 @@
 
 import { useTheme } from '../providers/theme-provider';
 import { Moon, Sun, Monitor } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { useTranslations } from 'next-intl';
 
@@ -27,30 +22,16 @@ export function ThemeSwitcher() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem
-          onClick={() => setTheme('light')}
-          className={theme === 'light' ? 'bg-accent' : ''}
-        >
-          <Sun size={16} className="mr-2" />
-          {t('themeLight') || 'Light'}
+        <DropdownMenuItem onClick={() => setTheme('light')} className={theme === 'light' ? 'bg-accent' : ''}>
+          <Sun size={16} className="mr-2" />{t('themeLight') || 'Light'}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setTheme('dark')}
-          className={theme === 'dark' ? 'bg-accent' : ''}
-        >
-          <Moon size={16} className="mr-2" />
-          {t('themeDark') || 'Dark'}
+        <DropdownMenuItem onClick={() => setTheme('dark')} className={theme === 'dark' ? 'bg-accent' : ''}>
+          <Moon size={16} className="mr-2" />{t('themeDark') || 'Dark'}
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => setTheme('system')}
-          className={theme === 'system' ? 'bg-accent' : ''}
-        >
-          <Monitor size={16} className="mr-2" />
-          {t('themeSystem') || 'System'}
+        <DropdownMenuItem onClick={() => setTheme('system')} className={theme === 'system' ? 'bg-accent' : ''}>
+          <Monitor size={16} className="mr-2" />{t('themeSystem') || 'System'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
 }
-
-

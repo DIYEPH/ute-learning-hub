@@ -27,7 +27,6 @@ export default function AuthorsManagementPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [sortKey, setSortKey] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
-
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -42,19 +41,14 @@ export default function AuthorsManagementPage() {
                 Page: page,
                 PageSize: pageSize,
             });
-
             if (response) {
                 setAuthors(response.items || []);
                 setTotalCount(response.totalCount || 0);
             }
-        } catch (err) {
-            console.error("Error loading authors:", err);
-        }
+        } catch { }
     }, [fetchAuthors, searchTerm, page, pageSize]);
 
-    useEffect(() => {
-        loadAuthors();
-    }, [loadAuthors]);
+    useEffect(() => { loadAuthors(); }, [loadAuthors]);
 
     const handleCreate = async (data: AuthorInput) => {
         setFormLoading(true);
@@ -63,8 +57,7 @@ export default function AuthorsManagementPage() {
             await loadAuthors();
             setCreateModalOpen(false);
             notification.success(t("notifications.createSuccess"));
-        } catch (err) {
-            console.error("Error creating author:", err);
+        } catch {
             notification.error(t("notifications.createError"));
         } finally {
             setFormLoading(false);
@@ -80,8 +73,7 @@ export default function AuthorsManagementPage() {
             setEditModalOpen(false);
             setSelectedAuthor(null);
             notification.success(t("notifications.updateSuccess"));
-        } catch (err) {
-            console.error("Error updating author:", err);
+        } catch {
             notification.error(t("notifications.updateError"));
         } finally {
             setFormLoading(false);
@@ -97,8 +89,7 @@ export default function AuthorsManagementPage() {
             setDeleteModalOpen(false);
             setSelectedAuthor(null);
             notification.success(t("notifications.deleteSuccess"));
-        } catch (err) {
-            console.error("Error deleting author:", err);
+        } catch {
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -111,8 +102,7 @@ export default function AuthorsManagementPage() {
             await Promise.all(ids.map((id) => deleteAuthor(id)));
             await loadAuthors();
             notification.success(t("notifications.bulkDeleteSuccess", { count: ids.length }));
-        } catch (err) {
-            console.error("Error bulk deleting authors:", err);
+        } catch {
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -128,8 +118,7 @@ export default function AuthorsManagementPage() {
             await loadAuthors();
             setDeleteAllModalOpen(false);
             notification.success(t("notifications.bulkDeleteSuccess", { count: ids.length }));
-        } catch (err) {
-            console.error("Error deleting all authors:", err);
+        } catch {
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -155,23 +144,12 @@ export default function AuthorsManagementPage() {
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h1 className="text-xl md:text-2xl font-semibold text-foreground">{t("title")}</h1>
                 <div className="flex gap-2">
-                    <Button
-                        onClick={() => setCreateModalOpen(true)}
-                        size="sm"
-                        className="text-xs sm:text-sm"
-                        disabled={formLoading}
-                    >
+                    <Button onClick={() => setCreateModalOpen(true)} size="sm" className="text-xs sm:text-sm" disabled={formLoading}>
                         <Plus size={16} className="mr-1" />
                         {t("createTitle")}
                     </Button>
                     {authors.length > 0 && (
-                        <Button
-                            onClick={() => setDeleteAllModalOpen(true)}
-                            variant="destructive"
-                            size="sm"
-                            className="text-xs sm:text-sm"
-                            disabled={formLoading}
-                        >
+                        <Button onClick={() => setDeleteAllModalOpen(true)} variant="destructive" size="sm" className="text-xs sm:text-sm" disabled={formLoading}>
                             <Trash2 size={16} className="mr-1" />
                             {t("deleteAll")}
                         </Button>
@@ -191,7 +169,7 @@ export default function AuthorsManagementPage() {
             </div>
 
             {error && (
-                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 ">
+                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                     <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
             )}
@@ -206,14 +184,8 @@ export default function AuthorsManagementPage() {
                 <AuthorTable
                     authors={authors}
                     loading={loading}
-                    onEdit={(author) => {
-                        setSelectedAuthor(author);
-                        setEditModalOpen(true);
-                    }}
-                    onDelete={(author) => {
-                        setSelectedAuthor(author);
-                        setDeleteModalOpen(true);
-                    }}
+                    onEdit={(author) => { setSelectedAuthor(author); setEditModalOpen(true); }}
+                    onDelete={(author) => { setSelectedAuthor(author); setDeleteModalOpen(true); }}
                     onBulkDelete={handleBulkDelete}
                     onSort={handleSort}
                     sortKey={sortKey}
@@ -221,38 +193,24 @@ export default function AuthorsManagementPage() {
                     enableClientSort={true}
                 />
             </div>
+
             <Pagination currentPage={page} totalPages={totalPages} totalItems={totalCount} pageSize={pageSize} onPageChange={setPage} loading={loading} className="mt-4" />
+
             <CreateModal
                 open={createModalOpen}
                 onOpenChange={setCreateModalOpen}
                 title={t("createTitle")}
-                onSubmit={async () => {
-                    const form = document.getElementById("author-form") as HTMLFormElement;
-                    if (form) {
-                        form.requestSubmit();
-                    }
-                }}
+                onSubmit={async () => { (document.getElementById("author-form") as HTMLFormElement)?.requestSubmit(); }}
                 loading={formLoading}
             >
-                <AuthorForm
-                    onSubmit={(data) => handleCreate(data as AuthorInput)}
-                    loading={formLoading}
-                />
+                <AuthorForm onSubmit={(data) => handleCreate(data as AuthorInput)} loading={formLoading} />
             </CreateModal>
 
             <EditModal
                 open={editModalOpen}
-                onOpenChange={(open) => {
-                    setEditModalOpen(open);
-                    if (!open) setSelectedAuthor(null);
-                }}
+                onOpenChange={(open) => { setEditModalOpen(open); if (!open) setSelectedAuthor(null); }}
                 title={t("editTitle")}
-                onSubmit={async () => {
-                    const form = document.getElementById("author-form") as HTMLFormElement;
-                    if (form) {
-                        form.requestSubmit();
-                    }
-                }}
+                onSubmit={async () => { (document.getElementById("author-form") as HTMLFormElement)?.requestSubmit(); }}
                 loading={formLoading}
             >
                 <AuthorForm
@@ -264,10 +222,7 @@ export default function AuthorsManagementPage() {
 
             <DeleteModal
                 open={deleteModalOpen}
-                onOpenChange={(open) => {
-                    setDeleteModalOpen(open);
-                    if (!open) setSelectedAuthor(null);
-                }}
+                onOpenChange={(open) => { setDeleteModalOpen(open); if (!open) setSelectedAuthor(null); }}
                 onConfirm={handleDelete}
                 title={t("deleteModal.title")}
                 description={t("deleteModal.description")}
@@ -287,4 +242,3 @@ export default function AuthorsManagementPage() {
         </div>
     );
 }
-

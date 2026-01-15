@@ -13,15 +13,10 @@ interface ConversationListProps {
   collapsed?: boolean;
 }
 
-export function ConversationList({
-  conversations,
-  selectedId,
-  onSelect,
-  collapsed = false,
-}: ConversationListProps) {
+export function ConversationList({ conversations, selectedId, onSelect, collapsed = false }: ConversationListProps) {
   return (
     <div className={cn(collapsed ? "space-y-1 p-1" : "divide-y divide-border")}>
-      {conversations.map((conversation) => {
+      {conversations.map(conversation => {
         const isSelected = conversation.id === selectedId;
         const unreadCount = conversation.unreadCount ?? 0;
         const hasUnread = unreadCount > 0;
@@ -40,13 +35,8 @@ export function ConversationList({
             <div className={cn("flex items-start", collapsed ? "justify-center" : "gap-3")}>
               <div className="relative">
                 <Avatar className={cn("shrink-0", collapsed ? "h-10 w-10" : "h-12 w-12")}>
-                  <AvatarImage
-                    src={conversation.avatarUrl || undefined}
-                    alt={conversation.conversationName || "Avatar"}
-                  />
-                  <AvatarFallback>
-                    <MessageCircle className={cn(collapsed ? "h-5 w-5" : "h-6 w-6")} />
-                  </AvatarFallback>
+                  <AvatarImage src={conversation.avatarUrl || undefined} alt={conversation.conversationName || "Avatar"} />
+                  <AvatarFallback><MessageCircle className={cn(collapsed ? "h-5 w-5" : "h-6 w-6")} /></AvatarFallback>
                 </Avatar>
                 {hasUnread && (
                   <span className={cn(
@@ -61,40 +51,26 @@ export function ConversationList({
               {!collapsed && (
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <h3
-                      className={cn(
-                        "text-sm truncate",
-                        hasUnread ? "font-bold" : "font-semibold",
-                        isSelected ? "text-primary" : "text-foreground"
-                      )}
-                    >
+                    <h3 className={cn("text-sm truncate", hasUnread ? "font-bold" : "font-semibold", isSelected ? "text-primary" : "text-foreground")}>
                       {conversation.conversationName || "Cuộc trò chuyện"}
                     </h3>
                   </div>
 
                   {conversation.tags && conversation.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-1">
-                      {conversation.tags.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag.id}
-                          className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground"
-                        >
+                      {conversation.tags.slice(0, 3).map(tag => (
+                        <span key={tag.id} className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-medium text-foreground">
                           {tag.tagName}
                         </span>
                       ))}
-                      {conversation.tags.length > 3 && (
-                        <span className="text-[10px] font-medium text-muted-foreground">
-                          +{conversation.tags.length - 3}
-                        </span>
-                      )}
+                      {conversation.tags.length > 3 && <span className="text-[10px] font-medium text-muted-foreground">+{conversation.tags.length - 3}</span>}
                     </div>
                   )}
 
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     {conversation.memberCount !== undefined && (
                       <div className="flex items-center gap-1">
-                        <Users className="h-3 w-3" />
-                        <span>{conversation.memberCount}</span>
+                        <Users className="h-3 w-3" /><span>{conversation.memberCount}</span>
                       </div>
                     )}
                   </div>
@@ -121,6 +97,3 @@ export function ConversationList({
     </div>
   );
 }
-
-
-

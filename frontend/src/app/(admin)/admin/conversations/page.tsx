@@ -45,19 +45,14 @@ export default function ConversationsManagementPage() {
                 Page: page,
                 PageSize: pageSize,
             });
-
             if (response) {
                 setConversations(response.items || []);
                 setTotalCount(response.totalCount || 0);
             }
-        } catch (err) {
-            console.error("Error loading conversations:", err);
-        }
+        } catch { }
     }, [fetchConversations, searchTerm, typeFilter, statusFilter, deletedFilter, page, pageSize]);
 
-    useEffect(() => {
-        loadConversations();
-    }, [loadConversations]);
+    useEffect(() => { loadConversations(); }, [loadConversations]);
 
     const handleEdit = async (command: UpdateConversationCommandRequest) => {
         if (!selectedConversation?.id) return;
@@ -68,8 +63,7 @@ export default function ConversationsManagementPage() {
             setEditModalOpen(false);
             setSelectedConversation(null);
             notification.success(t("notifications.updateSuccess"));
-        } catch (err) {
-            console.error("Error updating conversation:", err);
+        } catch {
             notification.error(t("notifications.updateError"));
         } finally {
             setFormLoading(false);
@@ -85,8 +79,7 @@ export default function ConversationsManagementPage() {
             setDeleteModalOpen(false);
             setSelectedConversation(null);
             notification.success(t("notifications.deleteSuccess"));
-        } catch (err) {
-            console.error("Error deleting conversation:", err);
+        } catch {
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -99,8 +92,7 @@ export default function ConversationsManagementPage() {
             await Promise.all(ids.map((id) => deleteConversation(id)));
             await loadConversations();
             notification.success(t("notifications.bulkDeleteSuccess", { count: ids.length }));
-        } catch (err) {
-            console.error("Error bulk deleting conversations:", err);
+        } catch {
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -116,8 +108,7 @@ export default function ConversationsManagementPage() {
             await loadConversations();
             setDeleteAllModalOpen(false);
             notification.success(t("notifications.bulkDeleteSuccess", { count: ids.length }));
-        } catch (err) {
-            console.error("Error deleting all conversations:", err);
+        } catch {
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -135,13 +126,9 @@ export default function ConversationsManagementPage() {
     };
 
     const handleFilterChange = (key: string, value: string | null) => {
-        if (key === "type") {
-            setTypeFilter(value);
-        } else if (key === "status") {
-            setStatusFilter(value);
-        } else if (key === "deleted") {
-            setDeletedFilter(value);
-        }
+        if (key === "type") setTypeFilter(value);
+        else if (key === "status") setStatusFilter(value);
+        else if (key === "deleted") setDeletedFilter(value);
         setPage(1);
     };
 
@@ -158,13 +145,7 @@ export default function ConversationsManagementPage() {
                 <h1 className="text-xl md:text-2xl font-semibold text-foreground">{t("title")}</h1>
                 <div className="flex gap-2">
                     {conversations.length > 0 && (
-                        <Button
-                            onClick={() => setDeleteAllModalOpen(true)}
-                            variant="destructive"
-                            size="sm"
-                            className="text-xs sm:text-sm"
-                            disabled={formLoading}
-                        >
+                        <Button onClick={() => setDeleteAllModalOpen(true)} variant="destructive" size="sm" className="text-xs sm:text-sm" disabled={formLoading}>
                             <Trash2 size={16} className="mr-1" />
                             {t("deleteAll")}
                         </Button>
@@ -178,38 +159,9 @@ export default function ConversationsManagementPage() {
                     onSearchChange={setSearchTerm}
                     placeholder={t("searchPlaceholder")}
                     filters={[
-                        {
-                            key: "type",
-                            label: t("filter.type"),
-                            type: "select",
-                            value: typeFilter,
-                            options: [
-                                { value: "0", label: "Private" },
-                                { value: "1", label: "Group" },
-                                { value: "2", label: "AI" },
-                            ],
-                        },
-                        {
-                            key: "status",
-                            label: t("filter.status"),
-                            type: "select",
-                            value: statusFilter,
-                            options: [
-                                { value: "0", label: t("filter.active") },
-                                { value: "1", label: t("filter.inactive") },
-                                { value: "2", label: t("filter.archived") },
-                            ],
-                        },
-                        {
-                            key: "deleted",
-                            label: t("filter.deleted"),
-                            type: "select",
-                            value: deletedFilter,
-                            options: [
-                                { value: "false", label: t("filter.activeItems") },
-                                { value: "true", label: t("filter.deletedItems") },
-                            ],
-                        },
+                        { key: "type", label: t("filter.type"), type: "select", value: typeFilter, options: [{ value: "0", label: "Private" }, { value: "1", label: "Group" }, { value: "2", label: "AI" }] },
+                        { key: "status", label: t("filter.status"), type: "select", value: statusFilter, options: [{ value: "0", label: t("filter.active") }, { value: "1", label: t("filter.inactive") }, { value: "2", label: t("filter.archived") }] },
+                        { key: "deleted", label: t("filter.deleted"), type: "select", value: deletedFilter, options: [{ value: "false", label: t("filter.activeItems") }, { value: "true", label: t("filter.deletedItems") }] },
                     ]}
                     onFilterChange={handleFilterChange}
                     onReset={handleReset}
@@ -217,29 +169,21 @@ export default function ConversationsManagementPage() {
             </div>
 
             {error && (
-                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 ">
+                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                     <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
             )}
 
             {conversations.length > 0 && (
-                <div className="mb-2 text-sm text-muted-foreground">
-                    {t("foundCount", { count: totalCount })}
-                </div>
+                <div className="mb-2 text-sm text-muted-foreground">{t("foundCount", { count: totalCount })}</div>
             )}
 
             <div className="mt-4">
                 <ConversationTable
                     conversations={conversations}
                     loading={loading}
-                    onEdit={(conversation) => {
-                        setSelectedConversation(conversation);
-                        setEditModalOpen(true);
-                    }}
-                    onDelete={(conversation) => {
-                        setSelectedConversation(conversation);
-                        setDeleteModalOpen(true);
-                    }}
+                    onEdit={(conversation) => { setSelectedConversation(conversation); setEditModalOpen(true); }}
+                    onDelete={(conversation) => { setSelectedConversation(conversation); setDeleteModalOpen(true); }}
                     onBulkDelete={handleBulkDelete}
                     onSort={handleSort}
                     sortKey={sortKey}
@@ -248,30 +192,13 @@ export default function ConversationsManagementPage() {
                 />
             </div>
 
-            <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                totalItems={totalCount}
-                pageSize={pageSize}
-                onPageChange={setPage}
-                loading={loading}
-                className="mt-4"
-            />
+            <Pagination currentPage={page} totalPages={totalPages} totalItems={totalCount} pageSize={pageSize} onPageChange={setPage} loading={loading} className="mt-4" />
 
-            {/* Edit Modal */}
             <EditModal
                 open={editModalOpen}
-                onOpenChange={(open) => {
-                    setEditModalOpen(open);
-                    if (!open) setSelectedConversation(null);
-                }}
+                onOpenChange={(open) => { setEditModalOpen(open); if (!open) setSelectedConversation(null); }}
                 title={t("editTitle")}
-                onSubmit={async () => {
-                    const form = document.getElementById("conversation-form") as HTMLFormElement;
-                    if (form) {
-                        form.requestSubmit();
-                    }
-                }}
+                onSubmit={async () => { (document.getElementById("conversation-form") as HTMLFormElement)?.requestSubmit(); }}
                 loading={formLoading}
                 size="lg"
             >
@@ -282,13 +209,9 @@ export default function ConversationsManagementPage() {
                 />
             </EditModal>
 
-            {/* Delete Modal */}
             <DeleteModal
                 open={deleteModalOpen}
-                onOpenChange={(open) => {
-                    setDeleteModalOpen(open);
-                    if (!open) setSelectedConversation(null);
-                }}
+                onOpenChange={(open) => { setDeleteModalOpen(open); if (!open) setSelectedConversation(null); }}
                 onConfirm={handleDelete}
                 title={t("deleteModal.title")}
                 description={t("deleteModal.description")}
@@ -296,7 +219,6 @@ export default function ConversationsManagementPage() {
                 itemName={selectedConversation?.conversationName || ""}
             />
 
-            {/* Delete All Modal */}
             <DeleteModal
                 open={deleteAllModalOpen}
                 onOpenChange={setDeleteAllModalOpen}
@@ -309,5 +231,3 @@ export default function ConversationsManagementPage() {
         </div>
     );
 }
-
-

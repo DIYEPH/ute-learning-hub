@@ -14,4 +14,3 @@ export const MAIN_NAV_CONFIG = [
   { labelKey: "nav.conversations", href: "/conversations", icon: Users, requiresAuth: true },
   { labelKey: "nav.recent", href: "/recent", icon: Clock, requiresAuth: true },
 ] as const;
-

@@ -39,7 +39,6 @@ export default function DocumentsManagementPage() {
     const [sortKey, setSortKey] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<"asc" | "desc" | null>(null);
 
-    // Filter options
     const [subjects, setSubjects] = useState<SubjectDetailDto[]>([]);
     const [types, setTypes] = useState<TypeDto[]>([]);
     const [authors, setAuthors] = useState<AuthorDto[]>([]);
@@ -52,7 +51,6 @@ export default function DocumentsManagementPage() {
     const [selectedDocument, setSelectedDocument] = useState<DocumentDto | null>(null);
     const [formLoading, setFormLoading] = useState(false);
 
-    // Fetch filter options on mount
     useEffect(() => {
         const loadFilterOptions = async () => {
             const [subjectsRes, typesRes, authorsRes, tagsRes] = await Promise.all([
@@ -82,19 +80,14 @@ export default function DocumentsManagementPage() {
                 Page: page,
                 PageSize: pageSize,
             });
-
             if (response) {
                 setDocuments(response.items || []);
                 setTotalCount(response.totalCount || 0);
             }
-        } catch (err) {
-            console.error("Error loading documents:", err);
-        }
+        } catch { }
     }, [fetchDocuments, searchTerm, visibilityFilter, subjectFilter, typeFilter, authorFilter, tagFilter, deletedFilter, page, pageSize]);
 
-    useEffect(() => {
-        loadDocuments();
-    }, [loadDocuments]);
+    useEffect(() => { loadDocuments(); }, [loadDocuments]);
 
     const handleEdit = async (command: UpdateDocumentCommandRequest) => {
         if (!selectedDocument?.id) return;
@@ -105,8 +98,7 @@ export default function DocumentsManagementPage() {
             setEditModalOpen(false);
             setSelectedDocument(null);
             notification.success(t("notifications.updateSuccess"));
-        } catch (err) {
-            console.error("Error updating document:", err);
+        } catch {
             notification.error(t("notifications.updateError"));
         } finally {
             setFormLoading(false);
@@ -122,8 +114,7 @@ export default function DocumentsManagementPage() {
             setDeleteModalOpen(false);
             setSelectedDocument(null);
             notification.success(t("notifications.deleteSuccess"));
-        } catch (err) {
-            console.error("Error deleting document:", err);
+        } catch {
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -136,8 +127,7 @@ export default function DocumentsManagementPage() {
             await Promise.all(ids.map((id) => deleteDocument(id)));
             await loadDocuments();
             notification.success(t("notifications.bulkDeleteSuccess", { count: ids.length }));
-        } catch (err) {
-            console.error("Error bulk deleting documents:", err);
+        } catch {
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -153,8 +143,7 @@ export default function DocumentsManagementPage() {
             await loadDocuments();
             setDeleteAllModalOpen(false);
             notification.success(t("notifications.bulkDeleteSuccess", { count: ids.length }));
-        } catch (err) {
-            console.error("Error deleting all documents:", err);
+        } catch {
             notification.error(t("notifications.deleteError"));
         } finally {
             setFormLoading(false);
@@ -197,13 +186,7 @@ export default function DocumentsManagementPage() {
                 <h1 className="text-xl md:text-2xl font-semibold text-foreground">{t("title")}</h1>
                 <div className="flex gap-2">
                     {documents.length > 0 && (
-                        <Button
-                            onClick={() => setDeleteAllModalOpen(true)}
-                            variant="destructive"
-                            size="sm"
-                            className="text-xs sm:text-sm"
-                            disabled={formLoading}
-                        >
+                        <Button onClick={() => setDeleteAllModalOpen(true)} variant="destructive" size="sm" className="text-xs sm:text-sm" disabled={formLoading}>
                             <Trash2 size={16} className="mr-1" />
                             {t("deleteAll")}
                         </Button>
@@ -217,54 +200,12 @@ export default function DocumentsManagementPage() {
                     onSearchChange={setSearchTerm}
                     placeholder={t("searchPlaceholder")}
                     filters={[
-                        {
-                            key: "subject",
-                            label: t("filter.subject"),
-                            type: "select",
-                            value: subjectFilter,
-                            options: subjects.filter(s => s.id).map(s => ({ value: s.id!, label: `${s.subjectName} (${s.subjectCode})` })),
-                        },
-                        {
-                            key: "type",
-                            label: t("filter.type"),
-                            type: "select",
-                            value: typeFilter,
-                            options: types.filter(t => t.id).map(t => ({ value: t.id!, label: t.typeName || "" })),
-                        },
-                        {
-                            key: "author",
-                            label: t("filter.author"),
-                            type: "searchable",
-                            value: authorFilter,
-                            options: authors.filter(a => a.id).map(a => ({ value: a.id!, label: a.fullName || "" })),
-                        },
-                        {
-                            key: "tags",
-                            label: t("filter.tags"),
-                            type: "searchable-multiselect",
-                            value: tagFilter,
-                            options: tags.filter(tag => tag.id).map(tag => ({ value: tag.id!, label: tag.tagName || "" })),
-                        },
-                        {
-                            key: "visibility",
-                            label: t("filter.visibility"),
-                            type: "select",
-                            value: visibilityFilter,
-                            options: [
-                                { value: "0", label: t("filter.public") },
-                                { value: "1", label: t("filter.internal") },
-                            ],
-                        },
-                        {
-                            key: "deleted",
-                            label: t("filter.deleted"),
-                            type: "select",
-                            value: deletedFilter,
-                            options: [
-                                { value: "false", label: t("filter.activeItems") },
-                                { value: "true", label: t("filter.deletedItems") },
-                            ],
-                        },
+                        { key: "subject", label: t("filter.subject"), type: "select", value: subjectFilter, options: subjects.filter(s => s.id).map(s => ({ value: s.id!, label: `${s.subjectName} (${s.subjectCode})` })) },
+                        { key: "type", label: t("filter.type"), type: "select", value: typeFilter, options: types.filter(t => t.id).map(t => ({ value: t.id!, label: t.typeName || "" })) },
+                        { key: "author", label: t("filter.author"), type: "searchable", value: authorFilter, options: authors.filter(a => a.id).map(a => ({ value: a.id!, label: a.fullName || "" })) },
+                        { key: "tags", label: t("filter.tags"), type: "searchable-multiselect", value: tagFilter, options: tags.filter(tag => tag.id).map(tag => ({ value: tag.id!, label: tag.tagName || "" })) },
+                        { key: "visibility", label: t("filter.visibility"), type: "select", value: visibilityFilter, options: [{ value: "0", label: t("filter.public") }, { value: "1", label: t("filter.internal") }] },
+                        { key: "deleted", label: t("filter.deleted"), type: "select", value: deletedFilter, options: [{ value: "false", label: t("filter.activeItems") }, { value: "true", label: t("filter.deletedItems") }] },
                     ]}
                     onFilterChange={handleFilterChange}
                     onReset={handleReset}
@@ -272,33 +213,22 @@ export default function DocumentsManagementPage() {
             </div>
 
             {error && (
-                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 ">
+                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                     <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
                 </div>
             )}
 
             {documents.length > 0 && (
-                <div className="mb-2 text-sm text-muted-foreground">
-                    {t("foundCount", { count: totalCount })}
-                </div>
+                <div className="mb-2 text-sm text-muted-foreground">{t("foundCount", { count: totalCount })}</div>
             )}
 
             <div className="mt-4">
                 <DocumentTable
                     documents={documents}
                     loading={loading}
-                    onViewDetail={(doc) => {
-                        setSelectedDocument(doc);
-                        setDetailModalOpen(true);
-                    }}
-                    onEdit={(doc) => {
-                        setSelectedDocument(doc);
-                        setEditModalOpen(true);
-                    }}
-                    onDelete={(doc) => {
-                        setSelectedDocument(doc);
-                        setDeleteModalOpen(true);
-                    }}
+                    onViewDetail={(doc) => { setSelectedDocument(doc); setDetailModalOpen(true); }}
+                    onEdit={(doc) => { setSelectedDocument(doc); setEditModalOpen(true); }}
+                    onDelete={(doc) => { setSelectedDocument(doc); setDeleteModalOpen(true); }}
                     onBulkDelete={handleBulkDelete}
                     onSort={handleSort}
                     sortKey={sortKey}
@@ -307,30 +237,13 @@ export default function DocumentsManagementPage() {
                 />
             </div>
 
-            <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                totalItems={totalCount}
-                pageSize={pageSize}
-                onPageChange={setPage}
-                loading={loading}
-                className="mt-4"
-            />
+            <Pagination currentPage={page} totalPages={totalPages} totalItems={totalCount} pageSize={pageSize} onPageChange={setPage} loading={loading} className="mt-4" />
 
-            {/* Edit Modal */}
             <EditModal
                 open={editModalOpen}
-                onOpenChange={(open) => {
-                    setEditModalOpen(open);
-                    if (!open) setSelectedDocument(null);
-                }}
+                onOpenChange={(open) => { setEditModalOpen(open); if (!open) setSelectedDocument(null); }}
                 title={t("editTitle")}
-                onSubmit={async () => {
-                    const form = document.getElementById("document-form") as HTMLFormElement;
-                    if (form) {
-                        form.requestSubmit();
-                    }
-                }}
+                onSubmit={async () => { (document.getElementById("document-form") as HTMLFormElement)?.requestSubmit(); }}
                 loading={formLoading}
                 size="lg"
             >
@@ -341,13 +254,9 @@ export default function DocumentsManagementPage() {
                 />
             </EditModal>
 
-            {/* Delete Modal */}
             <DeleteModal
                 open={deleteModalOpen}
-                onOpenChange={(open) => {
-                    setDeleteModalOpen(open);
-                    if (!open) setSelectedDocument(null);
-                }}
+                onOpenChange={(open) => { setDeleteModalOpen(open); if (!open) setSelectedDocument(null); }}
                 onConfirm={handleDelete}
                 title={t("deleteModal.title")}
                 description={t("deleteModal.description")}
@@ -355,7 +264,6 @@ export default function DocumentsManagementPage() {
                 itemName={selectedDocument?.documentName || ""}
             />
 
-            {/* Delete All Modal */}
             <DeleteModal
                 open={deleteAllModalOpen}
                 onOpenChange={setDeleteAllModalOpen}
@@ -366,18 +274,12 @@ export default function DocumentsManagementPage() {
                 itemName={`${documents.length} ${t("items")}`}
             />
 
-            {/* Document Detail Modal with Review */}
             <DocumentDetailModal
                 open={detailModalOpen}
-                onOpenChange={(open) => {
-                    setDetailModalOpen(open);
-                    if (!open) setSelectedDocument(null);
-                }}
+                onOpenChange={(open) => { setDetailModalOpen(open); if (!open) setSelectedDocument(null); }}
                 documentId={selectedDocument?.id || null}
                 onReviewSuccess={loadDocuments}
             />
         </div>
     );
 }
-
-

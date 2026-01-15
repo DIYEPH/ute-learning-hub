@@ -1,9 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Loader2, RefreshCcw, FileText } from "lucide-react";
-
 import { getApiDocumentMy } from "@/src/api";
 import type { DocumentDto, PagedResponseOfDocumentDto } from "@/src/api/database/types.gen";
 import { DocumentCard } from "@/src/components/documents/document-card";
@@ -13,7 +11,6 @@ import { Button } from "@/src/components/ui/button";
 const PAGE_SIZE = 12;
 
 export default function LibraryPage() {
-  const router = useRouter();
   const [docs, setDocs] = useState<DocumentDto[]>([]);
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
@@ -28,19 +25,17 @@ export default function LibraryPage() {
     return () => clearTimeout(t);
   }, [search]);
 
-  useEffect(() => {
-    fetchDocs(1, debounced, false);
-  }, [debounced]);
+  useEffect(() => { fetchDocs(1, debounced, false); }, [debounced]);
 
   const fetchDocs = async (p: number, q: string, append: boolean) => {
     append ? setLoadingMore(true) : setLoading(true);
     setError(null);
     try {
       const res = await getApiDocumentMy({
-        query: { Page: p, PageSize: PAGE_SIZE, SearchTerm: q || undefined },
+        query: { Page: p, PageSize: PAGE_SIZE, SearchTerm: q || undefined }
       });
       const data = (res.data ?? res) as PagedResponseOfDocumentDto;
-      setDocs(v => (append ? [...v, ...(data.items ?? [])] : data.items ?? []));
+      setDocs(v => append ? [...v, ...(data.items ?? [])] : data.items ?? []);
       setPage(p);
       setHasNext(!!data.hasNextPage);
     } catch (e: any) {
@@ -50,16 +45,16 @@ export default function LibraryPage() {
     }
   };
 
-  if (loading && docs.length === 0)
+  if (loading && docs.length === 0) {
     return (
       <div className="flex justify-center py-12">
         <Loader2 className="animate-spin text-primary" />
       </div>
     );
+  }
 
   return (
     <div className="space-y-6">
-
       <div className="flex flex-col gap-4 md:flex-row md:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Thư viện của tôi</h1>
@@ -120,7 +115,6 @@ export default function LibraryPage() {
           </Button>
         </div>
       )}
-
     </div>
   );
 }

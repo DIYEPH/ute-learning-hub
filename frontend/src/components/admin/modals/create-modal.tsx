@@ -13,54 +13,17 @@ export interface CreateModalProps extends Omit<BaseModalProps, "footer"> {
   disabled?: boolean;
 }
 
-export function CreateModal({open, onOpenChange, title, description, children, onSubmit, onCancel, submitLabel, cancelLabel, loading = false, disabled = false, size = "md"}: CreateModalProps) {
+export function CreateModal({ open, onOpenChange, title, description, children, onSubmit, onCancel, submitLabel, cancelLabel, loading = false, disabled = false, size = "md" }: CreateModalProps) {
   const t = useTranslations("common");
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) 
-      e.preventDefault();
-    await onSubmit();
-  };
-
-  const handleCancel = () => {
-    if (onCancel) 
-      onCancel();
-    else 
-      onOpenChange(false);
-  };
+  const handleSubmit = async (e?: React.FormEvent) => { if (e) e.preventDefault(); await onSubmit(); };
+  const handleCancel = () => { if (onCancel) onCancel(); else onOpenChange(false); };
 
   const footer = (
     <>
-      <Button
-        type="button"
-        variant="outline"
-        onClick={handleCancel}
-        disabled={loading}
-      >
-        {cancelLabel || t("cancel")}
-      </Button>
-      <Button
-        type="button"
-        onClick={handleSubmit}
-        disabled={loading || disabled}
-      >
-        {loading ? t("loading") : submitLabel || t("create")}
-      </Button>
+      <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>{cancelLabel || t("cancel")}</Button>
+      <Button type="button" onClick={handleSubmit} disabled={loading || disabled}>{loading ? t("loading") : submitLabel || t("create")}</Button>
     </>
   );
 
-  return (
-    <BaseModal
-      open={open}
-      onOpenChange={onOpenChange}
-      title={title}
-      description={description}
-      size={size}
-      footer={footer}
-    >
-      {children}
-    </BaseModal>
-  );
+  return <BaseModal open={open} onOpenChange={onOpenChange} title={title} description={description} size={size} footer={footer}>{children}</BaseModal>;
 }
-
-

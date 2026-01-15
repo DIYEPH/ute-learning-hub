@@ -16,35 +16,21 @@ export function useAuth(): UseAuthReturn {
 
     const handleLogin = useCallback(async (emailOrUsername: string, password: string): Promise<LoginResponse> => {
         setLoading(true);
-        try {
-            return await login(emailOrUsername, password);
-        } finally {
-            setLoading(false);
-        }
+        try { return await login(emailOrUsername, password); }
+        finally { setLoading(false); }
     }, []);
 
     const handleMicrosoftLogin = useCallback(async (): Promise<LoginWithMicrosoftResponse> => {
         setLoading(true);
-        try {
-            return await loginWithMicrosoft();
-        } finally {
-            setLoading(false);
-        }
+        try { return await loginWithMicrosoft(); }
+        finally { setLoading(false); }
     }, []);
 
     const handleLogout = useCallback(async (): Promise<void> => {
         setLoading(true);
-        try {
-            await logout();
-        } finally {
-            setLoading(false);
-        }
+        try { await logout(); }
+        finally { setLoading(false); }
     }, []);
 
-    return {
-        handleLogin,
-        handleMicrosoftLogin,
-        handleLogout,
-        loading,
-    };
+    return { handleLogin, handleMicrosoftLogin, handleLogout, loading };
 }

@@ -3,15 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, MessageCircle } from "lucide-react";
-
-import {
-    getApiAccountProfileByUserId,
-    getApiDocument,
-    postApiConversationDmByUserId,
-} from "@/src/api";
-
+import { getApiAccountProfileByUserId, getApiDocument, postApiConversationDmByUserId } from "@/src/api";
 import type { ProfileDetailDto, DocumentDto, GetOrCreateDmResponse } from "@/src/api/database/types.gen";
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
@@ -108,17 +101,15 @@ export default function UserProfilePage() {
         );
     }
 
-    const initials =
-        (profile.fullName || profile.username || "?")
-            .split(" ")
-            .map(s => s[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase();
+    const initials = (profile.fullName || profile.username || "?")
+        .split(" ")
+        .map(s => s[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
 
     return (
         <div className="space-y-6">
-
             <Button variant="ghost" size="sm" onClick={() => router.back()}>
                 <ArrowLeft className="h-4 w-4 mr-2" /> Quay lại
             </Button>
@@ -172,9 +163,7 @@ export default function UserProfilePage() {
                 )}
             </div>
 
-            <h2 className="text-lg font-semibold">
-                Tài liệu đã đăng ({total})
-            </h2>
+            <h2 className="text-lg font-semibold">Tài liệu đã đăng ({total})</h2>
 
             {docs.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground border border-border bg-card">
@@ -202,17 +191,12 @@ export default function UserProfilePage() {
 
             {hasMore && (
                 <div className="flex justify-center">
-                    <Button
-                        variant="outline"
-                        onClick={() => load(page + 1, true)}
-                        disabled={loadingMore}
-                    >
+                    <Button variant="outline" onClick={() => load(page + 1, true)} disabled={loadingMore}>
                         {loadingMore && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                         Tải thêm
                     </Button>
                 </div>
             )}
-
         </div>
     );
 }

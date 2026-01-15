@@ -10,33 +10,21 @@ export function useAdminBadges() {
     const [pendingDocumentFiles, setPendingDocumentFiles] = useState(0);
     const [loading, setLoading] = useState(true);
 
+    // Fetch badge counts
     const fetchBadges = useCallback(async () => {
         setLoading(true);
         try {
-            // Fetch pending reports count (Status = 0 is PendingReview)
             const reportRes = await getApiReport({ query: { Status: "0", PageSize: 1 } });
             const reportData = (reportRes as unknown as { data: PagedResponse<ReportDto> })?.data || reportRes as PagedResponse<ReportDto>;
             setPendingReports(reportData.totalCount || 0);
-
-            // Fetch pending document files count from dedicated API
             const pendingFilesRes = await getApiDocumentPendingFilesCount();
             const pendingFilesData = (pendingFilesRes as any)?.data ?? pendingFilesRes ?? 0;
             setPendingDocumentFiles(pendingFilesData);
-        } catch (err) {
-            console.error("Error fetching admin badges:", err);
-        } finally {
-            setLoading(false);
-        }
+        } catch { }
+        finally { setLoading(false); }
     }, []);
 
-    useEffect(() => {
-        fetchBadges();
-    }, [fetchBadges]);
+    useEffect(() => { fetchBadges(); }, [fetchBadges]);
 
-    return {
-        pendingReports,
-        pendingDocumentFiles,
-        loading,
-        refresh: fetchBadges,
-    };
+    return { pendingReports, pendingDocumentFiles, loading, refresh: fetchBadges };
 }

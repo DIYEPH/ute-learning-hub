@@ -4,8 +4,6 @@ import { postApiAuthRefreshToken } from '@/src/api/database/sdk.gen';
 const ACCESS_TOKEN_KEY = 'access_token';
 const AUTH_CHANGED_EVENT = 'auth-changed';
 
-// ============ Token Management ============
-
 export function getAccessToken(): string | undefined {
   if (typeof window === 'undefined') return undefined;
   return localStorage.getItem(ACCESS_TOKEN_KEY) || undefined;
@@ -13,13 +11,8 @@ export function getAccessToken(): string | undefined {
 
 export function setAccessToken(token?: string): void {
   if (typeof window === 'undefined') return;
-
-  if (token) {
-    localStorage.setItem(ACCESS_TOKEN_KEY, token);
-  } else {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-  }
-
+  if (token) localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  else localStorage.removeItem(ACCESS_TOKEN_KEY);
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
 
@@ -38,11 +31,7 @@ export function getBearerToken(): string | undefined {
   return token ? `Bearer ${token}` : undefined;
 }
 
-export const authEvents = {
-  AUTH_CHANGED_EVENT,
-};
-
-// ============ Token Refresh Logic ============
+export const authEvents = { AUTH_CHANGED_EVENT };
 
 let isRefreshing = false;
 let refreshPromise: Promise<string | null> | null = null;
@@ -62,46 +51,36 @@ async function refreshToken(): Promise<string | null> {
   }
 }
 
-// ============ Axios Configuration ============
-
 const apiBaseUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'https://localhost:7080').replace(/\/+$/, '');
 
-client.setConfig({
-  baseURL: apiBaseUrl,
-});
+client.setConfig({ baseURL: apiBaseUrl });
 
 if (typeof window !== 'undefined') {
   client.instance.defaults.withCredentials = true;
 
-  // Request interceptor: Add Authorization header
   client.instance.interceptors.request.use(
-    (config) => {
+    config => {
       const token = getAccessToken();
       if (token && !config.headers.Authorization) {
         config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
     },
-    (error) => Promise.reject(error)
+    error => Promise.reject(error)
   );
 
-  // Response interceptor: Handle 401 with token refresh
   client.instance.interceptors.response.use(
-    (response) => response,
-    async (error) => {
+    response => response,
+    async error => {
       const originalRequest = error.config;
       const isAuthEndpoint = originalRequest?.url?.toLowerCase().includes('/api/auth/');
 
-      // Skip refresh for auth endpoints
-      if (isAuthEndpoint) {
-        return Promise.reject(error);
-      }
+      if (isAuthEndpoint) return Promise.reject(error);
 
-      // Handle 401 - try refresh token once
-      if (error?.response?.status === 401 && !originalRequest._retry) {
+      const hasToken = !!getAccessToken();
+      if (error?.response?.status === 401 && !originalRequest._retry && hasToken) {
         originalRequest._retry = true;
 
-        // Reuse existing refresh promise to avoid multiple calls
         if (!isRefreshing) {
           isRefreshing = true;
           refreshPromise = refreshToken().finally(() => {

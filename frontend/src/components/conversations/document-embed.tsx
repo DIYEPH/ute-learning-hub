@@ -19,33 +19,24 @@ export function DocumentEmbed({ documentId, className }: DocumentEmbedProps) {
 
     useEffect(() => {
         let cancelled = false;
-
-        async function fetchDocument() {
+        (async () => {
             try {
                 setLoading(true);
                 const res = await getApiDocumentById({ path: { id: documentId } });
                 const doc = (res as any)?.data || res as DocumentDetailDto;
-                if (!cancelled && doc) {
-                    setDocument(doc);
-                }
-            } catch (err) {
-                console.error("Failed to fetch document:", err);
+                if (!cancelled && doc) setDocument(doc);
+            } catch {
                 if (!cancelled) setError(true);
             } finally {
                 if (!cancelled) setLoading(false);
             }
-        }
-
-        fetchDocument();
+        })();
         return () => { cancelled = true; };
     }, [documentId]);
 
     if (loading) {
         return (
-            <div className={cn(
-                "flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border/50",
-                className
-            )}>
+            <div className={cn("flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border/50", className)}>
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">Đang tải tài liệu...</span>
             </div>
@@ -54,10 +45,7 @@ export function DocumentEmbed({ documentId, className }: DocumentEmbedProps) {
 
     if (error || !document) {
         return (
-            <div className={cn(
-                "flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border/50",
-                className
-            )}>
+            <div className={cn("flex items-center gap-2 p-3 bg-muted/50 rounded-lg border border-border/50", className)}>
                 <FileText className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">Không thể tải tài liệu</span>
             </div>
@@ -65,7 +53,7 @@ export function DocumentEmbed({ documentId, className }: DocumentEmbedProps) {
     }
 
     return (
-        <div className={cn("max-w-xs", className)} onClick={(e) => e.stopPropagation()}>
+        <div className={cn("max-w-xs", className)} onClick={e => e.stopPropagation()}>
             <DocumentCard
                 id={document.id}
                 title={document.documentName || "Tài liệu"}
@@ -80,7 +68,6 @@ export function DocumentEmbed({ documentId, className }: DocumentEmbedProps) {
     );
 }
 
-// Parse document URLs: /documents/uuid or full URL with /documents/uuid
 const DOC_URL_PATTERN = /(?:https?:\/\/[^\s/]+)?\/documents\/([a-f0-9-]{36})(?:\?[^\s]*)?/gi;
 
 export function parseDocumentEmbeds(content: string): React.ReactNode[] {
@@ -92,24 +79,11 @@ export function parseDocumentEmbeds(content: string): React.ReactNode[] {
     let match: RegExpExecArray | null;
 
     while ((match = DOC_URL_PATTERN.exec(content)) !== null) {
-        if (match.index > lastIndex) {
-            parts.push(content.slice(lastIndex, match.index));
-        }
-
-        parts.push(
-            <DocumentEmbed
-                key={`doc-${keyIndex++}`}
-                documentId={match[1]}
-                className="my-2"
-            />
-        );
-
+        if (match.index > lastIndex) parts.push(content.slice(lastIndex, match.index));
+        parts.push(<DocumentEmbed key={`doc-${keyIndex++}`} documentId={match[1]} className="my-2" />);
         lastIndex = match.index + match[0].length;
     }
 
-    if (lastIndex < content.length) {
-        parts.push(content.slice(lastIndex));
-    }
-
+    if (lastIndex < content.length) parts.push(content.slice(lastIndex));
     return parts.length > 0 ? parts : [content];
 }

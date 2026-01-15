@@ -29,13 +29,12 @@ export function DocumentFileUpload({ documentId, onUploadSuccess }: DocumentFile
   const { extractThumbnail } = usePdfThumbnail({ width: 400, quality: 0.85 });
   const { success: notifySuccess, error: notifyError } = useNotification();
 
+  // Upload file
   const handleUpload = async () => {
     if (!selectedFile || !documentId) return;
     setUploading(true);
-
     try {
       const mainFile = await uploadFile(selectedFile, "DocumentFile");
-
       let coverFileId: string | null = null;
       const isPdf = selectedFile.type.includes("pdf") || selectedFile.name.toLowerCase().endsWith(".pdf");
       const isImage = selectedFile.type.startsWith("image/");
@@ -55,22 +54,19 @@ export function DocumentFileUpload({ documentId, onUploadSuccess }: DocumentFile
         fileId: mainFile.id,
         coverFileId,
         title: uploadTitle.trim() || null,
-        totalPages: mainFile.totalPages,
+        totalPages: mainFile.totalPages
       };
-
       await postApiDocumentByIdFiles({ path: { id: documentId }, body, throwOnError: true });
-
       setSelectedFile(null);
       setUploadTitle("");
       notifySuccess("Đã thêm file thành công");
       onUploadSuccess?.();
     } catch (err: unknown) {
       notifyError(getErrorMessage(err, "Không thể upload file"));
-    } finally {
-      setUploading(false);
-    }
+    } finally { setUploading(false); }
   };
 
+  // File change validation
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file && file.size > MAX_FILE_SIZE_BYTES) {
@@ -86,11 +82,17 @@ export function DocumentFileUpload({ documentId, onUploadSuccess }: DocumentFile
   return (
     <div>
       <h3 className="text-xs font-semibold text-foreground mb-3">Thêm chương/file</h3>
-
       <div className="grid gap-3 md:grid-cols-2 mb-3">
         <div>
           <Label className="text-[11px]">Tệp chương/file <span className="text-red-500">*</span></Label>
-          <input type="file" accept=".pdf,image/*" onChange={handleFileChange} className="hidden" id="upload-file" disabled={uploading} />
+          <input
+            type="file"
+            accept=".pdf,image/*"
+            onChange={handleFileChange}
+            className="hidden"
+            id="upload-file"
+            disabled={uploading}
+          />
           <label
             htmlFor="upload-file"
             className={`mt-1 flex items-center gap-2 px-3 py-2 border border-dashed rounded cursor-pointer hover:bg-muted text-xs transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""} ${fileSizeError ? "border-red-300 bg-red-50 dark:bg-red-950/30" : ""}`}
@@ -105,22 +107,20 @@ export function DocumentFileUpload({ documentId, onUploadSuccess }: DocumentFile
             </p>
           )}
         </div>
-
         <div>
           <Label className="text-[11px]">Tiêu đề (tùy chọn)</Label>
           <Input
             type="text"
             value={uploadTitle}
-            onChange={(e) => setUploadTitle(e.target.value)}
+            onChange={e => setUploadTitle(e.target.value)}
             placeholder="Chương I, Chương 1..."
             className="mt-1 h-9 text-xs"
             disabled={uploading}
           />
         </div>
       </div>
-
       <Button onClick={handleUpload} disabled={!selectedFile || uploading} size="sm" className="w-full h-9">
-        {uploading ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Đang upload...</>) : "Upload"}
+        {uploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Đang upload...</> : "Upload"}
       </Button>
     </div>
   );

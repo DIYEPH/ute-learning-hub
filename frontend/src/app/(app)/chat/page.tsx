@@ -3,12 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, MessageCircle, Plus, Search, PanelLeftClose, PanelLeft } from "lucide-react";
-
 import { getApiConversation } from "@/src/api";
-import type {
-  ConversationDto,
-  PagedResponseOfConversationDto,
-} from "@/src/api/database/types.gen";
+import type { ConversationDto, PagedResponseOfConversationDto } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { ConversationList } from "@/src/components/conversations/conversation-list";
@@ -34,18 +30,14 @@ export default function ChatPage() {
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    if (profile?.id) {
-      void fetchConversations();
-    }
+    if (profile?.id) void fetchConversations();
   }, [searchTerm, profile?.id]);
 
   useEffect(() => {
     if (selectedConversationId) {
-      setConversations((prev) =>
-        prev.map((conv) =>
-          conv.id === selectedConversationId
-            ? { ...conv, unreadCount: 0 }
-            : conv
+      setConversations(prev =>
+        prev.map(conv =>
+          conv.id === selectedConversationId ? { ...conv, unreadCount: 0 } : conv
         )
       );
     }
@@ -53,44 +45,24 @@ export default function ChatPage() {
 
   const fetchConversations = async () => {
     if (!profile?.id) return;
-
     setLoading(true);
     setError(null);
-
     try {
       const response = await getApiConversation({
-        query: {
-          Page: 1,
-          PageSize: PAGE_SIZE,
-          SearchTerm: searchTerm || undefined,
-          MemberId: profile.id, // Filter by current user as member
-        },
+        query: { Page: 1, PageSize: PAGE_SIZE, SearchTerm: searchTerm || undefined, MemberId: profile.id }
       });
-
-      const payload = (response.data ??
-        response) as PagedResponseOfConversationDto | undefined;
+      const payload = (response.data ?? response) as PagedResponseOfConversationDto | undefined;
       const items = payload?.items ?? [];
-
-      // Additional filter: only show conversations where user is a member
-      const filteredItems = items.filter(
-        (conv) => conv.isCurrentUserMember === true
-      );
-
+      const filteredItems = items.filter(conv => conv.isCurrentUserMember === true);
       setConversations(filteredItems);
     } catch (err: any) {
-      const message =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Không thể tải danh sách cuộc trò chuyện";
-      setError(message);
+      setError(err?.response?.data?.message || err?.message || "Không thể tải danh sách cuộc trò chuyện");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelectConversation = (conversationId: string) => {
-    router.push(`/chat?id=${conversationId}`);
-  };
+  const handleSelectConversation = (conversationId: string) => router.push(`/chat?id=${conversationId}`);
 
   const handleCreateSuccess = () => {
     setShowCreateModal(false);
@@ -107,7 +79,6 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-full overflow-hidden">
-      {/* Sidebar: Danh sách conversations */}
       <div
         className={cn(
           "border-r border-border bg-card flex flex-col h-full overflow-hidden transition-all duration-300 shrink-0",
@@ -115,20 +86,9 @@ export default function ChatPage() {
           selectedConversationId ? "hidden md:flex" : "flex"
         )}
       >
-        {/* Header */}
-        <div className={cn(
-          "shrink-0 border-b border-border",
-          collapsed ? "p-2" : "p-4"
-        )}>
-          <div className={cn(
-            "flex items-center",
-            collapsed ? "flex-col gap-2" : "justify-between mb-4"
-          )}>
-            {!collapsed && (
-              <h1 className="text-lg font-semibold text-foreground">
-                Trò chuyện
-              </h1>
-            )}
+        <div className={cn("shrink-0 border-b border-border", collapsed ? "p-2" : "p-4")}>
+          <div className={cn("flex items-center", collapsed ? "flex-col gap-2" : "justify-between mb-4")}>
+            {!collapsed && <h1 className="text-lg font-semibold text-foreground">Trò chuyện</h1>}
             <div className={cn("flex items-center", collapsed ? "flex-col gap-2" : "gap-1")}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -141,17 +101,11 @@ export default function ChatPage() {
                     {collapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="right">
-                  {collapsed ? "Mở rộng" : "Thu gọn"}
-                </TooltipContent>
+                <TooltipContent side="right">{collapsed ? "Mở rộng" : "Thu gọn"}</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button
-                    size="sm"
-                    onClick={() => setShowCreateModal(true)}
-                    className="h-8 w-8 p-0"
-                  >
+                  <Button size="sm" onClick={() => setShowCreateModal(true)} className="h-8 w-8 p-0">
                     <Plus className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
@@ -166,24 +120,25 @@ export default function ChatPage() {
                 type="text"
                 placeholder="Tìm kiếm..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="pl-8 h-9"
               />
             </div>
           )}
         </div>
 
-        {/* Conversation List */}
         <div className="flex-1 min-h-0 overflow-y-auto">
           {error ? (
             <div className={cn("text-sm text-red-600 dark:text-red-400", collapsed ? "p-2" : "p-6")}>
               {collapsed ? "!" : error}
             </div>
           ) : conversations.length === 0 ? (
-            <div className={cn(
-              "flex flex-col items-center justify-center text-center text-sm text-muted-foreground",
-              collapsed ? "py-4" : "py-16 px-6"
-            )}>
+            <div
+              className={cn(
+                "flex flex-col items-center justify-center text-center text-sm text-muted-foreground",
+                collapsed ? "py-4" : "py-16 px-6"
+              )}
+            >
               <MessageCircle className={cn("opacity-40", collapsed ? "h-6 w-6" : "h-12 w-12 mb-4")} />
               {!collapsed && <p>Chưa có cuộc trò chuyện nào</p>}
             </div>
@@ -198,13 +153,7 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Main: Conversation Detail */}
-      <div
-        className={cn(
-          "flex-1 min-h-0 flex flex-col overflow-hidden",
-          !selectedConversationId && "hidden md:flex"
-        )}
-      >
+      <div className={cn("flex-1 min-h-0 flex flex-col overflow-hidden", !selectedConversationId && "hidden md:flex")}>
         {selectedConversationId ? (
           <ConversationDetail
             conversationId={selectedConversationId}
@@ -223,7 +172,6 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* Create Conversation Modal */}
       <CreateConversationModal
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
@@ -232,5 +180,3 @@ export default function ChatPage() {
     </div>
   );
 }
-
-
