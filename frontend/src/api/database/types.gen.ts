@@ -2675,6 +2675,7 @@ export type GetApiConversationsByConversationIdMessagesData = {
     query?: {
         ConversationId?: string;
         ParentId?: string;
+        Before?: string;
         Page?: number;
         PageSize?: number;
         Skip?: number;

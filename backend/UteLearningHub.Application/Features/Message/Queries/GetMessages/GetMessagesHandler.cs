@@ -63,27 +63,34 @@ public class GetMessagesHandler : IRequestHandler<GetMessagesQuery, PagedRespons
         if (request.ParentId.HasValue)
             query = query.Where(m => m.ParentId == request.ParentId.Value);
 
-        query = query.OrderBy(m => m.CreatedAt);
+        if (request.Before.HasValue)
+        {
+            query = query.Where(m => m.CreatedAt < request.Before.Value);
+        }
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var messages = await query
-            .Skip(request.Skip)
-            .Take(request.Take)
-            .ToListAsync(cancellationToken);
-
-        // Get sender information
-        var senderIds = messages.Select(m => m.CreatedById).Distinct();
-        var senderInfo = new Dictionary<Guid, (string FullName, string? AvatarUrl)>();
-
-        foreach (var senderId in senderIds)
+        List<Domain.Entities.Message> messages;
+        
+        if (request.Before.HasValue)
         {
-            var sender = await _identityService.FindByIdAsync(senderId);
-            if (sender != null)
-            {
-                senderInfo[senderId] = (sender.FullName, sender.AvatarUrl);
-            }
+            messages = await query
+                .OrderByDescending(m => m.CreatedAt)
+                .Take(request.Take)
+                .ToListAsync(cancellationToken);
+            messages.Reverse();
         }
+        else
+        {
+            query = query.OrderBy(m => m.CreatedAt);
+            messages = await query
+                .Skip(request.Skip)
+                .Take(request.Take)
+                .ToListAsync(cancellationToken);
+        }
+
+        var senderIds = messages.Select(m => m.CreatedById).Distinct().ToList();
+        var senderInfo = await _identityService.FindByIdsAsync(senderIds, cancellationToken);
 
         var messageDtos = messages.Select(m => new MessageDto
         {

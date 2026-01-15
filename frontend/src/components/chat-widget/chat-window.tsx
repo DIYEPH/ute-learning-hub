@@ -27,9 +27,8 @@ import type {
 } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import { ScrollArea } from "@/src/components/ui/scroll-area";
+import { VirtualMessageList } from "@/src/components/conversations/virtual-message-list";
 import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
-import { MessageItem } from "@/src/components/conversations/message-item";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { useFileUpload } from "@/src/hooks/use-file-upload";
 import { useSignalR } from "@/src/components/providers/signalr-provider";
@@ -64,7 +63,8 @@ export function ChatWindow({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [replyTo, setReplyTo] = useState<MessageDto | null>(null);
   const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -98,9 +98,7 @@ export function ChatWindow({
     void fetchMessages();
   }, [conversationId]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // Scroll is now handled by VirtualMessageList
 
   // SignalR: Join/Leave conversation
   useEffect(() => {
@@ -188,6 +186,7 @@ export function ChatWindow({
       const payload = (response.data ?? response) as PagedResponseOfMessageDto | undefined;
       const items = payload?.items ?? [];
       setMessages(items);
+      setHasMore(items.length >= 30);
 
       if (items.length > 0) {
         const lastMessage = items[items.length - 1];
@@ -199,6 +198,37 @@ export function ChatWindow({
       console.error("Error fetching messages:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load older messages (infinite scroll)
+  const loadOlderMessages = async () => {
+    if (loadingMore || !hasMore || messages.length === 0) return;
+
+    const oldestMessage = messages[0];
+    if (!oldestMessage?.createdAt) return;
+
+    setLoadingMore(true);
+    try {
+      const response = await getApiConversationsByConversationIdMessages({
+        path: { conversationId },
+        query: {
+          PageSize: 30,
+          Before: oldestMessage.createdAt,
+        },
+      });
+
+      const payload = (response.data ?? response) as PagedResponseOfMessageDto | undefined;
+      const olderItems = payload?.items ?? [];
+
+      if (olderItems.length > 0) {
+        setMessages((prev) => [...olderItems, ...prev]);
+      }
+      setHasMore(olderItems.length >= 30);
+    } catch (err) {
+      console.error("Error loading older messages:", err);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -264,11 +294,7 @@ export function ChatWindow({
     }, 2000);
   }, [isConnected, conversationId, sendTyping]);
 
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  // scrollToBottom is now handled by VirtualMessageList
 
   const handleOpenFullPage = () => {
     router.push(`/chat?id=${conversationId}`);
@@ -340,71 +366,53 @@ export function ChatWindow({
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 min-h-0">
-        <div className="flex flex-col gap-2 p-2">
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="text-center py-8 text-sm text-muted-foreground">
-              Chưa có tin nhắn
-            </div>
-          ) : (
-            messages.map((message, index) => {
-              const currentDate = message.createdAt ? new Date(message.createdAt) : null;
-              const previousMessage = index > 0 ? messages[index - 1] : null;
-              const previousDate = previousMessage?.createdAt ? new Date(previousMessage.createdAt) : null;
-              const showDate =
-                index === 0 ||
-                !currentDate ||
-                !previousDate ||
-                currentDate.toDateString() !== previousDate.toDateString();
-
-              return (
-                <div key={message.id} data-message-id={message.id}>
-                  <MessageItem
-                    message={message}
-                    conversationId={conversationId}
-                    currentUserId={profile?.id}
-                    showDate={showDate}
-                    allMessages={messages}
-                    onReply={(m) => setReplyTo(m)}
-                    onScrollToMessage={(messageId) => {
-                      const element = document.querySelector(`[data-message-id="${messageId}"]`);
-                      if (element) {
-                        element.scrollIntoView({ behavior: "smooth", block: "center" });
-                      }
-                    }}
-                    onUpdate={(updatedMessage) => {
-                      setMessages((prev) =>
-                        prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
-                      );
-                    }}
-                    onDelete={(messageId) => {
-                      setMessages((prev) => prev.filter((m) => m.id !== messageId));
-                    }}
-                    compact
-                  />
-                </div>
+      <div className="flex-1 min-h-0 flex flex-col">
+        {loading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+            Chưa có tin nhắn
+          </div>
+        ) : (
+          <VirtualMessageList
+            messages={messages}
+            conversationId={conversationId}
+            currentUserId={profile?.id}
+            onReply={(m) => setReplyTo(m)}
+            onScrollToMessage={(messageId) => {
+              const element = document.querySelector(`[data-message-id="${messageId}"]`);
+              if (element) {
+                element.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }}
+            onUpdate={(updatedMessage) => {
+              setMessages((prev) =>
+                prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m))
               );
-            })
-          )}
-
-          {/* Typing indicator */}
-          {typingUsers.size > 0 && (
-            <div className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground">
-              <div className="flex gap-0.5">
-                <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
+            }}
+            onDelete={(messageId) => {
+              setMessages((prev) => prev.filter((m) => m.id !== messageId));
+            }}
+            onLoadMore={loadOlderMessages}
+            hasMore={hasMore}
+            isLoadingMore={loadingMore}
+            compact
+            typingIndicator={
+              typingUsers.size > 0 ? (
+                <div className="flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground">
+                  <div className="flex gap-0.5">
+                    <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-1.5 h-1.5 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                </div>
+              ) : undefined
+            }
+          />
+        )}
+      </div>
 
       {/* Reply preview */}
       {replyTo && (

@@ -16,11 +16,10 @@ import type {
 } from "@/src/api/database/types.gen";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import { ScrollArea } from "@/src/components/ui/scroll-area";
+import { VirtualMessageList } from "@/src/components/conversations/virtual-message-list";
 import { EditConversationSidebar } from "@/src/components/conversations/edit-conversation-sidebar";
 import { JoinRequestSidebar } from "@/src/components/conversations/join-request-sidebar";
 import { ConversationFilesSidebar } from "@/src/components/conversations/conversation-files-sidebar";
-import { MessageItem } from "@/src/components/conversations/message-item";
 import { PinnedMessagesSection } from "@/src/components/conversations/pinned-messages-section";
 import { useUserProfile } from "@/src/hooks/use-user-profile";
 import { usePinMessage } from "@/src/hooks/use-pin-message";
@@ -49,8 +48,9 @@ export function ConversationDetail({
   const [showFilesSidebar, setShowFilesSidebar] = useState(false);
   const [showJoinRequestSidebar, setShowJoinRequestSidebar] = useState(false);
   const [typingUsers, setTypingUsers] = useState<Map<string, string>>(new Map());
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -110,9 +110,7 @@ export function ConversationDetail({
     void fetchMessages();
   }, [conversationId]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  // Auto-scroll is now handled by VirtualMessageList
 
   // SignalR: Join/Leave conversation
   useEffect(() => {
@@ -132,7 +130,7 @@ export function ConversationDetail({
         setMessages((prev) => {
           // Avoid duplicates by ID
           if (prev.some((m) => m.id === message.id)) return prev;
-          
+
           // Nếu là tin nhắn của chính mình, replace tin nhắn temp (optimistic)
           if (message.createdById === profile?.id) {
             const tempIndex = prev.findIndex(
@@ -145,7 +143,7 @@ export function ConversationDetail({
               return updated;
             }
           }
-          
+
           return [...prev, message];
         });
 
@@ -247,6 +245,7 @@ export function ConversationDetail({
       const items = payload?.items ?? [];
 
       setMessages(items);
+      setHasMore(items.length >= 50);  // Has more if we got a full page
 
       // Mark last message as read
       if (items.length > 0) {
@@ -263,6 +262,37 @@ export function ConversationDetail({
       setError(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // tải tn cũ 
+  const loadOlderMessages = async () => {
+    if (loadingMore || !hasMore || messages.length === 0) return;
+
+    const oldestMessage = messages[0];
+    if (!oldestMessage?.createdAt) return;
+
+    setLoadingMore(true);
+    try {
+      const response = await getApiConversationsByConversationIdMessages({
+        path: { conversationId },
+        query: {
+          PageSize: 50,
+          Before: oldestMessage.createdAt,
+        },
+      });
+
+      const payload = (response.data ?? response) as PagedResponseOfMessageDto | undefined;
+      const olderItems = payload?.items ?? [];
+
+      if (olderItems.length > 0) {
+        setMessages((prev) => [...olderItems, ...prev]);
+      }
+      setHasMore(olderItems.length >= 50);
+    } catch (err) {
+      console.error("Error loading older messages:", err);
+    } finally {
+      setLoadingMore(false);
     }
   };
 
@@ -307,7 +337,7 @@ export function ConversationDetail({
     setSelectedFiles([]);
     setReplyTo(null);
 
-    if (files.length === 0) 
+    if (files.length === 0)
       setMessages((prev) => [...prev, optimisticMessage]);
 
     setSending(true);
@@ -334,7 +364,7 @@ export function ConversationDetail({
       });
 
       const newMessage = (response.data ?? response) as MessageDto | undefined;
-      
+
       if (newMessage) {
         if (files.length === 0) {
           setMessages((prev) =>
@@ -346,7 +376,7 @@ export function ConversationDetail({
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
       setMessageContent(content);
       if (parent) setReplyTo(parent);
-      
+
       const message =
         err?.response?.data?.message ||
         err?.message ||
@@ -379,11 +409,7 @@ export function ConversationDetail({
     }, 2000);
   }, [isConnected, conversationId, sendTyping]);
 
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  // scrollToBottom is now handled internally by VirtualMessageList
 
   if (loading && !conversation) {
     return (
@@ -491,94 +517,61 @@ export function ConversationDetail({
       )}
 
       {/* Messages */}
-      <ScrollArea className="flex-1 min-h-0 p-2 md:p-1" ref={scrollAreaRef}>
-        <div className="flex flex-col gap-4">
-          {error && (
-            <div className="p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950 rounded">
-              {error}
-            </div>
-          )}
+      <div className="flex-1 min-h-0 flex flex-col">
+        {error && (
+          <div className="shrink-0 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950">
+            {error}
+          </div>
+        )}
 
-          {messages.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>Chưa có tin nhắn nào</p>
-            </div>
-          ) : (
-            messages.map((message, index) => {
-              // So sánh ngày của tin nhắn hiện tại với tin nhắn trước đó
-              const currentDate = message.createdAt
-                ? new Date(message.createdAt)
-                : null;
-              const previousMessage = index > 0 ? messages[index - 1] : null;
-              const previousDate =
-                previousMessage?.createdAt
-                  ? new Date(previousMessage.createdAt)
-                  : null;
-
-              // Chỉ hiển thị date nếu là tin nhắn đầu tiên hoặc khác ngày với tin nhắn trước
-              const showDate =
-                index === 0 ||
-                !currentDate ||
-                !previousDate ||
-                currentDate.toDateString() !== previousDate.toDateString();
-
-              // Ẩn sender nếu tin nhắn trước cùng người và trong vòng 5 phút
-              const isSameSender = previousMessage?.createdById === message.createdById;
-              const isWithin5Min = currentDate && previousDate &&
-                (currentDate.getTime() - previousDate.getTime()) < 5 * 60 * 1000;
-              const showSender = index === 0 || showDate || !isSameSender || !isWithin5Min;
-
-              return (
-                <div key={message.id} data-message-id={message.id}>
-                  <MessageItem
-                    message={message}
-                    conversationId={conversationId}
-                    currentUserId={profile?.id}
-                    showDate={showDate}
-                    showSender={showSender}
-                    allMessages={messages}
-                    onReply={(m) => setReplyTo(m)}
-                    onScrollToMessage={(messageId) => {
-                      const element = document.querySelector(`[data-message-id="${messageId}"]`);
-                      if (element) {
-                        element.scrollIntoView({ behavior: "smooth", block: "center" });
-                      }
-                    }}
-                    onUpdate={(updatedMessage) => {
-                      setMessages((prev) =>
-                        prev.map((m) =>
-                          m.id === updatedMessage.id ? updatedMessage : m
-                        )
-                      );
-                    }}
-                    onDelete={(messageId) => {
-                      setMessages((prev) => prev.filter((m) => m.id !== messageId));
-                    }}
-                  />
-                </div>
+        {messages.length === 0 ? (
+          <div className="flex-1 flex items-center justify-center text-muted-foreground">
+            <p>Chưa có tin nhắn nào</p>
+          </div>
+        ) : (
+          <VirtualMessageList
+            messages={messages}
+            conversationId={conversationId}
+            currentUserId={profile?.id}
+            onReply={(m) => setReplyTo(m)}
+            onScrollToMessage={(messageId) => {
+              const element = document.querySelector(`[data-message-id="${messageId}"]`);
+              if (element) {
+                element.scrollIntoView({ behavior: "smooth", block: "center" });
+              }
+            }}
+            onUpdate={(updatedMessage) => {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === updatedMessage.id ? updatedMessage : m
+                )
               );
-            })
-          )}
-
-          {/* Typing indicator */}
-          {typingUsers.size > 0 && (
-            <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
-              <div className="flex gap-1">
-                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-              </div>
-              <span>
-                {typingUsers.size === 1
-                  ? "Ai đó đang nhập..."
-                  : `${typingUsers.size} người đang nhập...`}
-              </span>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
-      </ScrollArea>
+            }}
+            onDelete={(messageId) => {
+              setMessages((prev) => prev.filter((m) => m.id !== messageId));
+            }}
+            onLoadMore={loadOlderMessages}
+            hasMore={hasMore}
+            isLoadingMore={loadingMore}
+            typingIndicator={
+              typingUsers.size > 0 ? (
+                <div className="flex items-center gap-2 px-4 py-2 text-sm text-muted-foreground">
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span>
+                    {typingUsers.size === 1
+                      ? "Ai đó đang nhập..."
+                      : `${typingUsers.size} người đang nhập...`}
+                  </span>
+                </div>
+              ) : undefined
+            }
+          />
+        )}
+      </div>
 
       {/* Message Input */}
       <div className="shrink-0 border-t border-border bg-card p-2 md:p-4">

@@ -3769,6 +3769,14 @@
             }
           },
           {
+            "name": "Before",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
             "name": "Page",
             "in": "query",
             "schema": {

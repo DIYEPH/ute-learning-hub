@@ -22,6 +22,16 @@ public class IdentityService : IIdentityService
         var user = await _userManager.FindByIdAsync(userId.ToString());
         return user == null ? null : MapToDto(user);
     }
+
+    public Task<IDictionary<Guid, AppUserDto>> FindByIdsAsync(IEnumerable<Guid> userIds, CancellationToken ct = default)
+    {
+        var userIdList = userIds.ToList();
+        var result = _userManager.Users
+            .Where(u => userIdList.Contains(u.Id))
+            .ToDictionary(u => u.Id, u => MapToDto(u));
+        
+        return Task.FromResult<IDictionary<Guid, AppUserDto>>(result);
+    }
     public async Task<AppUserDto?> FindByExternalLoginAsync(string loginProvider, string providerKey)
     {
         var user = await _userManager.FindByLoginAsync(loginProvider, providerKey);

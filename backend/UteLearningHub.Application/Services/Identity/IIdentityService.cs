@@ -5,6 +5,7 @@ public interface IIdentityService
     Task<AppUserDto?> FindByEmailAsync(string email);
     Task<AppUserDto?> FindByUsernameAsync(string username);
     Task<AppUserDto?> FindByIdAsync(Guid userId);
+    Task<IDictionary<Guid, AppUserDto>> FindByIdsAsync(IEnumerable<Guid> userIds, CancellationToken ct = default);
     Task<AppUserDto?> FindByExternalLoginAsync(string loginProvider, string providerKey);
     Task<bool> CheckPasswordAsync(Guid userId, string password);
     Task<(bool Succeeded, Guid UserId, IEnumerable<string> Errors)> CreateUserAsync(CreateUserDto dto);
