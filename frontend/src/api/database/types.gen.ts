@@ -32,12 +32,6 @@ export type AuthorDto = {
     description?: string;
 };
 
-export type AuthorDto2 = {
-    id?: string;
-    fullName?: string;
-    description?: string;
-} | null;
-
 export type AuthorInput = {
     fullName?: string;
     description?: string | null;
@@ -380,20 +374,6 @@ export type DocumentFileProgressDto2 = {
     lastAccessedAt?: string | null;
 };
 
-export type DocumentRecommendationDto = {
-    documentId?: string;
-    documentName?: string;
-    description?: string | null;
-    similarity?: number;
-    rank?: number;
-    subject?: SubjectDto;
-    tags?: Array<TagDto>;
-    coverUrl?: string | null;
-    fileCount?: number;
-    usefulCount?: number;
-    author?: AuthorDto2;
-};
-
 export type DocumentReviewType = number;
 
 export type DocumentStatsDto = {
@@ -458,7 +438,7 @@ export type GetConversationRecommendationsResponse = {
 };
 
 export type GetDocumentRecommendationsResponse = {
-    recommendations?: Array<DocumentRecommendationDto>;
+    recommendations?: Array<DocumentDto>;
     totalProcessed?: number;
     processingTimeMs?: number;
 };

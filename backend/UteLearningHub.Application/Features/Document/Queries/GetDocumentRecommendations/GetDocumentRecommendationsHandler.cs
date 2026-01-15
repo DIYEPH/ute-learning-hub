@@ -38,10 +38,11 @@ public class GetDocumentRecommendationsHandler(
         // 2. lấy tl chưa review
         var documents = await documentRepository.GetQueryableSet()
             .Include(d => d.Subject)
+            .Include(d => d.Type)
             .Include(d => d.DocumentTags).ThenInclude(dt => dt.Tag)
             .Include(d => d.DocumentFiles.Where(df => !df.IsDeleted && df.Status == ContentStatus.Approved))
+                .ThenInclude(df => df.Comments.Where(c => !c.IsDeleted))
             .Include(d => d.Reviews)
-            .Include(d => d.CoverFile)
             .Include(d => d.DocumentAuthors).ThenInclude(da => da.Author)
             .AsNoTracking()
             .Where(d => !d.IsDeleted
@@ -85,33 +86,47 @@ public class GetDocumentRecommendationsHandler(
                 if (!documentDict.TryGetValue(rec.ConversationId, out var doc))
                     return null;
 
-                return new DocumentRecommendationDto
+                var approvedFiles = doc.DocumentFiles
+                    .Where(df => !df.IsDeleted && df.Status == ContentStatus.Approved)
+                    .ToList();
+
+                return new DocumentDto
                 {
-                    DocumentId = doc.Id,
+                    Id = doc.Id,
                     DocumentName = doc.DocumentName,
                     Description = doc.Description,
-                    Similarity = rec.Similarity,
-                    Rank = rec.Rank,
+                    Visibility = doc.Visibility,
                     Subject = doc.Subject != null ? new SubjectDto
                     {
                         Id = doc.Subject.Id,
                         SubjectName = doc.Subject.SubjectName,
                         SubjectCode = doc.Subject.SubjectCode
                     } : null,
+                    Type = doc.Type != null ? new TypeDto
+                    {
+                        Id = doc.Type.Id,
+                        TypeName = doc.Type.TypeName
+                    } : default!,
                     Tags = doc.DocumentTags
                         .Where(dt => dt.Tag != null)
                         .Select(dt => new TagDto { Id = dt.Tag!.Id, TagName = dt.Tag.TagName })
                         .ToList(),
-                    CoverUrl = doc.CoverFile?.FileUrl,
-                    FileCount = doc.DocumentFiles.Count(df => !df.IsDeleted && df.Status == ContentStatus.Approved),
+                    Authors = doc.DocumentAuthors
+                        .Where(da => da.Author != null)
+                        .Select(da => new AuthorDetailDto { Id = da.Author!.Id, FullName = da.Author.FullName })
+                        .ToList(),
+                    ThumbnailFileId = doc.CoverFileId ?? approvedFiles.MinBy(f => f.Order)?.CoverFileId,
+                    FileCount = approvedFiles.Count,
+                    CommentCount = approvedFiles.Sum(f => f.Comments?.Count(c => !c.IsDeleted) ?? 0),
                     UsefulCount = doc.Reviews.Count(rv => rv.DocumentReviewType == DocumentReviewType.Useful),
-                    Author = doc.DocumentAuthors.FirstOrDefault()?.Author is { } author
-                        ? new AuthorDto { Id = author.Id, FullName = author.FullName }
-                        : null
+                    NotUsefulCount = doc.Reviews.Count(rv => rv.DocumentReviewType == DocumentReviewType.NotUseful),
+                    TotalViewCount = approvedFiles.Sum(f => f.ViewCount),
+                    CreatedById = doc.CreatedById,
+                    CreatedAt = doc.CreatedAt
                 };
             })
             .Where(r => r != null)
-            .Cast<DocumentRecommendationDto>()
+            .Cast<DocumentDto>()
             .ToList();
 
         return new GetDocumentRecommendationsResponse

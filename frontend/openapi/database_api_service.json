@@ -6054,22 +6054,6 @@
           }
         }
       },
-      "AuthorDto2": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "fullName": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          }
-        },
-        "nullable": true
-      },
       "AuthorInput": {
         "type": "object",
         "properties": {
@@ -7188,54 +7172,6 @@
           }
         }
       },
-      "DocumentRecommendationDto": {
-        "type": "object",
-        "properties": {
-          "documentId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "documentName": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string",
-            "nullable": true
-          },
-          "similarity": {
-            "type": "number",
-            "format": "float"
-          },
-          "rank": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "subject": {
-            "$ref": "#/components/schemas/SubjectDto"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TagDto"
-            }
-          },
-          "coverUrl": {
-            "type": "string",
-            "nullable": true
-          },
-          "fileCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "usefulCount": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "author": {
-            "$ref": "#/components/schemas/AuthorDto2"
-          }
-        }
-      },
       "DocumentReviewType": {
         "type": "integer"
       },
@@ -7278,7 +7214,9 @@
           },
           "documentsByType": {
             "type": "array",
-            "items": { }
+            "items": {
+
+            }
           },
           "topDocumentsByViews": {
             "type": "array",
@@ -7452,7 +7390,7 @@
           "recommendations": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/DocumentRecommendationDto"
+              "$ref": "#/components/schemas/DocumentDto"
             }
           },
           "totalProcessed": {
@@ -7532,11 +7470,15 @@
           },
           "popularDocuments": {
             "type": "array",
-            "items": { }
+            "items": {
+
+            }
           },
           "mostViewedDocuments": {
             "type": "array",
-            "items": { }
+            "items": {
+
+            }
           },
           "topSubjects": {
             "type": "array",
@@ -8139,11 +8081,15 @@
           },
           "documentsOverTime": {
             "type": "array",
-            "items": { }
+            "items": {
+
+            }
           },
           "viewsOverTime": {
             "type": "array",
-            "items": { }
+            "items": {
+
+            }
           }
         }
       },
@@ -9228,7 +9174,9 @@
           },
           "documents": {
             "type": "array",
-            "items": { }
+            "items": {
+
+            }
           }
         }
       },
@@ -9980,7 +9928,9 @@
           },
           "usersByTrustLevel": {
             "type": "array",
-            "items": { }
+            "items": {
+
+            }
           },
           "topContributors": {
             "type": "array",

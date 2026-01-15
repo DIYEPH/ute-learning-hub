@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ChevronRight, Loader2, FileText, Sparkles } from "lucide-react";
 import { getApiDocumentHomepage, getApiDocumentReadingHistory, getApiDocumentRecommendations } from "@/src/api";
 import { DocumentCard } from "@/src/components/documents/document-card";
-import type { HomepageDto, ReadingHistoryItemDto, DocumentDto, DocumentRecommendationDto } from "@/src/api/database/types.gen";
+import type { HomepageDto, ReadingHistoryItemDto, DocumentDto } from "@/src/api/database/types.gen";
 import { useTranslations } from "next-intl";
 import { useAuthState } from "@/src/hooks/use-auth-state";
 
@@ -19,7 +19,7 @@ export function HomePageSections() {
     const { authenticated: isAuthenticated } = useAuthState();
     const [homepageData, setHomepageData] = useState<HomepageDto | null>(null);
     const [recentDocs, setRecentDocs] = useState<ReadingHistoryItemDto[]>([]);
-    const [recommendedDocs, setRecommendedDocs] = useState<DocumentRecommendationDto[]>([]);
+    const [recommendedDocs, setRecommendedDocs] = useState<DocumentDto[]>([]);
     const [loading, setLoading] = useState(true);
 
     const loadData = useCallback(async () => {
@@ -90,14 +90,16 @@ export function HomePageSections() {
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         {recommendedDocs.slice(0, 4).map((doc) => (
                             <DocumentCard
-                                key={doc.documentId}
-                                id={doc.documentId}
+                                key={doc.id}
+                                id={doc.id}
                                 title={doc.documentName || ""}
                                 subjectName={doc.subject?.subjectName || undefined}
-                                thumbnailFileId={doc.coverUrl}
+                                thumbnailFileId={doc.thumbnailFileId}
                                 tags={doc.tags?.map((t) => t.tagName || "").filter(Boolean)}
                                 fileCount={doc.fileCount}
                                 usefulCount={doc.usefulCount}
+                                notUsefulCount={doc.notUsefulCount}
+                                totalViewCount={doc.totalViewCount}
                             />
                         ))}
                     </div>
