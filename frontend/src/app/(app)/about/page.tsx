@@ -1,16 +1,41 @@
 "use client";
 
+import { Github } from "lucide-react";
+import Link from "next/link";
+
 export default function AboutPage() {
     return (
-        <div className="max-w-xl mx-auto py-8 px-4">
-            <h1 className="text-xl font-bold mb-4">Hệ thống điểm</h1>
-            <div className="space-y-3 text-sm">
-                <p>-<b>5 điểm</b> - Newbie</p>
-                <p>-<b>10 điểm</b> - Contribute</p>
-                <p>-<b>30 điểm</b> - TrustMember</p>
-                <p>-<b>Trên 60 điểm</b> -Moderator</p>
+        <div className="max-w-xl mx-auto py-12 px-4 text-center">
+            <div className="text-2xl font-bold mb-2">
+                <h1 className="title">UTE Learning Hub</h1>
             </div>
-            <p className="text-xs text-muted-foreground mt-6 italic">Upload tài liệu +5đ, được đánh giá hữu ích +1đ, báo cáo đúng +3,2,1đ.</p>
+            <p className="text-muted-foreground mb-6">
+                Nền tảng chia sẻ tài liệu học tập và gợi ý nhóm cùng học tại
+                <br />
+                Trường Đại học Sư phạm Kỹ thuật Đà Nẵng
+            </p>
+            <Link
+                href="https://github.com/DIYEPH/ute-learning-hub"
+                target="_blank"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+                <Github className="w-4 h-4" />
+                github.com/DIYEPH/ute-learning-hub
+            </Link>
+            <style jsx>{`
+            .title {
+                background-image: url('/images/bluesky.png');
+                background-size: cover;
+                background-clip: text;
+                color: transparent;
+                animation: animate 20s linear infinite;
+            }
+            @keyframes animate {
+                to{
+                    background-position-x: -500px;
+                }
+            }
+            `}</style>
         </div>
     );
 }
