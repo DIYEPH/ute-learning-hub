@@ -143,7 +143,7 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
 
         var documents = documentsData.Select(d =>
         {
-            var hasStats = reviewStatsDict.TryGetValue(d.Id, out var stats);
+            var stats = reviewStatsDict.GetValueOrDefault(d.Id);
             return new DocumentDto
             {
                 Id = d.Id,
@@ -158,8 +158,8 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                 ThumbnailFileId = d.ThumbnailFileId,
                 CommentCount = d.CommentCount,
                 TotalViewCount = d.TotalViewCount,
-                UsefulCount = hasStats ? stats.UsefulCount : 0,
-                NotUsefulCount = hasStats ? stats.NotUsefulCount : 0,
+                UsefulCount = stats?.UsefulCount ?? 0,
+                NotUsefulCount = stats?.NotUsefulCount ?? 0,
                 CreatedById = d.CreatedById,
                 CreatedAt = d.CreatedAt
             };

@@ -18,11 +18,9 @@ public interface IProfanityFilterService
 
 public class ProfanityFilterService : IProfanityFilterService
 {
-    // Từ cấm đã được normalize (viết thường, không dấu nguyên âm chính)
-    // Sử dụng base64 encode để không hiển thị rõ trong code
+    // Danh sách từ cấm đã được normalize (viết thường, không dấu)
     private static readonly HashSet<string> BannedPatterns = new(StringComparer.OrdinalIgnoreCase)
     {
-        // Các pattern phổ biến - đã normalize
         "dit", "dut", "dcm", "dm", "dmm", "dkm", "dcmm", "dtc", "dtm",
         "lon", "l0n", "buoi", "cc", "cac", "cak", "cuc", "cu",
         "vcl", "vkl", "vl", "cl", "clm", "cmm", "cmnr",
@@ -32,7 +30,7 @@ public class ProfanityFilterService : IProfanityFilterService
         "ducme", "memay", "chamay", "bomay"
     };
 
-    // Ký tự thay thế phổ biến: số -> chữ
+    // Map ký tự thay thế để chống bypass: số/ký tự đặc biệt -> chữ
     private static readonly Dictionary<char, char> CharSubstitutions = new()
     {
         {'0', 'o'}, {'1', 'i'}, {'3', 'e'}, {'4', 'a'}, 
@@ -70,43 +68,30 @@ public class ProfanityFilterService : IProfanityFilterService
         }
     }
 
-    /// <summary>
-    /// Normalize text để bypass các kỹ thuật né tránh:
-    /// - Xóa ký tự đặc biệt (., *, !, @, #, etc.)
-    /// - Thay số thành chữ (1->i, 0->o, etc.)
-    /// - Chuyển về lowercase
-    /// - Xóa dấu tiếng Việt
-    /// - Xóa khoảng trắng
-    /// </summary>
+    // Normalize: số->chữ, xóa dấu, xóa ký tự đặc biệt
     private static string NormalizeText(string text)
     {
         var chars = new List<char>(text.Length);
         
         foreach (var c in text.ToLowerInvariant())
         {
-            // Thay thế số/ký tự đặc biệt
             if (CharSubstitutions.TryGetValue(c, out var replacement))
             {
                 chars.Add(replacement);
                 continue;
             }
 
-            // Chỉ giữ lại chữ cái (a-z, tiếng Việt)
             if (char.IsLetter(c))
             {
-                // Normalize dấu tiếng Việt
                 var normalized = RemoveVietnameseDiacritics(c);
                 chars.Add(normalized);
             }
-            // Bỏ qua khoảng trắng và ký tự đặc biệt
         }
 
         return new string(chars.ToArray());
     }
 
-    /// <summary>
-    /// Loại bỏ dấu tiếng Việt để so sánh
-    /// </summary>
+    // Xóa dấu tiếng Việt
     private static char RemoveVietnameseDiacritics(char c)
     {
         return c switch

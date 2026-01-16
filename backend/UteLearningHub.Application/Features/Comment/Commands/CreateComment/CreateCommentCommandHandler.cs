@@ -3,86 +3,60 @@ using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Comment;
 using UteLearningHub.Application.Services.ContentModeration;
 using UteLearningHub.Application.Services.Identity;
-using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
-
 using EntityComment = UteLearningHub.Domain.Entities.Comment;
 
 namespace UteLearningHub.Application.Features.Comment.Commands.CreateComment;
 
-public class CreateCommentCommandHandler : IRequestHandler<CreateCommentCommand, CommentDetailDto>
+public class CreateCommentCommandHandler(
+    ICommentRepository commentRepository,
+    IDocumentRepository documentRepository,
+    ICurrentUserService currentUserService,
+    ICommentService commentService,
+    IDateTimeProvider dateTimeProvider,
+    IProfanityFilterService profanityFilterService) : IRequestHandler<CreateCommentCommand, CommentDetailDto>
 {
-    private readonly ICommentRepository _commentRepository;
-    private readonly IDocumentRepository _documentRepository;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly ICommentService _commentService;
-    private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IVectorMaintenanceService? _vectorMaintenanceService;
-    private readonly IProfanityFilterService _profanityFilterService;
-
-    public CreateCommentCommandHandler(
-        ICommentRepository commentRepository,
-        IDocumentRepository documentRepository,
-        ICurrentUserService currentUserService,
-        ICommentService commentService,
-        IDateTimeProvider dateTimeProvider,
-        IProfanityFilterService profanityFilterService,
-        IVectorMaintenanceService? vectorMaintenanceService = null)
-    {
-        _commentRepository = commentRepository;
-        _documentRepository = documentRepository;
-        _currentUserService = currentUserService;
-        _commentService = commentService;
-        _dateTimeProvider = dateTimeProvider;
-        _profanityFilterService = profanityFilterService;
-        _vectorMaintenanceService = vectorMaintenanceService;
-    }
-
     public async Task<CommentDetailDto> Handle(CreateCommentCommand request, CancellationToken cancellationToken)
     {
-        if (!_currentUserService.IsAuthenticated)
+        if (!currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to create comments");
 
-        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+        var userId = currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Validate content for profanity
-        if (_profanityFilterService.ContainsProfanity(request.Content))
+        // Kiểm tra từ tục tĩu (chống bypass: số->chữ, dấu, ký tự đặc biệt)
+        if (profanityFilterService.ContainsProfanity(request.Content))
             throw new BadRequestException("Nội dung bình luận chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa lại.");
 
-        // Validate document file exists and belongs to a non-deleted document
-        var documentId = await _documentRepository.GetIdByDocumentFileIdAsync(request.DocumentFileId, cancellationToken);
-
+        var documentId = await documentRepository.GetIdByDocumentFileIdAsync(request.DocumentFileId, cancellationToken);
         if (!documentId.HasValue)
             throw new NotFoundException($"Document file with id {request.DocumentFileId} not found");
 
-        // If ParentId is provided, validate parent comment exists
+        // Kiểm tra parent comment nếu có
         if (request.ParentId.HasValue)
         {
-            var parentComment = await _commentRepository.GetByIdAsync(request.ParentId.Value, disableTracking: true, cancellationToken);
+            var parentComment = await commentRepository.GetByIdAsync(request.ParentId.Value, disableTracking: true, cancellationToken);
             if (parentComment == null || parentComment.IsDeleted || parentComment.DocumentFileId != request.DocumentFileId)
                 throw new NotFoundException($"Parent comment with id {request.ParentId.Value} not found");
         }
 
-        // Create comment
         var comment = new EntityComment
         {
             Id = Guid.NewGuid(),
             DocumentFileId = request.DocumentFileId,
             ParentId = request.ParentId,
             Content = request.Content,
-            Status = ContentStatus.Approved, // Comments are auto-approved
+            Status = ContentStatus.Approved,
             CreatedById = userId,
-            CreatedAt = _dateTimeProvider.OffsetNow
+            CreatedAt = dateTimeProvider.OffsetNow
         };
 
-        _commentRepository.Add(comment);
-        await _commentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+        commentRepository.Add(comment);
+        await commentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Get author information
-        var authorInfo = await _commentService.GetCommentAuthorsAsync(new[] { userId }, cancellationToken);
+        var authorInfo = await commentService.GetCommentAuthorsAsync([userId], cancellationToken);
         var author = authorInfo.TryGetValue(userId, out var authorValue) ? authorValue : null;
 
         return new CommentDetailDto

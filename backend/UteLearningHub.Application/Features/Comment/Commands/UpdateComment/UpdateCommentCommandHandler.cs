@@ -1,62 +1,50 @@
 using MediatR;
 using UteLearningHub.Application.Common.Dtos;
 using UteLearningHub.Application.Services.Comment;
-using UteLearningHub.Application.Services.Identity;
+using UteLearningHub.Application.Services.ContentModeration;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Exceptions;
+using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Comment.Commands.UpdateComment;
 
-public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand, CommentDetailDto>
+public class UpdateCommentCommandHandler(
+    ICommentRepository commentRepository,
+    ICurrentUserService currentUserService,
+    ICommentService commentService,
+    IDateTimeProvider dateTimeProvider,
+    IProfanityFilterService profanityFilterService) : IRequestHandler<UpdateCommentCommand, CommentDetailDto>
 {
-    private readonly ICommentRepository _commentRepository;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly ICommentService _commentService;
-    private readonly IDateTimeProvider _dateTimeProvider;
-
-    public UpdateCommentCommandHandler(
-        ICommentRepository commentRepository,
-        ICurrentUserService currentUserService,
-        ICommentService commentService,
-        IDateTimeProvider dateTimeProvider)
-    {
-        _commentRepository = commentRepository;
-        _currentUserService = currentUserService;
-        _commentService = commentService;
-        _dateTimeProvider = dateTimeProvider;
-    }
-
     public async Task<CommentDetailDto> Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
     {
-        if (!_currentUserService.IsAuthenticated)
+        if (!currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to update comments");
 
-        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+        var userId = currentUserService.UserId ?? throw new UnauthorizedException();
 
-        var comment = await _commentRepository.GetByIdAsync(request.Id, disableTracking: false, cancellationToken);
-
+        var comment = await commentRepository.GetByIdAsync(request.Id, disableTracking: false, cancellationToken);
         if (comment == null || comment.IsDeleted)
             throw new NotFoundException($"Comment with id {request.Id} not found");
 
-        // Only owner can update
+        // Chỉ owner mới được update
         if (comment.CreatedById != userId)
             throw new UnauthorizedException("You don't have permission to update this comment");
 
-        // Update comment
+        // Kiểm tra từ tục tĩu khi update (chống bypass)
+        if (profanityFilterService.ContainsProfanity(request.Content))
+            throw new BadRequestException("Nội dung bình luận chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa lại.");
+
         comment.Content = request.Content;
         comment.UpdatedById = userId;
-        comment.UpdatedAt = _dateTimeProvider.OffsetNow;
+        comment.UpdatedAt = dateTimeProvider.OffsetNow;
 
-        _commentRepository.Update(comment);
-        await _commentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+        commentRepository.Update(comment);
+        await commentRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Get author information
-        var authorInfo = await _commentService.GetCommentAuthorsAsync(new[] { userId }, cancellationToken);
+        var authorInfo = await commentService.GetCommentAuthorsAsync([userId], cancellationToken);
         var author = authorInfo.TryGetValue(userId, out var authorValue) ? authorValue : null;
-
-        // Get reply count
-        var replyCount = await _commentService.GetReplyCountAsync(comment.Id, cancellationToken);
+        var replyCount = await commentService.GetReplyCountAsync(comment.Id, cancellationToken);
 
         return new CommentDetailDto
         {

@@ -57,13 +57,13 @@ DECLARE @Pwd NVARCHAR(MAX) = 'AQAAAAIAAYagAAAAEOCNOlUCTLnDzZABbb24M1L1V+5vKHk8xw
 -- User table for easy reference
 DECLARE @Users TABLE (Idx INT, UserId UNIQUEIDENTIFIER, MajorId UNIQUEIDENTIFIER, TrustScore INT);
 
--- Tạo 50 users với tên Việt Nam thực tế
+-- Tạo 50 users với tên Việt Nam thực tế (bắt đầu từ 5 vì DataSeeder đã tạo 1-4)
 DECLARE @FirstNames NVARCHAR(MAX) = N'Minh,Hùng,Tuấn,Dũng,Hải,Long,Phúc,Thắng,Quang,Đức,Hoàng,Nam,Bình,Khoa,Tài,Hiếu,Trung,Kiên,Đạt,Vinh,Thành,Tín,Phong,Khang,Thiện,Nhật,Khánh,Tùng,Lộc,Huy,Linh,Hà,Mai,Hương,Thảo,Ngọc,Trang,Lan,Yến,Hồng,Anh,Thủy,Phương,Vy,Chi,Tâm,Uyên,Diễm,Như,Trinh';
 DECLARE @LastNames NVARCHAR(MAX) = N'Nguyễn,Trần,Lê,Phạm,Hoàng,Huỳnh,Phan,Vũ,Võ,Đặng,Bùi,Đỗ,Hồ,Ngô,Dương,Lý,Đinh,Trương,Cao,Tạ';
 DECLARE @MiddleNames NVARCHAR(MAX) = N'Văn,Thị,Hoàng,Minh,Đức,Thanh,Quốc,Ngọc,Bảo,Gia';
 
-DECLARE @i INT = 1;
-WHILE @i <= 50
+DECLARE @i INT = 5;
+WHILE @i <= 54
 BEGIN
     DECLARE @UserId UNIQUEIDENTIFIER = NEWID();
     DECLARE @Major UNIQUEIDENTIFIER = CASE (@i % 6) WHEN 0 THEN @CNTT WHEN 1 THEN @CK WHEN 2 THEN @DDT WHEN 3 THEN @XD WHEN 4 THEN @HH ELSE @SPCN END;
