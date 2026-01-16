@@ -456,67 +456,67 @@ public class DataSeeder
 
         var cnsMajor = await _context.Majors.FirstAsync(m => m.MajorCode == "7480201");
 
-        // Student Users
+        // Student Users with proper MSSV format and Vietnamese names
         var students = new[]
         {
             new AppUser
             {
                 Id = Guid.NewGuid(),
-                UserName = "student1",
-                Email = "student1@student.ute.edu.vn",
+                UserName = "21110001",
+                Email = "21110001@sv.ute.udn.vn",
                 EmailConfirmed = true,
-                FullName = "Sinh viên 1",
-                Introduction = "Sinh viên năm 3 CNS",
+                FullName = "Nguyễn Văn Minh",
+                Introduction = "Sinh viên năm 3 CNTT - 21110001",
                 AvatarUrl = "https://img.icons8.com/office40/1200/administrator-male.jpg",
                 TrustScore = 3,
                 TrustLever = TrustLever.None,
                 Gender = Gender.Male,
-                MajorId = null,
+                MajorId = cnsMajor.Id,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new AppUser
             {
                 Id = Guid.NewGuid(),
-                UserName = "student2",
-                Email = "student2@student.ute.edu.vn",
+                UserName = "21110002",
+                Email = "21110002@sv.ute.udn.vn",
                 EmailConfirmed = true,
-                FullName = "Sinh viên 2",
-                Introduction = "Sinh viên năm 2 CNS",
+                FullName = "Trần Thị Hương",
+                Introduction = "Sinh viên năm 2 CNTT - 21110002",
                 AvatarUrl = "https://img.icons8.com/office40/1200/administrator-male.jpg",
                 TrustScore = 6,
                 TrustLever = TrustLever.Contributor,
                 Gender = Gender.Female,
-                MajorId = null,
+                MajorId = cnsMajor.Id,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new AppUser
             {
                 Id = Guid.NewGuid(),
-                UserName = "student3",
-                Email = "student3@student.ute.edu.vn",
+                UserName = "21110003",
+                Email = "21110003@sv.ute.udn.vn",
                 EmailConfirmed = true,
-                FullName = "Sinh viên 3",
-                Introduction = "Sinh viên năm 2 CNS",
+                FullName = "Lê Hoàng Đức",
+                Introduction = "Sinh viên năm 2 CNTT - 21110003",
                 AvatarUrl = "https://img.icons8.com/office40/1200/administrator-male.jpg",
                 TrustScore = 31,
                 TrustLever = TrustLever.TrustedMember,
-                Gender = Gender.Female,
-                MajorId = null,
+                Gender = Gender.Male,
+                MajorId = cnsMajor.Id,
                 CreatedAt = DateTimeOffset.UtcNow
             },
             new AppUser
             {
                 Id = Guid.NewGuid(),
-                UserName = "student4",
-                Email = "student4@student.ute.edu.vn",
+                UserName = "21110004",
+                Email = "21110004@sv.ute.udn.vn",
                 EmailConfirmed = true,
-                FullName = "Sinh viên 4",
-                Introduction = "Sinh viên năm 2 CNS",
+                FullName = "Phạm Thị Lan",
+                Introduction = "Sinh viên năm 4 CNTT - 21110004",
                 AvatarUrl = "https://img.icons8.com/office40/1200/administrator-male.jpg",
                 TrustScore = 61,
                 TrustLever = TrustLever.Moderator,
                 Gender = Gender.Female,
-                MajorId = null,
+                MajorId = cnsMajor.Id,
                 CreatedAt = DateTimeOffset.UtcNow
             }
         };

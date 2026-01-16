@@ -57,7 +57,11 @@ DECLARE @Pwd NVARCHAR(MAX) = 'AQAAAAIAAYagAAAAEOCNOlUCTLnDzZABbb24M1L1V+5vKHk8xw
 -- User table for easy reference
 DECLARE @Users TABLE (Idx INT, UserId UNIQUEIDENTIFIER, MajorId UNIQUEIDENTIFIER, TrustScore INT);
 
--- Generate 50 users
+-- Tạo 50 users với tên Việt Nam thực tế
+DECLARE @FirstNames NVARCHAR(MAX) = N'Minh,Hùng,Tuấn,Dũng,Hải,Long,Phúc,Thắng,Quang,Đức,Hoàng,Nam,Bình,Khoa,Tài,Hiếu,Trung,Kiên,Đạt,Vinh,Thành,Tín,Phong,Khang,Thiện,Nhật,Khánh,Tùng,Lộc,Huy,Linh,Hà,Mai,Hương,Thảo,Ngọc,Trang,Lan,Yến,Hồng,Anh,Thủy,Phương,Vy,Chi,Tâm,Uyên,Diễm,Như,Trinh';
+DECLARE @LastNames NVARCHAR(MAX) = N'Nguyễn,Trần,Lê,Phạm,Hoàng,Huỳnh,Phan,Vũ,Võ,Đặng,Bùi,Đỗ,Hồ,Ngô,Dương,Lý,Đinh,Trương,Cao,Tạ';
+DECLARE @MiddleNames NVARCHAR(MAX) = N'Văn,Thị,Hoàng,Minh,Đức,Thanh,Quốc,Ngọc,Bảo,Gia';
+
 DECLARE @i INT = 1;
 WHILE @i <= 50
 BEGIN
@@ -66,13 +70,22 @@ BEGIN
     DECLARE @Gender INT = @i % 3;
     DECLARE @TrustScore INT = (@i * 7) % 100;
     DECLARE @TrustLevel INT = CASE WHEN @TrustScore < 10 THEN 1 WHEN @TrustScore < 30 THEN 2 WHEN @TrustScore < 60 THEN 3 ELSE 4 END;
-    DECLARE @Username NVARCHAR(50) = CONCAT('user', FORMAT(@i, '00'));
-    DECLARE @Email NVARCHAR(100) = CONCAT('21115053100', FORMAT(@i, '00'), '@ute.udn.vn');
-    DECLARE @FullName NVARCHAR(100) = CONCAT(N'Sinh viên ', @i);
+    
+    -- Tạo MSSV format: 21110xxx (năm 2021, ngành 110, số thứ tự)
+    DECLARE @StudentId NVARCHAR(20) = CONCAT('21110', FORMAT(@i, '000'));
+    DECLARE @Username NVARCHAR(50) = @StudentId;
+    DECLARE @Email NVARCHAR(100) = CONCAT(@StudentId, '@sv.ute.udn.vn');
+    
+    -- Tạo tên Việt Nam: Họ + Tên đệm + Tên
+    DECLARE @LastName NVARCHAR(50) = (SELECT value FROM STRING_SPLIT(@LastNames, ',') ORDER BY NEWID() OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY);
+    DECLARE @MiddleName NVARCHAR(50) = (SELECT value FROM STRING_SPLIT(@MiddleNames, ',') ORDER BY NEWID() OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY);
+    DECLARE @FirstName NVARCHAR(50) = (SELECT value FROM STRING_SPLIT(@FirstNames, ',') ORDER BY NEWID() OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY);
+    DECLARE @FullName NVARCHAR(100) = CONCAT(@LastName, N' ', @MiddleName, N' ', @FirstName);
+    
     DECLARE @Avatar NVARCHAR(200) = CONCAT('https://i.pravatar.cc/150?img=', (@i % 70) + 1);
     
     INSERT INTO NguoiDung (Id, TenDangNhap, TenDangNhapChuanHoa, Email, EmailChuanHoa, CoXacThucEmail, MatKhauBam, MaBaoMat, DauKiemSoatDongBo, SoDienThoai, CoDaXacNhanSoDienThoai, CoKichHoatXacThucHaiLop, NgayHetKhoaTaiKhoan, ChoPhepKhoaTaiKhoan, SoLanDangNhapThatBai, MaNganh, GioiThieu, HinhDaiDien, HoVaTen, DiemXacThuc, CoGoiY, CapDoXacThuc, GioiTinh, NgayTao, CoDaXoa)
-    VALUES (@UserId, @Username, UPPER(@Username), @Email, UPPER(@Email), 1, @Pwd, NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @Major, CONCAT(N'Sinh viên năm ', (@i % 4) + 1), @Avatar, @FullName, @TrustScore, 1, @TrustLevel, @Gender, DATEADD(DAY, -@i, GETUTCDATE()), 0);
+    VALUES (@UserId, @Username, UPPER(@Username), @Email, UPPER(@Email), 1, @Pwd, NEWID(), NEWID(), NULL, 0, 0, NULL, 1, 0, @Major, CONCAT(N'Sinh viên năm ', (@i % 4) + 1, N' - ', @StudentId), @Avatar, @FullName, @TrustScore, 1, @TrustLevel, @Gender, DATEADD(DAY, -@i, GETUTCDATE()), 0);
     
     INSERT INTO NguoiDung_VaiTro (NguoiDungId, VaiTroId) VALUES (@UserId, @StudentRoleId);
     INSERT INTO @Users (Idx, UserId, MajorId, TrustScore) VALUES (@i, @UserId, @Major, @TrustScore);
@@ -128,19 +141,43 @@ DECLARE @Doc8 UNIQUEIDENTIFIER = NEWID();
 DECLARE @Doc9 UNIQUEIDENTIFIER = NEWID();
 DECLARE @Doc10 UNIQUEIDENTIFIER = NEWID();
 
-INSERT INTO TaiLieu (Id, MonHocId, LoaiTaiLieuId, MoTa, TenTaiLieu, TenChuanHoa, CoHienThi, TepBiaId, TaoBoi, NgayTao, CoDaXoa) VALUES 
-(@Doc1, @Subj1, @Type1, N'Hướng dẫn lập trình C từ cơ bản đến nâng cao', N'Giáo trình Lập trình C', N'GIAO TRINH LAP TRINH C', 0, NULL, @U1, DATEADD(DAY, -30, GETUTCDATE()), 0),
-(@Doc2, @Subj2, @Type1, N'Bài tập SQL và thiết kế CSDL đầy đủ', N'Bài tập CSDL có lời giải', N'BAI TAP CSDL CO LOI GIAI', 0, NULL, @U2, DATEADD(DAY, -28, GETUTCDATE()), 0),
-(@Doc3, @Subj3, @Type2, N'Slide bài giảng mạng máy tính học kỳ 1', N'Slide Mạng máy tính', N'SLIDE MANG MAY TINH', 1, NULL, @U3, DATEADD(DAY, -25, GETUTCDATE()), 0),
-(@Doc4, @Subj4, @Type1, N'Giáo trình OOP với Java đầy đủ', N'Lập trình hướng đối tượng Java', N'LAP TRINH HUONG DOI TUONG JAVA', 0, NULL, @U4, DATEADD(DAY, -22, GETUTCDATE()), 0),
-(@Doc5, @Subj5, @Type3, N'Đồ án Machine Learning với Python', N'Đồ án AI - Face Recognition', N'DO AN AI FACE RECOGNITION', 1, NULL, @U5, DATEADD(DAY, -20, GETUTCDATE()), 0),
-(@Doc6, @Subj6, @Type2, N'Slide ReactJS và NodeJS cơ bản', N'Slide Lập trình Web', N'SLIDE LAP TRINH WEB', 1, NULL, @U6, DATEADD(DAY, -18, GETUTCDATE()), 0),
-(@Doc7, @Subj7, @Type1, N'Giáo trình toán rời rạc ứng dụng', N'Toán rời rạc cho CNTT', N'TOAN ROI RAC CHO CNTT', 0, NULL, @U7, DATEADD(DAY, -15, GETUTCDATE()), 0),
-(@Doc8, @Subj8, @Type1, N'Cấu trúc dữ liệu và giải thuật với C++', N'Cấu trúc dữ liệu và Giải thuật', N'CAU TRUC DU LIEU VA GIAI THUAT', 0, NULL, @U8, DATEADD(DAY, -12, GETUTCDATE()), 0),
-(@Doc9, @Subj1, @Type3, N'Đồ án quản lý sinh viên bằng C', N'Đồ án Lập trình C', N'DO AN LAP TRINH C', 1, NULL, @U9, DATEADD(DAY, -10, GETUTCDATE()), 0),
-(@Doc10, @Subj5, @Type2, N'Slide Deep Learning với TensorFlow', N'Deep Learning cơ bản', N'DEEP LEARNING CO BAN', 1, NULL, @U10, DATEADD(DAY, -8, GETUTCDATE()), 0);
+-- Cover images (Unsplash - real URLs)
+DECLARE @Cover1 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Cover2 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Cover3 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Cover4 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Cover5 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Cover6 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Cover7 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Cover8 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Cover9 UNIQUEIDENTIFIER = NEWID();
+DECLARE @Cover10 UNIQUEIDENTIFIER = NEWID();
 
-PRINT N'Đã thêm 10 documents!';
+INSERT INTO TepDinhKem (Id, TenTep, KichThuoc, LoaiFile, LinkTruyCap, TaoBoi, NgayTao, CoDaXoa) VALUES 
+(@Cover1, 'cover_c_programming.jpg', 102400, 'image/jpeg', 'https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=400&h=300&fit=crop', @U1, DATEADD(DAY, -30, GETUTCDATE()), 0),
+(@Cover2, 'cover_database.jpg', 102400, 'image/jpeg', 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=400&h=300&fit=crop', @U2, DATEADD(DAY, -28, GETUTCDATE()), 0),
+(@Cover3, 'cover_network.jpg', 102400, 'image/jpeg', 'https://images.unsplash.com/photo-1544197150-b99a580bb7a8?w=400&h=300&fit=crop', @U3, DATEADD(DAY, -25, GETUTCDATE()), 0),
+(@Cover4, 'cover_java.jpg', 102400, 'image/jpeg', 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=300&fit=crop', @U4, DATEADD(DAY, -22, GETUTCDATE()), 0),
+(@Cover5, 'cover_ai.jpg', 102400, 'image/jpeg', 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop', @U5, DATEADD(DAY, -20, GETUTCDATE()), 0),
+(@Cover6, 'cover_web.jpg', 102400, 'image/jpeg', 'https://images.unsplash.com/photo-1547658719-da2b51169166?w=400&h=300&fit=crop', @U6, DATEADD(DAY, -18, GETUTCDATE()), 0),
+(@Cover7, 'cover_math.jpg', 102400, 'image/jpeg', 'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&h=300&fit=crop', @U7, DATEADD(DAY, -15, GETUTCDATE()), 0),
+(@Cover8, 'cover_dsa.jpg', 102400, 'image/jpeg', 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?w=400&h=300&fit=crop', @U8, DATEADD(DAY, -12, GETUTCDATE()), 0),
+(@Cover9, 'cover_project.jpg', 102400, 'image/jpeg', 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=300&fit=crop', @U9, DATEADD(DAY, -10, GETUTCDATE()), 0),
+(@Cover10, 'cover_dl.jpg', 102400, 'image/jpeg', 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=400&h=300&fit=crop', @U10, DATEADD(DAY, -8, GETUTCDATE()), 0);
+
+INSERT INTO TaiLieu (Id, MonHocId, LoaiTaiLieuId, MoTa, TenTaiLieu, TenChuanHoa, CoHienThi, TepBiaId, TaoBoi, NgayTao, CoDaXoa) VALUES 
+(@Doc1, @Subj1, @Type1, N'Hướng dẫn lập trình C từ cơ bản đến nâng cao', N'Giáo trình Lập trình C', N'GIAO TRINH LAP TRINH C', 0, @Cover1, @U1, DATEADD(DAY, -30, GETUTCDATE()), 0),
+(@Doc2, @Subj2, @Type1, N'Bài tập SQL và thiết kế CSDL đầy đủ', N'Bài tập CSDL có lời giải', N'BAI TAP CSDL CO LOI GIAI', 0, @Cover2, @U2, DATEADD(DAY, -28, GETUTCDATE()), 0),
+(@Doc3, @Subj3, @Type2, N'Slide bài giảng mạng máy tính học kỳ 1', N'Slide Mạng máy tính', N'SLIDE MANG MAY TINH', 1, @Cover3, @U3, DATEADD(DAY, -25, GETUTCDATE()), 0),
+(@Doc4, @Subj4, @Type1, N'Giáo trình OOP với Java đầy đủ', N'Lập trình hướng đối tượng Java', N'LAP TRINH HUONG DOI TUONG JAVA', 0, @Cover4, @U4, DATEADD(DAY, -22, GETUTCDATE()), 0),
+(@Doc5, @Subj5, @Type3, N'Đồ án Machine Learning với Python', N'Đồ án AI - Face Recognition', N'DO AN AI FACE RECOGNITION', 1, @Cover5, @U5, DATEADD(DAY, -20, GETUTCDATE()), 0),
+(@Doc6, @Subj6, @Type2, N'Slide ReactJS và NodeJS cơ bản', N'Slide Lập trình Web', N'SLIDE LAP TRINH WEB', 1, @Cover6, @U6, DATEADD(DAY, -18, GETUTCDATE()), 0),
+(@Doc7, @Subj7, @Type1, N'Giáo trình toán rời rạc ứng dụng', N'Toán rời rạc cho CNTT', N'TOAN ROI RAC CHO CNTT', 0, @Cover7, @U7, DATEADD(DAY, -15, GETUTCDATE()), 0),
+(@Doc8, @Subj8, @Type1, N'Cấu trúc dữ liệu và giải thuật với C++', N'Cấu trúc dữ liệu và Giải thuật', N'CAU TRUC DU LIEU VA GIAI THUAT', 0, @Cover8, @U8, DATEADD(DAY, -12, GETUTCDATE()), 0),
+(@Doc9, @Subj1, @Type3, N'Đồ án quản lý sinh viên bằng C', N'Đồ án Lập trình C', N'DO AN LAP TRINH C', 1, @Cover9, @U9, DATEADD(DAY, -10, GETUTCDATE()), 0),
+(@Doc10, @Subj5, @Type2, N'Slide Deep Learning với TensorFlow', N'Deep Learning cơ bản', N'DEEP LEARNING CO BAN', 1, @Cover10, @U10, DATEADD(DAY, -8, GETUTCDATE()), 0);
+
+PRINT N'Đã thêm 10 cover images và 10 documents!';
 
 -- =====================================================
 -- INSERT DOCUMENT TAGS
@@ -190,16 +227,16 @@ DECLARE @File10 UNIQUEIDENTIFIER = NEWID();
 
 -- Using real external PDF URLs for testing
 INSERT INTO TepDinhKem (Id, TenTep, KichThuoc, LoaiFile, LinkTruyCap, TaoBoi, NgayTao, CoDaXoa) VALUES 
-(@File1, 'c_programming.pdf', 1048576, 'application/pdf', 'https://www.africau.edu/images/default/sample.pdf', @U1, DATEADD(DAY, -30, GETUTCDATE()), 0),
-(@File2, 'sql_exercises.pdf', 2097152, 'application/pdf', 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/img/table-word.pdf', @U2, DATEADD(DAY, -28, GETUTCDATE()), 0),
-(@File3, 'network_slides.pdf', 3145728, 'application/pdf', 'https://www.clickdimensions.com/links/TestPDFfile.pdf', @U3, DATEADD(DAY, -25, GETUTCDATE()), 0),
-(@File4, 'oop_java.pdf', 2621440, 'application/pdf', 'https://www.africau.edu/images/default/sample.pdf', @U4, DATEADD(DAY, -22, GETUTCDATE()), 0),
-(@File5, 'face_recognition.pdf', 5242880, 'application/pdf', 'https://www.clickdimensions.com/links/TestPDFfile.pdf', @U5, DATEADD(DAY, -20, GETUTCDATE()), 0),
-(@File6, 'web_slides.pdf', 1572864, 'application/pdf', 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/img/table-word.pdf', @U6, DATEADD(DAY, -18, GETUTCDATE()), 0),
-(@File7, 'discrete_math.pdf', 2097152, 'application/pdf', 'https://www.africau.edu/images/default/sample.pdf', @U7, DATEADD(DAY, -15, GETUTCDATE()), 0),
-(@File8, 'data_structures.pdf', 3670016, 'application/pdf', 'https://www.clickdimensions.com/links/TestPDFfile.pdf', @U8, DATEADD(DAY, -12, GETUTCDATE()), 0),
-(@File9, 'c_project.pdf', 1048576, 'application/pdf', 'https://www.africau.edu/images/default/sample.pdf', @U9, DATEADD(DAY, -10, GETUTCDATE()), 0),
-(@File10, 'deep_learning.pdf', 4194304, 'application/pdf', 'https://www.w3.org/WAI/WCAG21/Techniques/pdf/img/table-word.pdf', @U10, DATEADD(DAY, -8, GETUTCDATE()), 0);
+(@File1, 'tu_hoc_python.pdf', 2097152, 'application/pdf', 'https://pyqt5.wordpress.com/wp-content/uploads/2017/07/tu-hoc-python.pdf', @U1, DATEADD(DAY, -30, GETUTCDATE()), 0),
+(@File2, 'big_book_python_projects.pdf', 5242880, 'application/pdf', 'https://edu.anarcho-copy.org/Programming%20Languages/Python/BigBookSmallPythonProjects.pdf', @U2, DATEADD(DAY, -28, GETUTCDATE()), 0),
+(@File3, 'tu_hoc_python_2.pdf', 2097152, 'application/pdf', 'https://pyqt5.wordpress.com/wp-content/uploads/2017/07/tu-hoc-python.pdf', @U3, DATEADD(DAY, -25, GETUTCDATE()), 0),
+(@File4, 'python_projects.pdf', 5242880, 'application/pdf', 'https://edu.anarcho-copy.org/Programming%20Languages/Python/BigBookSmallPythonProjects.pdf', @U4, DATEADD(DAY, -22, GETUTCDATE()), 0),
+(@File5, 'python_ml.pdf', 2097152, 'application/pdf', 'https://pyqt5.wordpress.com/wp-content/uploads/2017/07/tu-hoc-python.pdf', @U5, DATEADD(DAY, -20, GETUTCDATE()), 0),
+(@File6, 'python_web.pdf', 5242880, 'application/pdf', 'https://edu.anarcho-copy.org/Programming%20Languages/Python/BigBookSmallPythonProjects.pdf', @U6, DATEADD(DAY, -18, GETUTCDATE()), 0),
+(@File7, 'python_math.pdf', 2097152, 'application/pdf', 'https://pyqt5.wordpress.com/wp-content/uploads/2017/07/tu-hoc-python.pdf', @U7, DATEADD(DAY, -15, GETUTCDATE()), 0),
+(@File8, 'python_dsa.pdf', 5242880, 'application/pdf', 'https://edu.anarcho-copy.org/Programming%20Languages/Python/BigBookSmallPythonProjects.pdf', @U8, DATEADD(DAY, -12, GETUTCDATE()), 0),
+(@File9, 'python_project.pdf', 2097152, 'application/pdf', 'https://pyqt5.wordpress.com/wp-content/uploads/2017/07/tu-hoc-python.pdf', @U9, DATEADD(DAY, -10, GETUTCDATE()), 0),
+(@File10, 'python_dl.pdf', 5242880, 'application/pdf', 'https://edu.anarcho-copy.org/Programming%20Languages/Python/BigBookSmallPythonProjects.pdf', @U10, DATEADD(DAY, -8, GETUTCDATE()), 0);
 
 PRINT N'Đã thêm 10 files!';
 
