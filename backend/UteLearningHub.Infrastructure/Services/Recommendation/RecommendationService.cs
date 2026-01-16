@@ -9,195 +9,95 @@ namespace UteLearningHub.Infrastructure.Services.Recommendation;
 
 public class RecommendationService : IRecommendationService
 {
-    private readonly HttpClient _httpClient;
-    private readonly RecommendationOptions _options;
-    private readonly ILogger<RecommendationService> _logger;
+    private readonly HttpClient _http;
+    private readonly ILogger<RecommendationService> _log;
+    private static readonly JsonSerializerOptions Json = new() { PropertyNameCaseInsensitive = true };
 
-    public RecommendationService(
-        HttpClient httpClient,
-        IOptions<RecommendationOptions> options,
-        ILogger<RecommendationService> logger)
+    public RecommendationService(HttpClient http, IOptions<RecommendationOptions> opts, ILogger<RecommendationService> log)
     {
-        _httpClient = httpClient;
-        _options = options.Value;
-        _logger = logger;
-
-        _httpClient.BaseAddress = new Uri(_options.AiServiceBaseUrl);
-        _httpClient.Timeout = TimeSpan.FromSeconds(_options.RequestTimeoutSeconds);
+        _http = http;
+        _log = log;
+        _http.BaseAddress = new Uri(opts.Value.AiServiceBaseUrl);
+        _http.Timeout = TimeSpan.FromSeconds(opts.Value.RequestTimeoutSeconds);
     }
 
+    // Gợi ý conversations cho user
     public async Task<RecommendationResponse> GetRecommendationsAsync(
         float[] userVector,
         IReadOnlyList<ConversationVectorData> conversationVectors,
         int topK = 10,
         float minSimilarity = 0.3f,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
         try
         {
-            var request = new RecommendationRequestDto
+            var request = new
             {
                 UserVector = userVector,
-                ConversationVectors = conversationVectors.Select(cv => new ConversationVectorDto
-                {
-                    Id = cv.Id.ToString(),
-                    Vector = cv.Vector
-                }).ToList(),
+                ConversationVectors = conversationVectors.Select(cv => new { Id = cv.Id.ToString(), cv.Vector }).ToList(),
                 TopK = topK,
                 MinSimilarity = minSimilarity
             };
 
-            _logger.LogInformation("Calling AI service at {AiUrl}/recommend with {ConversationCount} conversations, topK={TopK}, minSimilarity={MinSimilarity}",
-                _options.AiServiceBaseUrl, conversationVectors.Count, topK, minSimilarity);
+            var res = await _http.PostAsJsonAsync("/recommend", request, ct);
+            res.EnsureSuccessStatusCode();
 
-            var response = await _httpClient.PostAsJsonAsync(
-                "/recommend",
-                request,
-                cancellationToken);
-
-            _logger.LogInformation("AI service responded with status {StatusCode}", response.StatusCode);
-
-            response.EnsureSuccessStatusCode();
-
-            var result = await response.Content.ReadFromJsonAsync<RecommendationResponseDto>(
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
-                cancellationToken);
-
+            var result = await res.Content.ReadFromJsonAsync<RecommendationResponseDto>(Json, ct);
             if (result == null)
-            {
-                _logger.LogWarning("AI service returned null response");
-                return new RecommendationResponse(
-                    Array.Empty<RecommendationItem>(),
-                    0,
-                    0);
-            }
+                return new RecommendationResponse([], 0, 0);
 
-            var recommendations = result.Recommendations?.Select((r, index) => new RecommendationItem(
-                Guid.Parse(r.ConversationId),
-                r.Similarity,
-                r.Rank)).ToList() ?? new List<RecommendationItem>();
+            var items = result.Recommendations?.Select((r, i) => new RecommendationItem(
+                Guid.Parse(r.ConversationId), r.Similarity, r.Rank)).ToList() ?? [];
 
-            return new RecommendationResponse(
-                recommendations,
-                result.TotalProcessed,
-                result.ProcessingTimeMs);
+            return new RecommendationResponse(items, result.TotalProcessed, result.ProcessingTimeMs);
         }
-        catch (HttpRequestException ex)
+        catch (Exception ex)
         {
-            _logger.LogWarning(ex, "AI recommendation service unavailable, returning empty recommendations");
-            return new RecommendationResponse(Array.Empty<RecommendationItem>(), 0, 0);
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogWarning(ex, "AI recommendation service timeout, returning empty recommendations");
-            return new RecommendationResponse(Array.Empty<RecommendationItem>(), 0, 0);
+            _log.LogWarning(ex, "AI recommendation service failed");
+            return new RecommendationResponse([], 0, 0);
         }
     }
 
-    private record RecommendationRequestDto
-    {
-        public float[] UserVector { get; set; } = Array.Empty<float>();
-        public List<ConversationVectorDto> ConversationVectors { get; set; } = new();
-        public int TopK { get; set; } = 10;
-        public float MinSimilarity { get; set; } = 0.3f;
-    }
-
-    private record ConversationVectorDto
-    {
-        public string Id { get; set; } = string.Empty;
-        public float[] Vector { get; set; } = Array.Empty<float>();
-    }
-
-    private record RecommendationResponseDto
-    {
-        public List<RecommendationItemDto>? Recommendations { get; set; }
-        public int TotalProcessed { get; set; }
-        public double ProcessingTimeMs { get; set; }
-    }
-
-    private record RecommendationItemDto
-    {
-        public string ConversationId { get; set; } = string.Empty;
-        public float Similarity { get; set; }
-        public int Rank { get; set; }
-    }
-
-    // ===== Similar Users =====
-
+    // Tìm users phù hợp với conversation
     public async Task<SimilarUsersResponse> GetSimilarUsersAsync(
         float[] convVector,
         IReadOnlyList<UserVectorData> userVectors,
         int topK = 10,
         float minScore = 0.3f,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
         try
         {
-            var request = new SimilarUsersRequestDto
+            var request = new
             {
                 ConvVector = convVector,
-                UserVectors = userVectors.Select(uv => new UserVectorDto
-                {
-                    Id = uv.Id.ToString(),
-                    Vector = uv.Vector
-                }).ToList(),
+                UserVectors = userVectors.Select(uv => new { Id = uv.Id.ToString(), uv.Vector }).ToList(),
                 TopK = topK,
                 MinScore = minScore
             };
 
-            _logger.LogInformation("Calling AI /similar/users with {Count} users", userVectors.Count);
+            var res = await _http.PostAsJsonAsync("/similar/users", request, ct);
+            res.EnsureSuccessStatusCode();
 
-            var response = await _httpClient.PostAsJsonAsync("/similar/users", request, cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            var result = await response.Content.ReadFromJsonAsync<SimilarUsersResponseDto>(
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true },
-                cancellationToken);
-
+            var result = await res.Content.ReadFromJsonAsync<SimilarUsersResponseDto>(Json, ct);
             if (result == null)
-            {
-                return new SimilarUsersResponse(Array.Empty<SimilarUserItem>(), 0, 0);
-            }
+                return new SimilarUsersResponse([], 0, 0);
 
             var users = result.Users?.Select(u => new SimilarUserItem(
-                Guid.Parse(u.UserId),
-                u.Similarity,
-                u.Rank)).ToList() ?? [];
+                Guid.Parse(u.UserId), u.Similarity, u.Rank)).ToList() ?? [];
 
             return new SimilarUsersResponse(users, result.TotalProcessed, result.ProcessingTimeMs);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "AI similar users service failed");
-            return new SimilarUsersResponse(Array.Empty<SimilarUserItem>(), 0, 0);
+            _log.LogWarning(ex, "AI similar users service failed");
+            return new SimilarUsersResponse([], 0, 0);
         }
     }
 
-    private record SimilarUsersRequestDto
-    {
-        public float[] ConvVector { get; set; } = [];
-        public List<UserVectorDto> UserVectors { get; set; } = [];
-        public int TopK { get; set; } = 10;
-        public float MinScore { get; set; } = 0.3f;
-    }
-
-    private record UserVectorDto
-    {
-        public string Id { get; set; } = "";
-        public float[] Vector { get; set; } = [];
-    }
-
-    private record SimilarUsersResponseDto
-    {
-        public List<SimilarUserItemDto>? Users { get; set; }
-        public int TotalProcessed { get; set; }
-        public double ProcessingTimeMs { get; set; }
-    }
-
-    private record SimilarUserItemDto
-    {
-        public string UserId { get; set; } = "";
-        public float Similarity { get; set; }
-        public int Rank { get; set; }
-    }
+    // DTOs
+    private record RecommendationResponseDto(List<RecommendationItemDto>? Recommendations, int TotalProcessed, double ProcessingTimeMs);
+    private record RecommendationItemDto(string ConversationId, float Similarity, int Rank);
+    private record SimilarUsersResponseDto(List<SimilarUserItemDto>? Users, int TotalProcessed, double ProcessingTimeMs);
+    private record SimilarUserItemDto(string UserId, float Similarity, int Rank);
 }

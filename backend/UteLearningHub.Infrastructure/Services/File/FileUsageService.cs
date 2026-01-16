@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Services.File;
-using UteLearningHub.Application.Services.FileStorage;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
 
@@ -8,22 +7,11 @@ using DomainFile = UteLearningHub.Domain.Entities.File;
 
 namespace UteLearningHub.Infrastructure.Services.File;
 
-public class FileUsageService : IFileUsageService
+public class FileUsageService(IFileRepository fileRepository) : IFileUsageService
 {
-    private readonly IFileRepository _fileRepository;
-    private readonly IFileStorageService _fileStorageService;
-
-    public FileUsageService(
-        IFileRepository fileRepository,
-        IFileStorageService fileStorageService)
-    {
-        _fileRepository = fileRepository;
-        _fileStorageService = fileStorageService;
-    }
-
     public async Task<DomainFile> EnsureFileAsync(Guid fileId, CancellationToken cancellationToken = default)
     {
-        var file = await _fileRepository.GetByIdAsync(fileId, disableTracking: false, cancellationToken);
+        var file = await fileRepository.GetByIdAsync(fileId, disableTracking: false, cancellationToken);
         if (file == null)
             throw new NotFoundException($"File with id {fileId} not found");
 
@@ -36,11 +24,12 @@ public class FileUsageService : IFileUsageService
         if (!distinctIds.Any())
             return Array.Empty<DomainFile>();
 
-        var files = await _fileRepository.GetQueryableSet()
+        var files = await fileRepository.GetQueryableSet()
             .AsNoTracking()
             .Where(f => distinctIds.Contains(f.Id) && !f.IsDeleted)
             .ToListAsync(cancellationToken);
 
+        // Kiểm tra tất cả file tồn tại, nếu thiếu thì throw
         if (files.Count != distinctIds.Count)
             throw new("Một hoặc nhiều tệp không tồn tại");
 
@@ -52,7 +41,7 @@ public class FileUsageService : IFileUsageService
         if (string.IsNullOrWhiteSpace(fileUrl))
             return null;
 
-        return await _fileRepository.GetQueryableSet()
+        return await fileRepository.GetQueryableSet()
             .Where(f => f.FileUrl == fileUrl && !f.IsDeleted)
             .FirstOrDefaultAsync(cancellationToken);
     }
@@ -62,7 +51,7 @@ public class FileUsageService : IFileUsageService
         if (file == null)
             return;
 
-        _fileRepository.Delete(file);
-        await _fileRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+        fileRepository.Delete(file);
+        await fileRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
     }
 }

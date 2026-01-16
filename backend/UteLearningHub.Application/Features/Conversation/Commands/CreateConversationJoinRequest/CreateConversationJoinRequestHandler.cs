@@ -10,46 +10,32 @@ using DomainConversationJoinRequest = UteLearningHub.Domain.Entities.Conversatio
 
 namespace UteLearningHub.Application.Features.Conversation.Commands.CreateConversationJoinRequest;
 
-public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConversationJoinRequestCommand, ConversationJoinRequestDto>
+public class CreateConversationJoinRequestHandler(
+    IConversationRepository conversationRepository,
+    IIdentityService identityService,
+    ICurrentUserService currentUserService,
+    IDateTimeProvider dateTimeProvider) : IRequestHandler<CreateConversationJoinRequestCommand, ConversationJoinRequestDto>
 {
-    private readonly IConversationRepository _conversationRepository;
-    private readonly IIdentityService _identityService;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IDateTimeProvider _dateTimeProvider;
-
-    public CreateConversationJoinRequestHandler(
-        IConversationRepository conversationRepository,
-        IIdentityService identityService,
-        ICurrentUserService currentUserService,
-        IDateTimeProvider dateTimeProvider)
-    {
-        _conversationRepository = conversationRepository;
-        _identityService = identityService;
-        _currentUserService = currentUserService;
-        _dateTimeProvider = dateTimeProvider;
-    }
-
     public async Task<ConversationJoinRequestDto> Handle(CreateConversationJoinRequestCommand request, CancellationToken cancellationToken)
     {
-        if (!_currentUserService.IsAuthenticated)
+        if (!currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to create join request");
 
-        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+        var userId = currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Verify conversation exists and is active
-        var conversation = await _conversationRepository.GetByIdAsync(request.ConversationId, disableTracking: true, cancellationToken);
-        if (conversation == null || conversation.IsDeleted)
+        var conversation = await conversationRepository.GetByIdAsync(request.ConversationId, disableTracking: true, cancellationToken);
+        if (conversation == null)
             throw new NotFoundException($"Conversation with id {request.ConversationId} not found");
 
         if (conversation.ConversationStatus != ConversationStatus.Active)
             throw new BadRequestException("Conversation is not active");
 
-        // Only Private visibility conversations require join request
+        // Chỉ nhóm Private mới cần join request
         if (conversation.Visibility != ConversationVisibility.Private)
             throw new BadRequestException("Join requests are only available for private conversations");
 
-        // Check if user is already a member
-        var isMember = await _conversationRepository.GetQueryableSet()
+        // Kiểm tra đã là member chưa
+        var isMember = await conversationRepository.GetQueryableSet()
             .Where(c => c.Id == request.ConversationId)
             .SelectMany(c => c.Members)
             .AnyAsync(m => m.UserId == userId && !m.IsDeleted, cancellationToken);
@@ -57,8 +43,8 @@ public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConver
         if (isMember)
             throw new BadRequestException("You are already a member of this conversation");
 
-        // Check if user already has a pending request
-        var existingRequest = await _conversationRepository.GetJoinRequestsQueryable()
+        // Kiểm tra đã có request pending chưa
+        var existingRequest = await conversationRepository.GetJoinRequestsQueryable()
             .Where(r => r.ConversationId == request.ConversationId
                      && r.CreatedById == userId
                      && r.Status == ContentStatus.PendingReview
@@ -68,7 +54,6 @@ public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConver
         if (existingRequest != null)
             throw new BadRequestException("You already have a pending join request for this conversation");
 
-        // Create join request
         var joinRequest = new DomainConversationJoinRequest
         {
             Id = Guid.NewGuid(),
@@ -76,15 +61,14 @@ public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConver
             Content = request.Content,
             Status = ContentStatus.PendingReview,
             CreatedById = userId,
-            CreatedAt = _dateTimeProvider.OffsetNow
+            CreatedAt = dateTimeProvider.OffsetNow
         };
 
-        // Add join request directly (avoid updating conversation to prevent concurrency issues)
-        await _conversationRepository.AddJoinRequestAsync(joinRequest, cancellationToken);
-        await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+        await conversationRepository.AddJoinRequestAsync(joinRequest, cancellationToken);
+        await conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        // Reload to get relationships
-        joinRequest = await _conversationRepository.GetJoinRequestsQueryable()
+        // Reload để lấy relationship
+        joinRequest = await conversationRepository.GetJoinRequestsQueryable()
             .Include(r => r.Conversation)
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == joinRequest.Id, cancellationToken);
@@ -92,8 +76,7 @@ public class CreateConversationJoinRequestHandler : IRequestHandler<CreateConver
         if (joinRequest == null)
             throw new NotFoundException("Failed to create join request");
 
-        // Get requester info
-        var requester = await _identityService.FindByIdAsync(userId);
+        var requester = await identityService.FindByIdAsync(userId);
         if (requester == null)
             throw new UnauthorizedException();
 

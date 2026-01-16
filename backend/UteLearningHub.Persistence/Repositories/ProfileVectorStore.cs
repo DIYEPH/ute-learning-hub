@@ -4,42 +4,30 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Persistence.Repositories;
 
-public class ProfileVectorStore : IProfileVectorStore
+public class ProfileVectorStore(IDbContextFactory<ApplicationDbContext> dbContextFactory) : IProfileVectorStore
 {
-    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
-
-    public ProfileVectorStore(IDbContextFactory<ApplicationDbContext> dbContextFactory)
-    {
-        _dbContextFactory = dbContextFactory;
-    }
-
     public IQueryable<ProfileVector> Query()
     {
-        var dbContext = _dbContextFactory.CreateDbContext();
+        var dbContext = dbContextFactory.CreateDbContext();
         return dbContext.Set<ProfileVector>().AsQueryable();
     }
 
-    public async Task UpsertAsync(ProfileVector vector, CancellationToken cancellationToken = default)
+    public async Task UpsertAsync(ProfileVector vector, CancellationToken ct = default)
     {
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        await using var db = await dbContextFactory.CreateDbContextAsync(ct);
+        var existing = await db.Set<ProfileVector>()
+            .FirstOrDefaultAsync(x => x.UserId == vector.UserId && x.IsActive, ct);
 
-        // Find existing vector by UserId (not Id) to properly update
-        var existingVector = await dbContext.Set<ProfileVector>()
-            .FirstOrDefaultAsync(x => x.UserId == vector.UserId && x.IsActive, cancellationToken);
-
-        if (existingVector != null)
+        if (existing != null)
         {
-            // Update existing vector
-            existingVector.EmbeddingJson = vector.EmbeddingJson;
-            existingVector.CalculatedAt = vector.CalculatedAt;
-            dbContext.Set<ProfileVector>().Update(existingVector);
+            existing.EmbeddingJson = vector.EmbeddingJson;
+            existing.CalculatedAt = vector.CalculatedAt;
+            db.Set<ProfileVector>().Update(existing);
         }
         else
         {
-            // Add new vector
-            await dbContext.Set<ProfileVector>().AddAsync(vector, cancellationToken);
+            await db.Set<ProfileVector>().AddAsync(vector, ct);
         }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await db.SaveChangesAsync(ct);
     }
 }

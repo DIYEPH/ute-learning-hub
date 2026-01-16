@@ -8,34 +8,25 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Infrastructure.Services.Document;
 
-public class DocumentProgressService(ICurrentUserService currentUserService, IDocumentRepository documentRepository, IUserDocumentProgressRepository userDocumentProgressRepository, IDateTimeProvider dateTimeProvider) : IDocumentProgressService
+public class DocumentProgressService(
+    ICurrentUserService currentUserService,
+    IDocumentRepository documentRepository,
+    IUserDocumentProgressRepository progressRepository,
+    IDateTimeProvider dateTimeProvider) : IDocumentProgressService
 {
-    private readonly ICurrentUserService _currentUserService = currentUserService;
-    private readonly IDocumentRepository _documentRepository = documentRepository;
-    private readonly IUserDocumentProgressRepository _userDocumentProgressRepository = userDocumentProgressRepository;
-    private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
-
     public async Task UpdateAsync(UpdateDocumentProgressCommand request, CancellationToken ct)
     {
-        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
-
-
+        var userId = currentUserService.UserId ?? throw new UnauthorizedException();
         var documentFileId = request.DocumentFileId;
-        var documentId = await _documentRepository.GetIdByDocumentFileIdAsync(documentFileId, ct);
 
-        if (!documentId.HasValue)
-            throw new NotFoundException($"Document file with id {documentFileId} not found");
+        var documentId = await documentRepository.GetIdByDocumentFileIdAsync(documentFileId, ct)
+            ?? throw new NotFoundException($"Document file with id {documentFileId} not found");
 
-        var document = await _documentRepository.GetByIdAsync(documentId.Value, true, ct);
-        if (document == null)
-            throw new NotFoundException("Document not found");
+        var documentFile = await documentRepository.GetDocumentFileByIdAsync(documentFileId, true, ct)
+            ?? throw new NotFoundException("DocumentFile not found");
 
-        var documentFile = await _documentRepository.GetDocumentFileByIdAsync(documentFileId, true, ct);
-        if (documentFile == null)
-            throw new NotFoundException("DocumentFile not found");
-
-        var progress = await _userDocumentProgressRepository.GetByUserAndDocumentFileAsync(userId, documentFileId, cancellationToken: ct);
-        var now = _dateTimeProvider.OffsetNow;
+        var progress = await progressRepository.GetByUserAndDocumentFileAsync(userId, documentFileId, cancellationToken: ct);
+        var now = dateTimeProvider.OffsetNow;
 
         if (progress == null)
         {
@@ -43,25 +34,22 @@ public class DocumentProgressService(ICurrentUserService currentUserService, IDo
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                DocumentId = documentId.Value,
+                DocumentId = documentId,
                 DocumentFileId = documentFileId,
                 LastPage = request.LastPage,
-                TotalPages = documentFile?.TotalPages,
+                TotalPages = documentFile.TotalPages,
                 LastAccessedAt = now
             };
-
-            _userDocumentProgressRepository.Add(progress);
+            progressRepository.Add(progress);
         }
         else
         {
             progress.LastPage = request.LastPage;
             progress.LastAccessedAt = now;
-
-            if (documentFile != null)
-                progress.TotalPages = documentFile.TotalPages;
-
-            _userDocumentProgressRepository.Update(progress);
+            progress.TotalPages = documentFile.TotalPages;
+            progressRepository.Update(progress);
         }
-        await _userDocumentProgressRepository.UnitOfWork.SaveChangesAsync(ct);
+
+        await progressRepository.UnitOfWork.SaveChangesAsync(ct);
     }
 }

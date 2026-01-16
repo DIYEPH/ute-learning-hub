@@ -54,7 +54,6 @@ export type ChangeUsernameCommand = {
 export type ChartDataItem = {
     label?: string;
     value?: number;
-    color?: string | null;
 };
 
 export type CommentDetailDto = {
@@ -387,7 +386,6 @@ export type DocumentStatsDto = {
     documentsBySubject?: Array<ChartDataItem>;
     documentsByType?: Array<unknown>;
     topDocumentsByViews?: Array<TopDocumentDto>;
-    viewsOverTime?: Array<TimeSeriesDataPoint>;
 };
 
 export type EventDto = {
@@ -656,7 +654,6 @@ export type OverviewStatsDto = {
     totalConversations?: number;
     usersOverTime?: Array<TimeSeriesDataPoint>;
     documentsOverTime?: Array<unknown>;
-    viewsOverTime?: Array<unknown>;
 };
 
 export type PagedResponseOfAuthorDto = {
@@ -1031,7 +1028,6 @@ export type TopDocumentDto = {
     id?: string;
     name?: string;
     viewCount?: number;
-    coverUrl?: string | null;
 };
 
 export type TopReportedUserDto = {

@@ -28,7 +28,7 @@ export function ConversationsTab({ days }: ConversationsTabProps) {
     if (loading) return <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     if (error || !data) return <div className="flex h-64 items-center justify-center text-muted-foreground">{error || "Không có dữ liệu"}</div>;
 
-    const subjectChartData = data.conversationsBySubject?.map(item => ({ label: item.label ?? "", value: item.value ?? 0, color: item.color ?? undefined })) ?? [];
+    const subjectChartData = data.conversationsBySubject?.map(item => ({ label: item.label ?? "", value: item.value ?? 0 })) ?? [];
     const messagesChartData = data.messagesOverTime?.map(point => ({ date: point.date ?? "", value: point.value ?? 0 })) ?? [];
 
     return (

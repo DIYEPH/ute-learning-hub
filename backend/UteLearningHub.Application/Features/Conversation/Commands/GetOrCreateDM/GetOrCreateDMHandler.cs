@@ -11,73 +11,51 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Conversation.Commands.GetOrCreateDM;
 
-public class GetOrCreateDMHandler : IRequestHandler<GetOrCreateDMCommand, GetOrCreateDMResponse>
+public class GetOrCreateDMHandler(
+    IConversationRepository convRepo,
+    IMessageRepository msgRepo,
+    ICurrentUserService currentUser,
+    IIdentityService identity,
+    IDateTimeProvider dateTime,
+    IMessageHubService msgHub) : IRequestHandler<GetOrCreateDMCommand, GetOrCreateDMResponse>
 {
-    private readonly IConversationRepository _convRepo;
-    private readonly IMessageRepository _msgRepo;
-    private readonly ICurrentUserService _currentUser;
-    private readonly IIdentityService _identity;
-    private readonly IDateTimeProvider _dateTime;
-    private readonly IMessageHubService _msgHub;
-
-    public GetOrCreateDMHandler(
-        IConversationRepository convRepo,
-        IMessageRepository msgRepo,
-        ICurrentUserService currentUser,
-        IIdentityService identity,
-        IDateTimeProvider dateTime,
-        IMessageHubService msgHub)
-    {
-        _convRepo = convRepo;
-        _msgRepo = msgRepo;
-        _currentUser = currentUser;
-        _identity = identity;
-        _dateTime = dateTime;
-        _msgHub = msgHub;
-    }
-
     public async Task<GetOrCreateDMResponse> Handle(GetOrCreateDMCommand req, CancellationToken ct)
     {
-        if (!_currentUser.IsAuthenticated)
+        if (!currentUser.IsAuthenticated)
             throw new UnauthorizedException("Must be authenticated");
 
-        var userId = _currentUser.UserId ?? throw new UnauthorizedException();
+        var userId = currentUser.UserId ?? throw new UnauthorizedException();
 
         if (userId == req.TargetUserId)
             throw new BadRequestException("Cannot create DM with yourself");
 
-        // Kiểm tra target user tồn tại
-        var targetUser = await _identity.FindByIdAsync(req.TargetUserId);
+        var targetUser = await identity.FindByIdAsync(req.TargetUserId);
         if (targetUser == null)
             throw new NotFoundException("User not found");
 
-        // Tìm conversation Private giữa 2 user
-        var existingConv = await _convRepo.GetQueryableSet()
-            .Where(c => c.ConversationType == ConversitionType.Private && !c.IsDeleted)
-            .Where(c => c.Members.Any(m => m.UserId == userId && !m.IsDeleted))
-            .Where(c => c.Members.Any(m => m.UserId == req.TargetUserId && !m.IsDeleted))
+        // Tìm DM Private giữa 2 user
+        var existingConv = await convRepo.GetQueryableSet()
+            .Where(c => c.ConversationType == ConversitionType.Private
+                && c.Members.Any(m => m.UserId == userId && !m.IsDeleted)
+                && c.Members.Any(m => m.UserId == req.TargetUserId && !m.IsDeleted))
             .Include(c => c.Members)
             .Include(c => c.ConversationTags).ThenInclude(ct => ct.Tag)
             .FirstOrDefaultAsync(ct);
 
         if (existingConv != null)
-        {
-            // DM đã tồn tại - trả về luôn
             return new GetOrCreateDMResponse
             {
-                Conversation = await MapToDto(existingConv),
+                Conversation = await MapToDto(existingConv, ct),
                 FirstMessageSent = null,
                 IsNewConversation = false
             };
-        }
 
-        // DM chưa tồn tại - yêu cầu phải có FirstMessage
+        // DM mới cần FirstMessage
         if (string.IsNullOrWhiteSpace(req.FirstMessage))
             throw new BadRequestException("First message is required to start a new DM");
 
-        // Tạo conversation mới
-        var currentUser = await _identity.FindByIdAsync(userId);
-        var convName = $"{currentUser?.FullName ?? "User"} & {targetUser.FullName}";
+        var currentUserInfo = await identity.FindByIdAsync(userId);
+        var convName = $"{currentUserInfo?.FullName ?? "User"} & {targetUser.FullName}";
 
         var newConv = new Domain.Entities.Conversation
         {
@@ -89,31 +67,33 @@ public class GetOrCreateDMHandler : IRequestHandler<GetOrCreateDMCommand, GetOrC
             IsSuggestedByAI = false,
             IsAllowMemberPin = true,
             CreatedById = userId,
-            CreatedAt = _dateTime.OffsetNow
+            CreatedAt = dateTime.OffsetNow
         };
 
-        _convRepo.Add(newConv);
+        convRepo.Add(newConv);
 
-        // Thêm 2 members (cả 2 đều là Owner trong DM)
-        await _convRepo.AddMemberAsync(new ConversationMember
+        // Thêm 2 members (cả 2 đều Owner trong DM)
+        var now = dateTime.OffsetNow;
+        await convRepo.AddMemberAsync(new ConversationMember
         {
             Id = Guid.NewGuid(),
             UserId = userId,
             ConversationId = newConv.Id,
             ConversationMemberRoleType = ConversationMemberRoleType.Owner,
-            IsMuted = false
+            IsMuted = false,
+            CreatedAt = now
         }, ct);
 
-        await _convRepo.AddMemberAsync(new ConversationMember
+        await convRepo.AddMemberAsync(new ConversationMember
         {
             Id = Guid.NewGuid(),
             UserId = req.TargetUserId,
             ConversationId = newConv.Id,
             ConversationMemberRoleType = ConversationMemberRoleType.Owner,
-            IsMuted = false
+            IsMuted = false,
+            CreatedAt = now
         }, ct);
 
-        // Tạo tin nhắn đầu tiên
         var firstMsg = new Domain.Entities.Message
         {
             Id = Guid.NewGuid(),
@@ -121,16 +101,15 @@ public class GetOrCreateDMHandler : IRequestHandler<GetOrCreateDMCommand, GetOrC
             Content = req.FirstMessage,
             IsPined = false,
             CreatedById = userId,
-            CreatedAt = _dateTime.OffsetNow
+            CreatedAt = dateTime.OffsetNow
         };
 
-        _msgRepo.Add(firstMsg);
+        msgRepo.Add(firstMsg);
         newConv.LastMessage = firstMsg.Id;
 
-        await _convRepo.UnitOfWork.SaveChangesAsync(ct);
+        await convRepo.UnitOfWork.SaveChangesAsync(ct);
 
-        // Lấy lại conversation với đầy đủ thông tin
-        var createdConv = await _convRepo.GetByIdWithDetailsAsync(newConv.Id, true, ct);
+        var createdConv = await convRepo.GetByIdWithDetailsAsync(newConv.Id, true, ct);
 
         var msgDto = new MessageDto
         {
@@ -139,33 +118,29 @@ public class GetOrCreateDMHandler : IRequestHandler<GetOrCreateDMCommand, GetOrC
             Content = firstMsg.Content,
             IsPined = firstMsg.IsPined,
             CreatedById = firstMsg.CreatedById,
-            SenderName = currentUser?.FullName ?? "Unknown",
-            SenderAvatarUrl = currentUser?.AvatarUrl,
+            SenderName = currentUserInfo?.FullName ?? "Unknown",
+            SenderAvatarUrl = currentUserInfo?.AvatarUrl,
             CreatedAt = firstMsg.CreatedAt
         };
 
-        // Broadcast tin nhắn qua SignalR
-        await _msgHub.BroadcastMessageCreatedAsync(msgDto, ct);
+        await msgHub.BroadcastMessageCreatedAsync(msgDto, ct);
 
         return new GetOrCreateDMResponse
         {
-            Conversation = await MapToDto(createdConv!),
+            Conversation = await MapToDto(createdConv!, ct),
             FirstMessageSent = msgDto,
             IsNewConversation = true
         };
     }
 
-    private async Task<ConversationDetailDto> MapToDto(Domain.Entities.Conversation conv)
+    private async Task<ConversationDetailDto> MapToDto(Domain.Entities.Conversation conv, CancellationToken ct)
     {
-        var memberUserIds = conv.Members.Where(m => !m.IsDeleted).Select(m => m.UserId).ToList();
-        var memberInfo = new Dictionary<Guid, (string FullName, string? AvatarUrl)>();
-
-        foreach (var memberId in memberUserIds)
-        {
-            var user = await _identity.FindByIdAsync(memberId);
-            if (user != null)
-                memberInfo[memberId] = (user.FullName, user.AvatarUrl);
-        }
+        // Load users theo batch thay vì từng cái
+        var memberUserIds = conv.Members.Where(m => !m.IsDeleted).Select(m => m.UserId).Distinct().ToList();
+        var memberInfoDict = await identity.FindByIdsAsync(memberUserIds, ct);
+        var memberInfo = memberInfoDict.ToDictionary(
+            kvp => kvp.Key,
+            kvp => (kvp.Value.FullName, kvp.Value.AvatarUrl));
 
         return new ConversationDetailDto
         {

@@ -1,8 +1,9 @@
-﻿using MediatR;
+using MediatR;
 using UteLearningHub.Application.Events;
 using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.Application.Services.TrustScore;
 using UteLearningHub.Domain.Constaints.Enums;
+using UteLearningHub.Domain.Policies;
 
 namespace UteLearningHub.Application.EventHandlers;
 
@@ -33,25 +34,17 @@ public class DocumentReviewedEventHandler(ITrustScoreService trustScoreService, 
         if (e.CreatorId.Value == e.ReviewerId)
             return;
 
-        // 1️⃣ Hoàn điểm cũ (nếu có)
+        // Hoàn điểm cũ
         if (e.OldType == DocumentReviewType.Useful)
-        {
-            await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, -TrustScoreConstants.GetActionPoints("DocumentLiked"), "Unlike document file", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
-        }
+            await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, -TrustScorePolicy.GetActionPoints("DocumentLiked"), "Unlike document file", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
         else if (e.OldType == DocumentReviewType.NotUseful)
-        {
-            await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, -TrustScoreConstants.GetActionPoints("DocumentUnliked"), "Undo dislike document", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
-        }
+            await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, -TrustScorePolicy.GetActionPoints("DocumentUnliked"), "Undo dislike document", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
 
-        // 2️⃣ Áp dụng điểm mới (nếu có)
+        // Áp dụng điểm mới
         if (e.NewType == DocumentReviewType.Useful)
-        {
-            await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, TrustScoreConstants.GetActionPoints("DocumentLiked"), "Document liked", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
-        }
+            await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, TrustScorePolicy.GetActionPoints("DocumentLiked"), "Document liked", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
         else if (e.NewType == DocumentReviewType.NotUseful)
-        {
-            await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, TrustScoreConstants.GetActionPoints("DocumentUnliked"), "Document disliked", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
-        }
+            await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, TrustScorePolicy.GetActionPoints("DocumentUnliked"), "Document disliked", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
     }
     private async Task HandleVectorAsync(
         DocumentReviewedEvent e,

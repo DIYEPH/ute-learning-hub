@@ -6,25 +6,17 @@ using UteLearningHub.Infrastructure.ConfigurationOptions;
 
 namespace UteLearningHub.Infrastructure.Services.FileStorage;
 
-public class S3FileStorageService : IFileStorageService
+public class S3FileStorageService(IAmazonS3 s3Client, IOptions<AmazonS3Options> options) : IFileStorageService
 {
-    private readonly IAmazonS3 _s3Client;
-    private readonly AmazonS3Options _options;
+    private readonly AmazonS3Options _options = options.Value;
 
-    public S3FileStorageService(IAmazonS3 s3Client, IOptions<AmazonS3Options> options)
-    {
-        _s3Client = s3Client;
-        _options = options.Value;
-    }
-
-    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType, string? category = null, CancellationToken cancellationToken = default)
+    public async Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType, string? category = null, CancellationToken ct = default)
     {
         try
         {
             var sanitizedFileName = SanitizeFileName(fileName);
             var uniqueFileName = $"{Guid.NewGuid()}_{sanitizedFileName}";
             var folder = GetFolderFromCategory(category);
-
             var key = string.IsNullOrEmpty(folder) ? uniqueFileName : $"{folder}/{uniqueFileName}";
 
             var request = new PutObjectRequest
@@ -33,159 +25,94 @@ public class S3FileStorageService : IFileStorageService
                 Key = key,
                 InputStream = fileStream,
                 ContentType = contentType
-                // Removed S3CannedACL.PublicRead - files are now private and accessed via pre-signed URLs
             };
 
-            await _s3Client.PutObjectAsync(request, cancellationToken);
-
-            var fileUrl = $"{_options.S3BaseUrl}/{Uri.EscapeDataString(key).Replace("%2F", "/")}";
-            return fileUrl;
+            await s3Client.PutObjectAsync(request, ct);
+            return $"{_options.S3BaseUrl}/{Uri.EscapeDataString(key).Replace("%2F", "/")}";
         }
-        catch (AmazonS3Exception ex)
-        {
-            throw new Exception($"Failed to upload file to S3: {ex.Message}", ex);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"An error occurred while uploading file: {ex.Message}", ex);
-        }
+        catch (AmazonS3Exception ex) { throw new Exception($"Failed to upload file to S3: {ex.Message}", ex); }
+        catch (Exception ex) { throw new Exception($"An error occurred while uploading file: {ex.Message}", ex); }
     }
 
-    /// <summary>
-    /// Sanitize filename by removing Vietnamese diacritics and replacing invalid characters
-    /// </summary>
+    // Chuẩn hóa tên file: bỏ dấu tiếng Việt, thay ký tự đặc biệt bằng _
     private static string SanitizeFileName(string fileName)
     {
-        if (string.IsNullOrEmpty(fileName))
-            return "file";
+        if (string.IsNullOrEmpty(fileName)) return "file";
 
-        // Get extension
         var extension = Path.GetExtension(fileName);
-        var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+        var nameWithoutExt = RemoveVietnameseDiacritics(Path.GetFileNameWithoutExtension(fileName));
 
-        // Remove Vietnamese diacritics
-        nameWithoutExt = RemoveVietnameseDiacritics(nameWithoutExt);
+        var invalidChars = Path.GetInvalidFileNameChars()
+            .Concat([' ', '#', '%', '&', '{', '}', '\\', '<', '>', '*', '?', '/', '$', '!', '\'', '"', ':', '@', '+', '`', '|', '=', '(', ')'])
+            .ToArray();
 
-        // Replace spaces and invalid characters with underscore
-        var invalidChars = Path.GetInvalidFileNameChars().Concat(new[] { ' ', '#', '%', '&', '{', '}', '\\', '<', '>', '*', '?', '/', '$', '!', '\'', '"', ':', '@', '+', '`', '|', '=', '(', ')' }).ToArray();
         foreach (var c in invalidChars)
-        {
             nameWithoutExt = nameWithoutExt.Replace(c, '_');
-        }
 
-        // Remove consecutive underscores
         while (nameWithoutExt.Contains("__"))
-        {
             nameWithoutExt = nameWithoutExt.Replace("__", "_");
-        }
 
-        // Trim underscores from start and end
         nameWithoutExt = nameWithoutExt.Trim('_');
-
-        // If name is empty after sanitization, use a default
-        if (string.IsNullOrEmpty(nameWithoutExt))
-            nameWithoutExt = "file";
-
-        return nameWithoutExt + extension;
+        return string.IsNullOrEmpty(nameWithoutExt) ? $"file{extension}" : nameWithoutExt + extension;
     }
 
-    /// <summary>
-    /// Remove Vietnamese diacritics from a string
-    /// </summary>
+    // Chuyển ký tự có dấu tiếng Việt thành không dấu
     private static string RemoveVietnameseDiacritics(string text)
     {
-        if (string.IsNullOrEmpty(text))
-            return text;
+        if (string.IsNullOrEmpty(text)) return text;
 
-        // Vietnamese character mappings
         var vietnameseChars = new Dictionary<string, string>
         {
-            { "àáạảãâầấậẩẫăằắặẳẵ", "a" },
-            { "èéẹẻẽêềếệểễ", "e" },
-            { "ìíịỉĩ", "i" },
-            { "òóọỏõôồốộổỗơờớợởỡ", "o" },
-            { "ùúụủũưừứựửữ", "u" },
-            { "ỳýỵỷỹ", "y" },
-            { "đ", "d" },
-            { "ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ", "A" },
-            { "ÈÉẸẺẼÊỀẾỆỂỄ", "E" },
-            { "ÌÍỊỈĨ", "I" },
-            { "ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ", "O" },
-            { "ÙÚỤỦŨƯỪỨỰỬỮ", "U" },
-            { "ỲÝỴỶỸ", "Y" },
-            { "Đ", "D" }
+            { "àáạảãâầấậẩẫăằắặẳẵ", "a" }, { "èéẹẻẽêềếệểễ", "e" },
+            { "ìíịỉĩ", "i" }, { "òóọỏõôồốộổỗơờớợởỡ", "o" },
+            { "ùúụủũưừứựửữ", "u" }, { "ỳýỵỷỹ", "y" }, { "đ", "d" },
+            { "ÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴ", "A" }, { "ÈÉẸẺẼÊỀẾỆỂỄ", "E" },
+            { "ÌÍỊỈĨ", "I" }, { "ÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠ", "O" },
+            { "ÙÚỤỦŨƯỪỨỰỬỮ", "U" }, { "ỲÝỴỶỸ", "Y" }, { "Đ", "D" }
         };
 
         foreach (var kvp in vietnameseChars)
-        {
             foreach (char c in kvp.Key)
-            {
                 text = text.Replace(c.ToString(), kvp.Value);
-            }
-        }
 
         return text;
     }
-    private static string GetFolderFromCategory(string? category)
-    {
-        return category?.ToLowerInvariant() switch
-        {
-            "avataruser" => "avatars/users",
-            "avatarconversation" => "avatars/conversations",
-            "documentcover" => "documents/covers",
-            "documentfilecover" => "documents/file-covers",
-            "documentfile" => "documents/files",
-            "message" => "messages",
-            _ => "" 
-        };
-    }
 
-    public async Task<bool> DeleteFileAsync(string fileUrl, CancellationToken cancellationToken = default)
+    private static string GetFolderFromCategory(string? category) => category?.ToLowerInvariant() switch
+    {
+        "avataruser" => "avatars/users",
+        "avatarconversation" => "avatars/conversations",
+        "documentcover" => "documents/covers",
+        "documentfilecover" => "documents/file-covers",
+        "documentfile" => "documents/files",
+        "message" => "messages",
+        _ => ""
+    };
+
+    public async Task<bool> DeleteFileAsync(string fileUrl, CancellationToken ct = default)
     {
         try
         {
-            // Extract key from URL
             var key = ExtractKeyFromUrl(fileUrl);
-            if (string.IsNullOrEmpty(key))
-                return false;
+            if (string.IsNullOrEmpty(key)) return false;
 
-            var request = new DeleteObjectRequest
-            {
-                BucketName = _options.S3BucketName,
-                Key = key
-            };
-
-            await _s3Client.DeleteObjectAsync(request, cancellationToken);
+            await s3Client.DeleteObjectAsync(new DeleteObjectRequest { BucketName = _options.S3BucketName, Key = key }, ct);
             return true;
         }
-        catch
-        {
-            return false;
-        }
+        catch { return false; }
     }
 
-    public async Task<Stream?> GetFileAsync(string fileUrl, CancellationToken cancellationToken = default)
+    public async Task<Stream?> GetFileAsync(string fileUrl, CancellationToken ct = default)
     {
         try
         {
-            // Extract key from URL
             var key = ExtractKeyFromUrl(fileUrl);
-            if (string.IsNullOrEmpty(key))
-                return null;
+            if (string.IsNullOrEmpty(key)) return null;
 
-            var request = new GetObjectRequest
-            {
-                BucketName = _options.S3BucketName,
-                Key = key
-            };
-
-            var response = await _s3Client.GetObjectAsync(request, cancellationToken);
+            var response = await s3Client.GetObjectAsync(new GetObjectRequest { BucketName = _options.S3BucketName, Key = key }, ct);
             return response.ResponseStream;
         }
-        catch
-        {
-            return null;
-        }
+        catch { return null; }
     }
 
     public string? GetPresignedUrl(string fileUrl, int expirationMinutes = 15)
@@ -193,45 +120,30 @@ public class S3FileStorageService : IFileStorageService
         try
         {
             if (!fileUrl.Contains(_options.S3BucketName))
-            {
-                if (fileUrl.StartsWith("http://") || fileUrl.StartsWith("https://"))
-                    return fileUrl;
-                return null;
-            }
+                return fileUrl.StartsWith("http://") || fileUrl.StartsWith("https://") ? fileUrl : null;
 
             var key = ExtractKeyFromUrl(fileUrl);
-            if (string.IsNullOrEmpty(key))
-                return null;
+            if (string.IsNullOrEmpty(key)) return null;
 
-            var request = new GetPreSignedUrlRequest
+            return s3Client.GetPreSignedURL(new GetPreSignedUrlRequest
             {
                 BucketName = _options.S3BucketName,
                 Key = key,
                 Expires = DateTime.UtcNow.AddMinutes(expirationMinutes),
                 Verb = HttpVerb.GET
-            };
-
-            return _s3Client.GetPreSignedURL(request);
+            });
         }
-        catch
-        {
-            return null;
-        }
+        catch { return null; }
     }
 
-    private string? ExtractKeyFromUrl(string fileUrl)
+    // Lấy key S3 từ URL (bỏ domain, decode path)
+    private static string? ExtractKeyFromUrl(string fileUrl)
     {
         try
         {
             var uri = new Uri(fileUrl);
-            // Remove leading slash and decode to get original key
-            var encodedPath = uri.AbsolutePath.TrimStart('/');
-            return Uri.UnescapeDataString(encodedPath);
+            return Uri.UnescapeDataString(uri.AbsolutePath.TrimStart('/'));
         }
-        catch
-        {
-            return null;
-        }
+        catch { return null; }
     }
 }
-

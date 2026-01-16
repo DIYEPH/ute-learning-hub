@@ -5,26 +5,19 @@ namespace UteLearningHub.Infrastructure.Services.Document;
 
 public class PdfPageCountService : IPdfPageCountService
 {
-    public Task<int?> GetPageCountAsync(Stream fileStream, CancellationToken cancellationToken = default)
+    public Task<int?> GetPageCountAsync(Stream fileStream, CancellationToken ct = default)
     {
         try
         {
-            // Reset stream position để đảm bảo đọc từ đầu
             if (fileStream.CanSeek)
-            {
                 fileStream.Position = 0;
-            }
 
-            using var document = PdfDocument.Open(fileStream);
-            var pageCount = document.NumberOfPages;
-
-            return Task.FromResult<int?>(pageCount);
+            using var doc = PdfDocument.Open(fileStream);
+            return Task.FromResult<int?>(doc.NumberOfPages);
         }
         catch
         {
-            // Không phải PDF hoặc file bị lỗi
             return Task.FromResult<int?>(null);
         }
     }
 }
-

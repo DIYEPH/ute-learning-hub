@@ -6,10 +6,8 @@ namespace UteLearningHub.Application.Features.Document.Commands.CreateDocument;
 
 public class CreateDocumentCommandHandler(IDocumentService documentService) : IRequestHandler<CreateDocumentCommand, DocumentDetailDto>
 {
-    private readonly IDocumentService _documentService = documentService;
-
     public async Task<DocumentDetailDto> Handle(CreateDocumentCommand request, CancellationToken ct)
     {
-        return await _documentService.CreateAsync(request, ct);
+        return await documentService.CreateAsync(request, ct);
     }
 }

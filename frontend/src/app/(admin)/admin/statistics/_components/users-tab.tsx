@@ -28,7 +28,7 @@ export function UsersTab({ days }: UsersTabProps) {
     if (loading) return <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     if (error || !data) return <div className="flex h-64 items-center justify-center text-muted-foreground">{error || "Không có dữ liệu"}</div>;
 
-    const majorChartData = data.usersByMajor?.map(item => ({ label: item.label ?? "", value: item.value ?? 0, color: item.color ?? undefined })) ?? [];
+    const majorChartData = data.usersByMajor?.map(item => ({ label: item.label ?? "", value: item.value ?? 0 })) ?? [];
     const trustLevelChartData = (data.usersByTrustLevel as Array<{ label?: string; value?: number; color?: string | null }>)?.map(item => ({ label: item.label ?? "", value: item.value ?? 0, color: item.color ?? undefined })) ?? [];
     const registrationsChartData = data.registrationsOverTime?.map(point => ({ date: point.date ?? "", value: point.value ?? 0 })) ?? [];
 

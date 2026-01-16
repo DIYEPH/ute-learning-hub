@@ -7,31 +7,27 @@ using UteLearningHub.Persistence.Repositories.Common;
 
 namespace UteLearningHub.Persistence.Repositories;
 
-public class ReportRepository : Repository<Report, Guid>, IReportRepository
+public class ReportRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
+    : Repository<Report, Guid>(dbContext, dateTimeProvider), IReportRepository
 {
-    public ReportRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
-        : base(dbContext, dateTimeProvider)
-    {
-    }
-
-    public async Task<Report?> GetByIdWithContentAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<Report?> GetByIdWithContentAsync(Guid id, CancellationToken ct = default)
     {
         return await GetQueryableSet()
             .Include(r => r.DocumentFile)
             .Include(r => r.Comment)
-            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+            .FirstOrDefaultAsync(r => r.Id == id, ct);
     }
 
     public async Task<IList<Report>> GetRelatedPendingReportsAsync(
         Guid? documentFileId,
         Guid? commentId,
         ReportReason reason,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
         var query = GetQueryableSet()
             .Include(r => r.DocumentFile)
             .Include(r => r.Comment)
-            .Where(r => !r.IsDeleted && r.Status == ContentStatus.PendingReview && r.Reason == reason);
+            .Where(r => r.Status == ContentStatus.PendingReview && r.Reason == reason);
 
         if (documentFileId.HasValue)
             query = query.Where(r => r.DocumentFileId == documentFileId.Value);
@@ -40,44 +36,34 @@ public class ReportRepository : Repository<Report, Guid>, IReportRepository
         else
             return [];
 
-        return await query
-            .OrderBy(r => r.CreatedAt)
-            .ToListAsync(cancellationToken);
+        return await query.OrderBy(r => r.CreatedAt).ToListAsync(ct);
     }
 
-
-    public async Task<int> GetDailyInstantApproveCountAsync(
-        Guid userId,
-        DateTimeOffset today,
-        CancellationToken cancellationToken = default)
+    public async Task<int> GetDailyInstantApproveCountAsync(Guid userId, DateTimeOffset today, CancellationToken ct = default)
     {
         var startOfDay = today.Date;
         var endOfDay = startOfDay.AddDays(1);
 
-        // đếm số báo cáo được người dùng này phê duyệt trong ngày hôm nay
         return await GetQueryableSet()
-            .Where(r => !r.IsDeleted
-                && r.CreatedById == userId
+            .Where(r => r.CreatedById == userId
                 && r.ReviewedById == userId
                 && r.Status == ContentStatus.Approved
                 && r.CreatedAt >= startOfDay
                 && r.CreatedAt < endOfDay)
-            .CountAsync(cancellationToken);
+            .CountAsync(ct);
     }
 
     public async Task<Report?> GetUserPendingReportAsync(
         Guid userId,
         Guid? documentFileId,
         Guid? commentId,
-        CancellationToken cancellationToken = default)
+        CancellationToken ct = default)
     {
         return await GetQueryableSet()
-            .Where(r => !r.IsDeleted
-                && r.CreatedById == userId
+            .Where(r => r.CreatedById == userId
                 && r.Status == ContentStatus.PendingReview
                 && ((documentFileId.HasValue && r.DocumentFileId == documentFileId.Value)
                     || (commentId.HasValue && r.CommentId == commentId.Value)))
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
     }
 }
-

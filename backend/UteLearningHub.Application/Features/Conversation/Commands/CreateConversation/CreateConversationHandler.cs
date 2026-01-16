@@ -15,72 +15,49 @@ using DomainTag = UteLearningHub.Domain.Entities.Tag;
 
 namespace UteLearningHub.Application.Features.Conversation.Commands.CreateConversation;
 
-public class CreateConversationHandler : IRequestHandler<CreateConversationCommand, ConversationDetailDto>
+public class CreateConversationHandler(
+    IConversationRepository conversationRepository,
+    ITagRepository tagRepository,
+    IIdentityService identityService,
+    ICurrentUserService currentUserService,
+    IUserService userService,
+    IDateTimeProvider dateTimeProvider,
+    IConversationSystemMessageService systemMessageService,
+    IVectorMaintenanceService vectorMaintenanceService,
+    IConversationQueryService conversationQueryService) : IRequestHandler<CreateConversationCommand, ConversationDetailDto>
 {
-    private readonly IConversationRepository _conversationRepository;
-    private readonly ITagRepository _tagRepository;
-    private readonly IIdentityService _identityService;
-    private readonly ICurrentUserService _currentUserService;
-    private readonly IUserService _userService;
-    private readonly IDateTimeProvider _dateTimeProvider;
-    private readonly IConversationSystemMessageService _systemMessageService;
-    private readonly IVectorMaintenanceService _vectorMaintenanceService;
-    private readonly IConversationQueryService _conversationQueryService;
-
-    public CreateConversationHandler(
-        IConversationRepository conversationRepository,
-        ITagRepository tagRepository,
-        IIdentityService identityService,
-        ICurrentUserService currentUserService,
-        IUserService userService,
-        IDateTimeProvider dateTimeProvider,
-        IConversationSystemMessageService systemMessageService,
-        IVectorMaintenanceService vectorMaintenanceService,
-        IConversationQueryService conversationQueryService)
-    {
-        _conversationRepository = conversationRepository;
-        _tagRepository = tagRepository;
-        _identityService = identityService;
-        _currentUserService = currentUserService;
-        _userService = userService;
-        _dateTimeProvider = dateTimeProvider;
-        _systemMessageService = systemMessageService;
-        _vectorMaintenanceService = vectorMaintenanceService;
-        _conversationQueryService = conversationQueryService;
-    }
-
     public async Task<ConversationDetailDto> Handle(CreateConversationCommand request, CancellationToken cancellationToken)
     {
-        if (!_currentUserService.IsAuthenticated)
+        if (!currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to create a conversation");
 
-        var userId = _currentUserService.UserId ?? throw new UnauthorizedException();
+        var userId = currentUserService.UserId ?? throw new UnauthorizedException();
 
-        var isAdmin = _currentUserService.IsInRole("Admin");
+        // Kiểm tra quyền: Admin hoặc Contributor trở lên
+        var isAdmin = currentUserService.IsInRole("Admin");
         if (!isAdmin)
         {
-            var trustLevel = await _userService.GetTrustLevelAsync(userId, cancellationToken);
+            var trustLevel = await userService.GetTrustLevelAsync(userId, cancellationToken);
             if (!trustLevel.HasValue || trustLevel.Value < TrustLever.Contributor)
-            {
                 throw new ForbiddenException("Bạn cần đạt cấp độ Contributor trở lên để tạo nhóm học tập. Hãy đóng góp thêm tài liệu để tăng điểm uy tín!");
-            }
         }
 
-        var creator = await _identityService.FindByIdAsync(userId)
+        var creator = await identityService.FindByIdAsync(userId)
             ?? throw new UnauthorizedException();
 
         var tagIdsToAdd = new List<Guid>();
 
+        // Xử lý tags từ IDs
         if (request.TagIds != null && request.TagIds.Any())
         {
-            var existingTags = await _tagRepository.GetByIdsAsync(request.TagIds, cancellationToken: cancellationToken);
-
+            var existingTags = await tagRepository.GetByIdsAsync(request.TagIds, cancellationToken: cancellationToken);
             if (existingTags.Count != request.TagIds.Count)
                 throw new NotFoundException("One or more tags not found");
 
             tagIdsToAdd.AddRange(existingTags.Select(t => t.Id));
         }
 
+        // Xử lý tags từ tên (tìm hoặc tạo mới)
         if (request.TagNames != null && request.TagNames.Any())
         {
             foreach (var tagName in request.TagNames)
@@ -88,7 +65,7 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
                 if (string.IsNullOrWhiteSpace(tagName)) continue;
 
                 var normalizedName = tagName.Trim();
-                var existingTag = await _tagRepository.FindByNameAsync(normalizedName, cancellationToken: cancellationToken);
+                var existingTag = await tagRepository.FindByNameAsync(normalizedName, cancellationToken: cancellationToken);
 
                 if (existingTag != null)
                 {
@@ -97,10 +74,9 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
                 }
                 else
                 {
+                    // Tạo tag mới với TitleCase
                     var titleCaseName = System.Globalization.CultureInfo
-                        .CurrentCulture
-                        .TextInfo
-                        .ToTitleCase(normalizedName.ToLower());
+                        .CurrentCulture.TextInfo.ToTitleCase(normalizedName.ToLower());
 
                     var newTag = new DomainTag
                     {
@@ -108,10 +84,10 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
                         TagName = titleCaseName,
                         Status = ContentStatus.Approved,
                         CreatedById = userId,
-                        CreatedAt = _dateTimeProvider.OffsetNow
+                        CreatedAt = dateTimeProvider.OffsetNow
                     };
 
-                    _tagRepository.Add(newTag);
+                    tagRepository.Add(newTag);
                     tagIdsToAdd.Add(newTag.Id);
                 }
             }
@@ -132,23 +108,21 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
             IsSuggestedByAI = request.IsSuggestedByAI,
             IsAllowMemberPin = request.IsAllowMemberPin,
             CreatedById = userId,
-            CreatedAt = _dateTimeProvider.OffsetNow
+            CreatedAt = dateTimeProvider.OffsetNow
         };
 
-        if (tagIdsToAdd.Any())
+        // Gắn tags vào conversation
+        var tags = await tagRepository.GetByIdsAsync(tagIdsToAdd, cancellationToken: cancellationToken);
+        foreach (var tag in tags)
         {
-            var tags = await _tagRepository.GetByIdsAsync(tagIdsToAdd, cancellationToken: cancellationToken);
-
-            foreach (var tag in tags)
+            conversation.ConversationTags.Add(new ConversationTag
             {
-                conversation.ConversationTags.Add(new ConversationTag
-                {
-                    ConversationId = conversation.Id,
-                    TagId = tag.Id
-                });
-            }
+                ConversationId = conversation.Id,
+                TagId = tag.Id
+            });
         }
 
+        // Thêm owner làm member đầu tiên
         var ownerMember = new ConversationMember
         {
             Id = Guid.NewGuid(),
@@ -156,28 +130,26 @@ public class CreateConversationHandler : IRequestHandler<CreateConversationComma
             ConversationId = conversation.Id,
             ConversationMemberRoleType = ConversationMemberRoleType.Owner,
             IsMuted = false,
-            CreatedAt = _dateTimeProvider.OffsetNow
+            CreatedAt = dateTimeProvider.OffsetNow
         };
 
         conversation.Members.Add(ownerMember);
 
-        _conversationRepository.Add(conversation);
-        await _conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
+        conversationRepository.Add(conversation);
+        await conversationRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        await _systemMessageService.CreateAsync(
-            conversation.Id,
-            userId,
-            MessageType.ConversationCreated,
-            null,
-            cancellationToken);
+        // Tạo tin nhắn hệ thống
+        await systemMessageService.CreateAsync(
+            conversation.Id, userId, MessageType.ConversationCreated, null, cancellationToken);
 
+        // Update vector background
         _ = Task.Run(async () =>
         {
-            try { await _vectorMaintenanceService.UpdateConversationVectorAsync(conversation.Id, cancellationToken); }
+            try { await vectorMaintenanceService.UpdateConversationVectorAsync(conversation.Id, cancellationToken); }
             catch { }
         }, cancellationToken);
 
-        var result = await _conversationQueryService.GetDetailByIdAsync(conversation.Id, cancellationToken);
+        var result = await conversationQueryService.GetDetailByIdAsync(conversation.Id, cancellationToken);
         return result ?? throw new NotFoundException("Failed to create conversation");
     }
 }

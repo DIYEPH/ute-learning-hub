@@ -6,12 +6,13 @@ using UteLearningHub.Application.Features.Report.Commands.ReviewReport;
 using UteLearningHub.Application.Services.Comment;
 using UteLearningHub.Application.Services.Identity;
 using UteLearningHub.Application.Services.Report;
-using UteLearningHub.Application.Services.TrustScore;
+using UteLearningHub.Domain.Policies;
 using UteLearningHub.Application.Services.User;
 using UteLearningHub.CrossCuttingConcerns.DateTimes;
 using UteLearningHub.Domain.Constaints.Enums;
 using UteLearningHub.Domain.Exceptions;
 using UteLearningHub.Domain.Repositories;
+using UteLearningHub.Application.Services.TrustScore;
 using CommentEntity = UteLearningHub.Domain.Entities.Comment;
 using DocumentFileEntity = UteLearningHub.Domain.Entities.DocumentFile;
 using NotificationEntity = UteLearningHub.Domain.Entities.Notification;
@@ -49,34 +50,27 @@ public class ReportService(
         if (request.DocumentFileId.HasValue && request.CommentId.HasValue)
             throw new BadRequestException("Cannot report both document file and comment at the same time");
 
-        // Validate document file or comment exists
         if (request.DocumentFileId.HasValue)
         {
-            var docFile = await documentRepository.GetDocumentFileByIdAsync(request.DocumentFileId.Value, true, ct);
-            if (docFile == null || docFile.IsDeleted)
-                throw new NotFoundException($"DocumentFile with id {request.DocumentFileId.Value} not found");
+            _ = await documentRepository.GetDocumentFileByIdAsync(request.DocumentFileId.Value, true, ct)
+                ?? throw new NotFoundException($"DocumentFile with id {request.DocumentFileId.Value} not found");
         }
         if (request.CommentId.HasValue)
         {
-            var comment = await commentRepository.GetByIdAsync(request.CommentId.Value, true, ct);
-            if (comment == null || comment.IsDeleted)
-                throw new NotFoundException($"Comment with id {request.CommentId.Value} not found");
+            _ = await commentRepository.GetByIdAsync(request.CommentId.Value, true, ct)
+                ?? throw new NotFoundException($"Comment with id {request.CommentId.Value} not found");
         }
 
-        // Check if user already has a pending report
-        var existingPendingReport = await reportRepository.GetUserPendingReportAsync(
-            userId, request.DocumentFileId, request.CommentId, ct);
+        var existingPendingReport = await reportRepository.GetUserPendingReportAsync(userId, request.DocumentFileId, request.CommentId, ct);
         if (existingPendingReport != null)
             throw new BadRequestException("Bạn đã có báo cáo đang chờ duyệt về nội dung này");
 
         var isTrustedMemberOrHigher = isAdmin || (trustLevel.HasValue && trustLevel.Value >= TrustLever.TrustedMember);
-
-        // Check daily instant approve limit
         var canInstantApprove = isTrustedMemberOrHigher;
         if (canInstantApprove && !isAdmin)
         {
             var dailyCount = await reportRepository.GetDailyInstantApproveCountAsync(userId, now, ct);
-            if (dailyCount >= TrustScoreConstants.TrustedMemberDailyReportLimit)
+            if (dailyCount >= TrustScorePolicy.TrustedMemberDailyReportLimit)
                 canInstantApprove = false;
         }
 
@@ -125,39 +119,30 @@ public class ReportService(
             throw new UnauthorizedException("You must be authenticated to review reports");
 
         var userId = currentUserService.UserId ?? throw new UnauthorizedException();
-
-        // Only admin or moderator can review reports
         var isAdmin = currentUserService.IsInRole("Admin");
         var trustLevel = await userService.GetTrustLevelAsync(userId, ct);
 
         if (!isAdmin && (!trustLevel.HasValue || trustLevel.Value < TrustLever.Moderator))
             throw new UnauthorizedException("Only administrators or moderators can review reports");
 
-        // Get report with Document/Comment for reward calculation
-        var report = await reportRepository.GetByIdWithContentAsync(request.ReportId, ct);
-        if (report == null)
-            throw new NotFoundException($"Report with id {request.ReportId} not found");
+        var report = await reportRepository.GetByIdWithContentAsync(request.ReportId, ct)
+            ?? throw new NotFoundException($"Report with id {request.ReportId} not found");
 
         var oldStatus = report.Status;
         var now = dateTimeProvider.OffsetNow;
 
-        // Update current report
         report.Status = request.Status;
         report.ReviewedById = userId;
         report.ReviewedAt = now;
         report.ReviewNote = request.ReviewNote;
-
         reportRepository.Update(report);
 
-        // Nếu duyệt, tự động duyệt các báo cáo liên quan và thưởng/thông báo cho người báo cáo
         if (request.Status == ContentStatus.Approved && oldStatus != ContentStatus.Approved)
         {
-            // Lấy các báo cáo cùng lý do để thưởng (chỉ cùng lý do mới được cộng điểm)
             var sameReasonReports = await reportRepository.GetRelatedPendingReportsAsync(
                 report.DocumentFileId, report.CommentId, report.Reason, ct);
 
             var rewardedReports = new List<ReportEntity> { report };
-
             foreach (var related in sameReasonReports.Where(r => r.Id != report.Id))
             {
                 related.Status = ContentStatus.Approved;
@@ -167,10 +152,6 @@ public class ReportService(
                 rewardedReports.Add(related);
             }
 
-            // Note: Reports with different reasons remain pending for separate review
-            // Each report reason should be evaluated independently by admin
-
-            // Hide the reported content
             if (report.DocumentFileId.HasValue)
             {
                 await mediator.Send(new ReviewDocumentFileCommand
@@ -194,21 +175,16 @@ public class ReportService(
             }
 
             await reportRepository.UnitOfWork.SaveChangesAsync(ct);
-
-            //  Xử lý thưởng và thông báo chỉ cho những người báo cáo cùng lý do
             _ = ProcessRewardsAndNotificationsAsync(rewardedReports, report.DocumentFile, report.Comment, userId, now, ct);
         }
-        else if (request.Status == ContentStatus.Hidden) // Report rejected
+        else if (request.Status == ContentStatus.Hidden)
         {
             await reportRepository.UnitOfWork.SaveChangesAsync(ct);
-
             _ = CreateNotificationAsync(
                 report.CreatedById,
                 "Báo cáo không được chấp nhận",
                 request.ReviewNote ?? "Báo cáo của bạn đã được xem xét và không được chấp nhận.",
-                null,
-                now,
-                ct);
+                null, now, ct);
         }
         else
         {
@@ -235,7 +211,6 @@ public class ReportService(
 
     private async Task AutoProcessReportAsync(ReportEntity report, Guid userId, DateTimeOffset now, CancellationToken ct)
     {
-        // 1. Hide the reported content
         if (report.DocumentFileId.HasValue)
         {
             await mediator.Send(new ReviewDocumentFileCommand
@@ -259,7 +234,6 @@ public class ReportService(
             }
         }
 
-        // 2. Get reports with same reason for rewarding (only same reason gets points)
         var sameReasonReports = await reportRepository.GetRelatedPendingReportsAsync(
             report.DocumentFileId, report.CommentId, report.Reason, ct);
         var rewardedReports = new List<ReportEntity> { report };
@@ -272,12 +246,7 @@ public class ReportService(
             rewardedReports.Add(related);
         }
 
-        // Note: Reports with different reasons remain pending for separate review
-        // Each report reason should be evaluated independently by admin
-
         await reportRepository.UnitOfWork.SaveChangesAsync(ct);
-
-        // 3. Notify and reward only reporters with same reason
         _ = ProcessRewardsAndNotificationsAsync(rewardedReports, null, null, userId, now, ct);
     }
 
@@ -331,22 +300,18 @@ public class ReportService(
                 }
             }
 
-            // Notify content owner
             if (contentOwnerId.HasValue)
             {
                 await CreateNotificationAsync(
                     contentOwnerId.Value,
                     "Nội dung của bạn bị báo cáo vi phạm",
                     $"Nội dung \"{contentName}\" đã bị báo cáo và xác nhận vi phạm. Vui lòng kiểm tra và chỉnh sửa.",
-                    null,
-                    now,
-                    ct);
+                    null, now, ct);
             }
 
-            // Reward and notify reporters
             var sortedReports = reports.OrderBy(r => r.CreatedAt).ToList();
-            var rewardedReports = sortedReports.Take(TrustScoreConstants.MaxRewardedReporters).ToList();
-            var lateReports = sortedReports.Skip(TrustScoreConstants.MaxRewardedReporters).ToList();
+            var rewardedReports = sortedReports.Take(TrustScorePolicy.MaxRewardedReporters).ToList();
+            var lateReports = sortedReports.Skip(TrustScorePolicy.MaxRewardedReporters).ToList();
 
             foreach (var report in rewardedReports)
             {
@@ -355,18 +320,15 @@ public class ReportService(
                     await CreateNotificationAsync(report.CreatedById, "Báo cáo được duyệt", "Báo cáo của bạn đã được xử lý. Không nhận điểm vì tự duyệt.", null, now, ct);
                     continue;
                 }
-
-                var points = TrustScoreConstants.CalculateReportRewardPoints(contentCreatedAt, report.CreatedAt);
+                var points = TrustScorePolicy.CalculateReportRewardPoints(contentCreatedAt, report.CreatedAt);
                 await trustScoreService.AddTrustScoreAsync(report.CreatedById, points, $"Báo cáo được duyệt (+{points}đ)", report.Id, TrustEntityType.Report, ct);
                 await CreateNotificationAsync(report.CreatedById, "Báo cáo của bạn được duyệt!", $"Cảm ơn bạn đã báo cáo vi phạm! Bạn được thưởng +{points} điểm uy tín.", "/profile", now, ct);
             }
 
             foreach (var report in lateReports)
-            {
                 await CreateNotificationAsync(report.CreatedById, "Báo cáo được ghi nhận", "Cảm ơn bạn đã báo cáo! Rất tiếc, đã có nhiều người báo cáo trước bạn nên bạn không nhận được điểm thưởng lần này.", null, now, ct);
-            }
         }
-        catch { /* Log error but don't throw */ }
+        catch { }
     }
 
     private async Task CreateNotificationAsync(Guid recipientId, string title, string content, string? link, DateTimeOffset now, CancellationToken ct)

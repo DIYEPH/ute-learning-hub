@@ -6,74 +6,41 @@ using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Infrastructure.Services.Conversation;
 
-public class ConversationQueryService : IConversationQueryService
+public class ConversationQueryService(ApplicationDbContext dbContext, IIdentityService identityService) : IConversationQueryService
 {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly IIdentityService _identityService;
-
-    public ConversationQueryService(ApplicationDbContext dbContext, IIdentityService identityService)
+    public async Task<ConversationDetailDto?> GetDetailByIdAsync(Guid id, CancellationToken ct = default)
     {
-        _dbContext = dbContext;
-        _identityService = identityService;
-    }
-
-    public async Task<ConversationDetailDto?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var conversation = await _dbContext.Conversations
+        var conversation = await dbContext.Conversations
             .AsNoTracking()
-            .Where(c => c.Id == id && !c.IsDeleted)
+            .Where(c => c.Id == id)
             .Select(c => new
             {
-                c.Id,
-                c.ConversationName,
-                c.ConversationType,
-                c.Visibility,
-                c.ConversationStatus,
-                c.IsSuggestedByAI,
-                c.IsAllowMemberPin,
-                c.AvatarUrl,
-                c.LastMessage,
-                c.CreatedById,
-                c.CreatedAt,
-                c.UpdatedAt,
+                c.Id, c.ConversationName, c.ConversationType, c.Visibility, c.ConversationStatus,
+                c.IsSuggestedByAI, c.IsAllowMemberPin, c.AvatarUrl, c.LastMessage,
+                c.CreatedById, c.CreatedAt, c.UpdatedAt,
                 Subject = c.Subject != null ? new SubjectDto
                 {
                     Id = c.Subject.Id,
                     SubjectName = c.Subject.SubjectName,
                     SubjectCode = c.Subject.SubjectCode
                 } : null,
-                Tags = c.ConversationTags.Select(ct => new TagDto
-                {
-                    Id = ct.Tag.Id,
-                    TagName = ct.Tag.TagName
-                }).ToList(),
+                Tags = c.ConversationTags.Select(ct => new TagDto { Id = ct.Tag.Id, TagName = ct.Tag.TagName }).ToList(),
                 Members = c.Members
-                    .Where(m => !m.IsDeleted && m.InviteStatus == Domain.Constaints.Enums.MemberInviteStatus.Joined)
-                    .Select(m => new
-                    {
-                        m.Id,
-                        m.UserId,
-                        m.ConversationMemberRoleType,
-                        m.IsMuted,
-                        m.CreatedAt
-                    }).ToList(),
-                MessageCount = c.Messages.Count(m => !m.IsDeleted)
+                    .Where(m => m.InviteStatus == Domain.Constaints.Enums.MemberInviteStatus.Joined)
+                    .Select(m => new { m.Id, m.UserId, m.ConversationMemberRoleType, m.IsMuted, m.CreatedAt }).ToList(),
+                MessageCount = c.Messages.Count
             })
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
 
-        if (conversation == null)
-            return null;
+        if (conversation == null) return null;
 
         var memberUserIds = conversation.Members.Select(m => m.UserId).Distinct().ToList();
         var memberInfo = new Dictionary<Guid, (string FullName, string? AvatarUrl)>();
 
         foreach (var userId in memberUserIds)
         {
-            var user = await _identityService.FindByIdAsync(userId);
-            if (user != null)
-            {
-                memberInfo[userId] = (user.FullName, user.AvatarUrl);
-            }
+            var user = await identityService.FindByIdAsync(userId);
+            if (user != null) memberInfo[userId] = (user.FullName, user.AvatarUrl);
         }
 
         return new ConversationDetailDto

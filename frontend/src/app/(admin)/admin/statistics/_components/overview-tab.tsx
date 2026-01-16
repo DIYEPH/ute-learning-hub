@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { UsersRound, BookOpen, TrendingUp, Flag, MessageSquareMore, Loader2, FileStack } from "lucide-react";
 import { StatCard, StatsLineChart } from "@/src/components/statistics";
 import { getApiStatisticsOverview } from "@/src/api/database";
-import type { OverviewStatsDto } from "@/src/api/database/types.gen";
+import type { OverviewStatsDto, TimeSeriesDataPoint } from "@/src/api/database/types.gen";
 
 interface OverviewTabProps { days: number; }
 
@@ -29,8 +29,7 @@ export function OverviewTab({ days }: OverviewTabProps) {
     if (error || !data) return <div className="flex h-64 items-center justify-center text-muted-foreground">{error || "Không có dữ liệu"}</div>;
 
     const usersChartData = data.usersOverTime?.map(point => ({ date: point.date ?? "", value: point.value ?? 0 })) ?? [];
-    const documentsChartData = (data.documentsOverTime as Array<{ date?: string; value?: number }>)?.map(point => ({ date: point.date ?? "", value: point.value ?? 0 })) ?? [];
-    const viewsChartData = (data.viewsOverTime as Array<{ date?: string; value?: number }>)?.map(point => ({ date: point.date ?? "", value: point.value ?? 0 })) ?? [];
+    const documentsChartData = (data.documentsOverTime as Array<TimeSeriesDataPoint>)?.map(point => ({ date: point.date ?? "", value: point.value ?? 0 })) ?? [];
 
     return (
         <div className="space-y-6">
@@ -48,7 +47,6 @@ export function OverviewTab({ days }: OverviewTabProps) {
                 <StatsLineChart title="Người dùng mới theo thời gian" data={usersChartData} color="#3b82f6" />
                 <StatsLineChart title="Tài liệu mới theo thời gian" data={documentsChartData} color="#10b981" />
             </div>
-            <StatsLineChart title="Lượt xem theo thời gian" data={viewsChartData} color="#f59e0b" />
         </div>
     );
 }

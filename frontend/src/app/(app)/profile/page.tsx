@@ -216,6 +216,12 @@ const ProfilePage = () => {
             </div>
           </div>
         </div>
+        <div className="mt-4 pt-4 border-t border-border">
+          <Button onClick={handleSubmit} disabled={saving || avatarUploading} className="gap-2 w-full md:w-auto">
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+            Lưu thay đổi
+          </Button>
+        </div>
       </div>
 
       <div>
@@ -312,10 +318,6 @@ const ProfilePage = () => {
                 className="mt-1 min-h-[80px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm resize-none"
               />
             </div>
-            <Button onClick={handleSubmit} disabled={saving} className="gap-2">
-              {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-              Lưu thay đổi
-            </Button>
           </div>
 
           <hr className="border-border" />

@@ -7,22 +7,13 @@ using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Infrastructure.Services.Document;
 
-public class DocumentQueryService : IDocumentQueryService
+public class DocumentQueryService(ApplicationDbContext db, ICurrentUserService currentUserService) : IDocumentQueryService
 {
-    private readonly ApplicationDbContext _dbContext;
-    private readonly ICurrentUserService _currentUserService;
-
-    public DocumentQueryService(ApplicationDbContext dbContext, ICurrentUserService currentUserService)
+    public async Task<DocumentDetailDto?> GetDetailByIdAsync(Guid id, CancellationToken ct = default)
     {
-        _dbContext = dbContext;
-        _currentUserService = currentUserService;
-    }
+        var userId = currentUserService.UserId;
 
-    public async Task<DocumentDetailDto?> GetDetailByIdAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var currentUserId = _currentUserService.UserId;
-        
-        return await _dbContext.Documents
+        return await db.Documents
             .AsNoTracking()
             .Where(d => d.Id == id && !d.IsDeleted)
             .Select(d => new DocumentDetailDto
@@ -38,25 +29,12 @@ public class DocumentQueryService : IDocumentQueryService
                     SubjectName = d.Subject.SubjectName,
                     SubjectCode = d.Subject.SubjectCode
                 } : null,
-                Type = new TypeDto
-                {
-                    Id = d.Type.Id,
-                    TypeName = d.Type.TypeName
-                },
-                Tags = d.DocumentTags.Select(dt => new TagDto
-                {
-                    Id = dt.Tag.Id,
-                    TagName = dt.Tag.TagName
-                }).ToList(),
-                Authors = d.DocumentAuthors.Select(da => new AuthorDto
-                {
-                    Id = da.Author.Id,
-                    FullName = da.Author.FullName
-                }).ToList(),
+                Type = new TypeDto { Id = d.Type.Id, TypeName = d.Type.TypeName },
+                Tags = d.DocumentTags.Select(dt => new TagDto { Id = dt.Tag.Id, TagName = dt.Tag.TagName }).ToList(),
+                Authors = d.DocumentAuthors.Select(da => new AuthorDto { Id = da.Author.Id, FullName = da.Author.FullName }).ToList(),
                 Files = d.DocumentFiles
                     .Where(df => !df.IsDeleted)
-                    .OrderBy(df => df.Order)
-                    .ThenBy(df => df.CreatedAt)
+                    .OrderBy(df => df.Order).ThenBy(df => df.CreatedAt)
                     .Select(df => new DocumentFileDto
                     {
                         Id = df.Id,
@@ -75,10 +53,9 @@ public class DocumentQueryService : IDocumentQueryService
                         UsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.Useful),
                         NotUsefulCount = d.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.NotUseful),
                         ViewCount = df.ViewCount,
-                        MyReviewType = currentUserId.HasValue 
-                            ? d.Reviews.Where(r => r.DocumentFileId == df.Id && r.CreatedById == currentUserId.Value)
-                                .Select(r => (DocumentReviewType?)r.DocumentReviewType)
-                                .FirstOrDefault()
+                        MyReviewType = userId.HasValue
+                            ? d.Reviews.Where(r => r.DocumentFileId == df.Id && r.CreatedById == userId.Value)
+                                .Select(r => (DocumentReviewType?)r.DocumentReviewType).FirstOrDefault()
                             : null
                     }).ToList(),
                 UsefulCount = d.Reviews.Count(r => r.DocumentReviewType == DocumentReviewType.Useful),
@@ -86,19 +63,19 @@ public class DocumentQueryService : IDocumentQueryService
                 CommentCount = d.DocumentFiles.Where(df => !df.IsDeleted).Sum(df => df.Comments.Count(c => !c.IsDeleted)),
                 TotalViewCount = d.DocumentFiles.Where(df => !df.IsDeleted).Sum(df => df.ViewCount),
                 CreatedById = d.CreatedById,
-                CreatedByName = _dbContext.Users.Where(u => u.Id == d.CreatedById).Select(u => u.FullName ?? u.UserName).FirstOrDefault(),
-                CreatedByAvatarUrl = _dbContext.Users.Where(u => u.Id == d.CreatedById).Select(u => u.AvatarUrl).FirstOrDefault(),
+                CreatedByName = db.Users.Where(u => u.Id == d.CreatedById).Select(u => u.FullName ?? u.UserName).FirstOrDefault(),
+                CreatedByAvatarUrl = db.Users.Where(u => u.Id == d.CreatedById).Select(u => u.AvatarUrl).FirstOrDefault(),
                 CreatedAt = d.CreatedAt,
                 UpdatedAt = d.UpdatedAt
             })
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
     }
 
-    public async Task<DocumentFileDto?> GetDocumentFileByIdAsync(Guid fileId, CancellationToken cancellationToken = default)
+    public async Task<DocumentFileDto?> GetDocumentFileByIdAsync(Guid fileId, CancellationToken ct = default)
     {
-        var currentUserId = _currentUserService.UserId;
+        var userId = currentUserService.UserId;
 
-        return await _dbContext.DocumentFiles
+        return await db.DocumentFiles
             .AsNoTracking()
             .Where(df => df.Id == fileId && !df.IsDeleted)
             .Select(df => new DocumentFileDto
@@ -119,12 +96,11 @@ public class DocumentQueryService : IDocumentQueryService
                 UsefulCount = df.Document.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.Useful),
                 NotUsefulCount = df.Document.Reviews.Count(r => r.DocumentFileId == df.Id && r.DocumentReviewType == DocumentReviewType.NotUseful),
                 ViewCount = df.ViewCount,
-                MyReviewType = currentUserId.HasValue
-                    ? df.Document.Reviews.Where(r => r.DocumentFileId == df.Id && r.CreatedById == currentUserId.Value)
-                        .Select(r => (DocumentReviewType?)r.DocumentReviewType)
-                        .FirstOrDefault()
+                MyReviewType = userId.HasValue
+                    ? df.Document.Reviews.Where(r => r.DocumentFileId == df.Id && r.CreatedById == userId.Value)
+                        .Select(r => (DocumentReviewType?)r.DocumentReviewType).FirstOrDefault()
                     : null
             })
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
     }
 }

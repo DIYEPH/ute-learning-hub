@@ -1,41 +1,27 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using UteLearningHub.Application.Services.Recommendation;
+using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Infrastructure.Services.Recommendation;
 
-public class VectorMaintenanceService : IVectorMaintenanceService
+public class VectorMaintenanceService(
+    IEmbeddingService embed,
+    IProfileVectorStore userStore,
+    IConversationVectorStore convStore,
+    IUserDataRepository userData,
+    IDbContextFactory<ApplicationDbContext> dbFactory,
+    ILogger<VectorMaintenanceService> log) : IVectorMaintenanceService
 {
-    private readonly IEmbeddingService _embed;
-    private readonly IProfileVectorStore _userStore;
-    private readonly IConversationVectorStore _convStore;
-    private readonly IUserDataRepository _userData;
-    private readonly IDbContextFactory<ApplicationDbContext> _dbFactory;
-    private readonly ILogger<VectorMaintenanceService> _log;
-
-    public VectorMaintenanceService(
-        IEmbeddingService embed,
-        IProfileVectorStore userStore,
-        IConversationVectorStore convStore,
-        IUserDataRepository userData,
-        IDbContextFactory<ApplicationDbContext> dbFactory,
-        ILogger<VectorMaintenanceService> log)
-    {
-        _embed = embed;
-        _userStore = userStore;
-        _convStore = convStore;
-        _userData = userData;
-        _dbFactory = dbFactory;
-        _log = log;
-    }
-
+    // Cập nhật vector cho user dựa trên hành vi
     public async Task UpdateUserVectorAsync(Guid userId, CancellationToken ct = default)
     {
         try
         {
-            var data = await _userData.GetUserBehaviorTextDataAsync(userId, ct);
+            var data = await userData.GetUserBehaviorTextDataAsync(userId, ct);
             if (data == null) return;
 
             var req = new UserVectorRequest
@@ -46,34 +32,35 @@ public class VectorMaintenanceService : IVectorMaintenanceService
                 TagWeights = data.TagScores.Select(x => (float)x.Score).ToList()
             };
 
-            var vec = await _embed.UserVectorAsync(req, ct);
+            var vec = await embed.UserVectorAsync(req, ct);
 
-            await _userStore.UpsertAsync(new Domain.Entities.ProfileVector
+            await userStore.UpsertAsync(new ProfileVector
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vec),
+                EmbeddingJson = JsonSerializer.Serialize(vec),
                 CalculatedAt = DateTimeOffset.UtcNow,
                 IsActive = true
             }, ct);
 
-            _log.LogInformation("Updated user vector: {UserId}", userId);
+            log.LogInformation("Updated user vector: {UserId}", userId);
         }
         catch (Exception ex)
         {
-            _log.LogError(ex, "Failed to update user vector: {UserId}", userId);
+            log.LogError(ex, "Failed to update user vector: {UserId}", userId);
         }
     }
 
+    // Cập nhật vector cho conversation
     public async Task UpdateConversationVectorAsync(Guid convId, CancellationToken ct = default)
     {
         try
         {
-            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
 
             var conv = await db.Conversations
                 .Include(c => c.Subject)
-                .Include(c => c.ConversationTags).ThenInclude(ct => ct.Tag)
+                .Include(c => c.ConversationTags).ThenInclude(t => t.Tag)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == convId && !c.IsDeleted, ct);
 
@@ -86,22 +73,22 @@ public class VectorMaintenanceService : IVectorMaintenanceService
                 Tags = conv.ConversationTags.Where(t => t.Tag != null).Select(t => t.Tag!.TagName).ToList()
             };
 
-            var vec = await _embed.ConvVectorAsync(req, ct);
+            var vec = await embed.ConvVectorAsync(req, ct);
 
-            await _convStore.UpsertAsync(new Domain.Entities.ConversationVector
+            await convStore.UpsertAsync(new ConversationVector
             {
                 Id = Guid.NewGuid(),
                 ConversationId = convId,
-                EmbeddingJson = System.Text.Json.JsonSerializer.Serialize(vec),
+                EmbeddingJson = JsonSerializer.Serialize(vec),
                 CalculatedAt = DateTimeOffset.UtcNow,
                 IsActive = true
             }, ct);
 
-            _log.LogInformation("Updated conv vector: {ConvId}", convId);
+            log.LogInformation("Updated conv vector: {ConvId}", convId);
         }
         catch (Exception ex)
         {
-            _log.LogError(ex, "Failed to update conv vector: {ConvId}", convId);
+            log.LogError(ex, "Failed to update conv vector: {ConvId}", convId);
         }
     }
 }

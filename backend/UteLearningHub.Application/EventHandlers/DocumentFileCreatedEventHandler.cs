@@ -19,6 +19,7 @@ public class DocumentFileCreatedEventHandler(
 {
     public async Task Handle(DocumentFileCreatedEvent e, CancellationToken ct)
     {
+        // Update vector background
         _ = Task.Run(async () =>
         {
             try { await vectorService.UpdateUserVectorAsync(e.UserId, CancellationToken.None); }
@@ -30,8 +31,8 @@ public class DocumentFileCreatedEventHandler(
         var proposal = await conversationRepository.GetProposedBySubjectAsync(e.SubjectId.Value, ct);
         if (proposal == null) return;
 
-        var alreadyMember = proposal.Members.Any(m => m.UserId == e.UserId && !m.IsDeleted);
-        if (alreadyMember) return;
+        // Thêm vào proposal nếu chưa là member
+        if (proposal.Members.Any(m => m.UserId == e.UserId && !m.IsDeleted)) return;
 
         var now = dateTimeProvider.OffsetNow;
         await conversationRepository.AddMemberAsync(new ConversationMember
@@ -59,7 +60,7 @@ public class DocumentFileCreatedEventHandler(
             CreatedById = proposal.CreatedById
         };
         notificationRepository.Add(notification);
-        await notificationRepository.CreateNotificationRecipientsAsync(notification.Id, new List<Guid> { e.UserId }, now, ct);
+        await notificationRepository.CreateNotificationRecipientsAsync(notification.Id, [e.UserId], now, ct);
         await notificationRepository.UnitOfWork.SaveChangesAsync(ct);
 
         logger.LogInformation("Invited user {UserId} to proposal {ProposalId} for subject {SubjectId}",

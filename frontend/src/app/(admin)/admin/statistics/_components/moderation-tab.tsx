@@ -28,7 +28,7 @@ export function ModerationTab({ days }: ModerationTabProps) {
     if (loading) return <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     if (error || !data) return <div className="flex h-64 items-center justify-center text-muted-foreground">{error || "Không có dữ liệu"}</div>;
 
-    const reasonChartData = data.reportsByReason?.map(item => ({ label: item.label ?? "", value: item.value ?? 0, color: item.color ?? undefined })) ?? [];
+    const reasonChartData = data.reportsByReason?.map(item => ({ label: item.label ?? "", value: item.value ?? 0 })) ?? [];
     const reportsChartData = data.reportsOverTime?.map(point => ({ date: point.date ?? "", value: point.value ?? 0 })) ?? [];
 
     const topReportedColumns = [

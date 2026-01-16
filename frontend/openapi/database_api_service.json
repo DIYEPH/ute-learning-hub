@@ -6108,10 +6108,6 @@
           "value": {
             "type": "integer",
             "format": "int64"
-          },
-          "color": {
-            "type": "string",
-            "nullable": true
           }
         }
       },
@@ -7214,20 +7210,12 @@
           },
           "documentsByType": {
             "type": "array",
-            "items": {
-
-            }
+            "items": { }
           },
           "topDocumentsByViews": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TopDocumentDto"
-            }
-          },
-          "viewsOverTime": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/TimeSeriesDataPoint"
             }
           }
         }
@@ -7470,15 +7458,11 @@
           },
           "popularDocuments": {
             "type": "array",
-            "items": {
-
-            }
+            "items": { }
           },
           "mostViewedDocuments": {
             "type": "array",
-            "items": {
-
-            }
+            "items": { }
           },
           "topSubjects": {
             "type": "array",
@@ -8081,15 +8065,7 @@
           },
           "documentsOverTime": {
             "type": "array",
-            "items": {
-
-            }
-          },
-          "viewsOverTime": {
-            "type": "array",
-            "items": {
-
-            }
+            "items": { }
           }
         }
       },
@@ -9174,9 +9150,7 @@
           },
           "documents": {
             "type": "array",
-            "items": {
-
-            }
+            "items": { }
           }
         }
       },
@@ -9295,10 +9269,6 @@
           "viewCount": {
             "type": "integer",
             "format": "int32"
-          },
-          "coverUrl": {
-            "type": "string",
-            "nullable": true
           }
         }
       },
@@ -9928,9 +9898,7 @@
           },
           "usersByTrustLevel": {
             "type": "array",
-            "items": {
-
-            }
+            "items": { }
           },
           "topContributors": {
             "type": "array",

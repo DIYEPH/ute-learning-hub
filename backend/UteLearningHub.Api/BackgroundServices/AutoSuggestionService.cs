@@ -5,10 +5,11 @@ using UteLearningHub.Domain.Entities;
 using UteLearningHub.Domain.Policies;
 using UteLearningHub.Domain.Repositories;
 using UteLearningHub.Persistence;
+using System.Text.Json;
 
 namespace UteLearningHub.Api.BackgroundServices;
 
-/// Chạy mỗi 5 phút để phát hiện subjects có nhiều users quan tâm và tạo proposal.
+// Service tự động gợi ý nhóm học - chạy mỗi 5 phút
 public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionService> log) : BackgroundService
 {
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(5);
@@ -34,79 +35,89 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         var convRepo = scope.ServiceProvider.GetRequiredService<IConversationRepository>();
         var notificationRepo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
 
-        // 1. Lấy tất cả Subjects có documents (có hoạt động)
+        // Lấy subjects có tài liệu
         var subjects = await db.Subjects
             .Where(s => !s.IsDeleted && s.Documents.Any(d => !d.IsDeleted))
             .Select(s => new { s.Id, s.SubjectName })
             .ToListAsync(ct);
         if (subjects.Count == 0) return;
 
-        // 2. Lấy SubjectIds đã có Conversation Active hoặc Proposed
-        var subjectsWithConversation = await db.Conversations
-            .Where(c => !c.IsDeleted && c.SubjectId != null && 
-                (c.ConversationStatus == ConversationStatus.Active || c.ConversationStatus == ConversationStatus.Proposed))
-            .Select(c => c.SubjectId!.Value)
-            .Distinct()
-            .ToListAsync(ct);
-        var subjectsWithConversationSet = subjectsWithConversation.ToHashSet();
+        // Lấy subjects đã có nhóm
+        var subjectsWithConv = await (
+            from c in db.Conversations
+            where c.SubjectId != null
+                && (c.ConversationStatus == ConversationStatus.Active || c.ConversationStatus == ConversationStatus.Proposed)
+            select c.SubjectId!.Value
+        ).Distinct().ToListAsync();
 
-        // 3. Lấy tất cả user vectors (users eligible)
-        var userVectors = await db.ProfileVectors
-            .Where(v => v.IsActive && !string.IsNullOrEmpty(v.EmbeddingJson))
-            .Join(db.Users.Where(u => u.IsSuggest && !u.IsDeleted && u.MajorId != null),
-                v => v.UserId, u => u.Id, (v, u) => new { v.UserId, v.EmbeddingJson })
-            .ToListAsync(ct);
+        var existingSubjects = subjectsWithConv.ToHashSet();
+
+        // Lấy user vectors (users bật gợi ý + có vector)
+        var userVectors = await (
+            from v in db.ProfileVectors 
+            from u in db.Users
+            where v.UserId == u.Id
+                && v.IsActive
+                && v.EmbeddingJson != null
+                && u.IsSuggest 
+                && !u.IsDeleted 
+                && u.MajorId != null
+            select new { v.UserId, v.EmbeddingJson }
+        ).ToListAsync(ct);
+
         if (userVectors.Count < ProposalSettings.MinMembersToActivate) return;
 
-        var allUserVectorData = userVectors
-            .Select(x => {
-                var vec = System.Text.Json.JsonSerializer.Deserialize<float[]>(x.EmbeddingJson);
-                return vec != null ? new UserVectorData(x.UserId, vec) : null;
-            })
-            .Where(x => x != null)
-            .Cast<UserVectorData>()
-            .ToList();
+        // Parse vectors
+        var allUserVectorData = new List<UserVectorData>();
+        foreach (var item in userVectors)
+        {
+            var vec = JsonSerializer.Deserialize<float[]>(item.EmbeddingJson!);
+            if (vec != null)
+                allUserVectorData.Add(new UserVectorData(item.UserId, vec));
+        }
 
-        // 4. Với mỗi Subject chưa có group, dùng AI tìm users quan tâm
+        // Xử lý từng subject
         var now = DateTimeOffset.UtcNow;
         foreach (var subject in subjects)
         {
-            if (subjectsWithConversationSet.Contains(subject.Id)) continue;
+            if (existingSubjects.Contains(subject.Id)) continue;
 
-            // Tạo topic vector cho subject
+            // Tạo vector cho subject
             var topicVector = await embeddingService.ConvVectorAsync(
                 new ConvVectorRequest { Subject = subject.SubjectName }, ct);
 
-            // Tìm users có similarity với topic
+            // Tìm users tương tự
             var similarUsers = await recommendService.GetSimilarUsersAsync(
                 topicVector, allUserVectorData, topK: 50, minScore: 0.5f, ct);
 
             if (similarUsers.Users.Count < ProposalSettings.MinMembersToActivate) continue;
 
-            // Kiểm tra user eligibility (chưa có quá nhiều pending/active groups)
-            var eligibleUserIds = await FilterEligibleUsersAsync(db, 
+            // Lọc users hợp lệ
+            var eligibleUserIds = await FilterEligibleUsersAsync(db,
                 similarUsers.Users.Select(u => u.UserId).ToList(), ct);
             if (eligibleUserIds.Count < ProposalSettings.MinMembersToActivate) continue;
 
-            // Tạo proposal group
-            await CreateProposalAsync(db, convRepo, notificationRepo, 
+            // Tạo proposal
+            await CreateProposalAsync(db, convRepo, notificationRepo,
                 subject.Id, subject.SubjectName, eligibleUserIds, similarUsers.Users, now, ct);
         }
-
         await db.SaveChangesAsync(ct);
     }
 
+    // Lọc users không trong cooldown
     private static async Task<List<Guid>> FilterEligibleUsersAsync(
         ApplicationDbContext db, List<Guid> userIds, CancellationToken ct)
     {
         var now = DateTimeOffset.UtcNow;
         var cooldownThreshold = now.AddDays(-ProposalSettings.CooldownDaysAfterDecline);
 
-        // Lấy users trong cooldown (vừa decline proposal)
-        var usersInCooldown = await db.Set<ConversationMember>()
-            .Where(m => userIds.Contains(m.UserId) && m.InviteStatus == MemberInviteStatus.Declined && 
-                m.RespondedAt > cooldownThreshold)
-            .Select(m => m.UserId)
+        var usersInCooldown = await (
+            from m in db.Set<ConversationMember>()
+            where userIds.Contains(m.UserId)
+                && m.InviteStatus == MemberInviteStatus.Declined
+                && m.RespondedAt > cooldownThreshold
+            select m.UserId
+            )
             .Distinct()
             .ToListAsync(ct);
 
@@ -114,6 +125,7 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         return userIds.Where(id => !ineligibleSet.Contains(id)).ToList();
     }
 
+    // Tạo proposal group
     private static async Task CreateProposalAsync(
         ApplicationDbContext db, IConversationRepository convRepo, INotificationRepository notificationRepo,
         Guid subjectId, string subjectName, List<Guid> eligibleUserIds,
@@ -122,7 +134,7 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         var conversation = new Conversation
         {
             Id = Guid.NewGuid(),
-            ConversationName = $"Nhóm học - {subjectName}",
+            ConversationName = $"Nhóm: {subjectName}",
             SubjectId = subjectId,
             ConversationType = ConversitionType.Group,
             ConversationStatus = ConversationStatus.Proposed,
@@ -149,16 +161,15 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
                 CreatedAt = now
             });
         }
-
         await db.SaveChangesAsync(ct);
 
-        // Gửi notification
+        // Gửi thông báo
         var notification = new Notification
         {
             Id = Guid.NewGuid(),
             ObjectId = conversation.Id,
-            Title = "AI gợi ý tạo nhóm học mới!",
-            Content = $"Bạn được mời tham gia nhóm học {subjectName} với {eligibleUserIds.Count - 1} người có cùng sở thích.",
+            Title = "Gợi ý tạo nhóm học mới!",
+            Content = $"Bạn được gợi ý tham gia nhóm học {subjectName} với {eligibleUserIds.Count - 1} người có cùng sở thích.",
             Link = "/conversations",
             IsGlobal = false,
             NotificationType = NotificationType.Conversation,
@@ -171,3 +182,4 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         await notificationRepo.CreateNotificationRecipientsAsync(notification.Id, eligibleUserIds, now, ct);
     }
 }
+

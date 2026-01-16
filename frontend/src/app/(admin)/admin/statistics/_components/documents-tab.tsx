@@ -29,9 +29,8 @@ export function DocumentsTab({ days }: DocumentsTabProps) {
     if (loading) return <div className="flex h-64 items-center justify-center"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>;
     if (error || !data) return <div className="flex h-64 items-center justify-center text-muted-foreground">{error || "Không có dữ liệu"}</div>;
 
-    const subjectChartData = data.documentsBySubject?.map(item => ({ label: item.label ?? "", value: item.value ?? 0, color: item.color ?? undefined })) ?? [];
-    const typeChartData = (data.documentsByType as Array<{ label?: string; value?: number; color?: string | null }>)?.map(item => ({ label: item.label ?? "", value: item.value ?? 0, color: item.color ?? undefined })) ?? [];
-    const viewsChartData = data.viewsOverTime?.map(point => ({ date: point.date ?? "", value: point.value ?? 0 })) ?? [];
+    const subjectChartData = data.documentsBySubject?.map(item => ({ label: item.label ?? "", value: item.value ?? 0 })) ?? [];
+    const typeChartData = (data.documentsByType as Array<{ label?: string; value?: number }>)?.map(item => ({ label: item.label ?? "", value: item.value ?? 0 })) ?? [];
 
     const topDocsColumns = [
         {
@@ -40,7 +39,6 @@ export function DocumentsTab({ days }: DocumentsTabProps) {
             render: (item: TopDocumentDto) => (
                 <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10 rounded">
-                        <AvatarImage src={item.coverUrl ?? undefined} alt={item.name} />
                         <AvatarFallback className="rounded">{item.name?.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <span className="font-medium line-clamp-1">{item.name}</span>
@@ -53,10 +51,10 @@ export function DocumentsTab({ days }: DocumentsTabProps) {
     return (
         <div className="space-y-6">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <StatCard title="Tổng tài liệu" value={data.totalDocuments?.toLocaleString() ?? 0} icon={Library} color="primary" />
+                <StatCard title="Tổng file" value={data.totalDocuments?.toLocaleString() ?? 0} icon={Library} color="primary" />
                 <StatCard title="Đã duyệt" value={data.approvedDocuments?.toLocaleString() ?? 0} icon={CircleCheck} color="success" />
                 <StatCard title="Chờ duyệt" value={data.pendingDocuments?.toLocaleString() ?? 0} icon={CircleDashed} color="warning" />
-                <StatCard title="Tổng lượt xem" value={data.totalViews?.toLocaleString() ?? 0} description={`Trung bình ${data.avgViewsPerDocument?.toFixed(1) ?? 0}/tài liệu`} icon={BarChart3} color="default" />
+                <StatCard title="Tổng lượt xem" value={data.totalViews?.toLocaleString() ?? 0} description={`Trung bình ${data.avgViewsPerDocument?.toFixed(1) ?? 0}/file`} icon={BarChart3} color="default" />
             </div>
             <div className="grid gap-4 md:grid-cols-2">
                 <StatCard title="Đánh giá hữu ích" value={data.totalUsefulReviews?.toLocaleString() ?? 0} icon={Sparkles} color="success" />
@@ -66,7 +64,6 @@ export function DocumentsTab({ days }: DocumentsTabProps) {
                 <StatsBarChart title="Tài liệu theo môn học" data={subjectChartData} horizontal height={300} />
                 <StatsPieChart title="Tài liệu theo loại" data={typeChartData} showLegend />
             </div>
-            <StatsLineChart title="Lượt xem theo thời gian" data={viewsChartData} color="#3b82f6" />
             <StatsTable title="Top tài liệu được xem nhiều nhất" data={data.topDocumentsByViews ?? []} columns={topDocsColumns} />
         </div>
     );

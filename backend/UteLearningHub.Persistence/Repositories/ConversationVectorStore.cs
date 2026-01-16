@@ -4,50 +4,31 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Persistence.Repositories;
 
-public class ConversationVectorStore : IConversationVectorStore
+public class ConversationVectorStore(IDbContextFactory<ApplicationDbContext> dbFactory) : IConversationVectorStore
 {
-    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
-
-    public ConversationVectorStore(IDbContextFactory<ApplicationDbContext> dbContextFactory)
-    {
-        _dbContextFactory = dbContextFactory;
-    }
-
     public IQueryable<ConversationVector> Query()
+        => dbFactory.CreateDbContext().Set<ConversationVector>().AsQueryable();
+
+    public async Task<ConversationVector?> GetAsync(Guid id, CancellationToken ct = default)
     {
-        var dbContext = _dbContextFactory.CreateDbContext();
-        return dbContext.Set<ConversationVector>().AsQueryable();
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.Set<ConversationVector>().AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
     }
 
-    public async Task<ConversationVector?> GetAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task UpsertAsync(ConversationVector vector, CancellationToken ct = default)
     {
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-        return await dbContext.Set<ConversationVector>()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
-    }
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-    public async Task UpsertAsync(ConversationVector vector, CancellationToken cancellationToken = default)
-    {
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
+        var existing = await db.Set<ConversationVector>()
+            .FirstOrDefaultAsync(x => x.ConversationId == vector.ConversationId && x.IsActive, ct);
 
-        // Find existing vector by ConversationId (not Id) to properly update
-        var existingVector = await dbContext.Set<ConversationVector>()
-            .FirstOrDefaultAsync(x => x.ConversationId == vector.ConversationId && x.IsActive, cancellationToken);
-
-        if (existingVector != null)
+        if (existing != null)
         {
-            // Update existing vector
-            existingVector.EmbeddingJson = vector.EmbeddingJson;
-            existingVector.CalculatedAt = vector.CalculatedAt;
-            dbContext.Set<ConversationVector>().Update(existingVector);
+            existing.EmbeddingJson = vector.EmbeddingJson;
+            existing.CalculatedAt = vector.CalculatedAt;
         }
         else
-        {
-            // Add new vector
-            await dbContext.Set<ConversationVector>().AddAsync(vector, cancellationToken);
-        }
-
-        await dbContext.SaveChangesAsync(cancellationToken);
+            await db.Set<ConversationVector>().AddAsync(vector, ct);
+        await db.SaveChangesAsync(ct);
     }
 }

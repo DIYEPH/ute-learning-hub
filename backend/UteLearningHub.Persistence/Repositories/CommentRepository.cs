@@ -5,9 +5,5 @@ using UteLearningHub.Persistence.Repositories.Common;
 
 namespace UteLearningHub.Persistence.Repositories;
 
-public class CommentRepository : Repository<Comment, Guid>, ICommentRepository
-{
-    public CommentRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider) : base(dbContext, dateTimeProvider)
-    {
-    }
-}
+public class CommentRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
+    : Repository<Comment, Guid>(dbContext, dateTimeProvider), ICommentRepository;

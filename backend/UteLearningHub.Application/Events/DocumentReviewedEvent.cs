@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using UteLearningHub.Domain.Constaints.Enums;
 
 namespace UteLearningHub.Application.Events;

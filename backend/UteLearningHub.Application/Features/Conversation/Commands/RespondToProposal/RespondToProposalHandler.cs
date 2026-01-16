@@ -10,58 +10,46 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Conversation.Commands.RespondToProposal;
 
-public class RespondToProposalHandler : IRequestHandler<RespondToProposalCommand, RespondToProposalResponse>
+public class RespondToProposalHandler(
+    IConversationRepository conversationRepo,
+    ICurrentUserService currentUser,
+    IDateTimeProvider dateTime,
+    INotificationRepository notificationRepo) : IRequestHandler<RespondToProposalCommand, RespondToProposalResponse>
 {
-    private readonly IConversationRepository _conversationRepo;
-    private readonly ICurrentUserService _currentUser;
-    private readonly IDateTimeProvider _dateTime;
-    private readonly INotificationRepository _notificationRepo;
-
-    public RespondToProposalHandler(
-        IConversationRepository conversationRepo,
-        ICurrentUserService currentUser,
-        IDateTimeProvider dateTime,
-        INotificationRepository notificationRepo)
-    {
-        _conversationRepo = conversationRepo;
-        _currentUser = currentUser;
-        _dateTime = dateTime;
-        _notificationRepo = notificationRepo;
-    }
-
     public async Task<RespondToProposalResponse> Handle(RespondToProposalCommand request, CancellationToken ct)
     {
-        if (!_currentUser.IsAuthenticated)
+        if (!currentUser.IsAuthenticated)
             throw new UnauthorizedException("Must be authenticated");
 
-        var userId = _currentUser.UserId ?? throw new UnauthorizedException();
+        var userId = currentUser.UserId ?? throw new UnauthorizedException();
 
-        // Lấy conversation với members
-        var conversation = await _conversationRepo.GetQueryableSet()
+        var conversation = await conversationRepo.GetQueryableSet()
             .Include(c => c.Members)
             .Include(c => c.Subject)
             .Include(c => c.ConversationTags).ThenInclude(t => t.Tag)
-            .FirstOrDefaultAsync(c => c.Id == request.ConversationId && !c.IsDeleted, ct);
+            .FirstOrDefaultAsync(c => c.Id == request.ConversationId, ct);
 
         if (conversation == null)
             throw new NotFoundException("Conversation not found");
 
-        // Kiểm tra đây có phải proposal không
-        if (conversation.ConversationStatus != ConversationStatus.Proposed)
-            throw new BadRequestException("This conversation is not a proposal");
+        // Cho phép respond Actived
+        var isProposed = conversation.ConversationStatus == ConversationStatus.Proposed;
+        var isActive = conversation.ConversationStatus == ConversationStatus.Active;
+        if (!isProposed && !isActive)
+            throw new BadRequestException("This conversation is not available for joining");
 
-        // Kiểm tra user có trong danh sách members không
+        // Check hết hạn (chỉ với Proposed)
+        if (isProposed && conversation.ProposalExpiresAt.HasValue && conversation.ProposalExpiresAt.Value < dateTime.OffsetUtcNow)
+            throw new BadRequestException("Lời mời đã hết hạn");
+
         var member = conversation.Members.FirstOrDefault(m => m.UserId == userId && !m.IsDeleted);
         if (member == null)
             throw new BadRequestException("You are not invited to this proposal");
 
-        // Kiểm tra trạng thái hiện tại
         if (member.InviteStatus != MemberInviteStatus.Pending)
             throw new BadRequestException("You have already responded to this proposal");
 
-        // Cập nhật trạng thái
-        var now = _dateTime.OffsetUtcNow;
-        member.InviteStatus = request.Accept ? MemberInviteStatus.Accepted : MemberInviteStatus.Declined;
+        var now = dateTime.OffsetUtcNow;
         member.RespondedAt = now;
 
         bool isActivated = false;
@@ -69,72 +57,79 @@ public class RespondToProposalHandler : IRequestHandler<RespondToProposalCommand
 
         if (request.Accept)
         {
-            // Đếm số người đã accept (bao gồm member hiện tại vì đã update status ở trên)
-            var acceptedCount = conversation.Members.Count(m =>
-                !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Accepted);
-
-            if (acceptedCount >= ProposalSettings.MinMembersToActivate)
+            // Nếu nhóm đã active, chỉ cần join trực tiếp
+            if (isActive)
             {
-                // Kích hoạt nhóm!
-                await ActivateConversationAsync(conversation, now, ct);
-                isActivated = true;
-                message = "Nhóm đã được kích hoạt thành công!";
+                member.InviteStatus = MemberInviteStatus.Joined;
+                member.ConversationMemberRoleType = ConversationMemberRoleType.Member;
+                message = "Bạn đã tham gia nhóm thành công!";
             }
             else
             {
-                var remaining = ProposalSettings.MinMembersToActivate - acceptedCount;
-                message = $"Bạn đã đồng ý tham gia. Còn {remaining} người nữa để nhóm được kích hoạt.";
+                // Nhóm đang Proposed: đếm số người đã accept
+                member.InviteStatus = MemberInviteStatus.Accepted;
+                var acceptedCount = conversation.Members.Count(m => !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Accepted);
+
+                if (acceptedCount >= ProposalSettings.MinMembersToActivate)
+                {
+                    await ActivateConversationAsync(conversation, now, ct);
+                    isActivated = true;
+                    message = "Nhóm đã được kích hoạt thành công!";
+                }
+                else
+                {
+                    var remaining = ProposalSettings.MinMembersToActivate - acceptedCount;
+                    message = $"Bạn đã đồng ý tham gia. Còn {remaining} người nữa để nhóm được kích hoạt.";
+                }
             }
         }
         else
         {
+            member.InviteStatus = MemberInviteStatus.Declined;
             message = "Bạn đã từ chối lời mời tham gia nhóm.";
         }
 
-        await _conversationRepo.UnitOfWork.SaveChangesAsync(ct);
+        await conversationRepo.UnitOfWork.SaveChangesAsync(ct);
 
         return new RespondToProposalResponse
         {
             Success = true,
             Message = message,
             IsActivated = isActivated,
-            Conversation = isActivated ? MapToDto(conversation) : null
+            Conversation = (isActivated || isActive) ? MapToDto(conversation) : null
         };
     }
 
     private async Task ActivateConversationAsync(Domain.Entities.Conversation conversation, DateTimeOffset now, CancellationToken ct)
     {
-        // 1. Đổi status sang Active
         conversation.ConversationStatus = ConversationStatus.Active;
         conversation.ProposalExpiresAt = null;
 
-        // 2. Lấy danh sách members đã accept, sắp xếp theo thời gian accept
+        // Lấy members đã accept, sắp xếp theo thời gian
         var acceptedMembers = conversation.Members
             .Where(m => !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Accepted)
             .OrderBy(m => m.RespondedAt)
             .ToList();
 
-        // 3. Người accept đầu tiên trở thành Leader
+        // Người accept đầu tiên trở thành Owner
         for (int i = 0; i < acceptedMembers.Count; i++)
         {
             var member = acceptedMembers[i];
             member.InviteStatus = MemberInviteStatus.Joined;
-            member.ConversationMemberRoleType = i == 0 
-                ? ConversationMemberRoleType.Owner 
+            member.ConversationMemberRoleType = i == 0
+                ? ConversationMemberRoleType.Owner
                 : ConversationMemberRoleType.Member;
         }
 
-        // 4. Xóa luôn những người Declined (không cần giữ lại)
+        // Xóa members đã declined
         var declinedMembers = conversation.Members
             .Where(m => !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Declined)
             .ToList();
 
         foreach (var member in declinedMembers)
             conversation.Members.Remove(member);
-        
-        // 5. Giữ lại Pending - họ vẫn có thể join sau khi nhóm được tạo
 
-        // 6. Gửi notification cho tất cả members đã join
+        // Gửi notification cho members đã join
         foreach (var member in acceptedMembers)
             await SendGroupActivatedNotificationAsync(member.UserId, conversation, now, ct);
     }
@@ -155,8 +150,8 @@ public class RespondToProposalHandler : IRequestHandler<RespondToProposalCommand
             CreatedById = conversation.CreatedById
         };
 
-        _notificationRepo.Add(notification);
-        await _notificationRepo.CreateNotificationRecipientsAsync(notification.Id, [userId], now, ct);
+        notificationRepo.Add(notification);
+        await notificationRepo.CreateNotificationRecipientsAsync(notification.Id, [userId], now, ct);
     }
 
     private static ConversationDto MapToDto(Domain.Entities.Conversation c)

@@ -7,9 +7,6 @@ using UteLearningHub.Infrastructure.ConfigurationOptions;
 
 namespace UteLearningHub.Infrastructure.Services.Recommendation;
 
-/// <summary>
-/// Calls Python AI service for text embeddings
-/// </summary>
 public class EmbeddingService : IEmbeddingService
 {
     private readonly HttpClient _http;
@@ -26,6 +23,7 @@ public class EmbeddingService : IEmbeddingService
         _http.Timeout = TimeSpan.FromSeconds(opts.Value.RequestTimeoutSeconds);
     }
 
+    // Tính vector cho user dựa trên subjects/tags
     public async Task<float[]> UserVectorAsync(UserVectorRequest req, CancellationToken ct = default)
     {
         try
@@ -37,10 +35,8 @@ public class EmbeddingService : IEmbeddingService
                 tags = req.Tags,
                 tagWeights = req.TagWeights
             };
-
             var res = await _http.PostAsJsonAsync("/vector/user", payload, ct);
             res.EnsureSuccessStatusCode();
-
             var data = await res.Content.ReadFromJsonAsync<VectorResponse>(Json, ct);
             return data?.Vector ?? new float[Dim];
         }
@@ -51,20 +47,14 @@ public class EmbeddingService : IEmbeddingService
         }
     }
 
+    // Tính vector cho conversation
     public async Task<float[]> ConvVectorAsync(ConvVectorRequest req, CancellationToken ct = default)
     {
         try
         {
-            var payload = new
-            {
-                name = req.Name,
-                subject = req.Subject,
-                tags = req.Tags
-            };
-
+            var payload = new { name = req.Name, subject = req.Subject, tags = req.Tags };
             var res = await _http.PostAsJsonAsync("/vector/conv", payload, ct);
             res.EnsureSuccessStatusCode();
-
             var data = await res.Content.ReadFromJsonAsync<VectorResponse>(Json, ct);
             return data?.Vector ?? new float[Dim];
         }

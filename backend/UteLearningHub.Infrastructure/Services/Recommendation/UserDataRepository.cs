@@ -1,131 +1,95 @@
 using Microsoft.EntityFrameworkCore;
 using UteLearningHub.Application.Services.Recommendation;
 using UteLearningHub.Domain.Constaints.Enums;
+using UteLearningHub.Domain.Entities;
 using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Infrastructure.Services.Recommendation;
 
-public class UserDataRepository : IUserDataRepository
+public class UserDataRepository(IDbContextFactory<ApplicationDbContext> dbFactory) : IUserDataRepository
 {
-    private readonly IDbContextFactory<ApplicationDbContext> _dbContextFactory;
-
-    // Score weights
-    private const int DocumentCreatedScore = 3;
-    private const int ConversationJoinedScore = 2;
+    private const int MajorScore = 2;
+    private const int DocumentCreatedScore = 2;
+    private const int ConversationJoinedScore = 1;
     private const int UsefulVoteScore = 1;
 
-    public UserDataRepository(IDbContextFactory<ApplicationDbContext> dbContextFactory)
+    public async Task<UserBehaviorTextDataDto?> GetUserBehaviorTextDataAsync(Guid userId, CancellationToken ct = default)
     {
-        _dbContextFactory = dbContextFactory;
-    }
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-    private static void AddTextScore(Dictionary<string, int> scores, string name, int score)
-    {
-        if (scores.ContainsKey(name))
-            scores[name] += score;
-        else
-            scores[name] = score;
-    }
-
-    public async Task<UserBehaviorTextDataDto?> GetUserBehaviorTextDataAsync(Guid userId, CancellationToken cancellationToken = default)
-    {
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-        // Check if user exists and get Major info
-        var user = await dbContext.Users
+        // Lấy user và major
+        var user = await db.Users
             .Include(u => u.Major)
-                .ThenInclude(m => m!.Faculty)
             .AsNoTracking()
             .Where(u => u.Id == userId && !u.IsDeleted)
             .Select(u => new { u.Id, u.Major })
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(ct);
 
-        if (user == null)
-            return null;
+        if (user == null) return null;
 
         var subjectScores = new Dictionary<string, int>();
         var tagScores = new Dictionary<string, int>();
 
-        const int MajorScore = 5;
         if (user.Major != null)
-            AddTextScore(subjectScores, user.Major.MajorName, MajorScore);
+            AddScore(subjectScores, user.Major.MajorName, MajorScore);
 
-        // 1. Documents created by user
-        var documents = await dbContext.Documents
+        // Tài liệu đã tạo
+        var documents = await db.Documents
             .Include(d => d.Subject)
-            .Include(d => d.DocumentTags)
-                .ThenInclude(dt => dt.Tag)
+            .Include(d => d.DocumentTags).ThenInclude(dt => dt.Tag)
             .AsNoTracking()
             .Where(d => d.CreatedById == userId && !d.IsDeleted && d.DocumentFiles.Any())
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
         foreach (var doc in documents)
         {
-            // Subject score
             if (doc.Subject != null)
-                AddTextScore(subjectScores, doc.Subject.SubjectName, DocumentCreatedScore);
-
-            // Tag scores
-            foreach (var dt in doc.DocumentTags)
-                if (dt.Tag != null)
-                    AddTextScore(tagScores, dt.Tag.TagName, DocumentCreatedScore);
+                AddScore(subjectScores, doc.Subject.SubjectName, DocumentCreatedScore);
+            foreach (var dt in doc.DocumentTags.Where(t => t.Tag != null))
+                AddScore(tagScores, dt.Tag!.TagName, DocumentCreatedScore);
         }
 
-        // 2. Conversations user is a member of
-        var conversationMembers = await dbContext.Set<Domain.Entities.ConversationMember>()
-            .Include(cm => cm.Conversation)
-                .ThenInclude(c => c.Subject)
-            .Include(cm => cm.Conversation)
-                .ThenInclude(c => c.ConversationTags)
-                    .ThenInclude(ct => ct.Tag)
+        // Nhóm đã tham gia
+        var members = await db.Set<ConversationMember>()
+            .Include(cm => cm.Conversation).ThenInclude(c => c.Subject)
+            .Include(cm => cm.Conversation).ThenInclude(c => c.ConversationTags).ThenInclude(ct => ct.Tag)
             .AsNoTracking()
             .Where(cm => cm.UserId == userId && !cm.IsDeleted && !cm.Conversation.IsDeleted)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
 
-        foreach (var cm in conversationMembers)
+        foreach (var cm in members)
         {
             var conv = cm.Conversation;
-
-            // Subject score
             if (conv.Subject != null)
-                AddTextScore(subjectScores, conv.Subject.SubjectName, ConversationJoinedScore);
-
-            // Tag scores
-            foreach (var ct in conv.ConversationTags)
-                if (ct.Tag != null)
-                    AddTextScore(tagScores, ct.Tag.TagName, ConversationJoinedScore);
+                AddScore(subjectScores, conv.Subject.SubjectName, ConversationJoinedScore);
+            foreach (var ctg in conv.ConversationTags.Where(t => t.Tag != null))
+                AddScore(tagScores, ctg.Tag!.TagName, ConversationJoinedScore);
         }
 
-        // 3. Document reviews
-        var reviews = await dbContext.Set<Domain.Entities.DocumentReview>()
-            .Include(dr => dr.Document)
-                .ThenInclude(d => d.Subject)
-            .Include(dr => dr.Document)
-                .ThenInclude(d => d.DocumentTags)
-                    .ThenInclude(dt => dt.Tag)
+        // Đánh giá tl (chỉ Useful)
+        var reviews = await db.Set<DocumentReview>()
+            .Include(dr => dr.Document).ThenInclude(d => d.Subject)
+            .Include(dr => dr.Document).ThenInclude(d => d.DocumentTags).ThenInclude(dt => dt.Tag)
             .AsNoTracking()
-            .Where(dr => dr.CreatedById == userId && !dr.Document.IsDeleted)
-            .ToListAsync(cancellationToken);
+            .Where(dr => dr.CreatedById == userId && !dr.Document.IsDeleted && dr.DocumentReviewType == DocumentReviewType.Useful)
+            .ToListAsync(ct);
 
-        // Chỉ tính Useful reviews (Not Useful không phản ánh sở thích, chỉ đánh giá chất lượng tài liệu)
-        foreach (var review in reviews.Where(r => r.DocumentReviewType == DocumentReviewType.Useful))
+        foreach (var review in reviews)
         {
             var doc = review.Document;
-
-            // Subject score
             if (doc.Subject != null)
-                AddTextScore(subjectScores, doc.Subject.SubjectName, UsefulVoteScore);
-
-            // Tag scores
-            foreach (var dt in doc.DocumentTags)
-                if (dt.Tag != null)
-                    AddTextScore(tagScores, dt.Tag.TagName, UsefulVoteScore);
+                AddScore(subjectScores, doc.Subject.SubjectName, UsefulVoteScore);
+            foreach (var dt in doc.DocumentTags.Where(t => t.Tag != null))
+                AddScore(tagScores, dt.Tag!.TagName, UsefulVoteScore);
         }
 
         return new UserBehaviorTextDataDto(
             userId,
-            subjectScores.Where(x => x.Value > 0).Select(x => new TextScoreItem(x.Key, x.Value)).ToList(),
-            tagScores.Where(x => x.Value > 0).Select(x => new TextScoreItem(x.Key, x.Value)).ToList()
+            subjectScores.Select(x => new TextScoreItem(x.Key, x.Value)).ToList(),
+            tagScores.Select(x => new TextScoreItem(x.Key, x.Value)).ToList()
         );
     }
+
+    private static void AddScore(Dictionary<string, int> scores, string name, int score)
+        => scores[name] = scores.GetValueOrDefault(name) + score;
 }

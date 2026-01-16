@@ -6,90 +6,64 @@ using UteLearningHub.Persistence.Repositories.Common;
 
 namespace UteLearningHub.Persistence.Repositories;
 
-public class NotificationRepository : Repository<Notification, Guid>, INotificationRepository
+public class NotificationRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
+    : Repository<Notification, Guid>(dbContext, dateTimeProvider), INotificationRepository
 {
-    public NotificationRepository(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider)
-        : base(dbContext, dateTimeProvider)
-    {
-    }
-
     public IQueryable<NotificationRecipient> GetNotificationRecipientsQueryable()
-    {
-        return _dbContext.NotificationRecipients.AsQueryable();
-    }
+        => _dbContext.NotificationRecipients.AsQueryable();
 
     public IQueryable<NotificationRecipient> GetNotificationRecipientsWithNotificationQueryable()
-    {
-        return _dbContext.NotificationRecipients
-            .Include(nr => nr.Notification)
-            .AsQueryable();
-    }
+        => _dbContext.NotificationRecipients.Include(nr => nr.Notification).AsQueryable();
 
-    public async Task<int> GetUnreadCountAsync(Guid userId, CancellationToken cancellationToken = default)
+    public async Task<int> GetUnreadCountAsync(Guid userId, CancellationToken ct = default)
     {
         return await _dbContext.NotificationRecipients
             .Include(nr => nr.Notification)
             .Where(nr => nr.RecipientId == userId
-                && !nr.IsDeleted
                 && !nr.IsRead
                 && !nr.Notification.IsDeleted
                 && nr.Notification.ExpiredAt > DateTimeOffset.UtcNow)
-            .CountAsync(cancellationToken);
+            .CountAsync(ct);
     }
 
     public async Task CreateNotificationRecipientsAsync(
-        Guid notificationId,
-        IEnumerable<Guid> recipientIds,
-        DateTimeOffset receivedAt,
-        CancellationToken cancellationToken = default)
+        Guid notificationId, IEnumerable<Guid> recipientIds,
+        DateTimeOffset receivedAt, CancellationToken ct = default)
     {
-        var recipients = recipientIds.Select(recipientId => new NotificationRecipient
+        var recipients = recipientIds.Select(id => new NotificationRecipient
         {
             Id = Guid.NewGuid(),
             NotificationId = notificationId,
-            RecipientId = recipientId,
+            RecipientId = id,
             IsSent = false,
             IsRead = false,
             ReceivedAt = receivedAt
         }).ToList();
-
-        await _dbContext.NotificationRecipients.AddRangeAsync(recipients, cancellationToken);
+        await _dbContext.NotificationRecipients.AddRangeAsync(recipients, ct);
     }
 
     public async Task<NotificationRecipient?> GetNotificationRecipientAsync(
-        Guid notificationId,
-        Guid userId,
-        bool disableTracking = false,
-        CancellationToken cancellationToken = default)
+        Guid notificationId, Guid userId,
+        bool disableTracking = false, CancellationToken ct = default)
     {
         var query = _dbContext.NotificationRecipients
-            .Where(nr => nr.NotificationId == notificationId
-                && nr.RecipientId == userId
-                && !nr.IsDeleted);
-
-        if (disableTracking)
-            query = query.AsNoTracking();
-
-        return await query.FirstOrDefaultAsync(cancellationToken);
+            .Where(nr => nr.NotificationId == notificationId && nr.RecipientId == userId);
+        if (disableTracking) query = query.AsNoTracking();
+        return await query.FirstOrDefaultAsync(ct);
     }
 
     public async Task<List<NotificationRecipient>> GetUnreadNotificationRecipientsAsync(
-        Guid userId,
-        CancellationToken cancellationToken = default)
+        Guid userId, CancellationToken ct = default)
     {
         return await _dbContext.NotificationRecipients
             .Include(nr => nr.Notification)
             .Where(nr => nr.RecipientId == userId
-                && !nr.IsDeleted
                 && !nr.IsRead
                 && !nr.Notification.IsDeleted
                 && nr.Notification.ExpiredAt > DateTimeOffset.UtcNow)
-            .ToListAsync(cancellationToken);
+            .ToListAsync(ct);
     }
 
     public void UpdateRecipient(NotificationRecipient recipient)
-    {
-        var query = _dbContext.NotificationRecipients;
-        query.Update(recipient);
-    }
+        => _dbContext.NotificationRecipients.Update(recipient);
 }

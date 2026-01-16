@@ -2,47 +2,27 @@ using UteLearningHub.Application.Services.Document;
 
 namespace UteLearningHub.Infrastructure.Services.Document;
 
-public class DocumentPageCountService : IDocumentPageCountService
+public class DocumentPageCountService(
+    IPdfPageCountService pdfService,
+    DocxPageCountService docxService) : IDocumentPageCountService
 {
-    private readonly IPdfPageCountService _pdfPageCountService;
-    private readonly DocxPageCountService _docxPageCountService;
-
-    public DocumentPageCountService(
-        IPdfPageCountService pdfPageCountService,
-        DocxPageCountService docxPageCountService)
-    {
-        _pdfPageCountService = pdfPageCountService;
-        _docxPageCountService = docxPageCountService;
-    }
-
-    public async Task<int?> GetPageCountAsync(Stream fileStream, string mimeType, CancellationToken cancellationToken = default)
+    public async Task<int?> GetPageCountAsync(Stream fileStream, string mimeType, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(mimeType))
             return null;
 
-        var mimeTypeLower = mimeType.ToLowerInvariant();
+        var mime = mimeType.ToLowerInvariant();
 
-        // Image files - luôn là 1 trang
-        if (mimeTypeLower.StartsWith("image/"))
-        {
+        if (mime.StartsWith("image/"))
             return 1;
-        }
 
-        // PDF
-        if (mimeTypeLower == "application/pdf" || mimeTypeLower.Contains("pdf"))
-        {
-            return await _pdfPageCountService.GetPageCountAsync(fileStream, cancellationToken);
-        }
+        if (mime == "application/pdf" || mime.Contains("pdf"))
+            return await pdfService.GetPageCountAsync(fileStream, ct);
 
-        // DOCX/DOC
-        if (mimeTypeLower.Contains("word") ||
-            mimeTypeLower.Contains("officedocument.wordprocessingml") ||
-            mimeTypeLower.Contains("msword"))
-        {
-            return await _docxPageCountService.GetPageCountAsync(fileStream, mimeType, cancellationToken);
-        }
+        // chưa hỗ trợ cái này :))
+        if (mime.Contains("word") || mime.Contains("officedocument.wordprocessingml") || mime.Contains("msword"))
+            return await docxService.GetPageCountAsync(fileStream, mimeType, ct);
 
         return null;
     }
 }
-

@@ -10,37 +10,21 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Conversation.Commands.RespondToInvitation;
 
-public class RespondToInvitationHandler : IRequestHandler<RespondToInvitationCommand, bool>
+public class RespondToInvitationHandler(
+    IConversationRepository convRepo,
+    ICurrentUserService currentUser,
+    IDateTimeProvider dateTime,
+    IConversationSystemMessageService sysMsg,
+    IVectorMaintenanceService vectorService) : IRequestHandler<RespondToInvitationCommand, bool>
 {
-    private readonly IConversationRepository _convRepo;
-    private readonly ICurrentUserService _currentUser;
-    private readonly IDateTimeProvider _dateTime;
-    private readonly IConversationSystemMessageService _sysMsg;
-    private readonly IVectorMaintenanceService _vectorService;
-
-    public RespondToInvitationHandler(
-        IConversationRepository convRepo,
-        ICurrentUserService currentUser,
-        IDateTimeProvider dateTime,
-        IConversationSystemMessageService sysMsg,
-        IVectorMaintenanceService vectorService)
-    {
-        _convRepo = convRepo;
-        _currentUser = currentUser;
-        _dateTime = dateTime;
-        _sysMsg = sysMsg;
-        _vectorService = vectorService;
-    }
-
     public async Task<bool> Handle(RespondToInvitationCommand req, CancellationToken ct)
     {
-        if (!_currentUser.IsAuthenticated)
+        if (!currentUser.IsAuthenticated)
             throw new UnauthorizedException("Must be authenticated");
 
-        var userId = _currentUser.UserId ?? throw new UnauthorizedException();
+        var userId = currentUser.UserId ?? throw new UnauthorizedException();
 
-        // Tìm lời mời
-        var invite = await _convRepo.GetInvitationByIdAsync(req.InvitationId, ct);
+        var invite = await convRepo.GetInvitationByIdAsync(req.InvitationId, ct);
         if (invite == null)
             throw new NotFoundException("Invitation not found");
 
@@ -50,22 +34,21 @@ public class RespondToInvitationHandler : IRequestHandler<RespondToInvitationCom
         if (invite.Status != ContentStatus.PendingReview)
             throw new BadRequestException("Invitation already responded");
 
-        // Cập nhật trạng thái
+        // Cập nhật status
         invite.Status = req.Accept ? ContentStatus.Approved : ContentStatus.Hidden;
-        invite.RespondedAt = _dateTime.OffsetNow;
+        invite.RespondedAt = dateTime.OffsetNow;
         invite.ResponseNote = req.Note;
         invite.UpdatedById = userId;
-        invite.UpdatedAt = _dateTime.OffsetNow;
+        invite.UpdatedAt = dateTime.OffsetNow;
 
         if (req.Accept)
         {
-            // Tự động thêm vào nhóm
-            var conv = await _convRepo.GetByIdWithDetailsAsync(invite.ConversationId, false, ct);
-            if (conv == null || conv.IsDeleted)
+            var conv = await convRepo.GetByIdWithDetailsAsync(invite.ConversationId, false, ct);
+            if (conv == null)
                 throw new NotFoundException("Conversation not found");
 
-            var isAlreadyMember = conv.Members.Any(m => m.UserId == userId && !m.IsDeleted);
-            if (!isAlreadyMember)
+            // Thêm member nếu chưa có
+            if (!conv.Members.Any(m => m.UserId == userId && !m.IsDeleted))
             {
                 var newMember = new ConversationMember
                 {
@@ -73,22 +56,23 @@ public class RespondToInvitationHandler : IRequestHandler<RespondToInvitationCom
                     UserId = userId,
                     ConversationId = conv.Id,
                     ConversationMemberRoleType = ConversationMemberRoleType.Member,
-                    IsMuted = false
+                    IsMuted = false,
+                    CreatedAt = dateTime.OffsetNow
                 };
 
-                await _convRepo.AddMemberAsync(newMember, ct);
-                await _sysMsg.CreateAsync(conv.Id, userId, MessageType.MemberJoined, null, ct);
+                await convRepo.AddMemberAsync(newMember, ct);
+                await sysMsg.CreateAsync(conv.Id, userId, MessageType.MemberJoined, null, ct);
 
-                // Update user vector (async)
+                // Update vector background
                 _ = Task.Run(async () =>
                 {
-                    try { await _vectorService.UpdateUserVectorAsync(userId, ct); }
+                    try { await vectorService.UpdateUserVectorAsync(userId, ct); }
                     catch { }
                 }, ct);
             }
         }
 
-        await _convRepo.UnitOfWork.SaveChangesAsync(ct);
+        await convRepo.UnitOfWork.SaveChangesAsync(ct);
         return true;
     }
 }

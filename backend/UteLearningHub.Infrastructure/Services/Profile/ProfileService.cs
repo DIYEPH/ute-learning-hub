@@ -11,15 +11,14 @@ using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Infrastructure.Services.Profile;
 
-public class ProfileService(ApplicationDbContext dbContext, IDateTimeProvider dateTimeProvider, IIdentityService identityService) : IProfileService
+public class ProfileService(
+    ApplicationDbContext dbContext,
+    IDateTimeProvider dateTimeProvider,
+    IIdentityService identityService) : IProfileService
 {
-    private readonly ApplicationDbContext _dbContext = dbContext;
-    private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
-    private readonly IIdentityService _identityService = identityService;
-
     public async Task<ProfileDetailDto> GetProfileByIdAsync(Guid? userId, bool isAdmin, CancellationToken ct = default)
     {
-        var user = await _dbContext.Users
+        var user = await dbContext.Users
             .Where(u => u.Id == userId)
             .Select(u => new
             {
@@ -43,7 +42,8 @@ public class ProfileService(ApplicationDbContext dbContext, IDateTimeProvider da
         if (user == null)
             throw new NotFoundException("User not found");
 
-        var roles = await _identityService.GetRolesAsync(user.Id);
+        var roles = await identityService.GetRolesAsync(user.Id);
+        // Kiểm tra user bị khóa: LockoutEnabled và LockoutEnd > hiện tại
         var isLocked = user.LockoutEnabled && user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTimeOffset.UtcNow;
 
         return new ProfileDetailDto
@@ -62,7 +62,6 @@ public class ProfileService(ApplicationDbContext dbContext, IDateTimeProvider da
             MajorId = user.MajorId,
             IsSuggest = user.IsSuggest,
             CreatedAt = user.CreatedAt,
-
             LockoutEnd = isAdmin ? user.LockoutEnd : null,
             IsLocked = isAdmin ? isLocked : null
         };
@@ -70,7 +69,7 @@ public class ProfileService(ApplicationDbContext dbContext, IDateTimeProvider da
 
     public async Task<ProfileDetailDto> UpdateAsync(Guid actorId, UpdateProfileCommand request, CancellationToken ct = default)
     {
-        var appUser = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == request.Id, ct);
+        var appUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == request.Id, ct);
 
         if (appUser == null)
             throw new NotFoundException("User not found");
@@ -83,7 +82,9 @@ public class ProfileService(ApplicationDbContext dbContext, IDateTimeProvider da
 
         if (request.MajorId.HasValue)
         {
-            var majorExists = await _dbContext.Majors.AnyAsync(m => m.Id == request.MajorId.Value && !m.IsDeleted && !m.Faculty.IsDeleted, ct);
+            // Kiểm tra major và faculty không bị xóa
+            var majorExists = await dbContext.Majors.AnyAsync(
+                m => m.Id == request.MajorId.Value && !m.IsDeleted && !m.Faculty.IsDeleted, ct);
 
             if (!majorExists)
                 throw new NotFoundException($"Major with id {request.MajorId.Value} not found");
@@ -97,24 +98,24 @@ public class ProfileService(ApplicationDbContext dbContext, IDateTimeProvider da
         if (request.IsSuggest.HasValue)
             appUser.IsSuggest = request.IsSuggest.Value;
 
-        appUser.UpdatedAt = _dateTimeProvider.OffsetNow;
-
-        await _dbContext.SaveChangesAsync(ct);
+        appUser.UpdatedAt = dateTimeProvider.OffsetNow;
+        await dbContext.SaveChangesAsync(ct);
 
         return await GetProfileByIdAsync(appUser.Id, true, ct) ?? throw new NotFoundException("User not found");
     }
 
     public async Task<UserStatsDto> GetUserStatsAsync(Guid userId, CancellationToken ct = default)
     {
-        var uploadsCount = await _dbContext.DocumentFiles
+        // Thống kê: uploads, upvotes (Useful), comments
+        var uploadsCount = await dbContext.DocumentFiles
             .Where(d => d.CreatedById == userId)
             .CountAsync(ct);
 
-        var upvotesCount = await _dbContext.DocumentReviews
+        var upvotesCount = await dbContext.DocumentReviews
             .Where(r => r.DocumentFile.CreatedById == userId && r.DocumentReviewType == DocumentReviewType.Useful)
             .CountAsync(ct);
 
-        var commentsCount = await _dbContext.Comments
+        var commentsCount = await dbContext.Comments
             .Where(c => c.DocumentFile.CreatedById == userId)
             .CountAsync(ct);
 
