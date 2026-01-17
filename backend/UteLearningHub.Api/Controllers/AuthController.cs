@@ -46,7 +46,6 @@ public class AuthController : ControllerBase
     [HttpPost("refresh-token")]
     public async Task<ActionResult<RefreshTokenResponse>> RefreshToken()
     {
-        // Read refresh token from httpOnly cookie
         var refreshToken = Request.Cookies[RefreshTokenCookieName];
         if (string.IsNullOrEmpty(refreshToken))
         {
@@ -56,7 +55,6 @@ public class AuthController : ControllerBase
         var command = new RefreshTokenCommand { RefreshToken = refreshToken };
         var result = await _mediator.Send(command);
 
-        // Set new refresh token in cookie
         SetRefreshTokenCookie(result.RefreshToken);
         return Ok(result);
     }
@@ -68,7 +66,6 @@ public class AuthController : ControllerBase
         var command = new LogoutCommand();
         await _mediator.Send(command);
 
-        // Clear refresh token cookie
         ClearRefreshTokenCookie();
         return NoContent();
     }
@@ -102,8 +99,6 @@ public class AuthController : ControllerBase
         await _mediator.Send(command);
         return NoContent();
     }
-
-    // ============ Cookie Helpers ============
 
     private void SetRefreshTokenCookie(string refreshToken)
     {

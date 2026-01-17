@@ -34,13 +34,11 @@ public class DocumentReviewedEventHandler(ITrustScoreService trustScoreService, 
         if (e.CreatorId.Value == e.ReviewerId)
             return;
 
-        // Hoàn điểm cũ
         if (e.OldType == DocumentReviewType.Useful)
             await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, -TrustScorePolicy.GetActionPoints("DocumentLiked"), "Unlike document file", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
         else if (e.OldType == DocumentReviewType.NotUseful)
             await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, -TrustScorePolicy.GetActionPoints("DocumentUnliked"), "Undo dislike document", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
 
-        // Áp dụng điểm mới
         if (e.NewType == DocumentReviewType.Useful)
             await _trustScoreService.AddTrustScoreAsync(e.CreatorId.Value, TrustScorePolicy.GetActionPoints("DocumentLiked"), "Document liked", e.DocumentFileId, TrustEntityType.DocumentFile, ct);
         else if (e.NewType == DocumentReviewType.NotUseful)

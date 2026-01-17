@@ -26,7 +26,7 @@ public class CreateCommentCommandHandler(
 
         var userId = currentUserService.UserId ?? throw new UnauthorizedException();
 
-        // Kiểm tra từ tục tĩu (chống bypass: số->chữ, dấu, ký tự đặc biệt)
+        // Kiểm tra từ tục tĩu 
         if (profanityFilterService.ContainsProfanity(request.Content))
             throw new BadRequestException("Nội dung bình luận chứa từ ngữ không phù hợp. Vui lòng chỉnh sửa lại.");
 
@@ -34,7 +34,6 @@ public class CreateCommentCommandHandler(
         if (!documentId.HasValue)
             throw new NotFoundException($"Document file with id {request.DocumentFileId} not found");
 
-        // Kiểm tra parent comment nếu có
         if (request.ParentId.HasValue)
         {
             var parentComment = await commentRepository.GetByIdAsync(request.ParentId.Value, disableTracking: true, cancellationToken);

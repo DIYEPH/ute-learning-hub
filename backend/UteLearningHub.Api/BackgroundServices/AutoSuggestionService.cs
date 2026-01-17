@@ -9,7 +9,7 @@ using System.Text.Json;
 
 namespace UteLearningHub.Api.BackgroundServices;
 
-// Service tự động gợi ý nhóm học - chạy mỗi 5 phút
+// chạy mỗi 5 phút
 public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionService> log) : BackgroundService
 {
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(5);
@@ -35,14 +35,12 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         var convRepo = scope.ServiceProvider.GetRequiredService<IConversationRepository>();
         var notificationRepo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
 
-        // Lấy subjects có tài liệu
         var subjects = await db.Subjects
             .Where(s => !s.IsDeleted && s.Documents.Any(d => !d.IsDeleted))
             .Select(s => new { s.Id, s.SubjectName })
             .ToListAsync(ct);
         if (subjects.Count == 0) return;
 
-        // Lấy subjects đã có nhóm
         var subjectsWithConv = await (
             from c in db.Conversations
             where c.SubjectId != null
@@ -52,7 +50,6 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
 
         var existingSubjects = subjectsWithConv.ToHashSet();
 
-        // Lấy user vectors (users bật gợi ý + có vector)
         var userVectors = await (
             from v in db.ProfileVectors 
             from u in db.Users
@@ -67,7 +64,6 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
 
         if (userVectors.Count < ProposalSettings.MinMembersToActivate) return;
 
-        // Parse vectors
         var allUserVectorData = new List<UserVectorData>();
         foreach (var item in userVectors)
         {
@@ -76,35 +72,29 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
                 allUserVectorData.Add(new UserVectorData(item.UserId, vec));
         }
 
-        // Xử lý từng subject
         var now = DateTimeOffset.UtcNow;
         foreach (var subject in subjects)
         {
             if (existingSubjects.Contains(subject.Id)) continue;
 
-            // Tạo vector cho subject
             var topicVector = await embeddingService.ConvVectorAsync(
                 new ConvVectorRequest { Subject = subject.SubjectName }, ct);
 
-            // Tìm users tương tự
             var similarUsers = await recommendService.GetSimilarUsersAsync(
                 topicVector, allUserVectorData, topK: 50, minScore: 0.5f, ct);
 
             if (similarUsers.Users.Count < ProposalSettings.MinMembersToActivate) continue;
 
-            // Lọc users hợp lệ
             var eligibleUserIds = await FilterEligibleUsersAsync(db,
                 similarUsers.Users.Select(u => u.UserId).ToList(), ct);
             if (eligibleUserIds.Count < ProposalSettings.MinMembersToActivate) continue;
 
-            // Tạo proposal
             await CreateProposalAsync(db, convRepo, notificationRepo,
                 subject.Id, subject.SubjectName, eligibleUserIds, similarUsers.Users, now, ct);
         }
         await db.SaveChangesAsync(ct);
     }
 
-    // Lọc users không trong cooldown
     private static async Task<List<Guid>> FilterEligibleUsersAsync(
         ApplicationDbContext db, List<Guid> userIds, CancellationToken ct)
     {
@@ -125,7 +115,6 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         return userIds.Where(id => !ineligibleSet.Contains(id)).ToList();
     }
 
-    // Tạo proposal group
     private static async Task CreateProposalAsync(
         ApplicationDbContext db, IConversationRepository convRepo, INotificationRepository notificationRepo,
         Guid subjectId, string subjectName, List<Guid> eligibleUserIds,
@@ -146,7 +135,6 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         };
         convRepo.Add(conversation);
 
-        // Thêm members
         var similarityMap = similarUsers.ToDictionary(u => u.UserId, u => u.Similarity);
         foreach (var userId in eligibleUserIds)
         {
@@ -163,7 +151,6 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         }
         await db.SaveChangesAsync(ct);
 
-        // Gửi thông báo
         var notification = new Notification
         {
             Id = Guid.NewGuid(),
@@ -182,4 +169,3 @@ public class AutoSuggestionService(IServiceProvider sp, ILogger<AutoSuggestionSe
         await notificationRepo.CreateNotificationRecipientsAsync(notification.Id, eligibleUserIds, now, ct);
     }
 }
-

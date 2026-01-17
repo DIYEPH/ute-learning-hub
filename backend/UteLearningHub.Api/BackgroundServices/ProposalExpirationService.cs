@@ -6,7 +6,7 @@ using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Api.BackgroundServices;
 
-// Service xử lý proposals hết hạn - chạy mỗi giờ
+// chạy mỗi giờ
 public class ProposalExpirationService(IServiceProvider sp, ILogger<ProposalExpirationService> log) : BackgroundService
 {
     private readonly TimeSpan _interval = TimeSpan.FromHours(1);
@@ -30,7 +30,6 @@ public class ProposalExpirationService(IServiceProvider sp, ILogger<ProposalExpi
         var notificationRepo = scope.ServiceProvider.GetRequiredService<INotificationRepository>();
         var now = DateTimeOffset.UtcNow;
 
-        // Tìm proposals hết hạn
         var expiredProposals = await db.Conversations
             .Include(c => c.Members)
             .Where(c => !c.IsDeleted
@@ -43,11 +42,9 @@ public class ProposalExpirationService(IServiceProvider sp, ILogger<ProposalExpi
 
         foreach (var proposal in expiredProposals)
         {
-            // Đánh dấu ended
             proposal.ConversationStatus = ConversationStatus.Ended;
             proposal.IsDeleted = true;
 
-            // Gửi thông báo cho members đã accept
             var acceptedMembers = proposal.Members
                 .Where(m => !m.IsDeleted && m.InviteStatus == MemberInviteStatus.Accepted)
                 .Select(m => m.UserId)

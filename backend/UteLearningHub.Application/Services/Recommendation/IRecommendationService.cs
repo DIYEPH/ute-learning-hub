@@ -2,7 +2,6 @@ namespace UteLearningHub.Application.Services.Recommendation;
 
 public interface IRecommendationService
 {
-    /// <summary>Gọi AI lấy ds nhóm học được gợi ý</summary>
     Task<RecommendationResponse> GetRecommendationsAsync(
         float[] userVector,
         IReadOnlyList<ConversationVectorData> conversationVectors,
@@ -10,7 +9,6 @@ public interface IRecommendationService
         float minSimilarity = 0.3f,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Gọi AI tìm users tương tự với conversation</summary>
     Task<SimilarUsersResponse> GetSimilarUsersAsync(
         float[] convVector,
         IReadOnlyList<UserVectorData> userVectors,

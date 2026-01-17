@@ -7,7 +7,7 @@ using UteLearningHub.Persistence;
 
 namespace UteLearningHub.Api.BackgroundServices;
 
-// Service cập nhật vectors cho users và conversations - chạy mỗi giờ
+// chạy mỗi giờ
 public class VectorUpdateService(IServiceProvider sp, ILogger<VectorUpdateService> log) : BackgroundService
 {
     private readonly TimeSpan _interval = TimeSpan.FromMinutes(5);
@@ -33,7 +33,6 @@ public class VectorUpdateService(IServiceProvider sp, ILogger<VectorUpdateServic
         var userStore = scope.ServiceProvider.GetRequiredService<IProfileVectorStore>();
         var convStore = scope.ServiceProvider.GetRequiredService<IConversationVectorStore>();
 
-        // Update user vectors
         var userIds = await db.Users.Where(u => !u.IsDeleted).Select(u => u.Id).ToListAsync(ct);
         foreach (var uid in userIds)
         {
@@ -62,7 +61,6 @@ public class VectorUpdateService(IServiceProvider sp, ILogger<VectorUpdateServic
             catch (Exception ex) { log.LogWarning(ex, "Failed user: {Id}", uid); }
         }
 
-        // Update conversation vectors
         var convs = await db.Conversations
             .Include(c => c.Subject)
             .Include(c => c.ConversationTags).ThenInclude(t => t.Tag)

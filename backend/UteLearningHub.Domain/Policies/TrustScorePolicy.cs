@@ -2,22 +2,22 @@
 
 public static class TrustScorePolicy
 {
-    // Điểm thưởng/phạt cho từng hành động
+    // Điểm + -
     public static readonly Dictionary<string, int> ActionPointValues = new()
     {
-        { "CreateDocumentFile", 5 },  // +5 đăng bài
-        { "DocumentLiked", 2 },       // +2 được like
-        { "DocumentUnliked", -2 }     // -2 bị unlike
+        { "CreateDocumentFile", 5 }, 
+        { "DocumentLiked", 2 },     
+        { "DocumentUnliked", -2 }  
     };
 
     // Report reward
-    public const int MaxRewardedReporters = 10;           // Top 10 người đầu được thưởng
+    public const int MaxRewardedReporters = 10;           // Top 1được thưởng
     public const int TrustedMemberDailyReportLimit = 2;   // Giới hạn auto-approve/ngày
 
     // Time-based reward tiers
-    public const int ReportWithin24Hours = 4;   // Báo cáo trong 24h
-    public const int ReportWithin72Hours = 2;   // Báo cáo trong 24-72h
-    public const int ReportAfter72Hours = 1;    // Báo cáo sau 72h
+    public const int ReportWithin24Hours = 4;   //  24h
+    public const int ReportWithin72Hours = 2;   // 24-72h
+    public const int ReportAfter72Hours = 1;    // 72h
 
     public static int GetActionPoints(string actionName)
         => ActionPointValues.GetValueOrDefault(actionName, 0);

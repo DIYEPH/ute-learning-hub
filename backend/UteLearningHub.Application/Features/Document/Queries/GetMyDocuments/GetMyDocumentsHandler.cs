@@ -8,30 +8,19 @@ using UteLearningHub.Domain.Repositories;
 
 namespace UteLearningHub.Application.Features.Document.Queries.GetMyDocuments;
 
-public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedResponse<DocumentDto>>
+public class GetMyDocumentsHandler(
+    IDocumentRepository documentRepository,
+    IDocumentReviewRepository documentReviewRepository,
+    ICurrentUserService currentUserService) : IRequestHandler<GetMyDocumentsQuery, PagedResponse<DocumentDto>>
 {
-    private readonly IDocumentRepository _documentRepository;
-    private readonly IDocumentReviewRepository _documentReviewRepository;
-    private readonly ICurrentUserService _currentUserService;
-
-    public GetMyDocumentsHandler(
-        IDocumentRepository documentRepository,
-        IDocumentReviewRepository documentReviewRepository,
-        ICurrentUserService currentUserService)
-    {
-        _documentRepository = documentRepository;
-        _documentReviewRepository = documentReviewRepository;
-        _currentUserService = currentUserService;
-    }
-
     public async Task<PagedResponse<DocumentDto>> Handle(GetMyDocumentsQuery request, CancellationToken cancellationToken)
     {
-        if (!_currentUserService.IsAuthenticated)
+        if (!currentUserService.IsAuthenticated)
             throw new UnauthorizedException("You must be authenticated to view your documents");
 
-        var userId = _currentUserService.UserId ?? throw new UnauthorizedException("User ID not found");
+        var userId = currentUserService.UserId ?? throw new UnauthorizedException("User ID not found");
 
-        var query = _documentRepository.GetQueryableWithIncludes()
+        var query = documentRepository.GetQueryableWithIncludes()
             .AsNoTracking()
             .Where(d => d.CreatedById == userId);
 
@@ -55,13 +44,11 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
         if (request.Visibility.HasValue)
             query = query.Where(d => d.Visibility == request.Visibility.Value);
 
-        // Sorting
         query = request.SortBy?.ToLower() switch
         {
             "name" => request.SortDescending
                 ? query.OrderByDescending(d => d.DocumentName)
                 : query.OrderBy(d => d.DocumentName),
-            // "author" sort tạm bỏ, sẽ dùng bảng Author/DocumentAuthor sau
             "createdat" or "date" => request.SortDescending
                 ? query.OrderByDescending(d => d.CreatedAt)
                 : query.OrderBy(d => d.CreatedAt),
@@ -76,8 +63,8 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
             .Select(d => d.Id)
             .ToListAsync(cancellationToken);
 
-        // Get review stats for all documents
-        var reviewStats = await _documentReviewRepository.GetQueryableSet()
+        // Thống kê review
+        var reviewStats = await documentReviewRepository.GetQueryableSet()
             .Where(dr => documentIds.Contains(dr.DocumentId))
             .GroupBy(dr => new { dr.DocumentId, dr.DocumentReviewType })
             .Select(g => new
@@ -102,10 +89,10 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
             .Where(d => documentIds.Contains(d.Id))
             .Select(d => new
             {
-                Id = d.Id,
-                DocumentName = d.DocumentName,
-                Description = d.Description,
-                Visibility = d.Visibility,
+                d.Id,
+                d.DocumentName,
+                d.Description,
+                d.Visibility,
                 Subject = d.Subject != null
                     ? new SubjectDto
                     {
@@ -136,8 +123,8 @@ public class GetMyDocumentsHandler : IRequestHandler<GetMyDocumentsQuery, PagedR
                 ThumbnailFileId = d.CoverFileId,
                 CommentCount = d.DocumentFiles.SelectMany(df => df.Comments).Count(),
                 TotalViewCount = d.DocumentFiles.Where(df => !df.IsDeleted).Sum(df => df.ViewCount),
-                CreatedById = d.CreatedById,
-                CreatedAt = d.CreatedAt
+                d.CreatedById,
+                d.CreatedAt
             })
             .ToListAsync(cancellationToken);
 

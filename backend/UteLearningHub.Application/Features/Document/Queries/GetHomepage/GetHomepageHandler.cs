@@ -30,7 +30,6 @@ public class GetHomepageHandler : IRequestHandler<GetHomepageQuery, HomepageDto>
     {
         var isAuthenticated = _currentUserService.IsAuthenticated;
 
-        // Base query - only public docs for non-authenticated, public + internal for authenticated
         var baseQuery = _documentRepository.GetQueryableWithIncludes()
             .AsNoTracking()
             .Where(d => !d.IsDeleted)
@@ -68,13 +67,13 @@ public class GetHomepageHandler : IRequestHandler<GetHomepageQuery, HomepageDto>
             .Select(d => MapToDocumentDto(d))
             .ToListAsync(cancellationToken);
 
-        // Sort by the order in popularDocIds
+        // Sort by
         popularDocs = popularDocIds
             .Select(id => popularDocs.FirstOrDefault(d => d.Id == id))
             .Where(d => d != null)
             .ToList()!;
 
-        // 3. Most viewed 4 documents (by total view count of all files)
+        // 3. Most viewed 4 documents 
         var mostViewedDocs = await baseQuery
             .OrderByDescending(d => d.DocumentFiles.Where(f => !f.IsDeleted).Sum(f => f.ViewCount))
             .Take(4)
@@ -86,7 +85,7 @@ public class GetHomepageHandler : IRequestHandler<GetHomepageQuery, HomepageDto>
             LatestDocuments = latestDocs,
             PopularDocuments = popularDocs,
             MostViewedDocuments = mostViewedDocs,
-            TopSubjects = new List<SubjectWithDocsDto>() // Empty - not used
+            TopSubjects = new List<SubjectWithDocsDto>() 
         };
     }
 

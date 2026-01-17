@@ -71,7 +71,5 @@ namespace UteLearningHub.Api.Controllers
             var result = await _mediator.Send(query);
             return Ok(result);
         }
-
-        // Upload avatar endpoint removed: use /api/File + UpdateProfile instead
     }
 }

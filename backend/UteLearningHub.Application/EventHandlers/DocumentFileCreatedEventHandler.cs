@@ -31,7 +31,7 @@ public class DocumentFileCreatedEventHandler(
         var proposal = await conversationRepository.GetProposedBySubjectAsync(e.SubjectId.Value, ct);
         if (proposal == null) return;
 
-        // Thêm vào proposal nếu chưa là member
+        // Thêm nếu !member
         if (proposal.Members.Any(m => m.UserId == e.UserId && !m.IsDeleted)) return;
 
         var now = dateTimeProvider.OffsetNow;
