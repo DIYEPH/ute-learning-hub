@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UteLearningHub.Domain.Constaints;
 using UteLearningHub.Domain.Entities;
+using UteLearningHub.Persistence.Identity;
 
 namespace UteLearningHub.Persistence.Configurations;
 
@@ -17,8 +18,12 @@ public class ProfileVectorConfiguration : IEntityTypeConfiguration<ProfileVector
         builder.Property(x => x.CalculatedAt).HasColumnName("ThoiDiemTinhToan").IsRequired();
         builder.Property(x => x.IsActive).HasColumnName("ConHieuLuc").HasDefaultValue(true);
 
-        // Indexes cho performance
         builder.HasIndex(x => x.UserId);
         builder.HasIndex(x => x.IsActive);
+
+        builder.HasOne<AppUser>()
+            .WithMany()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

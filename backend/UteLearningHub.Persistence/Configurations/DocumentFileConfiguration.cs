@@ -21,6 +21,7 @@ public class DocumentFileConfiguration : IEntityTypeConfiguration<DocumentFile>
         builder.Property(u => u.Order).HasColumnName("ThuTu");
         builder.Property(u => u.CoverFileId).HasColumnName("TepBiaId");
         builder.Property(u => u.Status).HasColumnName("TrangThai");
+        builder.Property(u => u.ViewCount).HasColumnName("SoLuotXem");
 
         // Review info
         builder.Property(u => u.ReviewedById).HasColumnName("NguoiDuyetId");

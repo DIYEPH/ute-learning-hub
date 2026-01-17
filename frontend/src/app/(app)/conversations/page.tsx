@@ -248,14 +248,15 @@ export default function ConversationsPage() {
       {!loadingProposals && proposals.length > 0 && (
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-lg font-semibold text-foreground">AI gợi ý tạo nhóm mới</h2>
-            <span className="bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full">{proposals.length}</span>
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Gợi ý tạo nhóm mới</h2>
+            <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">{proposals.length}</span>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {proposals.map(proposal => (
               <div
                 key={proposal.conversationId}
-                className="border rounded-lg p-4 bg-linear-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 border-yellow-200 dark:border-yellow-800"
+                className="border rounded-lg p-4 bg-primary/5 border-primary/20"
               >
                 <div className="mb-3">
                   <h3 className="font-semibold text-foreground">{proposal.conversationName}</h3>
@@ -267,7 +268,7 @@ export default function ConversationsPage() {
                       {proposal.tags.slice(0, 3).map((tag, idx) => (
                         <span
                           key={idx}
-                          className="text-[10px] px-1.5 py-0.5 rounded bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200"
+                          className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
                         >
                           {tag}
                         </span>
@@ -278,7 +279,7 @@ export default function ConversationsPage() {
 
                 <div className="mb-3">
                   <p className="text-xs text-muted-foreground mb-2">
-                    Thành viên: ({proposal.members?.length ?? 0}):
+                    Thành viên ({proposal.members?.length ?? 0}):
                   </p>
                   <div className="flex items-center gap-2">
                     <div className="flex -space-x-2">
@@ -305,7 +306,10 @@ export default function ConversationsPage() {
                 </div>
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-                  <span>✅ {proposal.acceptedCount ?? 0}/{proposal.totalMembers ?? 0} đã đồng ý</span>
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    {proposal.acceptedCount ?? 0}/{proposal.totalMembers ?? 0} đã đồng ý
+                  </span>
                   {proposal.mySimilarityScore && (
                     <span className="text-primary font-medium">
                       {Math.round((proposal.mySimilarityScore ?? 0) * 100)}% phù hợp
@@ -353,7 +357,6 @@ export default function ConversationsPage() {
       {!loadingRecs && recommendations.length > 0 && (
         <div className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Gợi ý cho bạn</h2>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
