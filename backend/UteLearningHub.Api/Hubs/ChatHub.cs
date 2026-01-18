@@ -29,7 +29,7 @@ public class ChatHub(
             var userId = currentUserService.UserId.Value;
             connectionTracker.RemoveConnection(Context.ConnectionId);
 
-            // Broadcast offline nếu không còn connection nào
+            // Broadcast offline
             if (!connectionTracker.IsUserOnline(userId))
             {
                 var conversationIds = await userConversationService.GetUserConversationIdsAsync(userId);

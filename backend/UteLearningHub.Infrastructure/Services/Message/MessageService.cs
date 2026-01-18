@@ -47,7 +47,7 @@ public class MessageService(
         if (!conversation.Members.Any(m => m.UserId == userId && !m.IsDeleted))
             throw new ForbiddenException("You are not a member of this conversation");
 
-        // Kiểm tra tin nhắn cha (reply) - global filter đã loại bỏ tin đã xóa
+        // Kiểm tra tin nhắn cha
         if (request.ParentId.HasValue)
         {
             var parentMessage = await messageRepository.GetByIdAsync(

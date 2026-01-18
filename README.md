@@ -1,131 +1,233 @@
 # UTE Learning Hub
 
-## Docker Setup
+Nền tảng chia sẻ tài liệu học tập thông minh dành cho sinh viên Đại học Sư phạm Kỹ thuật (UTE), tích hợp AI để gợi ý tài liệu và nhóm học tập phù hợp.
 
-Tất cả services được quản lý trong `docker-compose.yml` ở root.
+---
 
-### Services:
+## Tính năng chính
 
-#### Infrastructure:
-1. **SQL Server** - Database (port 1433)
-2. **Redis** - Cache cho recommendations (port 6379)
-3. **Kafka** - Message broker (port 9092)
-4. **Zookeeper** - Quản lý Kafka (port 2181)
+### Dành cho Sinh viên
+- **Đăng nhập Microsoft** - Xác thực qua tài khoản email sinh viên UTE (@ute.udn.vn)
+- **Quản lý tài liệu** - Upload, chia sẻ và tìm kiếm tài liệu theo môn học, khoa, chuyên ngành
+- **Nhóm học tập** - Tạo và tham gia các nhóm học tập theo chủ đề
+- **Chat realtime** - Nhắn tin trong nhóm với hỗ trợ gửi file và hình ảnh
+- **Gợi ý thông minh (AI)** - Đề xuất nhóm học tập và tài liệu dựa trên sở thích và hành vi
+- **Thư viện cá nhân** - Lưu tài liệu yêu thích để đọc sau
+- **Đánh giá tài liệu** - Review và đánh giá chất lượng tài liệu
+- **Báo cáo nội dung** - Báo cáo tài liệu/nhóm vi phạm quy định
 
-#### Application Services:
-5. **Backend** - .NET 9.0 API (internal: 7080)
-6. **Frontend** - Next.js 16 (internal: 3000)
-7. **AI** - Python FastAPI Recommendation Service (internal: 8000)
-8. **Nginx** - Reverse Proxy & Load Balancer (ports 80, 443)
+### Dành cho Admin
+- **Quản lý tài khoản** - Xem, phân quyền và khóa tài khoản người dùng
+- **Duyệt tài liệu** - Phê duyệt hoặc từ chối tài liệu được upload
+- **Xử lý báo cáo** - Giải quyết các báo cáo vi phạm từ người dùng
+- **Quản lý danh mục** - CRUD khoa, chuyên ngành, môn học, loại tài liệu, tags
+- **Thống kê** - Dashboard với biểu đồ phân tích hoạt động hệ thống
 
-### Chạy tất cả services:
+---
+
+## Công nghệ sử dụng
+
+| Layer | Công nghệ |
+|-------|-----------|
+| **Frontend** | Next.js 16, React 19, TypeScript, TailwindCSS 4, Radix UI |
+| **Backend** | .NET 9.0, Clean Architecture, MediatR (CQRS), Entity Framework Core |
+| **AI Service** | Python, FastAPI, Sentence Transformers (all-MiniLM-L6-v2) |
+| **Database** | SQL Server 2022 |
+| **Realtime** | SignalR (WebSocket) |
+| **Auth** | Microsoft Identity (MSAL) |
+| **Infrastructure** | Docker, Nginx (Reverse Proxy), Let's Encrypt SSL |
+
+---
+
+## Cấu trúc dự án
+
+```
+ute-learning-hub/
+├── frontend/          # Next.js 16 - Giao diện người dùng
+├── backend/           # .NET 9.0 - RESTful API (Clean Architecture)
+│   ├── UteLearningHub.Api/           # Controllers, Middleware
+│   ├── UteLearningHub.Application/   # Use Cases, Commands, Queries
+│   ├── UteLearningHub.Domain/        # Entities, Events, Interfaces
+│   ├── UteLearningHub.Infrastructure/# External Services, Email, AI Client
+│   └── UteLearningHub.Persistence/   # EF Core, Repositories, Migrations
+├── ai/                # Python FastAPI - AI Recommendation Service
+├── nginx/             # Nginx configuration
+├── docker-compose.yml # Development environment
+└── docker-compose.prod.yml # Production environment
+```
+
+---
+
+## Hướng dẫn cài đặt
+
+### Yêu cầu
+- Docker & Docker Compose
+- Git
+
+### Chạy với Docker
 
 ```bash
-# Build và start tất cả services
+# Clone repository
+git clone https://github.com/your-org/ute-learning-hub.git
+cd ute-learning-hub
+
+# Copy file environment
+cp .env.example .env
+# Chỉnh sửa .env với các giá trị phù hợp
+
+# Build và khởi động tất cả services
 docker-compose up -d --build
 
 # Xem logs
 docker-compose logs -f
+```
 
-# Xem logs của service cụ thể
+### Truy cập ứng dụng
+
+| Service | URL | Mô tả |
+|---------|-----|-------|
+| **Frontend** | http://localhost | Giao diện web |
+| **API Docs** | http://localhost/scalar | Swagger/Scalar documentation |
+| **Health Check** | http://localhost/health | Kiểm tra trạng thái |
+
+---
+
+## Phát triển Local
+
+### Backend (.NET 9.0)
+
+```bash
+cd backend
+dotnet restore
+dotnet run --project UteLearningHub.Api
+# → http://localhost:7080
+```
+
+### Frontend (Next.js 16)
+
+```bash
+cd frontend
+npm install
+npm run dev
+# → http://localhost:3000
+```
+
+### AI Service (Python)
+
+```bash
+cd ai
+pip install -r requirements.txt
+python main.py
+# → http://localhost:8000/docs
+```
+
+---
+
+## Docker Services
+
+### Infrastructure
+| Service | Port | Mô tả |
+|---------|------|-------|
+| SQL Server | 1433 | Database chính |
+
+### Application
+| Service | Port nội bộ | Mô tả |
+|---------|-------------|-------|
+| Backend | 7080 | .NET API |
+| Frontend | 3000 | Next.js SSR |
+| AI | 8000 | Recommendation Engine |
+| Nginx | 80, 443 | Reverse Proxy & SSL |
+
+### Quản lý Services
+
+```bash
+# Khởi động tất cả
+docker-compose up -d --build
+
+# Khởi động từng service
+docker-compose up -d backend
+docker-compose up -d frontend
+docker-compose up -d ai
+
+# Xem logs service cụ thể
 docker-compose logs -f backend
-docker-compose logs -f frontend
-docker-compose logs -f ai
 
 # Dừng tất cả
 docker-compose down
 
-# Dừng và xóa volumes
+# Dừng và xóa volumes (reset data)
 docker-compose down -v
 ```
 
-### Chạy từng service riêng:
+---
+
+## Nginx Routing
+
+| Path | Service | Mô tả |
+|------|---------|-------|
+| `/` | Frontend | Next.js pages |
+| `/api/*` | Backend | REST API |
+| `/hubs/*` | Backend | SignalR WebSocket |
+| `/images/*` | Backend | Static files (cached 30 days) |
+| `/scalar` | Backend | API Documentation |
+
+---
+
+## AI Recommendation System
+
+Hệ thống sử dụng **Sentence Transformers** (model `all-MiniLM-L6-v2`) để tạo vector embeddings 384 chiều cho:
+
+- **User Vector**: Dựa trên môn học và tags mà user quan tâm (từ lịch sử đọc, upload, đánh giá)
+- **Conversation Vector**: Dựa trên tên nhóm, môn học liên quan và tags
+
+### API Endpoints
 
 ```bash
-# Chỉ chạy infrastructure (database, redis, kafka)
-docker-compose up -d sqlserver redis zookeeper kafka
+# Tạo user vector
+POST /vector/user
+{
+  "subjects": ["Lập trình Python", "Machine Learning"],
+  "subjectWeights": [10, 5],
+  "tags": ["AI", "Data Science"],
+  "tagWeights": [12, 8]
+}
 
-# Chỉ chạy backend
-docker-compose up -d backend
-
-# Chỉ chạy frontend
-docker-compose up -d frontend
-
-# Chỉ chạy AI service
-docker-compose up -d ai
+# Gợi ý nhóm học tập
+POST /recommend
+{
+  "UserVector": [...],
+  "ConversationVectors": [{"id": "xxx", "vector": [...]}],
+  "TopK": 10,
+  "MinSimilarity": 0.3
+}
 ```
 
-### Kiểm tra services:
+---
+
+## Database Schema
+
+Các entity chính:
+- **AppUser** - Thông tin người dùng (linked với Microsoft Identity)
+- **Document** - Tài liệu với nhiều DocumentFile
+- **DocumentFile** - File PDF/DOCX/PPTX với metadata
+- **Conversation** - Nhóm học tập
+- **Message** - Tin nhắn trong nhóm (hỗ trợ attachments)
+- **Subject, Faculty, Major, Type, Tag** - Danh mục phân loại
+- **ProfileVector, ConversationVector** - Vector embeddings cho AI
+
+---
+
+## Biến môi trường
 
 ```bash
-# SQL Server
-docker exec -it ute-learning-hub-sqlserver-1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q "SELECT @@VERSION"
+# Database
+DB_SA_PASSWORD=YourStrong@Passw0rd
+DB_NAME=ute-learning-hub
 
-# Redis
-docker exec -it ute-learning-hub-redis-1 redis-cli ping
+# Microsoft OAuth
+MICROSOFT_CLIENT_ID=your-client-id
+MICROSOFT_TENANT_ID=your-tenant-id
 
-# Kafka
-docker exec -it ute-learning-hub-kafka-1 kafka-topics --list --bootstrap-server localhost:9092
-
-# Nginx (main entry point)
-curl http://localhost/health
-
-# Backend API (qua Nginx)
-curl http://localhost/api/health
-
-# Frontend (qua Nginx)
-curl http://localhost
-
-# AI Service (internal only - backend calls directly via http://ai:8000)
-
-# Kiểm tra Nginx logs
-docker-compose logs -f nginx
+# Public URL (production)
+PUBLIC_URL=https://your-domain.com
 ```
-
-### URLs (Production - qua Nginx):
-
-- **Frontend**: http://localhost
-- **Backend API**: http://localhost/api
-- **Backend OpenAPI**: http://localhost/openapi/v1.json
-- **Scalar API Docs**: http://localhost/scalar
-- **Health Check**: http://localhost/health
-- **AI Service**: Internal only (backend calls via `http://ai:8000`)
-
-**Lưu ý**: Tất cả services chỉ expose qua Nginx (port 80). Backend, Frontend, và AI chỉ accessible trong Docker network.
-
-### Connection Strings:
-
-- **SQL Server**: `Data Source=localhost;Initial Catalog=ute-learning-hub;User Id=sa;Password=YourStrong@Passw0rd;Trust Server Certificate=True`
-- **Redis**: `localhost:6379`
-- **Kafka**: `localhost:9092`
-
-### Environment Variables:
-
-Backend tự động nhận các biến môi trường từ `docker-compose.yml`:
-- Database connection string
-- Kafka configuration
-- Redis (nếu cần)
-
-Frontend:
-- `API_URL`: Backend API URL (internal: `http://backend:7080`)
-- `NEXT_PUBLIC_API_URL`: Backend API URL (public: `/api` - relative path qua Nginx)
-
-### Nginx Configuration:
-
-Nginx hoạt động như reverse proxy:
-- **/** → Frontend (Next.js)
-- **/api/** → Backend API
-- **/images/** → Backend static files (cached 30 days)
-- **/hubs/** → SignalR WebSocket connections
-- **/ai/** → AI Recommendation Service
-- **/openapi, /scalar** → API Documentation
-
-### Production Features:
-
-✅ **Single Entry Point** - Tất cả traffic qua port 80  
-✅ **Compression** - Gzip enabled  
-✅ **Caching** - Static files cached  
-✅ **Security Headers** - XSS, Frame Options, etc.  
-✅ **WebSocket Support** - SignalR ready  
-✅ **SSL Ready** - Port 443 exposed (cần cấu hình SSL certificate)
-
