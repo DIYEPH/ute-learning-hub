@@ -1,34 +1,36 @@
 # UTE Learning Hub
 
-Nền tảng chia sẻ tài liệu học tập thông minh dành cho sinh viên Đại học Sư phạm Kỹ thuật (UTE), tích hợp AI để gợi ý tài liệu và nhóm học tập phù hợp.
+> **Language / Ngôn ngữ:** **English** | [Tiếng Việt](README.vi.md)
+
+A smart learning-material sharing platform for students, powered by AI to recommend relevant documents and study groups.
 
 ---
 
-## Tính năng chính
+## Key Features
 
-### Dành cho Sinh viên
-- **Đăng nhập Microsoft** - Xác thực qua tài khoản email sinh viên UTE (@ute.udn.vn)
-- **Quản lý tài liệu** - Upload, chia sẻ và tìm kiếm tài liệu theo môn học, khoa, chuyên ngành
-- **Nhóm học tập** - Tạo và tham gia các nhóm học tập theo chủ đề
-- **Chat realtime** - Nhắn tin trong nhóm với hỗ trợ gửi file và hình ảnh
-- **Gợi ý thông minh (AI)** - Đề xuất nhóm học tập và tài liệu dựa trên sở thích và hành vi
-- **Thư viện cá nhân** - Lưu tài liệu yêu thích để đọc sau
-- **Đánh giá tài liệu** - Review và đánh giá chất lượng tài liệu
-- **Báo cáo nội dung** - Báo cáo tài liệu/nhóm vi phạm quy định
+### For Students
+- **Microsoft Sign-in** - Authenticate with the UTE student email account (@ute.udn.vn)
+- **Document management** - Upload, share and search documents by subject, faculty and major
+- **Study groups** - Create and join topic-based study groups
+- **Realtime chat** - Message within groups with file and image support
+- **Smart recommendations (AI)** - Suggest study groups and documents based on interests and behavior
+- **Personal library** - Save favorite documents to read later
+- **Document reviews** - Review and rate document quality
+- **Content reporting** - Report documents/groups that violate the rules
 
-### Dành cho Admin
-- **Quản lý tài khoản** - Xem, phân quyền và khóa tài khoản người dùng
-- **Duyệt tài liệu** - Phê duyệt hoặc từ chối tài liệu được upload
-- **Xử lý báo cáo** - Giải quyết các báo cáo vi phạm từ người dùng
-- **Quản lý danh mục** - CRUD khoa, chuyên ngành, môn học, loại tài liệu, tags
-- **Thống kê** - Dashboard với biểu đồ phân tích hoạt động hệ thống
+### For Admins
+- **Account management** - View, assign roles and lock user accounts
+- **Document moderation** - Approve or reject uploaded documents
+- **Report handling** - Resolve violation reports from users
+- **Category management** - CRUD for faculties, majors, subjects, document types and tags
+- **Analytics** - Dashboard with charts analyzing system activity
 
 ---
 
-## Công nghệ sử dụng
+## Tech Stack
 
-| Layer | Công nghệ |
-|-------|-----------|
+| Layer | Technology |
+|-------|------------|
 | **Frontend** | Next.js 16, React 19, TypeScript, TailwindCSS 4, Radix UI |
 | **Backend** | .NET 9.0, Clean Architecture, MediatR (CQRS), Entity Framework Core |
 | **AI Service** | Python, FastAPI, Sentence Transformers (all-MiniLM-L6-v2) |
@@ -39,11 +41,11 @@ Nền tảng chia sẻ tài liệu học tập thông minh dành cho sinh viên 
 
 ---
 
-## Cấu trúc dự án
+## Project Structure
 
 ```
 ute-learning-hub/
-├── frontend/          # Next.js 16 - Giao diện người dùng
+├── frontend/          # Next.js 16 - User interface
 ├── backend/           # .NET 9.0 - RESTful API (Clean Architecture)
 │   ├── UteLearningHub.Api/           # Controllers, Middleware
 │   ├── UteLearningHub.Application/   # Use Cases, Commands, Queries
@@ -58,41 +60,41 @@ ute-learning-hub/
 
 ---
 
-## Hướng dẫn cài đặt
+## Getting Started
 
-### Yêu cầu
+### Requirements
 - Docker & Docker Compose
 - Git
 
-### Chạy với Docker
+### Run with Docker
 
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/your-org/ute-learning-hub.git
 cd ute-learning-hub
 
-# Copy file environment
+# Copy the environment file
 cp .env.example .env
-# Chỉnh sửa .env với các giá trị phù hợp
+# Edit .env with the appropriate values
 
-# Build và khởi động tất cả services
+# Build and start all services
 docker-compose up -d --build
 
-# Xem logs
+# View logs
 docker-compose logs -f
 ```
 
-### Truy cập ứng dụng
+### Access the Application
 
-| Service | URL | Mô tả |
-|---------|-----|-------|
-| **Frontend** | http://localhost | Giao diện web |
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Frontend** | http://localhost | Web interface |
 | **API Docs** | http://localhost/scalar | Swagger/Scalar documentation |
-| **Health Check** | http://localhost/health | Kiểm tra trạng thái |
+| **Health Check** | http://localhost/health | Status check |
 
 ---
 
-## Phát triển Local
+## Local Development
 
 ### Backend (.NET 9.0)
 
@@ -126,36 +128,36 @@ python main.py
 ## Docker Services
 
 ### Infrastructure
-| Service | Port | Mô tả |
-|---------|------|-------|
-| SQL Server | 1433 | Database chính |
+| Service | Port | Description |
+|---------|------|-------------|
+| SQL Server | 1433 | Main database |
 
 ### Application
-| Service | Port nội bộ | Mô tả |
-|---------|-------------|-------|
+| Service | Internal port | Description |
+|---------|---------------|-------------|
 | Backend | 7080 | .NET API |
 | Frontend | 3000 | Next.js SSR |
 | AI | 8000 | Recommendation Engine |
 | Nginx | 80, 443 | Reverse Proxy & SSL |
 
-### Quản lý Services
+### Managing Services
 
 ```bash
-# Khởi động tất cả
+# Start everything
 docker-compose up -d --build
 
-# Khởi động từng service
+# Start individual services
 docker-compose up -d backend
 docker-compose up -d frontend
 docker-compose up -d ai
 
-# Xem logs service cụ thể
+# View logs for a specific service
 docker-compose logs -f backend
 
-# Dừng tất cả
+# Stop everything
 docker-compose down
 
-# Dừng và xóa volumes (reset data)
+# Stop and remove volumes (reset data)
 docker-compose down -v
 ```
 
@@ -163,8 +165,8 @@ docker-compose down -v
 
 ## Nginx Routing
 
-| Path | Service | Mô tả |
-|------|---------|-------|
+| Path | Service | Description |
+|------|---------|-------------|
 | `/` | Frontend | Next.js pages |
 | `/api/*` | Backend | REST API |
 | `/hubs/*` | Backend | SignalR WebSocket |
@@ -175,24 +177,24 @@ docker-compose down -v
 
 ## AI Recommendation System
 
-Hệ thống sử dụng **Sentence Transformers** (model `all-MiniLM-L6-v2`) để tạo vector embeddings 384 chiều cho:
+The system uses **Sentence Transformers** (model `all-MiniLM-L6-v2`) to generate 384-dimensional vector embeddings for:
 
-- **User Vector**: Dựa trên môn học và tags mà user quan tâm (từ lịch sử đọc, upload, đánh giá)
-- **Conversation Vector**: Dựa trên tên nhóm, môn học liên quan và tags
+- **User Vector**: Based on the subjects and tags a user is interested in (from reading, upload and review history)
+- **Conversation Vector**: Based on the group name, related subjects and tags
 
 ### API Endpoints
 
 ```bash
-# Tạo user vector
+# Create a user vector
 POST /vector/user
 {
-  "subjects": ["Lập trình Python", "Machine Learning"],
+  "subjects": ["Python Programming", "Machine Learning"],
   "subjectWeights": [10, 5],
   "tags": ["AI", "Data Science"],
   "tagWeights": [12, 8]
 }
 
-# Gợi ý nhóm học tập
+# Recommend study groups
 POST /recommend
 {
   "UserVector": [...],
@@ -206,18 +208,18 @@ POST /recommend
 
 ## Database Schema
 
-Các entity chính:
-- **AppUser** - Thông tin người dùng (linked với Microsoft Identity)
-- **Document** - Tài liệu với nhiều DocumentFile
-- **DocumentFile** - File PDF/DOCX/PPTX với metadata
-- **Conversation** - Nhóm học tập
-- **Message** - Tin nhắn trong nhóm (hỗ trợ attachments)
-- **Subject, Faculty, Major, Type, Tag** - Danh mục phân loại
-- **ProfileVector, ConversationVector** - Vector embeddings cho AI
+Main entities:
+- **AppUser** - User information (linked with Microsoft Identity)
+- **Document** - A document with multiple DocumentFiles
+- **DocumentFile** - PDF/DOCX/PPTX file with metadata
+- **Conversation** - Study group
+- **Message** - Messages within a group (supports attachments)
+- **Subject, Faculty, Major, Type, Tag** - Classification categories
+- **ProfileVector, ConversationVector** - Vector embeddings for AI
 
 ---
 
-## Biến môi trường
+## Environment Variables
 
 ```bash
 # Database
